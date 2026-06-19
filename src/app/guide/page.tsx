@@ -63,7 +63,7 @@ export default function Guide() {
             {aktivFane === "bygherre" ? "Vær med til at styre projektet" : "Sådan virker Contractr"}
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-8 leading-[1.1] tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-8 leading-[1.2] tracking-tight">
             {aktivFane === "bygherre" ? (
               <>Styr på projektet<br /><span className="text-[#4ade80]">fra aftale til aflevering</span></>
             ) : (
