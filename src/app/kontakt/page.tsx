@@ -1,10 +1,7 @@
-import Link from "next/link";
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Kontakt Contractr",
-  description: "Kontakt Contractr med spørgsmål om platformen, din konto eller dit byggeprojekt.",
-};
+import Link from "next/link";
+
 
 export default function Kontakt() {
   return (
