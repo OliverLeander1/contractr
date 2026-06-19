@@ -1,0 +1,282 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import FlowLayout from "@/components/FlowLayout";
+
+const risikopunkter = [
+  {
+    id: "abforbruger",
+    kategori: "AB-Forbruger",
+    status: "fejl",
+    titel: "AB-Forbruger er ikke nævnt",
+    forklaring: "Aftalen nævner ikke AB-Forbruger. Det betyder, at du som forbruger ikke automatisk er beskyttet af disse standardbetingelser, og du kan stå dårligere ved tvister.",
+    anbefaling: "Afklar skriftligt med håndværkeren om AB-Forbruger skal gælde — det bør de fleste byggeaftaler over 3.000 kr.",
+    forslag: "Jeg ønsker at AB-Forbruger 2012 tilføjes som grundlag for aftalen.",
+    alvor: "høj",
+  },
+  {
+    id: "betaling",
+    kategori: "Betalingsplan",
+    status: "advarsel",
+    titel: "50% forudbetaling kræves",
+    forklaring: "Tilbuddet kræver 50% betaling ved opstart. AB-Forbruger anbefaler, at betaling sker løbende og kobles til dokumenteret fremdrift.",
+    anbefaling: "Spørg om betalingen kan fordeles i milepæle koblet til faktisk udført arbejde.",
+    forslag: "Jeg ønsker betalingen opdelt i milepæle: 20% ved opstart, 40% ved halvvejs, 40% ved aflevering.",
+    alvor: "middel",
+  },
+  {
+    id: "tidsplan",
+    kategori: "Tidsplan",
+    status: "advarsel",
+    titel: "Ingen slutdato er aftalt",
+    forklaring: "Tilbuddet angiver en startdato, men ingen bindende slutdato. Uden slutdato er det svært at kræve dagbod ved forsinkelse.",
+    anbefaling: "Aftal en konkret slutdato og hvad der sker ved forsinkelse (f.eks. dagbod jf. AB-Forbruger § 31).",
+    forslag: "Jeg ønsker en bindende slutdato tilføjet i kontrakten samt bestemmelse om dagbod ved forsinkelse.",
+    alvor: "middel",
+  },
+  {
+    id: "pris",
+    kategori: "Pris",
+    status: "ok",
+    titel: "Fast pris aftalt",
+    forklaring: "Tilbuddet angiver en fast pris på 68.500 kr. inkl. moms. Det er klart og beskytter dig mod uventede prisstigninger.",
+    anbefaling: null,
+    forslag: null,
+    alvor: "lav",
+  },
+  {
+    id: "ekstra",
+    kategori: "Ekstraarbejde",
+    status: "ok",
+    titel: "Skriftlig aftale kræves",
+    forklaring: "Tilbuddet angiver, at ekstraarbejde skal aftales skriftligt. Det er godt og i overensstemmelse med AB-Forbruger § 23.",
+    anbefaling: null,
+    forslag: null,
+    alvor: "lav",
+  },
+  {
+    id: "mangler",
+    kategori: "Mangler",
+    status: "advarsel",
+    titel: "Afleveringsprocedure ikke beskrevet",
+    forklaring: "Aftalen beskriver ikke, hvad der sker ved aflevering, eller hvordan mangler skal dokumenteres og håndteres.",
+    anbefaling: "Afklar hvornår arbejdet anses som afleveret, og hvordan mangler skal meddeles (jf. AB-Forbruger § 37-42).",
+    forslag: "Jeg ønsker en beskrivelse af afleveringsproceduren og håndtering af mangler tilføjet i aftalen.",
+    alvor: "middel",
+  },
+];
+
+const statusFarve = (status: string) => {
+  if (status === "ok") return { bg: "bg-green-100", text: "text-green-700", border: "border-green-200", label: "OK" };
+  if (status === "advarsel") return { bg: "bg-yellow-100", text: "text-yellow-700", border: "border-yellow-100", label: "Afklar" };
+  return { bg: "bg-red-100", text: "text-red-700", border: "border-red-100", label: "Vigtigt" };
+};
+
+const statusIkon = (status: string) => {
+  if (status === "ok") return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>;
+  if (status === "advarsel") return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>;
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>;
+};
+
+export default function Rapport() {
+  const [markerede, setMarkerede] = useState<Set<string>>(new Set());
+  const [sendtModal, setSendtModal] = useState(false);
+  const [kopieret, setKopieret] = useState(false);
+
+  const fejl = risikopunkter.filter((r) => r.status === "fejl").length;
+  const advarsler = risikopunkter.filter((r) => r.status === "advarsel").length;
+  const ok = risikopunkter.filter((r) => r.status === "ok").length;
+  const samletRisiko = fejl > 0 ? "høj" : advarsler >= 2 ? "middel" : "lav";
+
+  const risikoFarve = {
+    høj: { bg: "bg-red-100", text: "text-red-700", border: "border-red-200", label: "Høj risiko" },
+    middel: { bg: "bg-yellow-100", text: "text-yellow-700", border: "border-yellow-200", label: "Middel risiko" },
+    lav: { bg: "bg-green-100", text: "text-green-700", border: "border-green-200", label: "Lav risiko" },
+  }[samletRisiko];
+
+  const toggleMarkeret = (id: string) => {
+    setMarkerede(prev => {
+      const ny = new Set(prev);
+      ny.has(id) ? ny.delete(id) : ny.add(id);
+      return ny;
+    });
+  };
+
+  const markerAlle = () => {
+    const afklarPunkter = risikopunkter.filter(r => r.status !== "ok" && r.forslag).map(r => r.id);
+    setMarkerede(new Set(afklarPunkter));
+  };
+
+  const markeretePunkter = risikopunkter.filter(r => markerede.has(r.id));
+
+  const genererBesked = () => {
+    const linjer = markeretePunkter.map((p, i) => `${i + 1}. ${p.kategori}: ${p.forslag}`).join("\n");
+    return `Hej,\n\nJeg har gennemgået dit tilbud og har følgende ændringsønsker, inden vi kan gå videre:\n\n${linjer}\n\nKan du bekræfte at disse punkter kan tilpasses i et revideret tilbud/kontrakt?\n\nMed venlig hilsen`;
+  };
+
+  const kopier = () => {
+    navigator.clipboard.writeText(genererBesked());
+    setKopieret(true);
+    setTimeout(() => setKopieret(false), 2000);
+  };
+
+  return (
+    <FlowLayout aktivTrin={4}>
+      {/* Sendt-modal */}
+      {sendtModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={() => setSendtModal(false)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="relative bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center" onClick={e => e.stopPropagation()}>
+            <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h3 className="font-bold text-gray-900 text-lg mb-2">Forslag sendt!</h3>
+            <p className="text-sm text-gray-500 mb-6">Håndværkeren modtager dit forslag og kan svare direkte i platformen.</p>
+            <Link href="/projekt/1" className="block w-full bg-primary text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity">
+              Gå til dit projekt →
+            </Link>
+          </div>
+        </div>
+      )}
+
+      <div className="mb-8">
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">Din aftalerapport</h1>
+            <p className="text-gray-500">Badeværelse renovering · Tilbud analyseret</p>
+          </div>
+          <span className={`flex-shrink-0 text-sm font-bold px-4 py-2 rounded-full border ${risikoFarve.bg} ${risikoFarve.text} ${risikoFarve.border}`}>
+            {risikoFarve.label}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          {[
+            { label: "Skal afklares", antal: fejl + advarsler, farve: "text-red-600", bg: "bg-red-50" },
+            { label: "Ser fint ud", antal: ok, farve: "text-green-600", bg: "bg-green-50" },
+            { label: "Punkter screenet", antal: risikopunkter.length, farve: "text-gray-900", bg: "bg-gray-50" },
+          ].map((item) => (
+            <div key={item.label} className={`${item.bg} rounded-xl p-4 text-center`}>
+              <p className={`text-3xl font-bold ${item.farve}`}>{item.antal}</p>
+              <p className="text-xs text-gray-500 mt-1">{item.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Risikopunkter med markeringsmulighed */}
+      <div className="space-y-3 mb-6">
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-gray-900">Gennemgang af aftalen</h2>
+          <button onClick={markerAlle} className="text-xs font-semibold text-primary hover:underline">
+            Markér alle kritiske →
+          </button>
+        </div>
+        <p className="text-xs text-gray-400 mb-2">Markér de punkter du vil sende som forslag til håndværkeren</p>
+
+        {risikopunkter.map((punkt) => {
+          const farve = statusFarve(punkt.status);
+          const erMarkeret = markerede.has(punkt.id);
+          const kanMarkeres = punkt.status !== "ok" && punkt.forslag;
+          return (
+            <div
+              key={punkt.id}
+              className={`bg-white rounded-2xl border shadow-sm p-5 transition-all ${erMarkeret ? "border-primary ring-2 ring-primary/20" : farve.border}`}
+            >
+              <div className="flex items-start gap-3">
+                {kanMarkeres && (
+                  <button
+                    onClick={() => toggleMarkeret(punkt.id)}
+                    className={`w-5 h-5 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition-colors ${erMarkeret ? "bg-primary border-primary" : "border-gray-300 hover:border-primary"}`}
+                  >
+                    {erMarkeret && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </button>
+                )}
+                {!kanMarkeres && <div className="w-5 flex-shrink-0" />}
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${farve.bg} ${farve.text}`}>
+                  {statusIkon(punkt.status)}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${farve.bg} ${farve.text}`}>{farve.label}</span>
+                    <span className="text-xs text-gray-400">{punkt.kategori}</span>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-1">{punkt.titel}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed mb-3">{punkt.forklaring}</p>
+                  {punkt.anbefaling && (
+                    <div className="bg-accent rounded-xl p-3 mb-2">
+                      <p className="text-xs font-semibold text-accent-foreground mb-0.5">Anbefaling</p>
+                      <p className="text-xs text-accent-foreground/80 leading-relaxed">{punkt.anbefaling}</p>
+                    </div>
+                  )}
+                  {erMarkeret && punkt.forslag && (
+                    <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 mt-2">
+                      <p className="text-xs font-semibold text-primary mb-0.5">Dit forslag til håndværkeren</p>
+                      <p className="text-xs text-gray-700 leading-relaxed">{punkt.forslag}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Send forslag */}
+      {markerede.size > 0 && (
+        <div className="bg-white rounded-2xl border border-primary/20 shadow-sm p-6 mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-white text-[10px] font-bold">{markerede.size}</div>
+            <h2 className="font-semibold text-gray-900">Forslag klar til afsendelse</h2>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-4 mb-4">
+            <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">{genererBesked()}</pre>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={kopier}
+              className="flex items-center gap-2 text-xs font-semibold text-gray-600 border border-gray-200 px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+            >
+              {kopieret ? "Kopieret!" : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Kopiér</>}
+            </button>
+            <button
+              onClick={() => setSendtModal(true)}
+              className="flex-1 bg-primary text-white font-bold text-sm py-2.5 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send forslag til håndværkeren
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Book rådgiver */}
+      <div className="bg-primary rounded-2xl p-6 text-white mb-6">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 text-xl">👨‍💼</div>
+          <div className="flex-1">
+            <h3 className="font-bold mb-1">Vil du have en rådgiver til at gennemgå aftalen?</h3>
+            <p className="text-white/70 text-sm mb-4">En byggesagkyndig kan give dig en professionel vurdering på 1-2 hverdage. Fra 1.495 kr.</p>
+            <Link href="/tilkoeb" className="inline-block bg-white text-primary text-sm font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">
+              Book rådgivergennemgang
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-3">
+        <Link href="/" className="flex-1 text-center py-4 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors">
+          Tilbage til forsiden
+        </Link>
+        <Link href="/projekt/1" className="flex-1 text-center py-4 rounded-xl bg-primary text-white text-sm font-bold hover:opacity-90 transition-opacity">
+          Gå til dit projekt →
+        </Link>
+      </div>
+
+      <p className="text-center text-xs text-gray-400 mt-6">
+        Contractr giver ikke juridisk rådgivning. Rapporten er vejledende og erstatter ikke professionel rådgivning ved tvivl eller tvist.
+      </p>
+    </FlowLayout>
+  );
+}
