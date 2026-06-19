@@ -58,7 +58,7 @@ export default function HaandvaerkerSager() {
               </svg>
             </div>
             <div>
-              <span className="font-bold text-gray-900">Contractr</span>
+              <span className="" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Contractr</span>
               <span className="ml-2 text-xs bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded">Håndværker</span>
             </div>
           </div>

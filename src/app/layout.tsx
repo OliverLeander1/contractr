@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
 import "./globals.css";
 import CookieBanner from "@/components/CookieBanner";
 
@@ -7,6 +7,12 @@ const jakarta = Plus_Jakarta_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
+});
+
+const dmSans = DM_Sans({
+  variable: "--font-logo",
+  subsets: ["latin"],
+  weight: ["200"],
 });
 
 const BASE_URL = "https://www.contractr.dk";
@@ -50,7 +56,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="da" className={`${jakarta.variable} h-full antialiased`}>
+    <html lang="da" className={`${jakarta.variable} ${dmSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         {children}
         <CookieBanner />

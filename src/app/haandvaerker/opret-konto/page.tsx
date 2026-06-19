@@ -36,7 +36,7 @@ export default function HaandvaerkerOpretKonto() {
                 <polyline points="9 22 9 12 15 12 15 22"/>
               </svg>
             </div>
-            <span className="font-bold text-gray-900 text-xl">Contractr</span>
+            <span className="text-xl" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Contractr</span>
           </Link>
         </div>
 

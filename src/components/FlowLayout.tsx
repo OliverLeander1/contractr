@@ -32,7 +32,7 @@ export default function FlowLayout({
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
             </div>
-            <span className="font-bold text-gray-900">Contractr</span>
+            <span className="" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Contractr</span>
           </Link>
 
           <div className="flex items-center gap-2">
