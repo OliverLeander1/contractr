@@ -60,7 +60,7 @@ export default function Guide() {
 
         <div className="relative z-10 max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 border border-white/10 text-white/50 text-xs font-medium px-4 py-2 rounded-full mb-10 tracking-widest uppercase">
-            Sådan virker Contractr
+            {aktivFane === "bygherre" ? "Vær med til at styre projektet" : "Sådan virker Contractr"}
           </div>
 
           <h1 className="text-6xl md:text-8xl font-bold text-white mb-8 leading-[0.95] tracking-tight">
