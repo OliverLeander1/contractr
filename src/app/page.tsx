@@ -92,6 +92,9 @@ export default function Home() {
                 </div>
                 Se hvordan det virker
               </button>
+              <Link href="/guide" className="flex items-center gap-2 text-sm font-medium text-[#1a5c38] hover:underline">
+                Se fuld guide →
+              </Link>
             </div>
             <div className="flex items-center gap-6 mt-10 pt-10 border-t border-gray-100">
               <div>
