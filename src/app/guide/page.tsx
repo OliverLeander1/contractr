@@ -64,12 +64,17 @@ export default function Guide() {
           </div>
 
           <h1 className="text-6xl md:text-8xl font-bold text-white mb-8 leading-[0.95] tracking-tight">
-            Tryghed fra<br />
-            <span className="text-[#4ade80]">tilbud til nøgler</span>
+            {aktivFane === "bygherre" ? (
+              <>Styr på projektet<br /><span className="text-[#4ade80]">fra aftale til aflevering</span></>
+            ) : (
+              <>Professionel ramme<br /><span className="text-[#4ade80]">om hvert eneste projekt</span></>
+            )}
           </h1>
 
           <p className="text-xl text-white/50 max-w-xl mx-auto mb-14 leading-relaxed">
-            Én platform der beskytter dig gennem hele byggeprocessen — uanset om du er bygherre eller håndværker.
+            {aktivFane === "bygherre"
+              ? "Uanset om du renoverer badeværelset eller bygger tilbygning — Contractr giver dig overblik, tryghed og stærke kort på hånden."
+              : "Undgå misforståelser, mundtlige aftaler og tvister. Contractr giver dig en professionel platform du inviterer kunden ind i — gratis for dig."}
           </p>
 
           {/* Fane */}
@@ -92,11 +97,18 @@ export default function Guide() {
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-px bg-white/10 rounded-2xl overflow-hidden max-w-lg mx-auto">
-            {[
-              { tal: "2 min", label: "Gennemsnitstid" },
-              { tal: "100%", label: "Fortroligt" },
-              { tal: "Gratis", label: "Grundscreening" },
-            ].map((s) => (
+            {(aktivFane === "bygherre"
+              ? [
+                  { tal: "2 min", label: "Gennemsnitstid" },
+                  { tal: "100%", label: "Fortroligt" },
+                  { tal: "Gratis", label: "Grundscreening" },
+                ]
+              : [
+                  { tal: "Gratis", label: "Altid for håndværker" },
+                  { tal: "100%", label: "Skriftligt dokumenteret" },
+                  { tal: "0 kr.", label: "Ingen binding" },
+                ]
+            ).map((s) => (
               <div key={s.label} className="bg-gray-950 py-6 text-center">
                 <p className="text-2xl font-bold text-white mb-1">{s.tal}</p>
                 <p className="text-xs text-white/40">{s.label}</p>
