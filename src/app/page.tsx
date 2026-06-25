@@ -21,10 +21,7 @@ export default function KommerSnart() {
         </span>
       </div>
 
-      <h1 className="text-3xl font-bold text-white mb-3">Kommer snart</h1>
-      <p className="text-gray-400 max-w-sm leading-relaxed">
-        Vi arbejder på noget nyt til private bygherrer i Danmark. Hold øje her.
-      </p>
+      <p className="text-gray-400 text-sm tracking-widest uppercase">Kommer snart</p>
 
       <div className="mt-10 text-gray-600 text-xs">
         © 2025 Contractr
