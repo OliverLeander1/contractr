@@ -23,7 +23,6 @@ interface DawaForslag {
 export default function OpretProjekt() {
   const router = useRouter();
   const [valgtType, setValgtType] = useState("");
-  const [budget, setBudget] = useState("");
   const [adresse, setAdresse] = useState("");
   const [status, setStatus] = useState("tilbud");
   const [forslag, setForslag] = useState<DawaForslag[]>([]);
@@ -86,7 +85,7 @@ export default function OpretProjekt() {
         </div>
       </div>
 
-      {/* Adresse og budget */}
+      {/* Adresse */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
         <h2 className="font-semibold text-gray-900 mb-5">Projektdetaljer</h2>
         <div className="space-y-4">
@@ -116,21 +115,6 @@ export default function OpretProjekt() {
                 ))}
               </ul>
             )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Forventet budget <span className="text-gray-400 font-normal">(valgfrit)</span>
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="F.eks. 150.000"
-                value={budget}
-                onChange={(e) => setBudget(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-12 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">kr.</span>
-            </div>
           </div>
         </div>
       </div>
@@ -176,7 +160,7 @@ export default function OpretProjekt() {
           sessionStorage.setItem("screening_projekttype", valgtType);
           sessionStorage.setItem("screening_adresse", adresse);
           if (status === "dialog") router.push("/opret/ingen-tilbud");
-          else router.push("/opret/upload");
+          else router.push("/opret/tips");
         }}
         className={`w-full py-4 rounded-xl text-base font-bold transition-all ${
           kanFortsætte
