@@ -85,7 +85,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Kunne ikke parse svar fra AI" }, { status: 500 });
     }
 
-    return NextResponse.json(JSON.parse(jsonMatch[0]));
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch {
+      // Forsøg at reparere JSON ved at fjerne trailing incomplete entries
+      const txt = jsonMatch[0];
+      const lastValid = txt.lastIndexOf('},');
+      if (lastValid > 0) {
+        try {
+          parsed = JSON.parse(txt.slice(0, lastValid) + '}]}');
+        } catch {
+          return NextResponse.json({ error: "Kunne ikke parse svar fra AI — prøv igen" }, { status: 500 });
+        }
+      } else {
+        return NextResponse.json({ error: "Kunne ikke parse svar fra AI — prøv igen" }, { status: 500 });
+      }
+    }
+
+    return NextResponse.json(parsed);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Ukendt fejl";
     return NextResponse.json({ error: msg }, { status: 500 });
