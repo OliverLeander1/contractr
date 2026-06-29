@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import FlowLayout from "@/components/FlowLayout";
 
@@ -15,12 +15,43 @@ const projekttyper = [
   { id: "andet", label: "Andet", ikon: "📋" },
 ];
 
+interface DawaForslag {
+  tekst: string;
+  adresse: { id: string };
+}
+
 export default function OpretProjekt() {
   const router = useRouter();
   const [valgtType, setValgtType] = useState("");
   const [budget, setBudget] = useState("");
   const [adresse, setAdresse] = useState("");
   const [status, setStatus] = useState("tilbud");
+  const [forslag, setForslag] = useState<DawaForslag[]>([]);
+  const [visForslag, setVisForslag] = useState(false);
+  const adresseRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (adresseRef.current && !adresseRef.current.contains(e.target as Node)) {
+        setVisForslag(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  useEffect(() => {
+    if (adresse.length < 3) { setForslag([]); return; }
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://api.dataforsyningen.dk/autocomplete?q=${encodeURIComponent(adresse)}&type=adresse&per_side=6`);
+        const data = await res.json();
+        setForslag(data);
+        setVisForslag(true);
+      } catch { setForslag([]); }
+    }, 200);
+    return () => clearTimeout(timeout);
+  }, [adresse]);
 
   const kanFortsætte = valgtType && adresse;
 
@@ -59,7 +90,7 @@ export default function OpretProjekt() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
         <h2 className="font-semibold text-gray-900 mb-5">Projektdetaljer</h2>
         <div className="space-y-4">
-          <div>
+          <div ref={adresseRef} className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Adresse <span className="text-red-400">*</span>
             </label>
@@ -67,9 +98,24 @@ export default function OpretProjekt() {
               type="text"
               placeholder="F.eks. Valby Langgade 85, 2500 Valby"
               value={adresse}
-              onChange={(e) => setAdresse(e.target.value)}
+              onChange={(e) => { setAdresse(e.target.value); setVisForslag(true); }}
+              onFocus={() => forslag.length > 0 && setVisForslag(true)}
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+              autoComplete="off"
             />
+            {visForslag && forslag.length > 0 && (
+              <ul className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                {forslag.map((f) => (
+                  <li
+                    key={f.adresse.id}
+                    onMouseDown={() => { setAdresse(f.tekst); setVisForslag(false); setForslag([]); }}
+                    className="px-4 py-3 text-sm text-gray-800 hover:bg-accent cursor-pointer border-b border-gray-50 last:border-0"
+                  >
+                    {f.tekst}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
