@@ -2,6 +2,7 @@ import { use, Suspense } from "react";
 import Link from "next/link";
 import ProjektNav from "@/components/ProjektNav";
 import Chat from "@/components/Chat";
+import ProjektHeader from "@/components/ProjektHeader";
 
 const milestones = [
   { id: 1, navn: "Kontrakt underskrevet", dato: "12. mar. 2025", status: "done" },
@@ -41,40 +42,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
       <div className="max-w-7xl mx-auto px-6 py-8">
 
         {/* Projekt header */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
-          <div className="flex items-start justify-between gap-6">
-            <div className="flex items-start gap-5">
-              <div className="w-24 h-20 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex-shrink-0 overflow-hidden">
-                <div className="w-full h-full flex items-center justify-center text-3xl">🏠</div>
-              </div>
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-xl font-bold text-gray-900">Indvendig renovering – Valby</h1>
-                  <span className="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">I gang</span>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-1.5">
-                  {[
-                    { label: "Projekttype", value: "Indvendig renovering" },
-                    { label: "Adresse", value: "Valby Langgade 85, 2500 Valby" },
-                    { label: "Projektnr.", value: "BT-2025-0412" },
-                    { label: "Oprettet", value: "12. marts 2025" },
-                    { label: "Estimeret afslutning", value: "30. september 2025" },
-                    { label: "Entreprisesum", value: "112.500 kr." },
-                  ].map((item) => (
-                    <div key={item.label}>
-                      <p className="text-xs text-gray-400">{item.label}</p>
-                      <p className="text-sm font-medium text-gray-700">{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <button className="flex items-center gap-2 text-sm font-medium text-gray-600 border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0">
-              Se projektoplysninger
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
-            </button>
-          </div>
-        </div>
+        <ProjektHeader />
 
         {/* Statuskort */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
