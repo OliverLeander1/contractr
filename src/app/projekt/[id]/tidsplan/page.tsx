@@ -4,19 +4,18 @@ import { use, useState } from "react";
 import ProjektNav from "@/components/ProjektNav";
 import ABTip from "@/components/ABTip";
 
-// Mar 12 → Sep 30 2025 = 202 days total
+// Project runs 202 days total, anchored to today so the demo always looks active
 const TOTAL = 202;
-const TODAY = 99; // June 19
+const START_DATE = (() => { const d = new Date(); d.setDate(d.getDate() - 99); return d; })();
+const TODAY = 99; // always "today" = day 99
 
-const MONTHS = [
-  { label: "Mar", day: 0 },
-  { label: "Apr", day: 20 },
-  { label: "Maj", day: 50 },
-  { label: "Jun", day: 81 },
-  { label: "Jul", day: 111 },
-  { label: "Aug", day: 142 },
-  { label: "Sep", day: 173 },
-];
+const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+const fmtMonth = (d: Date) => d.toLocaleDateString("da-DK", { month: "short" }).replace(".", "").replace(/^\w/, c => c.toUpperCase());
+
+const MONTHS = Array.from({ length: 8 }, (_, i) => {
+  const d = addDays(START_DATE, Math.round((i / 7) * TOTAL));
+  return { label: fmtMonth(d), day: Math.round((i / 7) * TOTAL) };
+});
 
 type Status = "done" | "active" | "forsinket" | "upcoming";
 
@@ -133,7 +132,11 @@ export default function Tidsplan({ params }: { params: Promise<{ id: string }> }
         <div className="flex items-start justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Tidsplan</h1>
-            <p className="text-sm text-gray-400 mt-1">12. mar – 30. sep 2025 · Indvendig renovering – Valby</p>
+            <p className="text-sm text-gray-400 mt-1">
+              {addDays(START_DATE, 0).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
+              {" – "}
+              {addDays(START_DATE, TOTAL).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
+            </p>
           </div>
           <div className="flex items-center gap-2.5">
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full">

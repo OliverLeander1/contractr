@@ -1,15 +1,24 @@
+"use client";
+
 import { use, Suspense } from "react";
 import Link from "next/link";
 import ProjektNav from "@/components/ProjektNav";
 import Chat from "@/components/Chat";
 import ProjektHeader from "@/components/ProjektHeader";
 
+const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+const fmt = (d: Date) => d.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" });
+const fmtShort = (d: Date) => d.toLocaleDateString("da-DK", { day: "numeric", month: "short" });
+const START = addDays(new Date(), -99); // project started 99 days ago
+const END = addDays(START, 202);
+const PROGRESS = Math.round((99 / 202) * 100); // 49%
+
 const milestones = [
-  { id: 1, navn: "Kontrakt underskrevet", dato: "12. mar. 2025", status: "done" },
-  { id: 2, navn: "Nedrivning", dato: "28. mar. 2025", status: "done" },
-  { id: 3, navn: "Gipsvægge", dato: "30. apr. 2025", status: "active" },
-  { id: 4, navn: "Malerarbejde", dato: "15. jun. 2025", status: "upcoming" },
-  { id: 5, navn: "Aflevering", dato: "30. sep. 2025", status: "upcoming" },
+  { id: 1, navn: "Kontrakt underskrevet", dato: fmtShort(START), status: "done" },
+  { id: 2, navn: "Nedrivning", dato: fmtShort(addDays(START, 16)), status: "done" },
+  { id: 3, navn: "Gipsvægge", dato: fmtShort(addDays(START, 49)), status: "active" },
+  { id: 4, navn: "Malerarbejde", dato: fmtShort(addDays(START, 99)), status: "upcoming" },
+  { id: 5, navn: "Aflevering", dato: fmtShort(END), status: "upcoming" },
 ];
 
 const betalinger = [
@@ -20,17 +29,17 @@ const betalinger = [
 ];
 
 const dokumenter = [
-  { navn: "Kontrakt", type: "PDF", størrelse: "1,2 MB", dato: "12. mar. 2025" },
-  { navn: "Aftaleseddel #3", type: "PDF", størrelse: "345 KB", dato: "30. apr. 2025" },
-  { navn: "Tidsplan", type: "PDF", størrelse: "780 KB", dato: "15. mar. 2025" },
-  { navn: "Tegninger", type: "ZIP", størrelse: "4,8 MB", dato: "12. mar. 2025" },
+  { navn: "Kontrakt", type: "PDF", størrelse: "1,2 MB", dato: fmt(START) },
+  { navn: "Aftaleseddel #3", type: "PDF", størrelse: "345 KB", dato: fmt(addDays(START, 49)) },
+  { navn: "Tidsplan", type: "PDF", størrelse: "780 KB", dato: fmt(addDays(START, 3)) },
+  { navn: "Tegninger", type: "ZIP", størrelse: "4,8 MB", dato: fmt(START) },
 ];
 
 const aktiviteter = [
-  { tekst: "Aftaleseddel #3 er klar til godkendelse", tid: "30. apr. 2025 kl. 10:32", type: "dokument" },
-  { tekst: "Betaling for milepæl Gipsvægge er godkendt", tid: "28. apr. 2025 kl. 14:21", type: "betaling" },
-  { tekst: "Rådgiverbesøg booket", tid: "24. apr. 2025 kl. 09:15", type: "rådgiver" },
-  { tekst: "Tidsplan opdateret af entreprenøren", tid: "15. mar. 2025 kl. 11:00", type: "tidsplan" },
+  { tekst: "Aftaleseddel #3 er klar til godkendelse", tid: `${fmt(addDays(START, 49))} kl. 10:32`, type: "dokument" },
+  { tekst: "Betaling for milepæl Gipsvægge er godkendt", tid: `${fmt(addDays(START, 47))} kl. 14:21`, type: "betaling" },
+  { tekst: "Rådgiverbesøg booket", tid: `${fmt(addDays(START, 43))} kl. 09:15`, type: "rådgiver" },
+  { tekst: "Tidsplan opdateret af entreprenøren", tid: `${fmt(addDays(START, 3))} kl. 11:00`, type: "tidsplan" },
 ];
 
 export default function ProjektOversigt({ params }: { params: Promise<{ id: string }> }) {
@@ -47,13 +56,13 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
         {/* Statuskort */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
           {[
-            { label: "Projektstatus", value: "43 %", sub: "Af projektet udført", link: "Se detaljer", href: `/projekt/${id}/tidsplan`, color: "text-primary", icon: (
+            { label: "Projektstatus", value: `${PROGRESS} %`, sub: "Af projektet udført", link: "Se detaljer", href: `/projekt/${id}/tidsplan`, color: "text-primary", icon: (
               <svg width="20" height="20" viewBox="0 0 36 36" className="text-primary">
                 <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" strokeWidth="3.5"/>
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" strokeWidth="3.5" strokeDasharray="43 57" strokeDashoffset="25" strokeLinecap="round"/>
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" strokeWidth="3.5" strokeDasharray={`${PROGRESS} ${100 - PROGRESS}`} strokeDashoffset="25" strokeLinecap="round"/>
               </svg>
             )},
-            { label: "Næste milepæl", value: "Malerarbejde", sub: "15. juni 2025", link: "Se tidsplan", href: `/projekt/${id}/tidsplan`, color: "text-gray-900", icon: (
+            { label: "Næste milepæl", value: "Malerarbejde", sub: fmtShort(addDays(START, 99)), link: "Se tidsplan", href: `/projekt/${id}/tidsplan`, color: "text-gray-900", icon: (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
             )},
             { label: "Næste betaling", value: "42.500 kr.", sub: "Afventer godkendelse", link: "Se betalinger", href: `/projekt/${id}/betalinger`, color: "text-gray-900", icon: (
@@ -65,7 +74,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
             { label: "Åbne mangler", value: "1", sub: "Kræver opfølgning", link: "Se mangler", href: `/projekt/${id}/mangler`, color: "text-red-600", icon: (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-400"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             )},
-            { label: "Booket rådgiverbesøg", value: "28. maj 2025", sub: "Byggepladstilsyn", link: "Se aftale", href: `/tilkoeb/book/bekraeftelse`, color: "text-gray-900", icon: (
+            { label: "Booket rådgiverbesøg", value: fmtShort(addDays(new Date(), 14)), sub: "Byggepladstilsyn", link: "Se aftale", href: `/tilkoeb/book/bekraeftelse`, color: "text-gray-900", icon: (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             )},
           ].map((item) => (
@@ -93,7 +102,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
               </div>
               <div className="relative">
                 <div className="absolute top-4 left-4 right-4 h-0.5 bg-gray-200" />
-                <div className="absolute top-4 left-4 h-0.5 bg-primary" style={{ width: "45%" }} />
+                <div className="absolute top-4 left-4 h-0.5 bg-primary" style={{ width: `${PROGRESS}%` }} />
                 <div className="flex justify-between relative">
                   {milestones.map((m) => (
                     <div key={m.id} className="flex flex-col items-center gap-2 w-1/5">
