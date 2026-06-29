@@ -16,9 +16,19 @@ export default function UploadAftale() {
     if (!nyeFiler) return;
     const arr = Array.from(nyeFiler);
     setFiler(prev => [...prev, ...arr]);
-    // Prøv at læse tekst fra tekstbaserede filer
     arr.forEach(fil => {
-      if (fil.type === "text/plain" || fil.name.endsWith(".txt")) {
+      if (fil.type === "application/pdf" || fil.name.endsWith(".pdf")) {
+        // Læs PDF som base64 og gem i sessionStorage
+        const reader = new FileReader();
+        reader.onload = e => {
+          const dataUrl = e.target?.result as string;
+          // dataUrl = "data:application/pdf;base64,XXXX" — vi vil kun have base64-delen
+          const base64 = dataUrl.split(",")[1];
+          sessionStorage.setItem("screening_pdf_base64", base64);
+          sessionStorage.removeItem("screening_tekst"); // PDF har forrang
+        };
+        reader.readAsDataURL(fil);
+      } else if (fil.type === "text/plain" || fil.name.endsWith(".txt")) {
         const reader = new FileReader();
         reader.onload = e => {
           const indhold = e.target?.result as string;
@@ -43,11 +53,12 @@ export default function UploadAftale() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  const kanFortsætte = tekst.trim().length > 30 || filer.length > 0;
+  const harPdf = filer.some(f => f.name.endsWith(".pdf") || f.type === "application/pdf");
+  const kanFortsætte = tekst.trim().length > 30 || harPdf;
 
   const fortsæt = () => {
     if (!kanFortsætte) return;
-    sessionStorage.setItem("screening_tekst", tekst);
+    if (!harPdf) sessionStorage.setItem("screening_tekst", tekst);
     router.push("/opret/screening");
   };
 

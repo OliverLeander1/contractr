@@ -23,18 +23,17 @@ export default function Screening() {
 
   useEffect(() => {
     const tekst = sessionStorage.getItem("screening_tekst") || "";
+    const pdfBase64 = sessionStorage.getItem("screening_pdf_base64") || undefined;
     const projekttype = sessionStorage.getItem("screening_projekttype") || "renovation";
 
-    // Animér trin mens vi venter på API
     const interval = setInterval(() => {
       setAktivtTrin(prev => Math.min(prev + 1, trin.length - 2));
     }, 700);
 
-    // Kald API
     fetch("/api/screen", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tekst, projekttype }),
+      body: JSON.stringify({ tekst, projekttype, pdfBase64 }),
     })
       .then(res => res.json())
       .then(data => {

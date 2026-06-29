@@ -3,19 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-export async function POST(req: NextRequest) {
-  const { tekst, projekttype } = await req.json();
+const SYSTEM = `Du er en dansk byggeretsekspert der hjælper private bygherrer med at forstå deres byggeaftaler.
 
-  if (!tekst || tekst.trim().length < 30) {
-    return NextResponse.json({ error: "For lidt tekst til at screene" }, { status: 400 });
-  }
-
-  const prompt = `Du er en dansk byggeretsekspert der hjælper private bygherrer med at forstå deres byggeaftaler.
-
-Analyser følgende byggeaftale/tilbud og screen den mod AB-Forbruger 2012. Projekttype: ${projekttype || "renovation"}.
-
-TILBUD/AFTALE:
-${tekst}
+Analyser byggeaftalen/tilbuddet og screen den mod AB-Forbruger 2012.
 
 Returner KUN et JSON-objekt i dette format (ingen markdown, ingen forklaring udenfor JSON):
 {
@@ -38,26 +28,58 @@ Regler:
 - Screen for MINDST disse emner: AB-Forbruger nævnt, fast pris vs. overslag, betalingsplan koblet til fremdrift, bindende tidsplan med slutdato, procedure for ekstraarbejde, afleverings- og mangelprocedure
 - Skriv altid på dansk
 - Aldrig juridisk jargon — forklar som til en almindelig boligejer
-- Sæt "fejl" hvis noget er klart problematisk (f.eks. 50%+ forudbetaling, ingen slutdato, AB-Forbruger ikke nævnt)
+- Sæt "fejl" hvis noget er klart problematisk (fx 50%+ forudbetaling, ingen slutdato, AB-Forbruger ikke nævnt)
 - Sæt "advarsel" hvis noget bør afklares men ikke nødvendigvis er galt
 - Sæt "ok" kun hvis punktet faktisk er dækket tilfredsstillende
-- Basér alt på hvad der faktisk står i teksten — lav ikke noget op
+- Basér alt på hvad der faktisk står — lav ikke noget op
 - Inkludér mindst 4 punkter, typisk 5-8`;
+
+export async function POST(req: NextRequest) {
+  const { tekst, projekttype, pdfBase64 } = await req.json();
+
+  if (!tekst && !pdfBase64) {
+    return NextResponse.json({ error: "Intet indhold at screene" }, { status: 400 });
+  }
+  if (!pdfBase64 && (!tekst || tekst.trim().length < 30)) {
+    return NextResponse.json({ error: "For lidt tekst til at screene" }, { status: 400 });
+  }
+
+  // Byg message content — enten PDF eller tekst
+  const userContent: Anthropic.MessageParam["content"] = pdfBase64
+    ? [
+        {
+          type: "document",
+          source: {
+            type: "base64",
+            media_type: "application/pdf",
+            data: pdfBase64,
+          },
+        } as Anthropic.DocumentBlockParam,
+        {
+          type: "text",
+          text: `Projekttype: ${projekttype || "renovation"}. Screen dette tilbud/denne aftale mod AB-Forbruger og returner JSON som beskrevet.`,
+        },
+      ]
+    : [
+        {
+          type: "text",
+          text: `Projekttype: ${projekttype || "renovation"}.\n\nTILBUD/AFTALE:\n${tekst}`,
+        },
+      ];
 
   const message = await client.messages.create({
     model: "claude-sonnet-4-6",
     max_tokens: 2000,
-    messages: [{ role: "user", content: prompt }],
+    system: SYSTEM,
+    messages: [{ role: "user", content: userContent }],
   });
 
   const raw = (message.content[0] as { type: string; text: string }).text;
 
-  // Parse JSON fra svaret
   const jsonMatch = raw.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     return NextResponse.json({ error: "Kunne ikke parse svar fra AI" }, { status: 500 });
   }
 
-  const resultat = JSON.parse(jsonMatch[0]);
-  return NextResponse.json(resultat);
+  return NextResponse.json(JSON.parse(jsonMatch[0]));
 }
