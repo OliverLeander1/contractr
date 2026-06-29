@@ -4,8 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 const SYSTEM = `Du er en dansk byggeretsekspert der hjælper private bygherrer med at forstå deres byggeaftaler.
 
 Analyser byggeaftalen/tilbuddet og screen den mod AB-Forbruger 2012.
@@ -38,6 +36,7 @@ Regler:
 - Inkludér mindst 4 punkter, typisk 5-8`;
 
 export async function POST(req: NextRequest) {
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   try {
     const body = await req.json();
     const { tekst, projekttype, pdfBase64 } = body;
