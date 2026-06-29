@@ -17,7 +17,7 @@ const projekttyper = [
 
 interface DawaForslag {
   tekst: string;
-  adresse: { id: string };
+  data?: { id: string };
 }
 
 export default function OpretProjekt() {
@@ -105,9 +105,9 @@ export default function OpretProjekt() {
             />
             {visForslag && forslag.length > 0 && (
               <ul className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                {forslag.map((f) => (
+                {forslag.map((f, i) => (
                   <li
-                    key={f.adresse.id}
+                    key={f.data?.id ?? i}
                     onMouseDown={() => { setAdresse(f.tekst); setVisForslag(false); setForslag([]); }}
                     className="px-4 py-3 text-sm text-gray-800 hover:bg-accent cursor-pointer border-b border-gray-50 last:border-0"
                   >
