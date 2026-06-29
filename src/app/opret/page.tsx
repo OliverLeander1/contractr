@@ -127,6 +127,8 @@ export default function OpretProjekt() {
       <button
         onClick={() => {
           if (!kanFortsætte) return;
+          sessionStorage.setItem("screening_projekttype", valgtType);
+          sessionStorage.setItem("screening_adresse", adresse);
           if (status === "dialog") router.push("/opret/ingen-tilbud");
           else router.push("/opret/upload");
         }}

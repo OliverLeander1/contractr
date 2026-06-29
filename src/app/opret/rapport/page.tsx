@@ -1,71 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import FlowLayout from "@/components/FlowLayout";
 
-const risikopunkter = [
-  {
-    id: "abforbruger",
-    kategori: "AB-Forbruger",
-    status: "fejl",
-    titel: "AB-Forbruger er ikke nævnt",
-    forklaring: "Aftalen nævner ikke AB-Forbruger. Det betyder, at du som forbruger ikke automatisk er beskyttet af disse standardbetingelser, og du kan stå dårligere ved tvister.",
-    anbefaling: "Afklar skriftligt med håndværkeren om AB-Forbruger skal gælde — det bør de fleste byggeaftaler over 3.000 kr.",
-    forslag: "Jeg ønsker at AB-Forbruger 2012 tilføjes som grundlag for aftalen.",
-    alvor: "høj",
-  },
-  {
-    id: "betaling",
-    kategori: "Betalingsplan",
-    status: "advarsel",
-    titel: "50% forudbetaling kræves",
-    forklaring: "Tilbuddet kræver 50% betaling ved opstart. AB-Forbruger anbefaler, at betaling sker løbende og kobles til dokumenteret fremdrift.",
-    anbefaling: "Spørg om betalingen kan fordeles i milepæle koblet til faktisk udført arbejde.",
-    forslag: "Jeg ønsker betalingen opdelt i milepæle: 20% ved opstart, 40% ved halvvejs, 40% ved aflevering.",
-    alvor: "middel",
-  },
-  {
-    id: "tidsplan",
-    kategori: "Tidsplan",
-    status: "advarsel",
-    titel: "Ingen slutdato er aftalt",
-    forklaring: "Tilbuddet angiver en startdato, men ingen bindende slutdato. Uden slutdato er det svært at kræve dagbod ved forsinkelse.",
-    anbefaling: "Aftal en konkret slutdato og hvad der sker ved forsinkelse (f.eks. dagbod jf. AB-Forbruger § 31).",
-    forslag: "Jeg ønsker en bindende slutdato tilføjet i kontrakten samt bestemmelse om dagbod ved forsinkelse.",
-    alvor: "middel",
-  },
-  {
-    id: "pris",
-    kategori: "Pris",
-    status: "ok",
-    titel: "Fast pris aftalt",
-    forklaring: "Tilbuddet angiver en fast pris på 68.500 kr. inkl. moms. Det er klart og beskytter dig mod uventede prisstigninger.",
-    anbefaling: null,
-    forslag: null,
-    alvor: "lav",
-  },
-  {
-    id: "ekstra",
-    kategori: "Ekstraarbejde",
-    status: "ok",
-    titel: "Skriftlig aftale kræves",
-    forklaring: "Tilbuddet angiver, at ekstraarbejde skal aftales skriftligt. Det er godt og i overensstemmelse med AB-Forbruger § 23.",
-    anbefaling: null,
-    forslag: null,
-    alvor: "lav",
-  },
-  {
-    id: "mangler",
-    kategori: "Mangler",
-    status: "advarsel",
-    titel: "Afleveringsprocedure ikke beskrevet",
-    forklaring: "Aftalen beskriver ikke, hvad der sker ved aflevering, eller hvordan mangler skal dokumenteres og håndteres.",
-    anbefaling: "Afklar hvornår arbejdet anses som afleveret, og hvordan mangler skal meddeles (jf. AB-Forbruger § 37-42).",
-    forslag: "Jeg ønsker en beskrivelse af afleveringsproceduren og håndtering af mangler tilføjet i aftalen.",
-    alvor: "middel",
-  },
-];
+interface Punkt {
+  id: string;
+  kategori: string;
+  status: "ok" | "advarsel" | "fejl";
+  titel: string;
+  forklaring: string;
+  anbefaling: string | null;
+  forslag: string | null;
+}
+
+interface Resultat {
+  samletRisiko: "lav" | "middel" | "høj";
+  resumé: string;
+  punkter: Punkt[];
+}
+
+const FALLBACK: Resultat = {
+  samletRisiko: "middel",
+  resumé: "Aftalen indeholder nogle uklare punkter der bør afklares inden accept.",
+  punkter: [
+    { id: "ab", kategori: "AB-Forbruger", status: "fejl", titel: "AB-Forbruger er ikke nævnt", forklaring: "Aftalen nævner ikke AB-Forbruger. Det betyder du ikke automatisk er beskyttet af disse standardbetingelser.", anbefaling: "Afklar skriftligt om AB-Forbruger skal gælde.", forslag: "Jeg ønsker at AB-Forbruger 2012 tilføjes som grundlag for aftalen." },
+    { id: "betaling", kategori: "Betalingsplan", status: "advarsel", titel: "50% forudbetaling kræves", forklaring: "Tilbuddet kræver 50% betaling ved opstart. AB-Forbruger anbefaler betaling koblet til fremdrift.", anbefaling: "Spørg om betalingen kan fordeles i milepæle.", forslag: "Jeg ønsker betalingen opdelt: 20% opstart, 40% halvvejs, 40% aflevering." },
+    { id: "tidsplan", kategori: "Tidsplan", status: "advarsel", titel: "Ingen slutdato aftalt", forklaring: "Tilbuddet angiver en startdato men ingen bindende slutdato.", anbefaling: "Aftal en konkret slutdato og hvad der sker ved forsinkelse.", forslag: "Jeg ønsker en bindende slutdato samt dagbod ved forsinkelse jf. AB-Forbruger § 31." },
+    { id: "pris", kategori: "Pris", status: "ok", titel: "Fast pris aftalt", forklaring: "Tilbuddet angiver en fast pris inkl. moms. Det beskytter dig mod uventede prisstigninger.", anbefaling: null, forslag: null },
+  ],
+};
 
 const statusFarve = (status: string) => {
   if (status === "ok") return { bg: "bg-green-100", text: "text-green-700", border: "border-green-200", label: "OK" };
@@ -74,26 +38,49 @@ const statusFarve = (status: string) => {
 };
 
 const statusIkon = (status: string) => {
-  if (status === "ok") return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>;
-  if (status === "advarsel") return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>;
-  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>;
+  if (status === "ok") return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>;
+  if (status === "advarsel") return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
 };
 
 export default function Rapport() {
+  const [resultat, setResultat] = useState<Resultat | null>(null);
   const [markerede, setMarkerede] = useState<Set<string>>(new Set());
   const [sendtModal, setSendtModal] = useState(false);
   const [kopieret, setKopieret] = useState(false);
 
-  const fejl = risikopunkter.filter((r) => r.status === "fejl").length;
-  const advarsler = risikopunkter.filter((r) => r.status === "advarsel").length;
-  const ok = risikopunkter.filter((r) => r.status === "ok").length;
-  const samletRisiko = fejl > 0 ? "høj" : advarsler >= 2 ? "middel" : "lav";
+  useEffect(() => {
+    const gemt = sessionStorage.getItem("screening_resultat");
+    if (gemt) {
+      try {
+        setResultat(JSON.parse(gemt));
+      } catch {
+        setResultat(FALLBACK);
+      }
+    } else {
+      setResultat(FALLBACK);
+    }
+  }, []);
+
+  if (!resultat) {
+    return (
+      <FlowLayout aktivTrin={4}>
+        <div className="text-center py-20">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+        </div>
+      </FlowLayout>
+    );
+  }
+
+  const fejlAntal = resultat.punkter.filter(p => p.status === "fejl").length;
+  const advarsler = resultat.punkter.filter(p => p.status === "advarsel").length;
+  const okAntal = resultat.punkter.filter(p => p.status === "ok").length;
 
   const risikoFarve = {
     høj: { bg: "bg-red-100", text: "text-red-700", border: "border-red-200", label: "Høj risiko" },
     middel: { bg: "bg-yellow-100", text: "text-yellow-700", border: "border-yellow-200", label: "Middel risiko" },
     lav: { bg: "bg-green-100", text: "text-green-700", border: "border-green-200", label: "Lav risiko" },
-  }[samletRisiko];
+  }[resultat.samletRisiko];
 
   const toggleMarkeret = (id: string) => {
     setMarkerede(prev => {
@@ -104,11 +91,10 @@ export default function Rapport() {
   };
 
   const markerAlle = () => {
-    const afklarPunkter = risikopunkter.filter(r => r.status !== "ok" && r.forslag).map(r => r.id);
-    setMarkerede(new Set(afklarPunkter));
+    setMarkerede(new Set(resultat.punkter.filter(p => p.status !== "ok" && p.forslag).map(p => p.id)));
   };
 
-  const markeretePunkter = risikopunkter.filter(r => markerede.has(r.id));
+  const markeretePunkter = resultat.punkter.filter(p => markerede.has(p.id));
 
   const genererBesked = () => {
     const linjer = markeretePunkter.map((p, i) => `${i + 1}. ${p.kategori}: ${p.forslag}`).join("\n");
@@ -123,28 +109,25 @@ export default function Rapport() {
 
   return (
     <FlowLayout aktivTrin={4}>
-      {/* Sendt-modal */}
       {sendtModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={() => setSendtModal(false)}>
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"/>
           <div className="relative bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center" onClick={e => e.stopPropagation()}>
             <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
-            <h3 className="font-bold text-gray-900 text-lg mb-2">Forslag sendt!</h3>
-            <p className="text-sm text-gray-500 mb-6">Håndværkeren modtager dit forslag og kan svare direkte i platformen.</p>
-            <Link href="/projekt/1" className="block w-full bg-primary text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity">
-              Gå til dit projekt →
-            </Link>
+            <h3 className="font-bold text-gray-900 text-lg mb-2">Forslag kopieret!</h3>
+            <p className="text-sm text-gray-500 mb-6">Send beskeden direkte til håndværkeren via mail eller SMS.</p>
+            <button onClick={() => setSendtModal(false)} className="w-full bg-primary text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity">Luk</button>
           </div>
         </div>
       )}
 
       <div className="mb-8">
-        <div className="flex items-start justify-between gap-4 mb-6">
+        <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-1">Din aftalerapport</h1>
-            <p className="text-gray-500">Badeværelse renovering · Tilbud analyseret</p>
+            <p className="text-gray-500 text-sm">{resultat.resumé}</p>
           </div>
           <span className={`flex-shrink-0 text-sm font-bold px-4 py-2 rounded-full border ${risikoFarve.bg} ${risikoFarve.text} ${risikoFarve.border}`}>
             {risikoFarve.label}
@@ -153,10 +136,10 @@ export default function Rapport() {
 
         <div className="grid grid-cols-3 gap-4 mb-8">
           {[
-            { label: "Skal afklares", antal: fejl + advarsler, farve: "text-red-600", bg: "bg-red-50" },
-            { label: "Ser fint ud", antal: ok, farve: "text-green-600", bg: "bg-green-50" },
-            { label: "Punkter screenet", antal: risikopunkter.length, farve: "text-gray-900", bg: "bg-gray-50" },
-          ].map((item) => (
+            { label: "Skal afklares", antal: fejlAntal + advarsler, farve: "text-red-600", bg: "bg-red-50" },
+            { label: "Ser fint ud", antal: okAntal, farve: "text-green-600", bg: "bg-green-50" },
+            { label: "Punkter screenet", antal: resultat.punkter.length, farve: "text-gray-900", bg: "bg-gray-50" },
+          ].map(item => (
             <div key={item.label} className={`${item.bg} rounded-xl p-4 text-center`}>
               <p className={`text-3xl font-bold ${item.farve}`}>{item.antal}</p>
               <p className="text-xs text-gray-500 mt-1">{item.label}</p>
@@ -165,35 +148,28 @@ export default function Rapport() {
         </div>
       </div>
 
-      {/* Risikopunkter med markeringsmulighed */}
       <div className="space-y-3 mb-6">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-gray-900">Gennemgang af aftalen</h2>
-          <button onClick={markerAlle} className="text-xs font-semibold text-primary hover:underline">
-            Markér alle kritiske →
-          </button>
+          <button onClick={markerAlle} className="text-xs font-semibold text-primary hover:underline">Markér alle kritiske →</button>
         </div>
-        <p className="text-xs text-gray-400 mb-2">Markér de punkter du vil sende som forslag til håndværkeren</p>
+        <p className="text-xs text-gray-400">Markér de punkter du vil sende som forslag til håndværkeren</p>
 
-        {risikopunkter.map((punkt) => {
+        {resultat.punkter.map(punkt => {
           const farve = statusFarve(punkt.status);
           const erMarkeret = markerede.has(punkt.id);
           const kanMarkeres = punkt.status !== "ok" && punkt.forslag;
           return (
-            <div
-              key={punkt.id}
-              className={`bg-white rounded-2xl border shadow-sm p-5 transition-all ${erMarkeret ? "border-primary ring-2 ring-primary/20" : farve.border}`}
-            >
+            <div key={punkt.id} className={`bg-white rounded-2xl border shadow-sm p-5 transition-all ${erMarkeret ? "border-primary ring-2 ring-primary/20" : farve.border}`}>
               <div className="flex items-start gap-3">
-                {kanMarkeres && (
+                {kanMarkeres ? (
                   <button
                     onClick={() => toggleMarkeret(punkt.id)}
                     className={`w-5 h-5 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition-colors ${erMarkeret ? "bg-primary border-primary" : "border-gray-300 hover:border-primary"}`}
                   >
                     {erMarkeret && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
                   </button>
-                )}
-                {!kanMarkeres && <div className="w-5 flex-shrink-0" />}
+                ) : <div className="w-5 flex-shrink-0"/>}
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${farve.bg} ${farve.text}`}>
                   {statusIkon(punkt.status)}
                 </div>
@@ -223,7 +199,6 @@ export default function Rapport() {
         })}
       </div>
 
-      {/* Send forslag */}
       {markerede.size > 0 && (
         <div className="bg-white rounded-2xl border border-primary/20 shadow-sm p-6 mb-6">
           <div className="flex items-center gap-2 mb-3">
@@ -234,16 +209,10 @@ export default function Rapport() {
             <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">{genererBesked()}</pre>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={kopier}
-              className="flex items-center gap-2 text-xs font-semibold text-gray-600 border border-gray-200 px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
-            >
-              {kopieret ? "Kopieret!" : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Kopiér</>}
+            <button onClick={kopier} className="flex items-center gap-2 text-xs font-semibold text-gray-600 border border-gray-200 px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
+              {kopieret ? "Kopieret! ✓" : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Kopiér</>}
             </button>
-            <button
-              onClick={() => setSendtModal(true)}
-              className="flex-1 bg-primary text-white font-bold text-sm py-2.5 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-            >
+            <button onClick={() => { kopier(); setSendtModal(true); }} className="flex-1 bg-primary text-white font-bold text-sm py-2.5 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               Send forslag til håndværkeren
             </button>
@@ -251,7 +220,6 @@ export default function Rapport() {
         </div>
       )}
 
-      {/* Book rådgiver */}
       <div className="bg-primary rounded-2xl p-6 text-white mb-6">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 text-xl">👨‍💼</div>
@@ -266,8 +234,8 @@ export default function Rapport() {
       </div>
 
       <div className="flex gap-3">
-        <Link href="/" className="flex-1 text-center py-4 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors">
-          Tilbage til forsiden
+        <Link href="/opret" className="flex-1 text-center py-4 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors">
+          Screen et nyt tilbud
         </Link>
         <Link href="/projekt/1" className="flex-1 text-center py-4 rounded-xl bg-primary text-white text-sm font-bold hover:opacity-90 transition-opacity">
           Gå til dit projekt →
