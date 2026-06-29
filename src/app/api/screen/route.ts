@@ -1,6 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 
+export const maxDuration = 60;
+
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const SYSTEM = `Du er en dansk byggeretsekspert der hjælper private bygherrer med at forstå deres byggeaftaler.
@@ -35,51 +37,57 @@ Regler:
 - Inkludér mindst 4 punkter, typisk 5-8`;
 
 export async function POST(req: NextRequest) {
-  const { tekst, projekttype, pdfBase64 } = await req.json();
+  try {
+    const body = await req.json();
+    const { tekst, projekttype, pdfBase64 } = body;
 
-  if (!tekst && !pdfBase64) {
-    return NextResponse.json({ error: "Intet indhold at screene" }, { status: 400 });
-  }
-  if (!pdfBase64 && (!tekst || tekst.trim().length < 30)) {
-    return NextResponse.json({ error: "For lidt tekst til at screene" }, { status: 400 });
-  }
+    if (!tekst && !pdfBase64) {
+      return NextResponse.json({ error: "Intet indhold at screene" }, { status: 400 });
+    }
+    if (!pdfBase64 && (!tekst || tekst.trim().length < 30)) {
+      return NextResponse.json({ error: "For lidt tekst til at screene" }, { status: 400 });
+    }
 
-  // Byg message content — enten PDF eller tekst
-  const userContent: Anthropic.MessageParam["content"] = pdfBase64
-    ? [
-        {
-          type: "document",
-          source: {
-            type: "base64",
-            media_type: "application/pdf",
-            data: pdfBase64,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userContent: any[] = pdfBase64
+      ? [
+          {
+            type: "document",
+            source: {
+              type: "base64",
+              media_type: "application/pdf",
+              data: pdfBase64,
+            },
           },
-        } as Anthropic.DocumentBlockParam,
-        {
-          type: "text",
-          text: `Projekttype: ${projekttype || "renovation"}. Screen dette tilbud/denne aftale mod AB-Forbruger og returner JSON som beskrevet.`,
-        },
-      ]
-    : [
-        {
-          type: "text",
-          text: `Projekttype: ${projekttype || "renovation"}.\n\nTILBUD/AFTALE:\n${tekst}`,
-        },
-      ];
+          {
+            type: "text",
+            text: `Projekttype: ${projekttype || "renovation"}. Screen dette tilbud/denne aftale mod AB-Forbruger og returner JSON som beskrevet i system-prompten.`,
+          },
+        ]
+      : [
+          {
+            type: "text",
+            text: `Projekttype: ${projekttype || "renovation"}.\n\nTILBUD/AFTALE:\n${tekst}`,
+          },
+        ];
 
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 2000,
-    system: SYSTEM,
-    messages: [{ role: "user", content: userContent }],
-  });
+    const message = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 2000,
+      system: SYSTEM,
+      messages: [{ role: "user", content: userContent }],
+    });
 
-  const raw = (message.content[0] as { type: string; text: string }).text;
+    const raw = (message.content[0] as { type: string; text: string }).text;
 
-  const jsonMatch = raw.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    return NextResponse.json({ error: "Kunne ikke parse svar fra AI" }, { status: 500 });
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return NextResponse.json({ error: "Kunne ikke parse svar fra AI" }, { status: 500 });
+    }
+
+    return NextResponse.json(JSON.parse(jsonMatch[0]));
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Ukendt fejl";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
-
-  return NextResponse.json(JSON.parse(jsonMatch[0]));
 }
