@@ -125,7 +125,7 @@ export default function OpretProjekt() {
         <p className="text-sm text-gray-400 mb-4">Det hjælper os med at give den rigtige vejledning</p>
         <div className="space-y-2">
           {[
-            { id: "dialog", label: "Jeg er i dialog med en håndværker, men har intet tilbud endnu", ikon: "💬" },
+            { id: "dialog", label: "Jeg leder efter håndværker — vil gerne sende projektet i udbud", ikon: "📢" },
             { id: "tilbud", label: "Jeg har modtaget et tilbud og overvejer at sige ja", ikon: "📄" },
             { id: "accepteret", label: "Jeg har accepteret, men arbejdet er ikke startet", ikon: "✅" },
             { id: "igang", label: "Arbejdet er i gang", ikon: "🔨" },
@@ -159,7 +159,7 @@ export default function OpretProjekt() {
           if (!kanFortsætte) return;
           sessionStorage.setItem("screening_projekttype", valgtType);
           sessionStorage.setItem("screening_adresse", adresse);
-          if (status === "dialog") router.push("/opret/ingen-tilbud");
+          if (status === "dialog") router.push("/opret/beskriv");
           else router.push("/opret/tips");
         }}
         className={`w-full py-4 rounded-xl text-base font-bold transition-all ${
@@ -168,7 +168,7 @@ export default function OpretProjekt() {
             : "bg-gray-100 text-gray-400 cursor-not-allowed"
         }`}
       >
-        {status === "dialog" ? "Fortsæt →" : "Fortsæt til upload →"}
+        {status === "dialog" ? "Beskriv projektet →" : "Fortsæt til upload →"}
       </button>
       {!kanFortsætte && (
         <p className="text-center text-xs text-gray-400 mt-3">Vælg projekttype og angiv adresse for at fortsætte</p>
