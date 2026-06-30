@@ -20,7 +20,7 @@ Regler:
 - Udbudsdokumentet skal være struktureret med klare afsnit
 - Inkludér altid et afsnit om at AB-Forbruger 2012 ønskes som grundlag
 - Inkludér altid hvad tilbuddet skal indeholde (fast pris, tidsplan, betalingsplan)
-- Kontaktoplysninger leveres separat og indsættes IKKE i dokumentet af dig - skriv i stedet ___KONTAKT___ præcis der hvor de naturligt skal stå
+- Skriv IKKE bygherrens navn eller kontaktoplysninger ind i dokumentet - de vises separat
 - Skriv altid på dansk`;
 
 export async function POST(req: NextRequest) {
@@ -59,21 +59,8 @@ Skriv et professionelt udbudsdokument bygherren kan sende til håndværkere for 
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
-
-    // Replace ___KONTAKT___ with real bygherre info
-    const kontaktBlok = [
-      navn ? `Navn: ${navn}` : null,
-      kontakt ? `Kontakt: ${kontakt}` : null,
-    ].filter(Boolean).join("\n");
-
-    if (parsed.dokument && kontaktBlok) {
-      parsed.dokument = parsed.dokument.replace(/___KONTAKT___/g, kontaktBlok);
-    }
-
-    // Pass bygherre info separately so the share page can lock it
     parsed.bygherreNavn = navn || "";
     parsed.bygherreKontakt = kontakt || "";
-
     return NextResponse.json(parsed);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Ukendt fejl";
