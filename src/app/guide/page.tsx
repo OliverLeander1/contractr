@@ -389,11 +389,11 @@ function HaandvaerkerGuide() {
               <p className="text-xs font-bold text-[#1a5c38] uppercase tracking-[0.2em] mb-6">Trin 01</p>
               <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight">Gratis for håndværkere</h2>
               <p className="text-xl text-gray-400 leading-relaxed mb-10">
-                Bygherren inviterer dig. Du opretter konto på 2 minutter. Det er helt gratis for dig som håndværker.
+                Bygherren inviterer dig. Du opretter konto på 2 minutter. Gratis at komme i gang.
               </p>
               <div className="space-y-4">
                 {[
-                  { titel: "Altid gratis", tekst: "Du bruger platformen gratis" },
+                  { titel: "Kom i gang gratis", tekst: "Opret konto og brug platformen uden beregning fra dag ét" },
                   { titel: "Ingen binding", tekst: "Acceptér kun de projekter du vil" },
                   { titel: "Professionelt image", tekst: "Vis at du arbejder struktureret og transparent" },
                 ].map((f, i) => (
