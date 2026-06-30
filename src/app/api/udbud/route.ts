@@ -1,4 +1,4 @@
-﻿import Anthropic from "@anthropic-ai/sdk";
+import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -6,22 +6,32 @@ export const maxDuration = 60;
 
 const SYSTEM = `Du er en erfaren byggesagkyndig der hjælper private bygherrer med at beskrive deres projekt professionelt til håndværkere.
 
-Baseret på bygherrens svar skal du skrive et professionelt udbudsdokument på dansk.
+Baseret på bygherrens svar skal du skrive et professionelt udbudsdokument på dansk OG en tilbudsliste med forventede opgaveposter.
 
 Returner KUN et JSON-objekt (ingen markdown uden for JSON):
 {
   "titel": "Kort projekttitel fx 'Badeværelsesrenovering, Elmevej 12'",
   "resumé": "2-3 sætninger der opsummerer projektet klart",
-  "dokument": "Det fulde udbudsdokument som ren tekst med linjeskift. Inkludér: projektbeskrivelse, ønsker og krav, tidsramme, praktiske forhold, hvad tilbuddet skal indeholde og kontaktoplysninger-placeholder."
+  "dokument": "Det fulde udbudsdokument som ren tekst med linjeskift. Inkludér: projektbeskrivelse, ønsker og krav, tidsramme, praktiske forhold og AB-Forbruger 2012 som grundlag. IKKE kontaktoplysninger.",
+  "tilbudsposter": [
+    { "id": "1", "beskrivelse": "Konkret opgavebeskrivelse fx 'Nedtagning og bortskaffelse af eksisterende toilet'", "enhed": "stk" },
+    { "id": "2", "beskrivelse": "Næste post", "enhed": "stk" }
+  ]
 }
 
-Regler:
+Regler for dokumentet:
 - Skriv professionelt men forståeligt - ikke juridisk jargon
-- Udbudsdokumentet skal være struktureret med klare afsnit
-- Inkludér altid et afsnit om at AB-Forbruger 2012 ønskes som grundlag
-- Inkludér altid hvad tilbuddet skal indeholde (fast pris, tidsplan, betalingsplan)
-- Skriv IKKE bygherrens navn eller kontaktoplysninger ind i dokumentet - de vises separat
-- Skriv altid på dansk`;
+- Struktureret med klare afsnit
+- Inkludér altid AB-Forbruger 2012 som kontraktgrundlag
+- Skriv IKKE bygherrens kontaktoplysninger ind i dokumentet
+- Skriv altid på dansk
+
+Regler for tilbudsposter:
+- Lav 4-10 konkrete og realistiske opgaveposter baseret på projektbeskrivelsen
+- Beskriv hver post præcist og fagligt, så entreprenøren ved hvad der menes
+- Enhed er typisk "stk", "m²", "m", "time" eller "samlet"
+- Inkludér altid en post til "Afrydning og borskaffelse af byggeaffald"
+- Den sidste post skal altid være "Uforudsete arbejder" med enhed "samlet"`;
 
 export async function POST(req: NextRequest) {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -43,11 +53,11 @@ Senest færdig: ${slutdato || "Ikke fastsat"}
 Særlige krav/ønsker: ${krav || "Ingen særlige krav"}
 Beboet under arbejdet: ${beboet === "ja" ? "Ja - hensyn til beboere skal tages" : beboet === "nej" ? "Nej - tom bolig" : "Ikke oplyst"}
 
-Skriv et professionelt udbudsdokument bygherren kan sende til håndværkere for at indhente tilbud.`;
+Skriv udbudsdokument og tilbudsliste.`;
 
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 3000,
+      max_tokens: 4000,
       system: SYSTEM,
       messages: [{ role: "user", content: prompt }],
     });
@@ -58,9 +68,17 @@ Skriv et professionelt udbudsdokument bygherren kan sende til håndværkere for 
       return NextResponse.json({ error: "Kunne ikke generere dokument" }, { status: 500 });
     }
 
-    const parsed = JSON.parse(jsonMatch[0]);
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch {
+      return NextResponse.json({ error: "Kunne ikke parse svar fra AI - prøv igen" }, { status: 500 });
+    }
+
     parsed.bygherreNavn = navn || "";
     parsed.bygherreKontakt = kontakt || "";
+    if (!parsed.tilbudsposter) parsed.tilbudsposter = [];
+
     return NextResponse.json(parsed);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Ukendt fejl";
