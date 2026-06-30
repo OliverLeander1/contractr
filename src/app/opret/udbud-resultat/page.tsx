@@ -93,7 +93,10 @@ export default function UdbudResultat() {
       {/* Selve dokumentet */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900 text-sm">Udbudsdokument</h2>
+          <div>
+            <h2 className="font-semibold text-gray-900 text-sm">Udbudsdokument</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Klik i teksten for at redigere direkte</p>
+          </div>
           <button
             onClick={kopier}
             className={`flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg transition-all ${
@@ -170,7 +173,7 @@ export default function UdbudResultat() {
             onClick={() => router.push("/opret/beskriv")}
             className="flex-1 py-3.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
           >
-            Redigér og generér igen
+            Start forfra med nye svar
           </button>
           <button
             onClick={() => router.push("/opret/upload")}
