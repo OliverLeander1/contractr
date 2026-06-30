@@ -15,6 +15,7 @@ export default function UdbudResultat() {
   const [data, setData] = useState<UdbudResultat | null>(null);
   const [tekst, setTekst] = useState("");
   const [kopieret, setKopieret] = useState(false);
+  const [linkKopieret, setLinkKopieret] = useState(false);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("udbud_resultat");
@@ -26,6 +27,17 @@ export default function UdbudResultat() {
       } catch { /* ignore */ }
     }
   }, []);
+
+  function genererLink() {
+    if (!data) return;
+    const payload = JSON.stringify({ titel: data.titel, resumé: data.resumé, dokument: tekst });
+    const token = btoa(encodeURIComponent(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const url = `${window.location.origin}/udbud/${token}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setLinkKopieret(true);
+      setTimeout(() => setLinkKopieret(false), 3000);
+    });
+  }
 
   function kopier() {
     navigator.clipboard.writeText(tekst).then(() => {
@@ -115,6 +127,27 @@ export default function UdbudResultat() {
 
       {/* Bund-knapper */}
       <div className="space-y-3">
+        <button
+          onClick={genererLink}
+          className={`w-full py-4 rounded-xl text-base font-bold transition-all flex items-center justify-center gap-2 ${
+            linkKopieret
+              ? "bg-green-600 text-white"
+              : "bg-primary text-white hover:opacity-90 shadow-md shadow-primary/20"
+          }`}
+        >
+          {linkKopieret ? (
+            <>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Link kopieret — send det til håndværkeren!
+            </>
+          ) : (
+            <>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              Del via link
+            </>
+          )}
+        </button>
+
         <button
           onClick={kopier}
           className="w-full py-4 rounded-xl text-base font-bold bg-primary text-white hover:opacity-90 shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2"
