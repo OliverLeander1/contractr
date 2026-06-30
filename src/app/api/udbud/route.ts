@@ -20,14 +20,14 @@ Regler:
 - Udbudsdokumentet skal være struktureret med klare afsnit
 - Inkludér altid et afsnit om at AB-Forbruger 2012 ønskes som grundlag
 - Inkludér altid hvad tilbuddet skal indeholde (fast pris, tidsplan, betalingsplan)
-- Brug [NAVN] og [TELEFON/EMAIL] som placeholders for kontaktinfo
+- Kontaktoplysninger leveres separat og indsættes IKKE i dokumentet af dig - skriv i stedet ___KONTAKT___ præcis der hvor de naturligt skal stå
 - Skriv altid på dansk`;
 
 export async function POST(req: NextRequest) {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   try {
     const body = await req.json();
-    const { projekttype, beskrivelse, adresse, opstart, slutdato, krav, beboet } = body;
+    const { projekttype, beskrivelse, adresse, navn, kontakt, opstart, slutdato, krav, beboet } = body;
 
     if (!beskrivelse || beskrivelse.trim().length < 20) {
       return NextResponse.json({ error: "Beskriv projektet mere detaljeret" }, { status: 400 });
@@ -58,7 +58,23 @@ Skriv et professionelt udbudsdokument bygherren kan sende til håndværkere for 
       return NextResponse.json({ error: "Kunne ikke generere dokument" }, { status: 500 });
     }
 
-    return NextResponse.json(JSON.parse(jsonMatch[0]));
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    // Replace ___KONTAKT___ with real bygherre info
+    const kontaktBlok = [
+      navn ? `Navn: ${navn}` : null,
+      kontakt ? `Kontakt: ${kontakt}` : null,
+    ].filter(Boolean).join("\n");
+
+    if (parsed.dokument && kontaktBlok) {
+      parsed.dokument = parsed.dokument.replace(/___KONTAKT___/g, kontaktBlok);
+    }
+
+    // Pass bygherre info separately so the share page can lock it
+    parsed.bygherreNavn = navn || "";
+    parsed.bygherreKontakt = kontakt || "";
+
+    return NextResponse.json(parsed);
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Ukendt fejl";
     return NextResponse.json({ error: msg }, { status: 500 });

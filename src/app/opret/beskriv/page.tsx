@@ -8,6 +8,8 @@ export default function BeskrivProjekt() {
   const router = useRouter();
   const [projekttype, setProjekttype] = useState("");
   const [adresse, setAdresse] = useState("");
+  const [navn, setNavn] = useState("");
+  const [kontakt, setKontakt] = useState("");
   const [beskrivelse, setBeskrivelse] = useState("");
   const [opstart, setOpstart] = useState("");
   const [slutdato, setSlutdato] = useState("");
@@ -19,6 +21,8 @@ export default function BeskrivProjekt() {
   useEffect(() => {
     setProjekttype(sessionStorage.getItem("screening_projekttype") || "");
     setAdresse(sessionStorage.getItem("screening_adresse") || "");
+    setNavn(sessionStorage.getItem("screening_navn") || "");
+    setKontakt(sessionStorage.getItem("screening_kontakt") || "");
   }, []);
 
   const kanGenerere = beskrivelse.trim().length >= 20;
@@ -31,7 +35,7 @@ export default function BeskrivProjekt() {
       const res = await fetch("/api/udbud", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projekttype, adresse, beskrivelse, opstart, slutdato, krav, beboet }),
+        body: JSON.stringify({ projekttype, adresse, navn, kontakt, beskrivelse, opstart, slutdato, krav, beboet }),
       });
       const data = await res.json();
       if (!res.ok || data.error) {

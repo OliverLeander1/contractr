@@ -24,6 +24,8 @@ export default function OpretProjekt() {
   const router = useRouter();
   const [valgtType, setValgtType] = useState("");
   const [adresse, setAdresse] = useState("");
+  const [navn, setNavn] = useState("");
+  const [kontakt, setKontakt] = useState("");
   const [status, setStatus] = useState("tilbud");
   const [forslag, setForslag] = useState<DawaForslag[]>([]);
   const [visForslag, setVisForslag] = useState(false);
@@ -52,7 +54,7 @@ export default function OpretProjekt() {
     return () => clearTimeout(timeout);
   }, [adresse]);
 
-  const kanFortsætte = valgtType && adresse;
+  const kanFortsætte = valgtType && adresse && navn;
 
   return (
     <FlowLayout aktivTrin={1}>
@@ -89,6 +91,33 @@ export default function OpretProjekt() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
         <h2 className="font-semibold text-gray-900 mb-5">Projektdetaljer</h2>
         <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Dit navn <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="F.eks. Anders Jensen"
+                value={navn}
+                onChange={(e) => setNavn(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Telefon eller e-mail
+              </label>
+              <input
+                type="text"
+                placeholder="F.eks. 28 12 34 56"
+                value={kontakt}
+                onChange={(e) => setKontakt(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+              />
+            </div>
+          </div>
+
           <div ref={adresseRef} className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Adresse <span className="text-red-400">*</span>
@@ -159,6 +188,8 @@ export default function OpretProjekt() {
           if (!kanFortsætte) return;
           sessionStorage.setItem("screening_projekttype", valgtType);
           sessionStorage.setItem("screening_adresse", adresse);
+          sessionStorage.setItem("screening_navn", navn);
+          sessionStorage.setItem("screening_kontakt", kontakt);
           if (status === "dialog") router.push("/opret/beskriv");
           else router.push("/opret/tips");
         }}
@@ -171,7 +202,7 @@ export default function OpretProjekt() {
         {status === "dialog" ? "Beskriv projektet →" : "Fortsæt til upload →"}
       </button>
       {!kanFortsætte && (
-        <p className="text-center text-xs text-gray-400 mt-3">Vælg projekttype og angiv adresse for at fortsætte</p>
+        <p className="text-center text-xs text-gray-400 mt-3">Vælg projekttype, angiv navn og adresse for at fortsætte</p>
       )}
     </FlowLayout>
   );

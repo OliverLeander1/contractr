@@ -8,6 +8,8 @@ interface UdbudResultat {
   titel: string;
   resumé: string;
   dokument: string;
+  bygherreNavn: string;
+  bygherreKontakt: string;
 }
 
 export default function UdbudResultat() {
@@ -30,7 +32,7 @@ export default function UdbudResultat() {
 
   function genererLink() {
     if (!data) return;
-    const payload = JSON.stringify({ titel: data.titel, resumé: data.resumé, dokument: tekst });
+    const payload = JSON.stringify({ titel: data.titel, resumé: data.resumé, dokument: tekst, bygherreNavn: data.bygherreNavn, bygherreKontakt: data.bygherreKontakt });
     const token = btoa(encodeURIComponent(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     const url = `${window.location.origin}/udbud/se#${token}`;
     navigator.clipboard.writeText(url).then(() => {
