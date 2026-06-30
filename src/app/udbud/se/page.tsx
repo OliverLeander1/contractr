@@ -10,25 +10,39 @@ interface UdbudData {
 
 export default function UdbudDel() {
   const [data, setData] = useState<UdbudData | null>(null);
+  const [tekst, setTekst] = useState("");
   const [fejl, setFejl] = useState(false);
   const [kopieret, setKopieret] = useState(false);
+  const [linkKopieret, setLinkKopieret] = useState(false);
 
   useEffect(() => {
     try {
       const hash = window.location.hash.slice(1);
       if (!hash) { setFejl(true); return; }
       const json = decodeURIComponent(atob(hash.replace(/-/g, "+").replace(/_/g, "/")));
-      setData(JSON.parse(json));
+      const parsed = JSON.parse(json);
+      setData(parsed);
+      setTekst(parsed.dokument);
     } catch {
       setFejl(true);
     }
   }, []);
 
   function kopier() {
-    if (!data) return;
-    navigator.clipboard.writeText(data.dokument).then(() => {
+    navigator.clipboard.writeText(tekst).then(() => {
       setKopieret(true);
       setTimeout(() => setKopieret(false), 2500);
+    });
+  }
+
+  function sendSvarTilbage() {
+    if (!data) return;
+    const payload = JSON.stringify({ titel: data.titel, resumé: data.resumé, dokument: tekst });
+    const token = btoa(encodeURIComponent(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const url = `${window.location.origin}/udbud/se#${token}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setLinkKopieret(true);
+      setTimeout(() => setLinkKopieret(false), 3000);
     });
   }
 
@@ -83,16 +97,19 @@ export default function UdbudDel() {
             <div>
               <p className="text-sm font-semibold text-amber-900 mb-1">Til håndværkeren</p>
               <p className="text-sm text-amber-800 leading-relaxed">
-                Bygherre ønsker tilbud på nedenstående projekt. Send dit tilbud direkte til bygherrens kontaktoplysninger i dokumentet. Tilbuddet bør indeholde fast pris, tidsplan og betalingsplan.
+                Udfyld dit tilbud direkte i dokumentet nedenfor: pris, tidsplan og betalingsplan. Send det derefter tilbage til bygherren med knappen i bunden.
               </p>
             </div>
           </div>
         </div>
 
         {/* Dokument */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-8">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900 text-sm">Projektbeskrivelse</h2>
+            <div>
+              <h2 className="font-semibold text-gray-900 text-sm">Projektbeskrivelse</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Klik i teksten for at redigere direkte</p>
+            </div>
             <button
               onClick={kopier}
               className={`flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg transition-all ${
@@ -115,23 +132,36 @@ export default function UdbudDel() {
             </button>
           </div>
           <div className="px-6 py-5">
-            <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
-              {data.dokument}
-            </pre>
+            <textarea
+              value={tekst}
+              onChange={(e) => setTekst(e.target.value)}
+              rows={Math.max(20, tekst.split("\n").length + 2)}
+              className="w-full text-sm text-gray-700 leading-relaxed font-sans resize-none focus:outline-none border-0 bg-transparent"
+            />
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="text-center">
-          <p className="text-xs text-gray-400 mb-3">Har du modtaget et tilbud du vil tjekke?</p>
-          <a
-            href="https://contractr.dk/opret"
-            className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 hover:text-green-800 transition-colors"
-          >
-            Tjek dit tilbud på Contractr
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </a>
-        </div>
+        {/* Send tilbage */}
+        <button
+          onClick={sendSvarTilbage}
+          className={`w-full py-4 rounded-xl text-base font-bold transition-all flex items-center justify-center gap-2 ${
+            linkKopieret
+              ? "bg-green-600 text-white"
+              : "bg-primary text-white hover:opacity-90 shadow-md shadow-primary/20"
+          }`}
+        >
+          {linkKopieret ? (
+            <>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Link kopieret, send det til bygherren!
+            </>
+          ) : (
+            <>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send svar tilbage til bygherren
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
