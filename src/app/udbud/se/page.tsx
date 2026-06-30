@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 
 interface UdbudData {
   titel: string;
@@ -10,20 +9,20 @@ interface UdbudData {
 }
 
 export default function UdbudDel() {
-  const params = useParams();
   const [data, setData] = useState<UdbudData | null>(null);
   const [fejl, setFejl] = useState(false);
   const [kopieret, setKopieret] = useState(false);
 
   useEffect(() => {
     try {
-      const token = params.token as string;
-      const json = decodeURIComponent(atob(token.replace(/-/g, "+").replace(/_/g, "/")));
+      const hash = window.location.hash.slice(1);
+      if (!hash) { setFejl(true); return; }
+      const json = decodeURIComponent(atob(hash.replace(/-/g, "+").replace(/_/g, "/")));
       setData(JSON.parse(json));
     } catch {
       setFejl(true);
     }
-  }, [params.token]);
+  }, []);
 
   function kopier() {
     if (!data) return;

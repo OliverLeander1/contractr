@@ -32,7 +32,7 @@ export default function UdbudResultat() {
     if (!data) return;
     const payload = JSON.stringify({ titel: data.titel, resumé: data.resumé, dokument: tekst });
     const token = btoa(encodeURIComponent(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-    const url = `${window.location.origin}/udbud/${token}`;
+    const url = `${window.location.origin}/udbud/se#${token}`;
     navigator.clipboard.writeText(url).then(() => {
       setLinkKopieret(true);
       setTimeout(() => setLinkKopieret(false), 3000);
