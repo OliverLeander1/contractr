@@ -12,7 +12,7 @@ const projekter: Record<string, {
   betalinger: { navn: string; beløb: string; status: string; dato: string }[];
 }> = {
   "1": {
-    titel: "Indvendig renovering - Valby", bygherre: "Camilla Jensen",
+    titel: "Indvendig renovering, Valby", bygherre: "Camilla Jensen",
     adresse: "Valby Langgade 85, 2500 Valby", entreprisesum: "112.500 kr.",
     aflevering: "30. sep. 2025", status: "igang", type: "Renovering",
     næsteMilepæl: "Gipsvægge", næsteBetaling: "28.125 kr.", åbneMangler: 1,
@@ -31,7 +31,7 @@ const projekter: Record<string, {
     ],
   },
   "2": {
-    titel: "Nyt badeværelse - Frederiksberg", bygherre: "Henrik Møller",
+    titel: "Nyt badeværelse, Frederiksberg", bygherre: "Henrik Møller",
     adresse: "Smallegade 22, 2000 Frederiksberg", entreprisesum: "68.500 kr.",
     aflevering: "15. aug. 2025", status: "igang", type: "Badeværelse",
     næsteMilepæl: "Fliser og VVS", næsteBetaling: "17.125 kr.", åbneMangler: 0,
@@ -48,7 +48,7 @@ const projekter: Record<string, {
     ],
   },
   "3": {
-    titel: "Tagudskiftning - Hellerup", bygherre: "Mette Lund",
+    titel: "Tagudskiftning, Hellerup", bygherre: "Mette Lund",
     adresse: "Strandvejen 12, 2900 Hellerup", entreprisesum: "245.000 kr.",
     aflevering: "15. nov. 2024", status: "afsluttet", type: "Tag",
     åbneMangler: 0,
@@ -312,8 +312,8 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
               <h2 className="font-semibold text-gray-900 mb-4">Projektdokumenter</h2>
               <div className="space-y-2">
                 {[
-                  { navn: "Kontrakt - underskrevet", type: "PDF", dato: "12. mar. 2025" },
-                  { navn: "Plantegning - stueplan", type: "PDF", dato: "12. mar. 2025" },
+                  { navn: "Kontrakt (underskrevet)", type: "PDF", dato: "12. mar. 2025" },
+                  { navn: "Plantegning, stueplan", type: "PDF", dato: "12. mar. 2025" },
                   { navn: "Tidsplan v2", type: "PDF", dato: "15. mar. 2025" },
                 ].map((d) => (
                   <div key={d.navn} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">

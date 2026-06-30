@@ -3,21 +3,21 @@
 const omtaler = [
   {
     bygherre: "Camilla Jensen",
-    projekt: "Indvendig renovering - Valby",
+    projekt: "Indvendig renovering, Valby",
     dato: "Oktober 2024",
     rating: 5,
     tekst: "Thomas og hans team leverede et flot stykke arbejde til tiden og inden for budgettet. Meget professionel kommunikation og altid ærlig omkring hvad der skulle til. Kan varmt anbefales.",
   },
   {
     bygherre: "Mette Lund",
-    projekt: "Tagudskiftning - Hellerup",
+    projekt: "Tagudskiftning, Hellerup",
     dato: "Juni 2024",
     rating: 5,
     tekst: "Meget tilfreds. Arbejdet blev udført hurtigt og pænt, og Thomas holdt os løbende orienteret. Ingen overraskelser på regningen.",
   },
   {
     bygherre: "Peter Holm",
-    projekt: "Køkken - Østerport",
+    projekt: "Køkken, Østerport",
     dato: "Marts 2024",
     rating: 4,
     tekst: "Godt håndværk og god kommunikation. Tog lidt længere tid end planlagt, men Thomas var ærlig om årsagen og løste det professionelt.",

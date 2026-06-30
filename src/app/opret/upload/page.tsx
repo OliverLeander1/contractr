@@ -66,7 +66,7 @@ export default function UploadAftale() {
     <FlowLayout aktivTrin={3}>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload din byggeaftale</h1>
-        <p className="text-gray-500">Tilbud, kontrakt, ordrebekræftelse eller mail - vi screener det hele mod AB-Forbruger.</p>
+        <p className="text-gray-500">Tilbud, kontrakt, ordrebekræftelse eller mail. Vi screener det hele mod AB-Forbruger.</p>
       </div>
 
       {/* Fane-switcher */}
@@ -101,7 +101,7 @@ export default function UploadAftale() {
               </svg>
             </div>
             <p className="font-semibold text-gray-900 mb-1">Træk filer hertil eller klik for at uploade</p>
-            <p className="text-sm text-gray-400">PDF, JPG, PNG, TXT - op til 20 MB per fil</p>
+            <p className="text-sm text-gray-400">PDF, JPG, PNG, TXT op til 20 MB per fil</p>
           </div>
 
           {filer.length > 0 && (
@@ -139,7 +139,7 @@ export default function UploadAftale() {
         <div className="mb-5">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <label className="block text-sm font-semibold text-gray-900 mb-2">Indsæt teksten fra tilbuddet</label>
-            <p className="text-xs text-gray-400 mb-3">Kopier teksten direkte fra din mail, PDF eller screenshot - og indsæt den her.</p>
+            <p className="text-xs text-gray-400 mb-3">Kopier teksten direkte fra din mail, PDF eller screenshot og indsæt den her.</p>
             <textarea
               value={tekst}
               onChange={e => setTekst(e.target.value)}

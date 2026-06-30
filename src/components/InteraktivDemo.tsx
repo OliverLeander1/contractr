@@ -151,7 +151,7 @@ const haandvaerkerTrin = [
           <p className="text-sm text-gray-500">Camilla Jensen inviterer dig til projektet</p>
         </div>
         <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-          <div className="flex justify-between text-sm"><span className="text-gray-400">Projekt</span><span className="font-semibold text-gray-900">Indvendig renovering - Valby</span></div>
+          <div className="flex justify-between text-sm"><span className="text-gray-400">Projekt</span><span className="font-semibold text-gray-900">Indvendig renovering, Valby</span></div>
           <div className="flex justify-between text-sm"><span className="text-gray-400">Din e-mail</span><span className="font-semibold text-gray-900">thomas@tmbyg.dk</span></div>
         </div>
         <button className="w-full bg-primary text-white text-sm font-semibold py-3 rounded-xl">Acceptér og opret konto →</button>
@@ -164,7 +164,7 @@ const haandvaerkerTrin = [
     skærm: () => (
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
-          <p className="text-sm font-bold text-gray-900">Indvendig renovering - Valby</p>
+          <p className="text-sm font-bold text-gray-900">Indvendig renovering, Valby</p>
           <p className="text-xs text-gray-400">Bygherre: Camilla Jensen</p>
         </div>
         <div className="p-4 space-y-3">

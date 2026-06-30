@@ -9,7 +9,7 @@ const tjekliste = [
   {
     id: "pris",
     spørgsmål: "Er I blevet enige om en pris eller pristype?",
-    tip: "Fast pris giver dig størst tryghed. Overslag kan overskrides - spørg altid til maksimalt beløb.",
+    tip: "Fast pris giver dig størst tryghed. Et overslag kan overskrides. Spørg altid til det maksimale beløb.",
     vigtigt: "AB-Forbruger § 14",
   },
   {
@@ -21,7 +21,7 @@ const tjekliste = [
   {
     id: "betaling",
     spørgsmål: "Er I enige om hvornår og hvordan der betales?",
-    tip: "Undgå stor forudbetaling. Betal i rater koblet til fremdrift - ikke til datoer.",
+    tip: "Undgå stor forudbetaling. Betal i rater koblet til fremdrift, ikke til datoer.",
     vigtigt: "AB-Forbruger § 22",
   },
   {
@@ -235,7 +235,7 @@ export default function IngenTilbud() {
           onClick={() => router.push("/opret/upload")}
           className="flex-1 py-4 rounded-xl text-base font-bold bg-primary text-white hover:opacity-90 transition-opacity shadow-md shadow-primary/20"
         >
-          Jeg har nu fået et tilbud - upload det →
+          Jeg har nu fået et tilbud. Upload det →
         </button>
       </div>
     </FlowLayout>

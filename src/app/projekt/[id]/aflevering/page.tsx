@@ -36,7 +36,7 @@ export default function Aflevering({ params }: { params: Promise<{ id: string }>
       <div className="max-w-4xl mx-auto px-6 py-10">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Afleveringsforretning</h1>
-          <p className="text-sm text-gray-400 mt-1">Indvendig renovering - Valby · AB-Forbruger § 37-38</p>
+          <p className="text-sm text-gray-400 mt-1">Indvendig renovering, Valby · AB-Forbruger § 37-38</p>
         </div>
 
         {/* Trin-indikator */}
@@ -155,7 +155,7 @@ export default function Aflevering({ params }: { params: Promise<{ id: string }>
                 <div className="grid grid-cols-2 gap-4">
                   <div><p className="text-xs text-gray-400 mb-1">Bygherre</p><p className="font-medium text-gray-900">Camilla Jensen</p></div>
                   <div><p className="text-xs text-gray-400 mb-1">Entreprenør</p><p className="font-medium text-gray-900">Thomas Madsen, TM Byg ApS</p></div>
-                  <div><p className="text-xs text-gray-400 mb-1">Projekt</p><p className="font-medium text-gray-900">Indvendig renovering - Valby</p></div>
+                  <div><p className="text-xs text-gray-400 mb-1">Projekt</p><p className="font-medium text-gray-900">Indvendig renovering, Valby</p></div>
                   <div><p className="text-xs text-gray-400 mb-1">Afleveringsdato</p><p className="font-medium text-gray-900">{new Intl.DateTimeFormat("da-DK", { day: "numeric", month: "short", year: "numeric" }).format(new Date())}</p></div>
                 </div>
 

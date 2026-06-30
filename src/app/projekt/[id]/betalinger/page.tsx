@@ -22,7 +22,7 @@ export default function Betalinger({ params }: { params: Promise<{ id: string }>
       <div className="max-w-4xl mx-auto px-6 py-10">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Økonomi</h1>
-          <p className="text-sm text-gray-400 mt-1">Indvendig renovering - Valby</p>
+          <p className="text-sm text-gray-400 mt-1">Indvendig renovering, Valby</p>
         </div>
 
         {/* Overblik */}

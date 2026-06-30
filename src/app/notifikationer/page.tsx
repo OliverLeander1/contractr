@@ -45,7 +45,7 @@ const notifikationer = [
     id: 5,
     type: "dokument",
     titel: "Nyt dokument uploaded",
-    tekst: "Thomas Madsen har uploaded 'Billeder - malerarbejde dag 3' til projektet.",
+    tekst: "Thomas Madsen har uploaded 'Billeder fra malerarbejde dag 3' til projektet.",
     tid: "I går kl. 16:42",
     ulæst: false,
     link: "/projekt/1/dokumenter",

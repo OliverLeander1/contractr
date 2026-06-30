@@ -1,14 +1,14 @@
 ﻿import Link from "next/link";
 
 const bookinger = [
-  { id: 1, tid: "I dag kl. 10:00", bygherre: "Camilla Jensen", type: "Aftaletjek", varighed: "45 min", projekt: "Indvendig renovering - Valby", status: "kommende" },
+  { id: 1, tid: "I dag kl. 10:00", bygherre: "Camilla Jensen", type: "Aftaletjek", varighed: "45 min", projekt: "Indvendig renovering, Valby", status: "kommende" },
   { id: 2, tid: "I dag kl. 13:30", bygherre: "Henrik Møller", type: "Mangelgennemgang", varighed: "45 min", projekt: "Badeværelse - Frederiksberg", status: "kommende" },
   { id: 3, tid: "I morgen kl. 09:00", bygherre: "Lise Andersen", type: "Aftaletjek", varighed: "45 min", projekt: "Tagudskiftning - Rødovre", status: "kommende" },
   { id: 4, tid: "20. jun kl. 14:00", bygherre: "Poul Christensen", type: "Risikovurdering", varighed: "45 min", projekt: "Tilbygning - Hvidovre", status: "kommende" },
 ];
 
 const projekter = [
-  { id: 1, bygherre: "Camilla Jensen", titel: "Indvendig renovering - Valby", fase: "I gang", mangler: 1, risikoniveau: "middel" },
+  { id: 1, bygherre: "Camilla Jensen", titel: "Indvendig renovering, Valby", fase: "I gang", mangler: 1, risikoniveau: "middel" },
   { id: 2, bygherre: "Henrik Møller", titel: "Badeværelse - Frederiksberg", fase: "I gang", mangler: 0, risikoniveau: "lav" },
   { id: 3, bygherre: "Lise Andersen", titel: "Tagudskiftning - Rødovre", fase: "Screening", mangler: 0, risikoniveau: "høj" },
   { id: 4, bygherre: "Poul Christensen", titel: "Tilbygning - Hvidovre", fase: "Screening", mangler: 0, risikoniveau: "middel" },

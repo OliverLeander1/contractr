@@ -2,11 +2,11 @@
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "AB-Forbruger 2012 - Dine rettigheder som bygherre",
+  title: "AB-Forbruger 2012: Dine rettigheder som bygherre",
   description: "Få overblik over AB-Forbruger 2012 - standardbetingelserne der beskytter dig som privat bygherre. Forstå dine rettigheder om betaling, mangler, reklamation og aflevering.",
   keywords: ["AB-Forbruger", "AB-Forbruger 2012", "bygherre rettigheder", "byggeri rettigheder", "reklamationsret byggeri"],
   openGraph: {
-    title: "AB-Forbruger 2012 - Dine rettigheder som bygherre",
+    title: "AB-Forbruger 2012: Dine rettigheder som bygherre",
     description: "Forstå AB-Forbruger 2012 og dine rettigheder om betaling, mangler og aflevering.",
     url: "https://www.contractr.dk/abforbruger",
   },
@@ -157,12 +157,12 @@ const sektioner = [
       },
       {
         nr: "§ 24, stk. 2",
-        titel: "Prisoverslag - varsling ved overskridelse",
+        titel: "Prisoverslag: varsling ved overskridelse",
         tekst: "Har håndværkeren givet et prisoverslag, skal han hurtigst muligt indhente din stillingtagen til arbejdets fortsættelse, hvis prisen overstiger 15 %. Indhenter han ikke din stillingtagen, har du ikke pligt til at betale det beløb, der kunne være sparet, hvis du havde haft mulighed for at tage stilling.",
       },
       {
         nr: "§ 21",
-        titel: "Uklar aftale - håndværker skal underrette dig",
+        titel: "Uklar aftale: håndværkeren skal underrette dig",
         tekst: "Finder håndværkeren, at aftalen ikke yder tilstrækkelig vejledning til udførelse af arbejdet, eller at arbejdet ikke kan udføres i overensstemmelse med den indgåede aftale, skal han snarest muligt underrette dig og følge din anvisning. Har han ikke tid til at underrette dig, skal han - mod fornøden forlængelse af tidsfrister og mod betaling herfor - træffe de bedst mulige foranstaltninger for at undgå, at du lider tab. Håndværkeren skal desuden snarest underrette dig, hvis der opstår forhold, som hindrer eller vanskeliggør arbejdet, eller gør det nærliggende, at du påføres ulempe, tab eller ansvar over for tredjemand.",
       },
     ],
@@ -220,12 +220,12 @@ export default function ABForbruger() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-3">Dine rettigheder som bygherre</h1>
           <p className="text-gray-500 leading-relaxed">
-            AB-Forbruger er standardbetingelserne din aftale med håndværkeren er baseret på. Her er de vigtigste paragraffer oversat til almindeligt dansk - fordelt efter situation. Indholdet er gengivet direkte fra den officielle tekst.
+            AB-Forbruger er standardbetingelserne din aftale med håndværkeren er baseret på. Her er de vigtigste paragraffer oversat til almindeligt dansk, fordelt efter situation. Indholdet er gengivet direkte fra den officielle tekst.
           </p>
           <div className="mt-4 bg-accent border border-primary/20 rounded-xl p-4 flex items-start gap-3">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2" className="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <p className="text-sm text-primary leading-relaxed">
-              Platformen viser dig automatisk den relevante paragraf, når noget sker i dit projekt - fx ved betalingsfrister, forsinkelse eller mangler.
+              Platformen viser dig automatisk den relevante paragraf når noget sker i dit projekt. Det gælder fx betalingsfrister, forsinkelse eller mangler.
             </p>
           </div>
         </div>

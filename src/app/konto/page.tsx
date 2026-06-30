@@ -1,7 +1,7 @@
 ﻿import Link from "next/link";
 
 const projekter = [
-  { id: 1, titel: "Indvendig renovering - Valby", status: "I gang", oprettet: "12. mar. 2025", entreprisesum: "112.500 kr." },
+  { id: 1, titel: "Indvendig renovering, Valby", status: "I gang", oprettet: "12. mar. 2025", entreprisesum: "112.500 kr." },
 ];
 
 export default function Konto() {

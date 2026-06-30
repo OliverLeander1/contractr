@@ -35,14 +35,14 @@ export default function BeskrivProjekt() {
       });
       const data = await res.json();
       if (!res.ok || data.error) {
-        setFejl(data.error || "Noget gik galt - prøv igen");
+        setFejl(data.error || "Noget gik galt. Prøv igen");
         setLoading(false);
         return;
       }
       sessionStorage.setItem("udbud_resultat", JSON.stringify(data));
       router.push("/opret/udbud-resultat");
     } catch {
-      setFejl("Netværksfejl - tjek din forbindelse og prøv igen");
+      setFejl("Netværksfejl. Tjek din forbindelse og prøv igen.");
       setLoading(false);
     }
   }
