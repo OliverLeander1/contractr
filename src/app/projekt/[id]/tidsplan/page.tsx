@@ -4,452 +4,289 @@ import { use, useState } from "react";
 import ProjektNav from "@/components/ProjektNav";
 import ABTip from "@/components/ABTip";
 
-// Project runs 202 days total, anchored to today so the demo always looks active
 const TOTAL = 202;
-const START_DATE = (() => { const d = new Date(); d.setDate(d.getDate() - 99); return d; })();
-const TODAY = 99; // always "today" = day 99
-
+const TODAY_DAY = 99;
+const START_DATE = (() => { const d = new Date(); d.setDate(d.getDate() - TODAY_DAY); return d; })();
 const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
-const fmtMonth = (d: Date) => d.toLocaleDateString("da-DK", { month: "short" }).replace(".", "").replace(/^\w/, c => c.toUpperCase());
+const fmtDato = (d: Date) => d.toLocaleDateString("da-DK", { day: "numeric", month: "long" });
+const fmtKort = (d: Date) => d.toLocaleDateString("da-DK", { day: "numeric", month: "short" });
 
-const MONTHS = Array.from({ length: 8 }, (_, i) => {
-  const d = addDays(START_DATE, Math.round((i / 7) * TOTAL));
-  return { label: fmtMonth(d), day: Math.round((i / 7) * TOTAL) };
-});
-
-type Status = "done" | "active" | "forsinket" | "upcoming";
-
-interface Opgave {
+interface Fase {
   id: string;
   label: string;
   ansvarlig: string;
+  startDag: number;
+  slutDag: number;
+  status: "done" | "aktiv" | "forsinket" | "kommende";
+  forsinkelseDage?: number;
+  hvadSker: string;
+  hvadBetyder: string;
   farve: string;
-  fillDone: string;
-  fillActive: string;
-  fillUpcoming: string;
-  start: number;
-  end: number;
-  planEnd?: number;
-  status: Status;
-  note: string;
-  afhængerAf: string[];
+  emoji: string;
 }
 
-const OPGAVER: Opgave[] = [
+const FASER: Fase[] = [
   {
     id: "nedrivning",
     label: "Nedrivning",
     ansvarlig: "TM Byg ApS",
-    farve: "#64748b",
-    fillDone: "#cbd5e1",
-    fillActive: "#94a3b8",
-    fillUpcoming: "#f1f5f9",
-    start: 0, end: 16, status: "done",
-    note: "Eksisterende installationer og overflader fjernes inden nye materialer monteres.",
-    afhængerAf: [],
+    startDag: 0, slutDag: 16,
+    status: "done",
+    emoji: "🔨",
+    farve: "gray",
+    hvadSker: "Eksisterende fliser, toilet og installationer fjernes.",
+    hvadBetyder: "Badeværelset er nu tomt og klar til det nye arbejde.",
   },
   {
     id: "el",
-    label: "El-installationer",
-    ansvarlig: "EL-firma ApS",
-    farve: "#b45309",
-    fillDone: "#fcd34d",
-    fillActive: "#f59e0b",
-    fillUpcoming: "#fef3c7",
-    start: 16, end: 37, status: "done",
-    note: "Rå-el, dåser og rørføring lægges inden gipsvæggene lukkes. Løber parallelt med VVS.",
-    afhængerAf: ["nedrivning"],
-  },
-  {
-    id: "vvs",
-    label: "VVS-installationer",
-    ansvarlig: "VVS-firma ApS",
-    farve: "#0369a1",
-    fillDone: "#7dd3fc",
-    fillActive: "#38bdf8",
-    fillUpcoming: "#e0f2fe",
-    start: 16, end: 37, status: "done",
-    note: "Vandrør og afløb klargøres parallelt med el-arbejdet inden gips lukkes.",
-    afhængerAf: ["nedrivning"],
+    label: "El & VVS",
+    ansvarlig: "EL-firma + VVS-firma",
+    startDag: 16, slutDag: 37,
+    status: "done",
+    emoji: "⚡",
+    farve: "yellow",
+    hvadSker: "Elkabler og vandrør lægges inde i væggene — inden de lukkes.",
+    hvadBetyder: "Når dette er gjort, kan I ikke se installationerne, men de er der. Kræver godkendelse inden vægge lukkes.",
   },
   {
     id: "gips",
     label: "Gipsvægge",
     ansvarlig: "TM Byg ApS",
-    farve: "#6d28d9",
-    fillDone: "#c4b5fd",
-    fillActive: "#a78bfa",
-    fillUpcoming: "#ede9fe",
-    start: 37, end: 49, status: "done",
-    note: "Kan kun starte når el-dåser og VVS-rør er monterede. Spartles og tørrer inden maling.",
-    afhængerAf: ["el", "vvs"],
+    startDag: 37, slutDag: 49,
+    status: "done",
+    emoji: "🧱",
+    farve: "purple",
+    hvadSker: "Væggene lukkes, spartles og tørrer.",
+    hvadBetyder: "Badeværelset begynder at tage form. Vægge skal tørre fuldstændigt inden maling.",
   },
   {
     id: "maler",
     label: "Malerarbejde",
     ansvarlig: "TM Byg ApS",
-    farve: "#15803d",
-    fillDone: "#86efac",
-    fillActive: "#4ade80",
-    fillUpcoming: "#dcfce7",
-    start: 49, end: 99, planEnd: 95, status: "forsinket",
-    note: "Forsinket 4 dage pga. ekstra el-dåser i stuen (aftaleseddel #3). Kræver tørre gipsvægge.",
-    afhængerAf: ["gips"],
+    startDag: 49, slutDag: 99,
+    status: "forsinket",
+    forsinkelseDage: 4,
+    emoji: "🖌️",
+    farve: "green",
+    hvadSker: "Grundering og maling af vægge og loft.",
+    hvadBetyder: "Forsinkelsen skyldes ekstra el-dåser der blev tilføjet. Gulvlæggeren er varslet og starter 4 dage senere.",
   },
   {
     id: "gulv",
     label: "Gulvlægning",
     ansvarlig: "Gulvfirma ApS",
-    farve: "#c2410c",
-    fillDone: "#fb923c",
-    fillActive: "#f97316",
-    fillUpcoming: "#ffedd5",
-    start: 99, end: 125, status: "upcoming",
-    note: "Lægges efter maling — undgår ridser og malingsstænk. Rykket 4 dage pga. malerforsinkelse.",
-    afhængerAf: ["maler"],
+    startDag: 103, slutDag: 125,
+    status: "kommende",
+    emoji: "🪵",
+    farve: "orange",
+    hvadSker: "Gulvbelægning monteres — altid efter maling for at undgå ridser.",
+    hvadBetyder: "Når gulvet er lagt, er det store arbejde overstået. Kun eftermontering tilbage.",
+  },
+  {
+    id: "aflevering",
+    label: "Aflevering",
+    ansvarlig: "Begge parter",
+    startDag: 195, slutDag: 202,
+    status: "kommende",
+    emoji: "🏁",
+    farve: "primary",
+    hvadSker: "Gennemgang af alt arbejde med håndværkeren. Eventuelle mangler noteres.",
+    hvadBetyder: "Du overtager badeværelset. Herefter begynder 5-årsgarantien på skjulte fejl.",
   },
 ];
 
-const LABEL_W = 22; // % of row for labels
-const pct = (day: number) => `${(day / TOTAL) * 100}%`;
-const barLeft = (day: number) => `${(day / TOTAL) * 100}%`;
-const barW = (days: number) => `${Math.max((days / TOTAL) * 100, 7)}%`; // min 7% so short tasks look like pills not circles
+const FARVER: Record<string, { bg: string; text: string; border: string; dot: string }> = {
+  gray:    { bg: "bg-gray-100",   text: "text-gray-600",   border: "border-gray-200",   dot: "bg-gray-400" },
+  yellow:  { bg: "bg-amber-50",   text: "text-amber-700",  border: "border-amber-100",  dot: "bg-amber-400" },
+  purple:  { bg: "bg-purple-50",  text: "text-purple-700", border: "border-purple-100", dot: "bg-purple-400" },
+  green:   { bg: "bg-green-50",   text: "text-green-700",  border: "border-green-100",  dot: "bg-green-500" },
+  orange:  { bg: "bg-orange-50",  text: "text-orange-700", border: "border-orange-100", dot: "bg-orange-400" },
+  primary: { bg: "bg-primary/5",  text: "text-primary",    border: "border-primary/20", dot: "bg-primary" },
+};
+
+function StatusBadge({ status, dage }: { status: Fase["status"]; dage?: number }) {
+  if (status === "done") return (
+    <span className="inline-flex items-center gap-1 text-xs font-semibold bg-green-100 text-green-700 px-2.5 py-1 rounded-full">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+      Afsluttet
+    </span>
+  );
+  if (status === "forsinket") return (
+    <span className="inline-flex items-center gap-1 text-xs font-semibold bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {dage ? `+${dage} dage forsinket` : "Forsinket"}
+    </span>
+  );
+  if (status === "aktiv") return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">
+      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+      I gang nu
+    </span>
+  );
+  return (
+    <span className="inline-flex items-center gap-1 text-xs font-semibold bg-gray-100 text-gray-500 px-2.5 py-1 rounded-full">
+      Kommer
+    </span>
+  );
+}
 
 export default function Tidsplan({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [depVis, setDepVis] = useState(false);
+  const [åben, setÅben] = useState<string | null>(null);
 
-  const selectedOpgave = OPGAVER.find(o => o.id === selected);
+  const fremskridt = Math.round((TODAY_DAY / TOTAL) * 100);
+  const afleveringsDato = addDays(START_DATE, TOTAL);
+  const dagetilbage = TOTAL - TODAY_DAY;
+
+  const næsteFase = FASER.find(f => f.status === "kommende" || f.status === "aktiv" || f.status === "forsinket");
+  const erForsinket = FASER.some(f => f.status === "forsinket");
 
   return (
     <div className="min-h-screen bg-gray-50">
       <ProjektNav id={id} />
 
-      <div className="max-w-5xl mx-auto px-6 py-10">
+      <div className="max-w-2xl mx-auto px-6 py-10">
 
-        {/* Header */}
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Tidsplan</h1>
-            <p className="text-sm text-gray-400 mt-1">
-              {addDays(START_DATE, 0).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
-              {" – "}
-              {addDays(START_DATE, TOTAL).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
-            </p>
+        {/* Overblik-kort */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+          <div className="flex items-start justify-between mb-5">
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Projektstatus</p>
+              <h1 className="text-2xl font-bold text-gray-900">Dag {TODAY_DAY} af {TOTAL}</h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Aflevering planlagt <span className="font-semibold text-gray-700">{fmtDato(afleveringsDato)}</span> — om {dagetilbage} dage
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold text-primary">{fremskridt}%</p>
+              <p className="text-xs text-gray-400">gennemført</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2.5">
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              Maler 4 dage forsinket
-            </span>
-            <button className="inline-flex items-center gap-2 text-sm font-semibold bg-primary text-white px-4 py-2 rounded-xl hover:opacity-90 transition-opacity">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Tilføj opgave
-            </button>
+
+          {/* Fremskridtsbjælke */}
+          <div className="relative h-4 bg-gray-100 rounded-full overflow-hidden mb-2">
+            <div
+              className="absolute left-0 top-0 h-full bg-primary rounded-full transition-all"
+              style={{ width: `${fremskridt}%` }}
+            />
+            {erForsinket && (
+              <div
+                className="absolute top-0 h-full w-1 bg-amber-400"
+                style={{ left: `${Math.round(((TODAY_DAY - 4) / TOTAL) * 100)}%` }}
+              />
+            )}
           </div>
+          <div className="flex justify-between text-xs text-gray-400">
+            <span>{fmtKort(START_DATE)}</span>
+            <span className="text-red-500 font-semibold">↑ I dag</span>
+            <span>{fmtKort(afleveringsDato)}</span>
+          </div>
+
+          {/* Advarsel forsinkelse */}
+          {erForsinket && (
+            <div className="mt-4 flex items-start gap-2.5 bg-amber-50 border border-amber-100 rounded-xl p-3">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <p className="text-xs text-amber-800 leading-relaxed">
+                <span className="font-semibold">Malerrunden er 4 dage forsinket</span> — gulvlæggeren starter tilsvarende 4 dage senere. Afleveringen er endnu ikke påvirket.
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Gantt chart */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-5">
-
-          {/* Chart grid + rows */}
-          <div className="relative">
-
-            {/* Month tick marks */}
-            <div className="absolute inset-0 pointer-events-none" style={{ left: `${LABEL_W}%` }}>
-              {MONTHS.map((m) => (
-                <div
-                  key={m.label}
-                  className="absolute top-0 bottom-0 w-px bg-gray-100"
-                  style={{ left: pct(m.day) }}
-                />
-              ))}
-              {/* Today */}
-              <div
-                className="absolute top-0 bottom-0 w-px bg-red-400"
-                style={{ left: pct(TODAY) }}
-              />
-            </div>
-
-            {/* Month label row */}
-            <div className="flex items-center border-b border-gray-100 h-9">
-              <div className="shrink-0 px-5" style={{ width: `${LABEL_W}%` }}>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Faggruppe</span>
-              </div>
-              <div className="flex-1 relative h-full">
-                {MONTHS.map((m, i) => {
-                  const nextDay = MONTHS[i + 1]?.day ?? TOTAL;
-                  return (
-                    <div
-                      key={m.label}
-                      className="absolute top-0 bottom-0 flex items-center"
-                      style={{ left: pct(m.day), width: pct(nextDay - m.day) }}
-                    >
-                      <span className="text-[11px] font-semibold text-gray-400 pl-2">{m.label}</span>
-                    </div>
-                  );
-                })}
-                {/* Today chip */}
-                <div
-                  className="absolute top-0 bottom-0 flex items-center"
-                  style={{ left: pct(TODAY), transform: "translateX(-50%)" }}
-                >
-                  <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md whitespace-nowrap">I dag</span>
-                </div>
+        {/* Næste skridt */}
+        {næsteFase && (
+          <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 mb-6">
+            <p className="text-xs font-bold text-primary uppercase tracking-wide mb-2">Næste op</p>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">{næsteFase.emoji}</span>
+              <div>
+                <p className="font-semibold text-gray-900">{næsteFase.label}</p>
+                <p className="text-sm text-gray-500">
+                  {næsteFase.ansvarlig} · starter {fmtKort(addDays(START_DATE, næsteFase.startDag))}
+                </p>
               </div>
             </div>
+          </div>
+        )}
 
-            {/* Task rows */}
-            {OPGAVER.map((o, i) => {
-              const isSelected = selected === o.id;
-              const barFill =
-                o.status === "done" ? o.fillDone :
-                o.status === "active" || o.status === "forsinket" ? o.fillActive :
-                o.fillUpcoming;
+        {/* Faser */}
+        <div className="mb-6">
+          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">Alle faser</h2>
+          <div className="space-y-2">
+            {FASER.map((fase, i) => {
+              const f = FARVER[fase.farve];
+              const erÅben = åben === fase.id;
+              const erAktuelFase = fase.status === "aktiv" || fase.status === "forsinket";
 
               return (
                 <div
-                  key={o.id}
-                  onClick={() => setSelected(isSelected ? null : o.id)}
-                  className={`flex items-center border-b border-gray-50 last:border-b-0 cursor-pointer transition-colors duration-100 ${isSelected ? "bg-blue-50/30" : i % 2 === 1 ? "bg-gray-50/50 hover:bg-gray-100/50" : "hover:bg-gray-50/60"}`}
-                  style={{ height: 68 }}
+                  key={fase.id}
+                  className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${erAktuelFase ? "border-primary/30 ring-1 ring-primary/10" : "border-gray-100"}`}
                 >
-                  {/* Label */}
-                  <div className="shrink-0 flex items-center gap-3 px-5" style={{ width: `${LABEL_W}%` }}>
-                    <div
-                      className="w-3 h-3 rounded-sm shrink-0"
-                      style={{ backgroundColor: o.status === "upcoming" ? o.fillUpcoming : barFill, border: `2px solid ${o.farve}`, opacity: o.status === "upcoming" ? 1 : 1 }}
-                    />
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-gray-800 truncate">{o.label}</p>
-                      <p className="text-[10px] text-gray-400 truncate mt-0.5">{o.ansvarlig}</p>
+                  <button
+                    onClick={() => setÅben(erÅben ? null : fase.id)}
+                    className="w-full flex items-center gap-4 p-4 text-left"
+                  >
+                    {/* Linje-indikator */}
+                    <div className="flex flex-col items-center self-stretch shrink-0">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-base ${fase.status === "done" ? "bg-green-100" : fase.status === "forsinket" ? "bg-amber-100" : fase.status === "aktiv" ? "bg-blue-100" : "bg-gray-100"}`}>
+                        {fase.status === "done" ? "✓" : fase.emoji}
+                      </div>
+                      {i < FASER.length - 1 && (
+                        <div className={`w-0.5 flex-1 mt-1 ${fase.status === "done" ? "bg-green-200" : "bg-gray-100"}`} style={{ minHeight: 16 }} />
+                      )}
                     </div>
-                  </div>
 
-                  {/* Bar area */}
-                  <div className="flex-1 relative" style={{ height: 68 }}>
+                    {/* Tekst */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <p className={`text-sm font-semibold ${fase.status === "done" ? "text-gray-400 line-through" : "text-gray-900"}`}>
+                          {fase.label}
+                        </p>
+                        <StatusBadge status={fase.status} dage={fase.forsinkelseDage} />
+                      </div>
+                      <p className="text-xs text-gray-400">
+                        {fmtKort(addDays(START_DATE, fase.startDag))} – {fmtKort(addDays(START_DATE, fase.slutDag))} · {fase.ansvarlig}
+                      </p>
+                    </div>
 
-                    {/* Plan-end marker (forsinket) */}
-                    {o.planEnd && (
-                      <div
-                        className="absolute top-3 bottom-3 w-0.5 border-l-2 border-dashed border-amber-400 z-10"
-                        style={{ left: pct(o.planEnd) }}
-                      />
-                    )}
-
-                    {/* Bar */}
-                    <div
-                      className="absolute rounded-full transition-all duration-150"
-                      style={{
-                        left: barLeft(o.start),
-                        width: barW(o.end - o.start),
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        height: 30,
-                        backgroundColor: o.status === "upcoming" ? o.fillUpcoming : barFill,
-                        border: `1.5px solid ${o.farve}50`,
-                        boxShadow: isSelected ? `0 0 0 2.5px ${o.farve}40` : undefined,
-                      }}
+                    {/* Chevron */}
+                    <svg
+                      width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                      className={`text-gray-300 shrink-0 transition-transform ${erÅben ? "rotate-180" : ""}`}
                     >
-                      <div className="flex items-center h-full px-3 gap-2">
-                        {/* Status icon */}
-                        {o.status === "done" && (
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={o.farve} strokeWidth="3" className="shrink-0">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        )}
-                        {o.status === "forsinket" && (
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={o.farve} strokeWidth="2.5" className="shrink-0">
-                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                          </svg>
-                        )}
-                        {o.status === "active" && (
-                          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: o.farve }} />
-                        )}
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
 
-                        {/* Forsinket badge */}
-                        {o.status === "forsinket" && (
-                          <span className="text-[10px] font-bold whitespace-nowrap" style={{ color: o.farve }}>
-                            +4 dage
-                          </span>
-                        )}
+                  {erÅben && (
+                    <div className={`px-4 pb-4 pt-1 border-t border-gray-50 ${f.bg}`}>
+                      <div className="space-y-3 pt-3">
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 mb-1">Hvad sker der?</p>
+                          <p className="text-sm text-gray-700 leading-relaxed">{fase.hvadSker}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 mb-1">Hvad betyder det for dig?</p>
+                          <p className="text-sm text-gray-700 leading-relaxed">{fase.hvadBetyder}</p>
+                        </div>
                       </div>
                     </div>
-
-                    {/* Dependency start dot */}
-                    {o.afhængerAf.length > 0 && (
-                      <div
-                        className="absolute w-2 h-2 rounded-full border-2 border-white z-20"
-                        style={{
-                          left: pct(o.start),
-                          top: "50%",
-                          transform: "translate(-50%, -50%)",
-                          backgroundColor: o.farve,
-                        }}
-                      />
-                    )}
-                  </div>
+                  )}
                 </div>
               );
             })}
-
-            {/* Aflevering milestone row */}
-            <div
-              className="flex items-center border-t border-gray-50"
-              style={{ height: 52 }}
-            >
-              <div className="shrink-0 flex items-center gap-3 px-5" style={{ width: `${LABEL_W}%` }}>
-                <div className="w-3 h-3 rounded-sm bg-primary shrink-0" />
-                <div>
-                  <p className="text-xs font-semibold text-gray-800">Aflevering</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">Begge parter</p>
-                </div>
-              </div>
-              <div className="flex-1 relative" style={{ height: 52 }}>
-                <div
-                  className="absolute flex items-center gap-1.5"
-                  style={{ right: 16, top: "50%", transform: "translateY(-50%)" }}
-                >
-                  <span className="text-[10px] font-bold text-primary whitespace-nowrap">30. sep</span>
-                  <div className="w-4 h-4 bg-primary rotate-45 shadow-md shrink-0" />
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Selected task detail strip */}
-        {selectedOpgave && (
-          <div
-            className="rounded-2xl border p-4 mb-5 transition-all"
-            style={{
-              backgroundColor: selectedOpgave.fillUpcoming,
-              borderColor: `${selectedOpgave.farve}30`,
-            }}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div
-                  className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
-                  style={{ backgroundColor: selectedOpgave.fillDone }}
-                >
-                  <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: selectedOpgave.farve }} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-sm font-bold text-gray-900">{selectedOpgave.label}</p>
-                    <span className="text-[10px] font-semibold text-gray-500 bg-white/70 px-2 py-0.5 rounded-full border border-gray-200">{selectedOpgave.ansvarlig}</span>
-                    {selectedOpgave.status === "done" && <span className="text-[10px] font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Afsluttet</span>}
-                    {selectedOpgave.status === "forsinket" && <span className="text-[10px] font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Forsinket 4 dage</span>}
-                    {selectedOpgave.status === "upcoming" && <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Kommende</span>}
-                  </div>
-                  <p className="text-xs text-gray-600 leading-relaxed max-w-lg">{selectedOpgave.note}</p>
-                  {selectedOpgave.afhængerAf.length > 0 && (
-                    <p className="text-[10px] text-gray-400 mt-2">
-                      <span className="font-semibold">Afhænger af:</span>{" "}
-                      {selectedOpgave.afhængerAf.map(d => OPGAVER.find(o => o.id === d)?.label).join(" + ")}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 shrink-0">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Legend + forsinkelse note inline */}
-        <div className="flex items-center justify-between mb-6 px-1">
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5">
-            {[
-              { farve: "#64748b", label: "Murer/tømrer" },
-              { farve: "#b45309", label: "Elektriker" },
-              { farve: "#0369a1", label: "VVS" },
-              { farve: "#6d28d9", label: "Gipsmontør" },
-              { farve: "#15803d", label: "Maler" },
-              { farve: "#c2410c", label: "Gulvlægger" },
-            ].map(l => (
-              <div key={l.label} className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: l.farve }} />
-                <span className="text-[11px] text-gray-500">{l.label}</span>
-              </div>
-            ))}
-            <div className="flex items-center gap-1.5 pl-3 border-l border-gray-200">
-              <div className="w-4 h-0 border-t-2 border-dashed border-amber-400" />
-              <span className="text-[11px] text-gray-500">Planlagt slutdato</span>
-            </div>
-          </div>
-          <button
-            onClick={() => setDepVis(!depVis)}
-            className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-1"
-          >
-            Afhængigheder
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`transition-transform ${depVis ? "rotate-180" : ""}`}><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-        </div>
-
-        {/* Dependency panel (collapsible) */}
-        {depVis && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-4">Arbejdsafhængigheder</p>
-            <div className="space-y-3">
-              {[
-                { fra: ["Nedrivning"], til: "El + VVS (parallelt)", note: "El og VVS kan begge starte med det samme når nedrivning er færdig" },
-                { fra: ["El", "VVS"], til: "Gipsvægge", note: "Gipsvæggene lukkes når el-dåser og VVS-rør er sat — begge skal være færdige" },
-                { fra: ["Gipsvægge"], til: "Malerarbejde", note: "Malerens grundering og maling kræver tørre, spartlede vægge" },
-                { fra: ["Malerarbejde"], til: "Gulvlægning", note: "Gulvet lægges sidst for at undgå ridser og maling på belægningen" },
-              ].map((d, i) => (
-                <div key={i} className="flex items-start gap-3 text-xs">
-                  <div className="flex items-center gap-1 shrink-0 mt-0.5 flex-wrap">
-                    {d.fra.map(f => (
-                      <span key={f} className="bg-gray-100 text-gray-700 font-semibold px-2 py-0.5 rounded-md">{f}</span>
-                    ))}
-                  </div>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" className="shrink-0 mt-0.5"><polyline points="9 18 15 12 9 6"/></svg>
-                  <div>
-                    <span className="bg-gray-100 text-gray-700 font-semibold px-2 py-0.5 rounded-md">{d.til}</span>
-                    <p className="text-gray-400 mt-1 leading-relaxed">{d.note}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Forsinkelse box — compact */}
-        <div className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-6">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-amber-900 mb-2">Forsinkelse — domino-effekt</p>
-            <div className="flex items-center gap-2 flex-wrap text-[11px]">
-              <span className="bg-white border border-amber-200 text-amber-800 font-medium px-2.5 py-1 rounded-lg">Ekstra el-dåser tilføjet</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-              <span className="bg-white border border-amber-200 text-amber-800 font-medium px-2.5 py-1 rounded-lg">Maler +4 dage</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-              <span className="bg-white border border-amber-200 text-amber-800 font-medium px-2.5 py-1 rounded-lg">Gulv rykket 4 dage</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-              <span className="bg-green-50 border border-green-200 text-green-700 font-semibold px-2.5 py-1 rounded-lg">Aflevering 30. sep uændret ✓</span>
-            </div>
-          </div>
-        </div>
-
-        {/* AB tips */}
+        {/* AB-tips */}
         <div className="space-y-3">
           <ABTip
-            paragraf="AB-Forbruger § 28 & § 36"
-            titel="Forsinkelse — hvornår er håndværkeren ansvarlig?"
-            resumé="Der foreligger forsinkelse, hvis arbejdet ikke er udført inden aftalt tid, og håndværkeren ikke har ret til tidsfristforlængelse (fx force majeure eller dine egne forhold)."
-            detaljer="Anser håndværkeren sig berettiget til tidsfristforlængelse, skal han snarest muligt underrette dig herom og på forlangende dokumentere, at forsinkelsen skyldes det påberåbte forhold (§ 36, stk. 2)."
-            type="advarsel"
-          />
-          <ABTip
-            paragraf="AB-Forbruger § 31"
-            titel="Dagbod og erstatning ved ansvarspådragende forsinkelse"
-            resumé="Er dagbod aftalt, kan du kræve dagbod. Er dagbod ikke aftalt, er du berettiget til erstatning efter dansk rets almindelige regler."
-            detaljer="Dagbodsklausuler skal aftales skriftligt i kontrakten. Tjek din kontrakt for om dagbod er aftalt og til hvilken sats."
-            type="vigtig"
+            paragraf="AB-Forbruger § 38"
+            titel="Husk afleveringsforretning"
+            resumé="Inden du overtager det færdige arbejde, har du ret til en formel gennemgang med håndværkeren. Mangler noteres skriftligt."
+            detaljer="Aflevering anses for sket, når håndværkeren meddeler, at arbejdet er klar, og der afholdes afleveringsforretning — eller du tager arbejdet i brug. Kræv altid en skriftlig afleveringsprotokol."
+            type="god-ide"
           />
         </div>
       </div>
