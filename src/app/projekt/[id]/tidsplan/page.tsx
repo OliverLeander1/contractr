@@ -286,7 +286,7 @@ export default function Tidsplan({ params }: { params: Promise<{ id: string }> }
             titel="Husk afleveringsforretning"
             resumé="Inden du overtager det færdige arbejde, har du ret til en formel gennemgang med håndværkeren. Mangler noteres skriftligt."
             detaljer="Aflevering anses for sket, når håndværkeren meddeler, at arbejdet er klar, og der afholdes afleveringsforretning - eller du tager arbejdet i brug. Kræv altid en skriftlig afleveringsprotokol."
-            type="god-ide"
+            type="info"
           />
         </div>
       </div>
