@@ -13,18 +13,22 @@ interface UdbudResultat {
 export default function UdbudResultat() {
   const router = useRouter();
   const [data, setData] = useState<UdbudResultat | null>(null);
+  const [tekst, setTekst] = useState("");
   const [kopieret, setKopieret] = useState(false);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("udbud_resultat");
     if (raw) {
-      try { setData(JSON.parse(raw)); } catch { /* ignore */ }
+      try {
+        const parsed = JSON.parse(raw);
+        setData(parsed);
+        setTekst(parsed.dokument);
+      } catch { /* ignore */ }
     }
   }, []);
 
   function kopier() {
-    if (!data) return;
-    navigator.clipboard.writeText(data.dokument).then(() => {
+    navigator.clipboard.writeText(tekst).then(() => {
       setKopieret(true);
       setTimeout(() => setKopieret(false), 2500);
     });
@@ -100,9 +104,12 @@ export default function UdbudResultat() {
           </button>
         </div>
         <div className="px-6 py-5">
-          <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
-            {data.dokument}
-          </pre>
+          <textarea
+            value={tekst}
+            onChange={(e) => setTekst(e.target.value)}
+            rows={Math.max(20, tekst.split("\n").length + 2)}
+            className="w-full text-sm text-gray-700 leading-relaxed font-sans resize-none focus:outline-none border-0 bg-transparent"
+          />
         </div>
       </div>
 
