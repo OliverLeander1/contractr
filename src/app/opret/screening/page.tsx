@@ -61,7 +61,7 @@ export default function Screening() {
 
   if (fejl) {
     return (
-      <FlowLayout aktivTrin={3}>
+      <FlowLayout aktivTrin={4}>
         <div className="text-center py-16">
           <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -77,7 +77,7 @@ export default function Screening() {
   }
 
   return (
-    <FlowLayout aktivTrin={3}>
+    <FlowLayout aktivTrin={4}>
       <div className="text-center mb-12">
         <div className={`w-20 h-20 rounded-full mx-auto flex items-center justify-center mb-6 transition-all duration-500 ${færdig ? "bg-green-100" : "bg-accent"}`}>
           {færdig ? (

@@ -9,8 +9,8 @@ interface Step {
 
 const steps: Step[] = [
   { nr: 1, label: "Projektinfo" },
-  { nr: 2, label: "Upload aftale" },
-  { nr: 3, label: "Screening" },
+  { nr: 2, label: "Tips" },
+  { nr: 3, label: "Upload aftale" },
   { nr: 4, label: "Din rapport" },
 ];
 

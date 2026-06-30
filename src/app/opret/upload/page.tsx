@@ -63,7 +63,7 @@ export default function UploadAftale() {
   };
 
   return (
-    <FlowLayout aktivTrin={2}>
+    <FlowLayout aktivTrin={3}>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload din byggeaftale</h1>
         <p className="text-gray-500">Tilbud, kontrakt, ordrebekræftelse eller mail — vi screener det hele mod AB-Forbruger.</p>
