@@ -25,8 +25,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // Tillad forsiden og API-ruter
-  if (pathname === "/" || pathname.startsWith("/api/")) return NextResponse.next();
+  // Tillad forsiden, API-ruter og offentlige udbudsdokumenter (håndværkere har ikke adgangskoden)
+  if (pathname === "/" || pathname.startsWith("/api/") || pathname.startsWith("/udbud/")) return NextResponse.next();
 
   // Alt andet → forsiden
   return NextResponse.redirect(new URL("/", request.url));
