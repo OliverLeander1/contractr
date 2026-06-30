@@ -243,7 +243,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
             </div>
           </div>
 
-          {/* Højre kolonne — sidebar */}
+          {/* Højre kolonne - sidebar */}
           <div className="space-y-5">
 
             {/* Næste skridt */}

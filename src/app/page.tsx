@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contractr — Kommer snart",
+  title: "Contractr - Kommer snart",
   description: "En ny måde at håndtere byggeprojekter på. Kommer snart.",
   robots: "noindex, nofollow",
 };

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 const sektioner = [
   {
@@ -24,7 +24,7 @@ const sektioner = [
     ],
   },
   {
-    titel: "Bygherre — projekt",
+    titel: "Bygherre - projekt",
     farve: "bg-green-50 border-green-100",
     badge: "bg-green-100 text-green-700",
     sider: [
@@ -44,7 +44,7 @@ const sektioner = [
     farve: "bg-amber-50 border-amber-100",
     badge: "bg-amber-100 text-amber-700",
     sider: [
-      { navn: "Dine rettigheder (AB-Forbruger)", url: "/abforbruger", beskrivelse: "Paragraffer i plain dansk — betaling, mangler, forsinkelse" },
+      { navn: "Dine rettigheder (AB-Forbruger)", url: "/abforbruger", beskrivelse: "Paragraffer i plain dansk - betaling, mangler, forsinkelse" },
       { navn: "Tilkøb oversigt", url: "/tilkoeb", beskrivelse: "Alle rådgiverydelser" },
       { navn: "Book rådgiver", url: "/tilkoeb/book", beskrivelse: "Vælg ydelse og tidspunkt" },
       { navn: "Bookingbekræftelse", url: "/tilkoeb/book/bekraeftelse", beskrivelse: "Kvittering og næste skridt" },
@@ -57,8 +57,8 @@ const sektioner = [
     sider: [
       { navn: "Accepter invitation", url: "/haandvaerker/accepter", beskrivelse: "Håndværker modtager og accepterer invitation" },
       { navn: "Mine sager", url: "/haandvaerker/sager", beskrivelse: "Oversigt over alle tilknyttede projekter" },
-      { navn: "Håndværker — projektoverblik", url: "/haandvaerker/projekt/1", beskrivelse: "Tidsplan, betaling, upload, chat og mangler" },
-      { navn: "Håndværker — kontrakt", url: "/haandvaerker/projekt/1/kontrakt", beskrivelse: "Gennemgå og underskriv digitalt" },
+      { navn: "Håndværker - projektoverblik", url: "/haandvaerker/projekt/1", beskrivelse: "Tidsplan, betaling, upload, chat og mangler" },
+      { navn: "Håndværker - kontrakt", url: "/haandvaerker/projekt/1/kontrakt", beskrivelse: "Gennemgå og underskriv digitalt" },
       { navn: "Min profil & omtaler", url: "/haandvaerker/profil", beskrivelse: "Ratings, omtaler og specialer" },
     ],
   },
@@ -84,7 +84,7 @@ export default function Hub() {
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Contractr — sideoverblik</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Contractr - sideoverblik</h1>
         </div>
         <p className="text-sm text-gray-400 mb-10 ml-13">Klik på en side for at åbne den. Brug til at navigere rundt i platformen.</p>
 

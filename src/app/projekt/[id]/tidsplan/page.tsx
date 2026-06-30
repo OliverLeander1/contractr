@@ -45,7 +45,7 @@ const FASER: Fase[] = [
     status: "done",
     emoji: "⚡",
     farve: "yellow",
-    hvadSker: "Elkabler og vandrør lægges inde i væggene — inden de lukkes.",
+    hvadSker: "Elkabler og vandrør lægges inde i væggene - inden de lukkes.",
     hvadBetyder: "Når dette er gjort, kan I ikke se installationerne, men de er der. Kræver godkendelse inden vægge lukkes.",
   },
   {
@@ -79,7 +79,7 @@ const FASER: Fase[] = [
     status: "kommende",
     emoji: "🪵",
     farve: "orange",
-    hvadSker: "Gulvbelægning monteres — altid efter maling for at undgå ridser.",
+    hvadSker: "Gulvbelægning monteres - altid efter maling for at undgå ridser.",
     hvadBetyder: "Når gulvet er lagt, er det store arbejde overstået. Kun eftermontering tilbage.",
   },
   {
@@ -154,7 +154,7 @@ export default function Tidsplan({ params }: { params: Promise<{ id: string }> }
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Projektstatus</p>
               <h1 className="text-2xl font-bold text-gray-900">Dag {TODAY_DAY} af {TOTAL}</h1>
               <p className="text-sm text-gray-500 mt-1">
-                Aflevering planlagt <span className="font-semibold text-gray-700">{fmtDato(afleveringsDato)}</span> — om {dagetilbage} dage
+                Aflevering planlagt <span className="font-semibold text-gray-700">{fmtDato(afleveringsDato)}</span> - om {dagetilbage} dage
               </p>
             </div>
             <div className="text-right">
@@ -187,7 +187,7 @@ export default function Tidsplan({ params }: { params: Promise<{ id: string }> }
             <div className="mt-4 flex items-start gap-2.5 bg-amber-50 border border-amber-100 rounded-xl p-3">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               <p className="text-xs text-amber-800 leading-relaxed">
-                <span className="font-semibold">Malerrunden er 4 dage forsinket</span> — gulvlæggeren starter tilsvarende 4 dage senere. Afleveringen er endnu ikke påvirket.
+                <span className="font-semibold">Malerrunden er 4 dage forsinket</span> - gulvlæggeren starter tilsvarende 4 dage senere. Afleveringen er endnu ikke påvirket.
               </p>
             </div>
           )}
@@ -246,7 +246,7 @@ export default function Tidsplan({ params }: { params: Promise<{ id: string }> }
                         <StatusBadge status={fase.status} dage={fase.forsinkelseDage} />
                       </div>
                       <p className="text-xs text-gray-400">
-                        {fmtKort(addDays(START_DATE, fase.startDag))} – {fmtKort(addDays(START_DATE, fase.slutDag))} · {fase.ansvarlig}
+                        {fmtKort(addDays(START_DATE, fase.startDag))} - {fmtKort(addDays(START_DATE, fase.slutDag))} · {fase.ansvarlig}
                       </p>
                     </div>
 
@@ -285,7 +285,7 @@ export default function Tidsplan({ params }: { params: Promise<{ id: string }> }
             paragraf="AB-Forbruger § 38"
             titel="Husk afleveringsforretning"
             resumé="Inden du overtager det færdige arbejde, har du ret til en formel gennemgang med håndværkeren. Mangler noteres skriftligt."
-            detaljer="Aflevering anses for sket, når håndværkeren meddeler, at arbejdet er klar, og der afholdes afleveringsforretning — eller du tager arbejdet i brug. Kræv altid en skriftlig afleveringsprotokol."
+            detaljer="Aflevering anses for sket, når håndværkeren meddeler, at arbejdet er klar, og der afholdes afleveringsforretning - eller du tager arbejdet i brug. Kræv altid en skriftlig afleveringsprotokol."
             type="god-ide"
           />
         </div>

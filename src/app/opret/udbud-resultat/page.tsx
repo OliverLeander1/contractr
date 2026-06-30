@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -50,7 +50,7 @@ export default function UdbudResultat() {
     return (
       <FlowLayout aktivTrin={3}>
         <div className="text-center py-20 text-gray-400">
-          <p className="text-sm">Intet dokument fundet — gå tilbage og udfyld formularen.</p>
+          <p className="text-sm">Intet dokument fundet - gå tilbage og udfyld formularen.</p>
           <button onClick={() => router.push("/opret/beskriv")} className="mt-4 text-primary text-sm underline">
             Gå tilbage
           </button>
@@ -77,7 +77,7 @@ export default function UdbudResultat() {
         <ol className="space-y-2">
           {[
             "Kopier dokumentet og tilføj dine kontaktoplysninger",
-            "Send det til 2–3 håndværkere og bed om tilbud inden en bestemt dato",
+            "Send det til 2-3 håndværkere og bed om tilbud inden en bestemt dato",
             "Når du modtager tilbud, uploader du dem her til screening mod AB-Forbruger",
           ].map((step, i) => (
             <li key={i} className="flex items-start gap-3 text-sm text-blue-800">
@@ -138,7 +138,7 @@ export default function UdbudResultat() {
           {linkKopieret ? (
             <>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Link kopieret — send det til håndværkeren!
+              Link kopieret - send det til håndværkeren!
             </>
           ) : (
             <>

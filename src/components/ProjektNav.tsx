@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -67,7 +67,7 @@ export default function ProjektNav({ id }: { id: string }) {
           <Link href="/konto">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">C</div>
           </Link>
-          {/* Burger — mobile only */}
+          {/* Burger - mobile only */}
           <button
             className="md:hidden w-8 h-8 flex flex-col items-center justify-center gap-1.5"
             onClick={() => setMenuÅben(!menuÅben)}

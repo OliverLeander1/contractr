@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
@@ -77,7 +77,7 @@ export default function Chat({ bruger }: { bruger: "bygherre" | "haandvaerker" }
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-900">{bruger === "bygherre" ? "Thomas Madsen" : "Camilla Jensen"}</p>
-                <p className="text-xs text-gray-400">Indvendig renovering – Valby</p>
+                <p className="text-xs text-gray-400">Indvendig renovering - Valby</p>
               </div>
             </div>
             <span className="flex items-center gap-1.5 text-xs text-green-600 font-medium">

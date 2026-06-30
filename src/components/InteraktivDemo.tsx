@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -6,7 +6,7 @@ import Link from "next/link";
 const bygherreTrin = [
   {
     titel: "Upload dit tilbud",
-    beskrivelse: "Du har modtaget et tilbud fra en håndværker. Du uploader PDF'en direkte i Contractr — det tager under 30 sekunder.",
+    beskrivelse: "Du har modtaget et tilbud fra en håndværker. Du uploader PDF'en direkte i Contractr - det tager under 30 sekunder.",
     skærm: () => (
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
         <div className="flex items-center gap-3 mb-2">
@@ -57,7 +57,7 @@ const bygherreTrin = [
   },
   {
     titel: "Du får en klar risikorapport",
-    beskrivelse: "Rapporten viser præcist hvad der mangler i aftalen — med grønt, gult og rødt på hvert punkt og konkrete ændringsforslag.",
+    beskrivelse: "Rapporten viser præcist hvad der mangler i aftalen - med grønt, gult og rødt på hvert punkt og konkrete ændringsforslag.",
     skærm: () => (
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
         <div className="flex items-center justify-between mb-4">
@@ -108,7 +108,7 @@ const bygherreTrin = [
   },
   {
     titel: "Følg projektet hele vejen",
-    beskrivelse: "Når I er enige underskrives kontrakten digitalt. Derefter har du fuldt overblik over tidsplan, økonomi, dokumenter og mangler — alt ét sted.",
+    beskrivelse: "Når I er enige underskrives kontrakten digitalt. Derefter har du fuldt overblik over tidsplan, økonomi, dokumenter og mangler - alt ét sted.",
     skærm: () => (
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="bg-primary px-5 py-3 flex items-center gap-2">
@@ -140,7 +140,7 @@ const bygherreTrin = [
 const haandvaerkerTrin = [
   {
     titel: "Du modtager en invitation",
-    beskrivelse: "Bygherren inviterer dig via din e-mail. Du opretter en gratis håndværkerkonto på under 2 minutter — ingen abonnement.",
+    beskrivelse: "Bygherren inviterer dig via din e-mail. Du opretter en gratis håndværkerkonto på under 2 minutter - ingen abonnement.",
     skærm: () => (
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
         <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
@@ -151,7 +151,7 @@ const haandvaerkerTrin = [
           <p className="text-sm text-gray-500">Camilla Jensen inviterer dig til projektet</p>
         </div>
         <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-          <div className="flex justify-between text-sm"><span className="text-gray-400">Projekt</span><span className="font-semibold text-gray-900">Indvendig renovering – Valby</span></div>
+          <div className="flex justify-between text-sm"><span className="text-gray-400">Projekt</span><span className="font-semibold text-gray-900">Indvendig renovering - Valby</span></div>
           <div className="flex justify-between text-sm"><span className="text-gray-400">Din e-mail</span><span className="font-semibold text-gray-900">thomas@tmbyg.dk</span></div>
         </div>
         <button className="w-full bg-primary text-white text-sm font-semibold py-3 rounded-xl">Acceptér og opret konto →</button>
@@ -160,11 +160,11 @@ const haandvaerkerTrin = [
   },
   {
     titel: "Se projektets detaljer",
-    beskrivelse: "Du får adgang til bygherrens projekt — tilbud, kontrakt, tidsplan og betalingsplan. Alt er samlet ét sted.",
+    beskrivelse: "Du får adgang til bygherrens projekt - tilbud, kontrakt, tidsplan og betalingsplan. Alt er samlet ét sted.",
     skærm: () => (
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
-          <p className="text-sm font-bold text-gray-900">Indvendig renovering – Valby</p>
+          <p className="text-sm font-bold text-gray-900">Indvendig renovering - Valby</p>
           <p className="text-xs text-gray-400">Bygherre: Camilla Jensen</p>
         </div>
         <div className="p-4 space-y-3">
@@ -252,7 +252,7 @@ export default function InteraktivDemo() {
         <div className="text-center mb-12">
           <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">Interaktiv demo</p>
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Se hvordan Contractr virker</h2>
-          <p className="text-gray-500 max-w-xl mx-auto">Klik dig igennem et rigtigt eksempel — som bygherre eller håndværker.</p>
+          <p className="text-gray-500 max-w-xl mx-auto">Klik dig igennem et rigtigt eksempel - som bygherre eller håndværker.</p>
         </div>
 
         {/* Fane-skifter */}

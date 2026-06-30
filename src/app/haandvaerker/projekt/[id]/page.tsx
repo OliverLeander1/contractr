@@ -12,7 +12,7 @@ const projekter: Record<string, {
   betalinger: { navn: string; beløb: string; status: string; dato: string }[];
 }> = {
   "1": {
-    titel: "Indvendig renovering – Valby", bygherre: "Camilla Jensen",
+    titel: "Indvendig renovering - Valby", bygherre: "Camilla Jensen",
     adresse: "Valby Langgade 85, 2500 Valby", entreprisesum: "112.500 kr.",
     aflevering: "30. sep. 2025", status: "igang", type: "Renovering",
     næsteMilepæl: "Gipsvægge", næsteBetaling: "28.125 kr.", åbneMangler: 1,
@@ -31,7 +31,7 @@ const projekter: Record<string, {
     ],
   },
   "2": {
-    titel: "Nyt badeværelse – Frederiksberg", bygherre: "Henrik Møller",
+    titel: "Nyt badeværelse - Frederiksberg", bygherre: "Henrik Møller",
     adresse: "Smallegade 22, 2000 Frederiksberg", entreprisesum: "68.500 kr.",
     aflevering: "15. aug. 2025", status: "igang", type: "Badeværelse",
     næsteMilepæl: "Fliser og VVS", næsteBetaling: "17.125 kr.", åbneMangler: 0,
@@ -48,7 +48,7 @@ const projekter: Record<string, {
     ],
   },
   "3": {
-    titel: "Tagudskiftning – Hellerup", bygherre: "Mette Lund",
+    titel: "Tagudskiftning - Hellerup", bygherre: "Mette Lund",
     adresse: "Strandvejen 12, 2900 Hellerup", entreprisesum: "245.000 kr.",
     aflevering: "15. nov. 2024", status: "afsluttet", type: "Tag",
     åbneMangler: 0,
@@ -202,7 +202,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-gray-900 mb-0.5">Mangel registreret af bygherre</p>
-                        <p className="text-sm text-gray-500 mb-3">&ldquo;Skæve fliser i badeværelse&rdquo; — bygherre tilbageholder 5.000 kr.</p>
+                        <p className="text-sm text-gray-500 mb-3">&ldquo;Skæve fliser i badeværelse&rdquo; - bygherre tilbageholder 5.000 kr.</p>
                         <div className="flex gap-2">
                           <button className="text-sm font-semibold text-primary border border-primary/30 px-4 py-2 rounded-lg hover:bg-accent transition-colors">
                             Se detaljer
@@ -298,12 +298,12 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                   </svg>
                 </div>
                 <p className="text-sm font-medium text-gray-700">Klik for at uploade</p>
-                <p className="text-xs text-gray-400 mt-1">Billeder, PDF, ZIP — op til 50 MB</p>
+                <p className="text-xs text-gray-400 mt-1">Billeder, PDF, ZIP - op til 50 MB</p>
               </div>
               {uploadBesked && (
                 <div className="mt-3 bg-green-50 border border-green-100 rounded-xl p-3 flex items-center gap-2">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  <p className="text-sm text-green-700 font-medium">Fil uploaded — bygherre kan nu se den</p>
+                  <p className="text-sm text-green-700 font-medium">Fil uploaded - bygherre kan nu se den</p>
                 </div>
               )}
             </div>
@@ -312,8 +312,8 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
               <h2 className="font-semibold text-gray-900 mb-4">Projektdokumenter</h2>
               <div className="space-y-2">
                 {[
-                  { navn: "Kontrakt – underskrevet", type: "PDF", dato: "12. mar. 2025" },
-                  { navn: "Plantegning – stueplan", type: "PDF", dato: "12. mar. 2025" },
+                  { navn: "Kontrakt - underskrevet", type: "PDF", dato: "12. mar. 2025" },
+                  { navn: "Plantegning - stueplan", type: "PDF", dato: "12. mar. 2025" },
                   { navn: "Tidsplan v2", type: "PDF", dato: "15. mar. 2025" },
                 ].map((d) => (
                   <div key={d.navn} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">

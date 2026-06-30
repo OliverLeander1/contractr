@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -35,14 +35,14 @@ export default function BeskrivProjekt() {
       });
       const data = await res.json();
       if (!res.ok || data.error) {
-        setFejl(data.error || "Noget gik galt — prøv igen");
+        setFejl(data.error || "Noget gik galt - prøv igen");
         setLoading(false);
         return;
       }
       sessionStorage.setItem("udbud_resultat", JSON.stringify(data));
       router.push("/opret/udbud-resultat");
     } catch {
-      setFejl("Netværksfejl — tjek din forbindelse og prøv igen");
+      setFejl("Netværksfejl - tjek din forbindelse og prøv igen");
       setLoading(false);
     }
   }
@@ -56,14 +56,14 @@ export default function BeskrivProjekt() {
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Beskriv dit projekt</h1>
         <p className="text-gray-500">
-          Vi genererer et professionelt udbudsdokument du kan sende til 2–3 håndværkere for at indhente sammenlignelige tilbud.
+          Vi genererer et professionelt udbudsdokument du kan sende til 2-3 håndværkere for at indhente sammenlignelige tilbud.
         </p>
       </div>
 
       {/* Projektbeskrivelse */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
         <h2 className="font-semibold text-gray-900 mb-1">Hvad skal laves? <span className="text-red-400">*</span></h2>
-        <p className="text-sm text-gray-400 mb-4">Beskriv så detaljeret som muligt — jo mere du skriver, jo bedre bliver dokumentet</p>
+        <p className="text-sm text-gray-400 mb-4">Beskriv så detaljeret som muligt - jo mere du skriver, jo bedre bliver dokumentet</p>
         <textarea
           rows={5}
           placeholder="F.eks. Badeværelset skal totalrenoveres. Eksisterende fliser og toilet fjernes. Vi ønsker walk-in bruser, dobbelt håndvask og gulvvarme. Badeværelset er ca. 8 m². Blyrør skal skiftes..."

@@ -29,7 +29,7 @@ export default function HaandvaerkerKontrakt({ params }: { params: Promise<{ id:
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Kontrakt til underskrift</h1>
-            <p className="text-sm text-gray-400 mt-1">Indvendig renovering – Valby · TM Byg ApS</p>
+            <p className="text-sm text-gray-400 mt-1">Indvendig renovering - Valby · TM Byg ApS</p>
           </div>
           {underskrevet && (
             <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
@@ -56,7 +56,7 @@ export default function HaandvaerkerKontrakt({ params }: { params: Promise<{ id:
               { label: "Startdato", value: "12. marts 2025" },
               { label: "Slutdato", value: "30. september 2025" },
               { label: "Ekstraarbejde", value: "Aftales skriftligt inden udførelse. Pris oplyses på forhånd." },
-              { label: "Betalingsbetingelser", value: "Betaling sker ved godkendelse af milepæle — se betalingsplan" },
+              { label: "Betalingsbetingelser", value: "Betaling sker ved godkendelse af milepæle - se betalingsplan" },
               { label: "Reklamationsret", value: "5 år fra aflevering jf. AB-Forbruger § 36" },
             ].map((p) => (
               <div key={p.label} className="py-3.5 grid grid-cols-3 gap-4">

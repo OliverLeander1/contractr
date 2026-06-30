@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -125,7 +125,7 @@ export default function OpretProjekt() {
         <p className="text-sm text-gray-400 mb-4">Det hjælper os med at give den rigtige vejledning</p>
         <div className="space-y-2">
           {[
-            { id: "dialog", label: "Jeg leder efter håndværker — vil gerne sende projektet i udbud", ikon: "📢" },
+            { id: "dialog", label: "Jeg leder efter håndværker - vil gerne sende projektet i udbud", ikon: "📢" },
             { id: "tilbud", label: "Jeg har modtaget et tilbud og overvejer at sige ja", ikon: "📄" },
             { id: "accepteret", label: "Jeg har accepteret, men arbejdet er ikke startet", ikon: "✅" },
             { id: "igang", label: "Arbejdet er i gang", ikon: "🔨" },

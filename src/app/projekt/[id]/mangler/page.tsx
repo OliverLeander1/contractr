@@ -45,7 +45,7 @@ export default function Mangler({ params }: { params: Promise<{ id: string }> })
           <ABTip
             paragraf="AB-Forbruger § 43"
             titel="Håndværkeren har pligt og ret til at udbedre"
-            resumé="Håndværkeren har pligt og ret til inden rimelig tid at afhjælpe mangler. Sker det ikke, kan du lade en anden udbedre for håndværkerens regning — eller kræve afslag i prisen."
+            resumé="Håndværkeren har pligt og ret til inden rimelig tid at afhjælpe mangler. Sker det ikke, kan du lade en anden udbedre for håndværkerens regning - eller kræve afslag i prisen."
             detaljer="Du kan også lade mangler udbedre for håndværkerens regning, når afhjælpning er uopsættelig og håndværkeren ikke umiddelbart kan foretage den, eller når du har grund til at antage, at han ikke vil foretage afhjælpning på rette måde og uden ufornødent ophold."
             type="advarsel"
           />
@@ -53,7 +53,7 @@ export default function Mangler({ params }: { params: Promise<{ id: string }> })
             paragraf="AB-Forbruger § 25, stk. 3"
             titel="Tilbageholdelsesret ved uenighed om faktura"
             resumé="Er du uenig i en faktura, kan du holde hele eller dele af betalingen tilbage. Du skal dog betale den del af fakturaen, der er enighed om."
-            detaljer="Tilbageholdelsen skal stå i rimeligt forhold til manglen eller uenigheden. Er du i tvivl om beløbet, kan du booke en rådgiver til at vurdere det — det kan spare dig for en tvist."
+            detaljer="Tilbageholdelsen skal stå i rimeligt forhold til manglen eller uenigheden. Er du i tvivl om beløbet, kan du booke en rådgiver til at vurdere det - det kan spare dig for en tvist."
             type="info"
           />
         </div>

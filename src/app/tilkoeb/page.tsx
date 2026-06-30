@@ -1,12 +1,12 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Book en rådgiver – Professionel byggesagshjælp",
+  title: "Book en rådgiver - Professionel byggesagshjælp",
   description: "Book en uafhængig byggerådgiver direkte fra Contractr. Få hjælp til kontraktgennemgang, tilbudsvurdering, byggetilsyn og juridisk rådgivning.",
   keywords: ["byggerådgiver", "byggesagkyndig", "kontraktgennemgang", "tilbudsvurdering", "byggetilsyn"],
   openGraph: {
-    title: "Book en rådgiver – Professionel byggesagshjælp",
+    title: "Book en rådgiver - Professionel byggesagshjælp",
     description: "Book en uafhængig byggerådgiver. Hjælp til kontrakt, tilbud, byggetilsyn og juridisk rådgivning.",
     url: "https://www.contractr.dk/tilkoeb",
   },
@@ -17,7 +17,7 @@ const ydelser = [
   {
     id: "ai-tilbud",
     titel: "Er tilbuddet fair?",
-    beskrivelse: "Vores AI gennemgår tilbuddet og fortæller dig om prisen er rimelig, om der mangler noget, og hvilke forbehold håndværkeren har taget — på almindeligt dansk.",
+    beskrivelse: "Vores AI gennemgår tilbuddet og fortæller dig om prisen er rimelig, om der mangler noget, og hvilke forbehold håndværkeren har taget - på almindeligt dansk.",
     pris: "995 kr.",
     detalje: "Svar inden for 24 timer",
     ikon: "search",
@@ -35,7 +35,7 @@ const ydelser = [
   {
     id: "tilsyn",
     titel: "Hold øje med arbejdet for mig",
-    beskrivelse: "En rådgiver stikker hovedet forbi undervejs og sikrer at materialer, udførelse og fremdrift er som aftalt — uden at du behøver at vide hvad du skal kigge efter.",
+    beskrivelse: "En rådgiver stikker hovedet forbi undervejs og sikrer at materialer, udførelse og fremdrift er som aftalt - uden at du behøver at vide hvad du skal kigge efter.",
     pris: "Fra 2.495 kr.",
     detalje: "Fysisk tilsyn + notat",
     ikon: "eye",
@@ -44,7 +44,7 @@ const ydelser = [
   {
     id: "mangel",
     titel: "Håndværkeren vil ikke rette fejlene",
-    beskrivelse: "En rådgiver dokumenterer manglerne, vurderer dem fagligt og hjælper dig med at tilbageholde betaling lovligt — og give håndværkeren et konkret afhjælpningskrav.",
+    beskrivelse: "En rådgiver dokumenterer manglerne, vurderer dem fagligt og hjælper dig med at tilbageholde betaling lovligt - og give håndværkeren et konkret afhjælpningskrav.",
     pris: "Fra 1.995 kr.",
     detalje: "Rapport + mangelbrev",
     ikon: "alert",
@@ -62,7 +62,7 @@ const ydelser = [
   {
     id: "tilladelse",
     titel: "Skal jeg have tilladelse?",
-    beskrivelse: "Vi gennemgår dit projekt og afklarer om du har brug for byggetilladelse, anmeldelse eller ingeniørbistand — inden arbejdet går i gang og det bliver dyrt at rette.",
+    beskrivelse: "Vi gennemgår dit projekt og afklarer om du har brug for byggetilladelse, anmeldelse eller ingeniørbistand - inden arbejdet går i gang og det bliver dyrt at rette.",
     pris: "1.495 kr.",
     detalje: "Skriftlig afklaring",
     ikon: "license",
@@ -97,7 +97,7 @@ export default function Tilkoeb() {
       <div className="max-w-5xl mx-auto px-6 py-12">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-3">Tilkøb og rådgivning</h1>
-          <p className="text-gray-500 max-w-lg mx-auto">Køb ekstra hjælp, når du har brug for det i dit byggeprojekt. Uvildigt og uafhængigt — vi arbejder kun for dig.</p>
+          <p className="text-gray-500 max-w-lg mx-auto">Køb ekstra hjælp, når du har brug for det i dit byggeprojekt. Uvildigt og uafhængigt - vi arbejder kun for dig.</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-5">
@@ -135,7 +135,7 @@ export default function Tilkoeb() {
           <div className="grid grid-cols-4 gap-6 text-center">
             {[
               { ikon: "🛡️", titel: "Uvildig og uafhængig", tekst: "Vi arbejder kun for dig" },
-              { ikon: "⚡", titel: "Hurtig levering", tekst: "Typisk 1–3 hverdage" },
+              { ikon: "⚡", titel: "Hurtig levering", tekst: "Typisk 1-3 hverdage" },
               { ikon: "📋", titel: "Ingen binding", tekst: "Køb kun det du har brug for" },
               { ikon: "💬", titel: "Spørg os", tekst: "Hvis du er i tvivl" },
             ].map((i) => (

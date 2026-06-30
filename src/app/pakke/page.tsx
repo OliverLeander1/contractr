@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ const pakker = [
     id: "mellem",
     navn: "Mellem projekt",
     pris: "999 kr.",
-    budget: "100.000 – 500.000 kr.",
+    budget: "100.000 - 500.000 kr.",
     eksempler: "Tilbygning, nyt tag, køkken, større renovering",
     features: ["Alt i Lille", "AI-tilbudsgennemgang inkluderet", "Inviter op til 3 entreprenører", "Prioriteret support"],
     popular: true,
@@ -49,7 +49,7 @@ export default function VaelgPakke() {
             </div>
             <span className="text-lg" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Contractr</span>
           </Link>
-          <p className="text-sm text-gray-400">Trin 1 af 3 — Vælg pakke</p>
+          <p className="text-sm text-gray-400">Trin 1 af 3 - Vælg pakke</p>
         </div>
       </nav>
 

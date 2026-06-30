@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -14,7 +14,7 @@ export default function HaandvaerkerOpretKonto() {
   // I produktion ville disse komme fra URL-parameteret (invitation token)
   const invitation = {
     bygherre: "Camilla Jensen",
-    projekt: "Indvendig renovering – Valby",
+    projekt: "Indvendig renovering - Valby",
     email: "thomas@tmbyg.dk",
     firma: "TM Byg ApS",
   };

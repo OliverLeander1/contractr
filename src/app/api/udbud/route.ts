@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+﻿import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ Returner KUN et JSON-objekt (ingen markdown uden for JSON):
 }
 
 Regler:
-- Skriv professionelt men forståeligt — ikke juridisk jargon
+- Skriv professionelt men forståeligt - ikke juridisk jargon
 - Udbudsdokumentet skal være struktureret med klare afsnit
 - Inkludér altid et afsnit om at AB-Forbruger 2012 ønskes som grundlag
 - Inkludér altid hvad tilbuddet skal indeholde (fast pris, tidsplan, betalingsplan)
@@ -41,7 +41,7 @@ Projektbeskrivelse: ${beskrivelse}
 Ønsket opstart: ${opstart || "Fleksibel"}
 Senest færdig: ${slutdato || "Ikke fastsat"}
 Særlige krav/ønsker: ${krav || "Ingen særlige krav"}
-Beboet under arbejdet: ${beboet === "ja" ? "Ja — hensyn til beboere skal tages" : beboet === "nej" ? "Nej — tom bolig" : "Ikke oplyst"}
+Beboet under arbejdet: ${beboet === "ja" ? "Ja - hensyn til beboere skal tages" : beboet === "nej" ? "Nej - tom bolig" : "Ikke oplyst"}
 
 Skriv et professionelt udbudsdokument bygherren kan sende til håndværkere for at indhente tilbud.`;
 

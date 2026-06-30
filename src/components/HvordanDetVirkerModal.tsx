@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 
@@ -6,7 +6,7 @@ const TRIN = [
   {
     nummer: 1,
     titel: "Upload dit tilbud eller kontrakt",
-    beskrivelse: "Træk og slip din PDF direkte ind. Contractr læser dokumentet på sekunder — du behøver ikke forklare noget.",
+    beskrivelse: "Træk og slip din PDF direkte ind. Contractr læser dokumentet på sekunder - du behøver ikke forklare noget.",
     farve: "#1a5c38",
     baggrund: "#f0fdf4",
     ikon: (
@@ -16,12 +16,12 @@ const TRIN = [
         <line x1="12" y1="3" x2="12" y2="15"/>
       </svg>
     ),
-    detaljer: ["PDF, Word eller billede af dokument", "Krypteret upload — kun du ser det", "Analyseret på under 60 sekunder"],
+    detaljer: ["PDF, Word eller billede af dokument", "Krypteret upload - kun du ser det", "Analyseret på under 60 sekunder"],
   },
   {
     nummer: 2,
     titel: "AI screener aftalen mod AB-Forbruger",
-    beskrivelse: "Platformen gennemgår alle klausuler og sammenligner med AB-Forbruger 2012 — den standard der beskytter dig som forbruger.",
+    beskrivelse: "Platformen gennemgår alle klausuler og sammenligner med AB-Forbruger 2012 - den standard der beskytter dig som forbruger.",
     farve: "#b45309",
     baggrund: "#fffbeb",
     ikon: (
@@ -35,7 +35,7 @@ const TRIN = [
   {
     nummer: 3,
     titel: "Du får en klar risikorapport",
-    beskrivelse: "Rapporten viser grønt, gult eller rødt på hvert punkt — med præcis forklaring på hvad der mangler, og hvad du skal kræve.",
+    beskrivelse: "Rapporten viser grønt, gult eller rødt på hvert punkt - med præcis forklaring på hvad der mangler, og hvad du skal kræve.",
     farve: "#0369a1",
     baggrund: "#eff6ff",
     ikon: (
@@ -52,7 +52,7 @@ const TRIN = [
   {
     nummer: 4,
     titel: "Afklar og underskriv trygt",
-    beskrivelse: "Send dine ændringsønsker direkte fra platformen. Når I er enige, underskrives kontrakten digitalt — og projektet går i gang.",
+    beskrivelse: "Send dine ændringsønsker direkte fra platformen. Når I er enige, underskrives kontrakten digitalt - og projektet går i gang.",
     farve: "#6d28d9",
     baggrund: "#f5f3ff",
     ikon: (

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -53,7 +53,7 @@ export default function Guide() {
         </div>
       </nav>
 
-      {/* HERO — mørk */}
+      {/* HERO - mørk */}
       <section className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-6 text-center relative overflow-hidden">
         {/* Baggrund cirkel */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#1a5c38]/20 blur-[120px] pointer-events-none" />
@@ -73,8 +73,8 @@ export default function Guide() {
 
           <p className="text-xl text-white/50 max-w-xl mx-auto mb-14 leading-relaxed">
             {aktivFane === "bygherre"
-              ? "Uanset om du renoverer badeværelset eller bygger tilbygning — Contractr giver dig overblik, tryghed og stærke kort på hånden."
-              : "Undgå misforståelser, mundtlige aftaler og tvister. Contractr giver dig en professionel platform du inviterer kunden ind i — gratis for dig."}
+              ? "Uanset om du renoverer badeværelset eller bygger tilbygning - Contractr giver dig overblik, tryghed og stærke kort på hånden."
+              : "Undgå misforståelser, mundtlige aftaler og tvister. Contractr giver dig en professionel platform du inviterer kunden ind i - gratis for dig."}
           </p>
 
           {/* Fane */}
@@ -147,7 +147,7 @@ function BygherreGuide() {
   return (
     <div>
 
-      {/* Trin 1 — lys */}
+      {/* Trin 1 - lys */}
       <section className="min-h-screen flex items-center px-6 md:px-20 py-32 bg-white">
         <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-20 items-center">
           <div>
@@ -155,7 +155,7 @@ function BygherreGuide() {
               <p className="text-xs font-bold text-[#1a5c38] uppercase tracking-[0.2em] mb-6">Trin 01</p>
               <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight">Upload dit tilbud</h2>
               <p className="text-xl text-gray-400 leading-relaxed mb-10">
-                Du har fået et tilbud. Du ved ikke om det er fair. Upload PDF'en — vi finder det du ikke ved du skal kigge efter.
+                Du har fået et tilbud. Du ved ikke om det er fair. Upload PDF'en - vi finder det du ikke ved du skal kigge efter.
               </p>
               <div className="space-y-4">
                 {["PDF, Word eller billede", "Krypteret og fortroligt", "Analyseret på under 60 sekunder"].map((p, i) => (
@@ -194,7 +194,7 @@ function BygherreGuide() {
         </div>
       </section>
 
-      {/* Trin 2 — mørk */}
+      {/* Trin 2 - mørk */}
       <section className="min-h-screen flex items-center px-6 md:px-20 py-32 bg-gray-950">
         <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-20 items-center">
           <Reveal delay={0.1} className="order-2 md:order-1">
@@ -205,9 +205,9 @@ function BygherreGuide() {
               <div className="bg-gray-900 p-6 space-y-3">
                 {[
                   { label: "Pris og pristype", status: "ok", tekst: "Fast pris på 68.500 kr. inkl. moms" },
-                  { label: "Betalingsplan", status: "advarsel", tekst: "50% forudbetaling — risiko for tab" },
+                  { label: "Betalingsplan", status: "advarsel", tekst: "50% forudbetaling - risiko for tab" },
                   { label: "Tidsplan og slutdato", status: "advarsel", tekst: "Ingen slutdato aftalt" },
-                  { label: "AB-Forbruger 2012", status: "fejl", tekst: "Ikke nævnt — du er dårligere stillet" },
+                  { label: "AB-Forbruger 2012", status: "fejl", tekst: "Ikke nævnt - du er dårligere stillet" },
                   { label: "Ekstraarbejde", status: "ok", tekst: "Skriftlig aftale er krævet" },
                 ].map((p, i) => (
                   <Reveal key={p.label} delay={0.08 * i}>
@@ -234,18 +234,18 @@ function BygherreGuide() {
               <p className="text-xs font-bold text-[#4ade80] uppercase tracking-[0.2em] mb-6">Trin 02</p>
               <h2 className="text-5xl md:text-6xl font-bold text-white mb-8 leading-tight">Vi finder præcist hvad der mangler</h2>
               <p className="text-xl text-white/40 leading-relaxed mb-10">
-                AI'en gennemgår hvert eneste punkt og sammenligner med AB-Forbruger 2012. Du får grønt, gult og rødt — på almindeligt dansk.
+                AI'en gennemgår hvert eneste punkt og sammenligner med AB-Forbruger 2012. Du får grønt, gult og rødt - på almindeligt dansk.
               </p>
               <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
                 <p className="text-sm font-bold text-white mb-2">Vidste du?</p>
-                <p className="text-sm text-white/50 leading-relaxed">De fleste private bygherrer opdager først fejlene når skaden er sket. AB-Forbruger giver stærke rettigheder — men kun hvis det er aftalt fra start.</p>
+                <p className="text-sm text-white/50 leading-relaxed">De fleste private bygherrer opdager først fejlene når skaden er sket. AB-Forbruger giver stærke rettigheder - men kun hvis det er aftalt fra start.</p>
               </div>
             </Reveal>
           </div>
         </div>
       </section>
 
-      {/* Trin 3 — lys */}
+      {/* Trin 3 - lys */}
       <section className="min-h-screen flex items-center px-6 md:px-20 py-32 bg-gray-50">
         <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-20 items-center">
           <div>
@@ -253,7 +253,7 @@ function BygherreGuide() {
               <p className="text-xs font-bold text-[#1a5c38] uppercase tracking-[0.2em] mb-6">Trin 03</p>
               <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight">Send dine krav til håndværkeren</h2>
               <p className="text-xl text-gray-400 leading-relaxed mb-10">
-                Platformen skriver automatisk en professionel besked. Du sender den direkte — og håndværkeren svarer i platformen.
+                Platformen skriver automatisk en professionel besked. Du sender den direkte - og håndværkeren svarer i platformen.
               </p>
               <div className="space-y-4">
                 {[
@@ -302,7 +302,7 @@ function BygherreGuide() {
         </div>
       </section>
 
-      {/* Trin 4 — mørk */}
+      {/* Trin 4 - mørk */}
       <section className="min-h-screen flex items-center px-6 md:px-20 py-32 bg-gray-950">
         <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-20 items-center">
           <Reveal delay={0.1} className="order-2 md:order-1">
@@ -347,7 +347,7 @@ function BygherreGuide() {
               <p className="text-xs font-bold text-[#4ade80] uppercase tracking-[0.2em] mb-6">Trin 04</p>
               <h2 className="text-5xl md:text-6xl font-bold text-white mb-8 leading-tight">Fuldt overblik hele vejen</h2>
               <p className="text-xl text-white/40 leading-relaxed mb-10">
-                Kontrakt underskrives digitalt. Derefter følger du tidsplan, økonomi, dokumenter og aflevering — alt samlet ét sted.
+                Kontrakt underskrives digitalt. Derefter følger du tidsplan, økonomi, dokumenter og aflevering - alt samlet ét sted.
               </p>
               <div className="space-y-3">
                 {[
@@ -389,11 +389,11 @@ function HaandvaerkerGuide() {
               <p className="text-xs font-bold text-[#1a5c38] uppercase tracking-[0.2em] mb-6">Trin 01</p>
               <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight">Gratis for håndværkere</h2>
               <p className="text-xl text-gray-400 leading-relaxed mb-10">
-                Bygherren inviterer dig. Du opretter konto på 2 minutter. Det koster dig ingenting — platformen betales af bygherren.
+                Bygherren inviterer dig. Du opretter konto på 2 minutter. Det koster dig ingenting - platformen betales af bygherren.
               </p>
               <div className="space-y-4">
                 {[
-                  { titel: "Altid gratis", tekst: "Bygherren betaler — du bruger platformen uden beregning" },
+                  { titel: "Altid gratis", tekst: "Bygherren betaler - du bruger platformen uden beregning" },
                   { titel: "Ingen binding", tekst: "Acceptér kun de projekter du vil" },
                   { titel: "Professionelt image", tekst: "Vis at du arbejder struktureret og transparent" },
                 ].map((f, i) => (
@@ -420,11 +420,11 @@ function HaandvaerkerGuide() {
                 </div>
                 <div className="text-center">
                   <p className="font-bold text-gray-900 text-lg">Du er inviteret</p>
-                  <p className="text-sm text-gray-400 mt-1">Camilla Jensen · Indvendig renovering – Valby</p>
+                  <p className="text-sm text-gray-400 mt-1">Camilla Jensen · Indvendig renovering - Valby</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4 space-y-3">
                   {[
-                    { label: "Projekt", value: "Indvendig renovering – Valby" },
+                    { label: "Projekt", value: "Indvendig renovering - Valby" },
                     { label: "Kontraktsum", value: "68.500 kr." },
                     { label: "Din e-mail", value: "thomas@tmbyg.dk" },
                   ].map((r) => (
@@ -441,7 +441,7 @@ function HaandvaerkerGuide() {
         </div>
       </section>
 
-      {/* Trin 2 — mørk */}
+      {/* Trin 2 - mørk */}
       <section className="min-h-screen flex items-center px-6 md:px-20 py-32 bg-gray-950">
         <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-20 items-center">
           <Reveal delay={0.1} className="order-2 md:order-1">
@@ -474,14 +474,14 @@ function HaandvaerkerGuide() {
               <p className="text-xs font-bold text-[#4ade80] uppercase tracking-[0.2em] mb-6">Trin 02</p>
               <h2 className="text-5xl md:text-6xl font-bold text-white mb-8 leading-tight">Forhandl direkte i platformen</h2>
               <p className="text-xl text-white/40 leading-relaxed">
-                Bygherren sender ændringsønsker. Du accepterer, afviser eller foreslår noget andet — alt er skriftligt dokumenteret og juridisk gyldigt.
+                Bygherren sender ændringsønsker. Du accepterer, afviser eller foreslår noget andet - alt er skriftligt dokumenteret og juridisk gyldigt.
               </p>
             </Reveal>
           </div>
         </div>
       </section>
 
-      {/* Trin 3 — lys */}
+      {/* Trin 3 - lys */}
       <section className="min-h-screen flex items-center px-6 md:px-20 py-32 bg-gray-50">
         <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-20 items-center">
           <div>

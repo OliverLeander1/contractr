@@ -1,12 +1,12 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "AB-Forbruger 2012 – Dine rettigheder som bygherre",
-  description: "Få overblik over AB-Forbruger 2012 — standardbetingelserne der beskytter dig som privat bygherre. Forstå dine rettigheder om betaling, mangler, reklamation og aflevering.",
+  title: "AB-Forbruger 2012 - Dine rettigheder som bygherre",
+  description: "Få overblik over AB-Forbruger 2012 - standardbetingelserne der beskytter dig som privat bygherre. Forstå dine rettigheder om betaling, mangler, reklamation og aflevering.",
   keywords: ["AB-Forbruger", "AB-Forbruger 2012", "bygherre rettigheder", "byggeri rettigheder", "reklamationsret byggeri"],
   openGraph: {
-    title: "AB-Forbruger 2012 – Dine rettigheder som bygherre",
+    title: "AB-Forbruger 2012 - Dine rettigheder som bygherre",
     description: "Forstå AB-Forbruger 2012 og dine rettigheder om betaling, mangler og aflevering.",
     url: "https://www.contractr.dk/abforbruger",
   },
@@ -23,7 +23,7 @@ const sektioner = [
       {
         nr: "§ 25",
         titel: "Hvornår skal du betale?",
-        tekst: "Betaling skal som udgangspunkt ske, når arbejdet er afleveret. En faktura forfalder, når du modtager den, og betaling er rettidig, når den sker senest 15 arbejdsdage efter forfaldsdagen. Er du uenig i en faktura, kan du holde hele eller dele af betalingen tilbage — men du skal betale den del, der er enighed om.",
+        tekst: "Betaling skal som udgangspunkt ske, når arbejdet er afleveret. En faktura forfalder, når du modtager den, og betaling er rettidig, når den sker senest 15 arbejdsdage efter forfaldsdagen. Er du uenig i en faktura, kan du holde hele eller dele af betalingen tilbage - men du skal betale den del, der er enighed om.",
       },
       {
         nr: "§ 25, stk. 4",
@@ -51,17 +51,17 @@ const sektioner = [
       {
         nr: "§ 28",
         titel: "Hvornår er der forsinkelse fra håndværkerens side?",
-        tekst: "Der foreligger forsinkelse fra håndværkerens side, hvis arbejdet ikke er udført inden den aftalte tid — medmindre håndværkeren har ret til tidsfristforlængelse (se § 29).",
+        tekst: "Der foreligger forsinkelse fra håndværkerens side, hvis arbejdet ikke er udført inden den aftalte tid - medmindre håndværkeren har ret til tidsfristforlængelse (se § 29).",
       },
       {
         nr: "§ 29",
         titel: "Hvornår har håndværkeren ret til at blive forsinket?",
-        tekst: "Håndværkeren har ret til forlængelse af tidsfrister ved: (1) ændringer du selv kræver, (2) dine egne forhold eller en anden håndværkers forsinkelse, (3) force majeure — krig, usædvanlig naturbegivenhed, brand, strejke, lockout eller hærværk, (4) usædvanligt vejrlig for årstiden og egnen, eller (5) offentlige påbud eller forbud uden for håndværkerens kontrol.",
+        tekst: "Håndværkeren har ret til forlængelse af tidsfrister ved: (1) ændringer du selv kræver, (2) dine egne forhold eller en anden håndværkers forsinkelse, (3) force majeure - krig, usædvanlig naturbegivenhed, brand, strejke, lockout eller hærværk, (4) usædvanligt vejrlig for årstiden og egnen, eller (5) offentlige påbud eller forbud uden for håndværkerens kontrol.",
       },
       {
         nr: "§ 30 & § 31",
         titel: "Dagbod og erstatning ved ansvarspådragende forsinkelse",
-        tekst: "Forsinkelse som ikke giver ret til tidsfristforlængelse, er ansvarspådragende for håndværkeren. Er dagbod aftalt, kan du kræve dagbod — og ikke yderligere erstatning. Er dagbod ikke aftalt, er du berettiget til erstatning efter dansk rets almindelige regler. Krav om dagbod skal fremsættes inden rimelig tid efter, at du kan konstatere forsinkelsen.",
+        tekst: "Forsinkelse som ikke giver ret til tidsfristforlængelse, er ansvarspådragende for håndværkeren. Er dagbod aftalt, kan du kræve dagbod - og ikke yderligere erstatning. Er dagbod ikke aftalt, er du berettiget til erstatning efter dansk rets almindelige regler. Krav om dagbod skal fremsættes inden rimelig tid efter, at du kan konstatere forsinkelsen.",
       },
       {
         nr: "§ 36",
@@ -79,7 +79,7 @@ const sektioner = [
       {
         nr: "§ 40",
         titel: "Hvad er en mangel?",
-        tekst: "Er arbejdet ikke udført som aftalt, fagmæssigt korrekt eller i overensstemmelse med dine anvisninger, foreligger der en mangel. Det samme gælder, hvis håndværkeren ikke har leveret anden aftalt ydelse — f.eks. materialer — i forbindelse med arbejdet.",
+        tekst: "Er arbejdet ikke udført som aftalt, fagmæssigt korrekt eller i overensstemmelse med dine anvisninger, foreligger der en mangel. Det samme gælder, hvis håndværkeren ikke har leveret anden aftalt ydelse - f.eks. materialer - i forbindelse med arbejdet.",
       },
       {
         nr: "§ 42",
@@ -89,7 +89,7 @@ const sektioner = [
       {
         nr: "§ 43",
         titel: "Håndværkeren har pligt og ret til at udbedre",
-        tekst: "Håndværkeren har pligt og ret til inden rimelig tid at afhjælpe mangler, der påvises ved afleveringen eller senere. Afhjælpes mangler ikke inden rimelig tid, kan du lade manglerne afhjælpe af en anden for håndværkerens regning — eller kræve et afslag i prisen. Du kan også lade mangler udbedre for håndværkerens regning, hvis afhjælpning er uopsættelig og håndværkeren ikke er i stand til at foretage den umiddelbart.",
+        tekst: "Håndværkeren har pligt og ret til inden rimelig tid at afhjælpe mangler, der påvises ved afleveringen eller senere. Afhjælpes mangler ikke inden rimelig tid, kan du lade manglerne afhjælpe af en anden for håndværkerens regning - eller kræve et afslag i prisen. Du kan også lade mangler udbedre for håndværkerens regning, hvis afhjælpning er uopsættelig og håndværkeren ikke er i stand til at foretage den umiddelbart.",
       },
       {
         nr: "§ 44",
@@ -99,12 +99,12 @@ const sektioner = [
       {
         nr: "§ 45",
         titel: "Beregning af afslag i prisen",
-        tekst: "Afslag beregnes som det beløb, det ville have kostet at afhjælpe manglerne. Er afhjælpning umulig eller uforholdsmæssigt dyr, fastsættes afslaget skønsmæssigt — enten som forskellen mellem aftalt pris og hvad prisen ville have været for arbejdet i den foreliggende stand, eller som forskellen mellem arbejdets værdi uden mangler og med mangler.",
+        tekst: "Afslag beregnes som det beløb, det ville have kostet at afhjælpe manglerne. Er afhjælpning umulig eller uforholdsmæssigt dyr, fastsættes afslaget skønsmæssigt - enten som forskellen mellem aftalt pris og hvad prisen ville have været for arbejdet i den foreliggende stand, eller som forskellen mellem arbejdets værdi uden mangler og med mangler.",
       },
       {
         nr: "§ 47",
         titel: "Du kan gå direkte til underentreprenører",
-        tekst: "Hvis et krav vedrørende mangler ikke kan gennemføres mod håndværkeren — f.eks. ved konkurs — kan du gøre kravet gældende direkte mod håndværkerens underentreprenører og leverandører, hvis disse har udført det mangelfulde arbejde eller leveret mangelfulde materialer.",
+        tekst: "Hvis et krav vedrørende mangler ikke kan gennemføres mod håndværkeren - f.eks. ved konkurs - kan du gøre kravet gældende direkte mod håndværkerens underentreprenører og leverandører, hvis disse har udført det mangelfulde arbejde eller leveret mangelfulde materialer.",
       },
     ],
   },
@@ -122,7 +122,7 @@ const sektioner = [
       {
         nr: "§ 38",
         titel: "Afleveringsforretning",
-        tekst: "Afleveringsforretning afholdes, hvis entreprisesummen er større end 50.000 kr., og en af parterne ønsker det og meddeler dette inden arbejdet er udført — eller hvis parterne har aftalt det. Håndværkeren indkalder med 5 arbejdsdages varsel til afholdelse senest 10 arbejdsdage efter, at arbejdet er udført. Der udarbejdes en afleveringsprotokol med alle påpegede mangler, som begge parter underskriver.",
+        tekst: "Afleveringsforretning afholdes, hvis entreprisesummen er større end 50.000 kr., og en af parterne ønsker det og meddeler dette inden arbejdet er udført - eller hvis parterne har aftalt det. Håndværkeren indkalder med 5 arbejdsdages varsel til afholdelse senest 10 arbejdsdage efter, at arbejdet er udført. Der udarbejdes en afleveringsprotokol med alle påpegede mangler, som begge parter underskriver.",
       },
     ],
   },
@@ -140,7 +140,7 @@ const sektioner = [
       {
         nr: "§ 59 & § 60",
         titel: "Sådan foregår eftersynet",
-        tekst: "Håndværkeren indkalder dig skriftligt til eftersyn med højst 30 og mindst 10 arbejdsdages varsel. Eftersynet skal finde sted senest 1 år efter afleveringen. Der udfærdiges en eftersynsrapport, hvor alle mangler du påpeger noteres — uanset om håndværkeren er enig eller ej. Rapporten underskrives af begge parter.",
+        tekst: "Håndværkeren indkalder dig skriftligt til eftersyn med højst 30 og mindst 10 arbejdsdages varsel. Eftersynet skal finde sted senest 1 år efter afleveringen. Der udfærdiges en eftersynsrapport, hvor alle mangler du påpeger noteres - uanset om håndværkeren er enig eller ej. Rapporten underskrives af begge parter.",
       },
     ],
   },
@@ -153,17 +153,17 @@ const sektioner = [
       {
         nr: "§ 23",
         titel: "Ændringer skal aftales skriftligt",
-        tekst: "Du kan forlange ændringer i arbejdets art og omfang, når ændringen har naturlig sammenhæng med de aftalte ydelser. Der skal snarest udarbejdes en skriftlig tillægsaftale om eventuelle ændringer — herunder omfang, kvalitet, pris og konsekvenser for tidsplanen. Håndværkeren har bevisbyrden for, hvilke ændringer der er aftalt.",
+        tekst: "Du kan forlange ændringer i arbejdets art og omfang, når ændringen har naturlig sammenhæng med de aftalte ydelser. Der skal snarest udarbejdes en skriftlig tillægsaftale om eventuelle ændringer - herunder omfang, kvalitet, pris og konsekvenser for tidsplanen. Håndværkeren har bevisbyrden for, hvilke ændringer der er aftalt.",
       },
       {
         nr: "§ 24, stk. 2",
-        titel: "Prisoverslag — varsling ved overskridelse",
+        titel: "Prisoverslag - varsling ved overskridelse",
         tekst: "Har håndværkeren givet et prisoverslag, skal han hurtigst muligt indhente din stillingtagen til arbejdets fortsættelse, hvis prisen overstiger 15 %. Indhenter han ikke din stillingtagen, har du ikke pligt til at betale det beløb, der kunne være sparet, hvis du havde haft mulighed for at tage stilling.",
       },
       {
         nr: "§ 21",
-        titel: "Uklar aftale — håndværker skal underrette dig",
-        tekst: "Finder håndværkeren, at aftalen ikke yder tilstrækkelig vejledning til udførelse af arbejdet, eller at arbejdet ikke kan udføres i overensstemmelse med den indgåede aftale, skal han snarest muligt underrette dig og følge din anvisning. Har han ikke tid til at underrette dig, skal han — mod fornøden forlængelse af tidsfrister og mod betaling herfor — træffe de bedst mulige foranstaltninger for at undgå, at du lider tab. Håndværkeren skal desuden snarest underrette dig, hvis der opstår forhold, som hindrer eller vanskeliggør arbejdet, eller gør det nærliggende, at du påføres ulempe, tab eller ansvar over for tredjemand.",
+        titel: "Uklar aftale - håndværker skal underrette dig",
+        tekst: "Finder håndværkeren, at aftalen ikke yder tilstrækkelig vejledning til udførelse af arbejdet, eller at arbejdet ikke kan udføres i overensstemmelse med den indgåede aftale, skal han snarest muligt underrette dig og følge din anvisning. Har han ikke tid til at underrette dig, skal han - mod fornøden forlængelse af tidsfrister og mod betaling herfor - træffe de bedst mulige foranstaltninger for at undgå, at du lider tab. Håndværkeren skal desuden snarest underrette dig, hvis der opstår forhold, som hindrer eller vanskeliggør arbejdet, eller gør det nærliggende, at du påføres ulempe, tab eller ansvar over for tredjemand.",
       },
     ],
   },
@@ -176,12 +176,12 @@ const sektioner = [
       {
         nr: "§ 50",
         titel: "Din ret til at ophæve aftalen",
-        tekst: "Du kan ophæve aftalen, hvis der foreligger væsentlig misligholdelse fra håndværkerens side, og det medfører betydelig ulempe for dig — herunder: (1) hvis der uden ret til tidsfristforlængelse foreligger en væsentlig forsinkelse fra håndværkerens side, eller (2) hvis det udførte arbejde er af en sådan kvalitet, at du har grund til at antage, at håndværkeren ikke vil være i stand til at fuldføre arbejdet uden væsentlige mangler.",
+        tekst: "Du kan ophæve aftalen, hvis der foreligger væsentlig misligholdelse fra håndværkerens side, og det medfører betydelig ulempe for dig - herunder: (1) hvis der uden ret til tidsfristforlængelse foreligger en væsentlig forsinkelse fra håndværkerens side, eller (2) hvis det udførte arbejde er af en sådan kvalitet, at du har grund til at antage, at håndværkeren ikke vil være i stand til at fuldføre arbejdet uden væsentlige mangler.",
       },
       {
         nr: "§ 51",
         titel: "Håndværkerens ret til at ophæve aftalen",
-        tekst: "Håndværkeren kan ophæve aftalen, hvis der foreligger væsentlig forsinkelse fra din side, og det medfører betydelig ulempe for ham — herunder hvis du ikke betaler til tiden. Aftalen kan dog ikke ophæves, hvis håndværkerens interesser er tilstrækkeligt tilgodeset ved stillet sikkerhed eller adgang til at standse arbejdet.",
+        tekst: "Håndværkeren kan ophæve aftalen, hvis der foreligger væsentlig forsinkelse fra din side, og det medfører betydelig ulempe for ham - herunder hvis du ikke betaler til tiden. Aftalen kan dog ikke ophæves, hvis håndværkerens interesser er tilstrækkeligt tilgodeset ved stillet sikkerhed eller adgang til at standse arbejdet.",
       },
       {
         nr: "§ 52",
@@ -220,12 +220,12 @@ export default function ABForbruger() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-3">Dine rettigheder som bygherre</h1>
           <p className="text-gray-500 leading-relaxed">
-            AB-Forbruger er standardbetingelserne din aftale med håndværkeren er baseret på. Her er de vigtigste paragraffer oversat til almindeligt dansk — fordelt efter situation. Indholdet er gengivet direkte fra den officielle tekst.
+            AB-Forbruger er standardbetingelserne din aftale med håndværkeren er baseret på. Her er de vigtigste paragraffer oversat til almindeligt dansk - fordelt efter situation. Indholdet er gengivet direkte fra den officielle tekst.
           </p>
           <div className="mt-4 bg-accent border border-primary/20 rounded-xl p-4 flex items-start gap-3">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2" className="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <p className="text-sm text-primary leading-relaxed">
-              Platformen viser dig automatisk den relevante paragraf, når noget sker i dit projekt — fx ved betalingsfrister, forsinkelse eller mangler.
+              Platformen viser dig automatisk den relevante paragraf, når noget sker i dit projekt - fx ved betalingsfrister, forsinkelse eller mangler.
             </p>
           </div>
         </div>

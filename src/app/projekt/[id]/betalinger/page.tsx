@@ -22,7 +22,7 @@ export default function Betalinger({ params }: { params: Promise<{ id: string }>
       <div className="max-w-4xl mx-auto px-6 py-10">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Økonomi</h1>
-          <p className="text-sm text-gray-400 mt-1">Indvendig renovering – Valby</p>
+          <p className="text-sm text-gray-400 mt-1">Indvendig renovering - Valby</p>
         </div>
 
         {/* Overblik */}
@@ -113,7 +113,7 @@ export default function Betalinger({ params }: { params: Promise<{ id: string }>
           <ABTip
             paragraf="AB-Forbruger § 25, stk. 3"
             titel="Du kan tilbageholde ved uenighed om faktura"
-            resumé="Er du uenig i en faktura, kan du holde hele eller dele af betalingen tilbage — men du skal betale den del, der er enighed om."
+            resumé="Er du uenig i en faktura, kan du holde hele eller dele af betalingen tilbage - men du skal betale den del, der er enighed om."
             detaljer="Tilbageholdelsen skal stå i rimeligt forhold til uenigheden eller manglen. Dokumentér altid årsagen skriftligt på platformen, så din tilbageholdelse er juridisk holdbar."
             type="advarsel"
           />

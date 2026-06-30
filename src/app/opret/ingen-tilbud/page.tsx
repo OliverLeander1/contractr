@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -9,7 +9,7 @@ const tjekliste = [
   {
     id: "pris",
     spørgsmål: "Er I blevet enige om en pris eller pristype?",
-    tip: "Fast pris giver dig størst tryghed. Overslag kan overskrides — spørg altid til maksimalt beløb.",
+    tip: "Fast pris giver dig størst tryghed. Overslag kan overskrides - spørg altid til maksimalt beløb.",
     vigtigt: "AB-Forbruger § 14",
   },
   {
@@ -21,7 +21,7 @@ const tjekliste = [
   {
     id: "betaling",
     spørgsmål: "Er I enige om hvornår og hvordan der betales?",
-    tip: "Undgå stor forudbetaling. Betal i rater koblet til fremdrift — ikke til datoer.",
+    tip: "Undgå stor forudbetaling. Betal i rater koblet til fremdrift - ikke til datoer.",
     vigtigt: "AB-Forbruger § 22",
   },
   {
@@ -46,7 +46,7 @@ const skabeloner = [
 
 Tak for vores snak om projektet. Inden vi går videre, vil jeg gerne have afklaret et par ting:
 
-1. Er tilbuddet en fast pris eller et overslag? Hvis overslag — hvad er det maksimale beløb?
+1. Er tilbuddet en fast pris eller et overslag? Hvis overslag - hvad er det maksimale beløb?
 2. Hvordan ønsker du betalingen opdelt? Jeg foretrækker rater koblet til færdige milepæle.
 3. Accepterer du AB-Forbruger 2012 som grundlag for aftalen?
 
@@ -113,7 +113,7 @@ export default function IngenTilbud() {
           Endnu intet tilbud
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Forbered dig til forhandlingen</h1>
-        <p className="text-gray-500 leading-relaxed">Du er i dialog med en håndværker men har intet skriftligt endnu. Her er hvad du skal sikre dig inden du siger ja — og skabeloner til at spørge om det.</p>
+        <p className="text-gray-500 leading-relaxed">Du er i dialog med en håndværker men har intet skriftligt endnu. Her er hvad du skal sikre dig inden du siger ja - og skabeloner til at spørge om det.</p>
       </div>
 
       {/* Tjekliste */}
@@ -186,7 +186,7 @@ export default function IngenTilbud() {
       {/* Skabeloner */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
         <h2 className="font-semibold text-gray-900 mb-1">Færdige beskeder til håndværkeren</h2>
-        <p className="text-sm text-gray-400 mb-4">Kopiér og send direkte — tilpas navn og detaljer</p>
+        <p className="text-sm text-gray-400 mb-4">Kopiér og send direkte - tilpas navn og detaljer</p>
         <div className="space-y-3">
           {skabeloner.map((s) => (
             <div key={s.id}>
@@ -221,7 +221,7 @@ export default function IngenTilbud() {
       <div className="flex items-start gap-3 bg-primary/5 border border-primary/15 rounded-2xl p-5 mb-8">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2" className="shrink-0 mt-0.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <div>
-          <p className="text-sm font-semibold text-gray-900 mb-1">Vidste du? AB-Forbruger beskytter dig — men kun hvis det er aftalt</p>
+          <p className="text-sm font-semibold text-gray-900 mb-1">Vidste du? AB-Forbruger beskytter dig - men kun hvis det er aftalt</p>
           <p className="text-xs text-gray-600 leading-relaxed mb-2">AB-Forbruger 2012 gælder ikke automatisk. Det skal stå i kontrakten at begge parter accepterer den. Uden den reference er du ikke dækket af rettigheder om mangler, reklamation og dagbod.</p>
           <Link href="/abforbruger" className="text-xs font-semibold text-primary hover:underline">Læs alle dine rettigheder →</Link>
         </div>
@@ -235,7 +235,7 @@ export default function IngenTilbud() {
           onClick={() => router.push("/opret/upload")}
           className="flex-1 py-4 rounded-xl text-base font-bold bg-primary text-white hover:opacity-90 transition-opacity shadow-md shadow-primary/20"
         >
-          Jeg har nu fået et tilbud — upload det →
+          Jeg har nu fået et tilbud - upload det →
         </button>
       </div>
     </FlowLayout>

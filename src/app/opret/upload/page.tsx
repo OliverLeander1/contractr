@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -22,7 +22,7 @@ export default function UploadAftale() {
         const reader = new FileReader();
         reader.onload = e => {
           const dataUrl = e.target?.result as string;
-          // dataUrl = "data:application/pdf;base64,XXXX" — vi vil kun have base64-delen
+          // dataUrl = "data:application/pdf;base64,XXXX" - vi vil kun have base64-delen
           const base64 = dataUrl.split(",")[1];
           sessionStorage.setItem("screening_pdf_base64", base64);
           sessionStorage.removeItem("screening_tekst"); // PDF har forrang
@@ -66,7 +66,7 @@ export default function UploadAftale() {
     <FlowLayout aktivTrin={3}>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload din byggeaftale</h1>
-        <p className="text-gray-500">Tilbud, kontrakt, ordrebekræftelse eller mail — vi screener det hele mod AB-Forbruger.</p>
+        <p className="text-gray-500">Tilbud, kontrakt, ordrebekræftelse eller mail - vi screener det hele mod AB-Forbruger.</p>
       </div>
 
       {/* Fane-switcher */}
@@ -101,7 +101,7 @@ export default function UploadAftale() {
               </svg>
             </div>
             <p className="font-semibold text-gray-900 mb-1">Træk filer hertil eller klik for at uploade</p>
-            <p className="text-sm text-gray-400">PDF, JPG, PNG, TXT — op til 20 MB per fil</p>
+            <p className="text-sm text-gray-400">PDF, JPG, PNG, TXT - op til 20 MB per fil</p>
           </div>
 
           {filer.length > 0 && (
@@ -123,7 +123,7 @@ export default function UploadAftale() {
               </div>
               <div className="mt-4 p-4 bg-amber-50 border border-amber-100 rounded-xl">
                 <p className="text-xs font-semibold text-amber-800 mb-1">Indsæt tilbuddets tekst for at screene</p>
-                <p className="text-xs text-amber-700">Kopier teksten fra din PDF/mail og indsæt den nedenfor, eller skift til "Indsæt tekst" fanen — så kan AI'en analysere den.</p>
+                <p className="text-xs text-amber-700">Kopier teksten fra din PDF/mail og indsæt den nedenfor, eller skift til "Indsæt tekst" fanen - så kan AI'en analysere den.</p>
                 <textarea
                   value={tekst}
                   onChange={e => setTekst(e.target.value)}
@@ -139,7 +139,7 @@ export default function UploadAftale() {
         <div className="mb-5">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <label className="block text-sm font-semibold text-gray-900 mb-2">Indsæt teksten fra tilbuddet</label>
-            <p className="text-xs text-gray-400 mb-3">Kopier teksten direkte fra din mail, PDF eller screenshot — og indsæt den her.</p>
+            <p className="text-xs text-gray-400 mb-3">Kopier teksten direkte fra din mail, PDF eller screenshot - og indsæt den her.</p>
             <textarea
               value={tekst}
               onChange={e => setTekst(e.target.value)}
@@ -148,7 +148,7 @@ export default function UploadAftale() {
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none text-gray-700"
             />
             {tekst.length > 0 && (
-              <p className="text-xs text-gray-400 mt-2">{tekst.length} tegn — {tekst.length < 100 ? "tilføj mere tekst for et præcist resultat" : "ser godt ud ✓"}</p>
+              <p className="text-xs text-gray-400 mt-2">{tekst.length} tegn - {tekst.length < 100 ? "tilføj mere tekst for et præcist resultat" : "ser godt ud ✓"}</p>
             )}
           </div>
         </div>

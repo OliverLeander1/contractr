@@ -8,7 +8,7 @@ const DEADLINE = new Date(2025, 7, 15);     // 15. aug 2025
 
 const ANDRE_TRADES = [
   { id: "nedrivning", navn: "Nedrivning og klargøring", firma: "TM Byg ApS", fra: new Date(2025, 3, 3), til: new Date(2025, 3, 20), status: "done" as const },
-  { id: "vvs", navn: "VVS — rørføring", firma: "VVS-firma ApS", fra: new Date(2025, 3, 20), til: new Date(2025, 4, 11), status: "done" as const },
+  { id: "vvs", navn: "VVS - rørføring", firma: "VVS-firma ApS", fra: new Date(2025, 3, 20), til: new Date(2025, 4, 11), status: "done" as const },
   { id: "fliser", navn: "Flisemontage", firma: "Flise & Klinke ApS", fra: new Date(2025, 4, 11), til: new Date(2025, 5, 15), status: "active" as const },
 ];
 
@@ -112,7 +112,7 @@ export default function HaandvaerkerTidsplan({ params }: { params: Promise<{ id:
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
             </Link>
             <div>
-              <p className="text-xs text-gray-400">Nyt badeværelse – Frederiksberg</p>
+              <p className="text-xs text-gray-400">Nyt badeværelse - Frederiksberg</p>
               <h1 className="text-sm font-bold text-gray-900">Din tidsplan</h1>
             </div>
           </div>
@@ -125,11 +125,11 @@ export default function HaandvaerkerTidsplan({ params }: { params: Promise<{ id:
 
       <div className="max-w-3xl mx-auto px-6 py-8 space-y-4">
 
-        {/* Andre faggrupper — overblik */}
+        {/* Andre faggrupper - overblik */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100">
             <h2 className="text-sm font-bold text-gray-900">Projektets øvrige faggrupper</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Du kan se hvornår de andre er færdige — men ikke redigere dem</p>
+            <p className="text-xs text-gray-400 mt-0.5">Du kan se hvornår de andre er færdige - men ikke redigere dem</p>
           </div>
           <div className="divide-y divide-gray-50">
             {ANDRE_TRADES.map(t => {
@@ -145,7 +145,7 @@ export default function HaandvaerkerTidsplan({ params }: { params: Promise<{ id:
                   </div>
                   <div className="flex items-center gap-3">
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${c.bg} ${c.text}`}>{c.label}</span>
-                    <span className="text-xs text-gray-400 whitespace-nowrap">{fmt(t.fra)} – {fmt(t.til)}</span>
+                    <span className="text-xs text-gray-400 whitespace-nowrap">{fmt(t.fra)} - {fmt(t.til)}</span>
                   </div>
                 </div>
               );
@@ -157,13 +157,13 @@ export default function HaandvaerkerTidsplan({ params }: { params: Promise<{ id:
                 <div className="w-2 h-2 rounded-full bg-primary" />
                 <div>
                   <p className="text-sm font-semibold text-gray-900">Malerarbejde</p>
-                  <p className="text-xs text-gray-400">Dit firma — redigeres nedenfor</p>
+                  <p className="text-xs text-gray-400">Dit firma - redigeres nedenfor</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary">Din periode</span>
                 {faser.length > 0
-                  ? <span className="text-xs text-gray-500 whitespace-nowrap">{fmt(isoToDate(faser[0].startDato))} – {fmt(minSlutDato)}</span>
+                  ? <span className="text-xs text-gray-500 whitespace-nowrap">{fmt(isoToDate(faser[0].startDato))} - {fmt(minSlutDato)}</span>
                   : <span className="text-xs text-gray-400 italic">Ikke sat endnu</span>
                 }
               </div>
@@ -186,7 +186,7 @@ export default function HaandvaerkerTidsplan({ params }: { params: Promise<{ id:
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100">
             <h2 className="text-sm font-bold text-gray-900">Dine faser</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Sæt startdato og antal dage for hver opgave — de kan godt overlappe</p>
+            <p className="text-xs text-gray-400 mt-0.5">Sæt startdato og antal dage for hver opgave - de kan godt overlappe</p>
           </div>
 
           <div className="divide-y divide-gray-50">
@@ -249,7 +249,7 @@ export default function HaandvaerkerTidsplan({ params }: { params: Promise<{ id:
                           <input
                             value={fase.note}
                             onChange={e => opdater(fase.id, "note", e.target.value)}
-                            placeholder="Note — fx materialer, forbehold, forudsætninger (valgfrit)"
+                            placeholder="Note - fx materialer, forbehold, forudsætninger (valgfrit)"
                             className="w-full mt-3 text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-600 placeholder:text-gray-300"
                           />
                         )}
@@ -295,7 +295,7 @@ export default function HaandvaerkerTidsplan({ params }: { params: Promise<{ id:
                       ? `Overskrider deadline med ${Math.abs(dageForDeadline)} dage`
                       : forTidligFase
                       ? "En fase starter for tidligt"
-                      : `Færdig ${fmt(minSlutDato)} — ${dageForDeadline} dage før deadline`}
+                      : `Færdig ${fmt(minSlutDato)} - ${dageForDeadline} dage før deadline`}
                   </p>
                   <p className={`text-xs mt-0.5 ${overDeadline ? "text-red-600" : forTidligFase ? "text-amber-600" : "text-green-600"}`}>
                     {faser.length} faser · tidligst {fmt(isoToDate(faser[0].startDato))} · senest færdig {fmt(minSlutDato)}

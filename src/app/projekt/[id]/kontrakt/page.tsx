@@ -79,7 +79,7 @@ export default function Kontrakt({ params }: { params: Promise<{ id: string }> }
 
             {/* § 1 Parterne */}
             <div>
-              <h3 className="font-bold text-gray-900 mb-3 font-sans text-xs uppercase tracking-widest text-primary">§ 1 — Parterne</h3>
+              <h3 className="font-bold text-gray-900 mb-3 font-sans text-xs uppercase tracking-widest text-primary">§ 1 - Parterne</h3>
               <div className="grid grid-cols-2 gap-6">
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Bygherre (forbruger)</p>
@@ -98,28 +98,28 @@ export default function Kontrakt({ params }: { params: Promise<{ id: string }> }
 
             {/* § 2 Arbejdets omfang */}
             <div className="border-t border-gray-100 pt-6">
-              <h3 className="font-bold text-gray-900 mb-3 font-sans text-xs uppercase tracking-widest text-primary">§ 2 — Arbejdets omfang</h3>
+              <h3 className="font-bold text-gray-900 mb-3 font-sans text-xs uppercase tracking-widest text-primary">§ 2 - Arbejdets omfang</h3>
               <p>{projekt.omfang}</p>
               <p className="mt-3 text-gray-500">Arbejdet udføres fagmæssigt korrekt og i overensstemmelse med gældende bygningsreglement. Materialer skal være af sædvanlig god kvalitet, medmindre andet er angivet jf. AB-Forbruger § 15.</p>
             </div>
 
             {/* § 3 Pris */}
             <div className="border-t border-gray-100 pt-6">
-              <h3 className="font-bold text-gray-900 mb-3 font-sans text-xs uppercase tracking-widest text-primary">§ 3 — Pris</h3>
+              <h3 className="font-bold text-gray-900 mb-3 font-sans text-xs uppercase tracking-widest text-primary">§ 3 - Pris</h3>
               <p>Entreprisesummen er aftalt til <strong className="text-gray-900">{projekt.entreprisesum} kr. inkl. moms</strong> (fast pris). Ændringer i arbejdets art og omfang aftales skriftligt og prissættes på forhånd jf. AB-Forbruger § 23.</p>
               <p className="mt-3 text-gray-500">Overstiger prisen det aftalte overslag med mere end 15%, indhentes forbrugerens stillingtagen til arbejdets fortsættelse, inden arbejdet fortsættes jf. AB-Forbruger § 24, stk. 2.</p>
             </div>
 
             {/* § 4 Tidsplan */}
             <div className="border-t border-gray-100 pt-6">
-              <h3 className="font-bold text-gray-900 mb-3 font-sans text-xs uppercase tracking-widest text-primary">§ 4 — Tidsplan</h3>
+              <h3 className="font-bold text-gray-900 mb-3 font-sans text-xs uppercase tracking-widest text-primary">§ 4 - Tidsplan</h3>
               <p>Arbejdet påbegyndes <strong className="text-gray-900">{projekt.startdato}</strong> og afsluttes senest <strong className="text-gray-900">{projekt.slutdato}</strong>.</p>
               <p className="mt-3 text-gray-500">Forsinkelse der ikke skyldes forhold beskrevet i AB-Forbruger § 29 (herunder force majeure, vejrlig eller forbrugerens egne forhold) er ansvarspådragende for entreprenøren jf. § 30. Parterne skal søge at undgå og begrænse forsinkelser jf. § 36.</p>
             </div>
 
             {/* § 5 Betaling */}
             <div className="border-t border-gray-100 pt-6">
-              <h3 className="font-bold text-gray-900 mb-3 font-sans text-xs uppercase tracking-widest text-primary">§ 5 — Betalingsplan</h3>
+              <h3 className="font-bold text-gray-900 mb-3 font-sans text-xs uppercase tracking-widest text-primary">§ 5 - Betalingsplan</h3>
               <p className="mb-4">Betaling sker løbende i rater koblet til nedenstående milepæle jf. AB-Forbruger § 26. Faktura forfalder til betaling ved modtagelse og er rettidig senest 15 arbejdsdage efter forfaldsdagen jf. § 25, stk. 2.</p>
               <table className="w-full text-xs">
                 <thead>
@@ -157,14 +157,14 @@ export default function Kontrakt({ params }: { params: Promise<{ id: string }> }
 
             {/* § 6 Aflevering og mangler */}
             <div className="border-t border-gray-100 pt-6">
-              <h3 className="font-bold text-gray-900 mb-3 font-sans text-xs uppercase tracking-widest text-primary">§ 6 — Aflevering og mangler</h3>
+              <h3 className="font-bold text-gray-900 mb-3 font-sans text-xs uppercase tracking-widest text-primary">§ 6 - Aflevering og mangler</h3>
               <p>Arbejdet afleveres ved skriftlig meddelelse til forbrugeren jf. AB-Forbruger § 37. Er entreprisesummen over 50.000 kr. kan begge parter kræve afleveringsforretning jf. § 38. Forbrugeren har 5 års reklamationsret på mangler fra afleveringsdatoen.</p>
               <p className="mt-3 text-gray-500">Forbrugeren kan tilbageholde betaling svarende til manglernes udbedring ved dokumenterede mangler jf. § 25, stk. 3. Entreprenøren har pligt og ret til at afhjælpe mangler inden rimelig tid jf. § 43.</p>
             </div>
 
             {/* § 7 AB-Forbruger */}
             <div className="border-t border-gray-100 pt-6">
-              <h3 className="font-bold text-gray-900 mb-3 font-sans text-xs uppercase tracking-widest text-primary">§ 7 — Aftalegrundlag</h3>
+              <h3 className="font-bold text-gray-900 mb-3 font-sans text-xs uppercase tracking-widest text-primary">§ 7 - Aftalegrundlag</h3>
               <p>AB-Forbruger (Almindelige betingelser for aftaler om byggearbejder for forbrugere, 2012) er gældende for denne aftale i sin helhed. Fravigelse af betingelserne gælder kun, hvis det sker tydeligt og udtrykkeligt jf. AB-Forbruger § 1, stk. 2. Opstår der uenighed, kan forbrugeren indbringe sagen for et ankenævn eller de almindelige domstole jf. § 63.</p>
             </div>
           </div>

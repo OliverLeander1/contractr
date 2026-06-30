@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -33,7 +33,7 @@ export default function AccepeterInvitation() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Du er inviteret</h1>
           <p className="text-gray-500 mb-6 leading-relaxed">
-            <span className="font-semibold text-gray-900">Camilla Jensen</span> har inviteret dig til projektet <span className="font-semibold text-gray-900">"Indvendig renovering – Valby"</span> på Contractr.
+            <span className="font-semibold text-gray-900">Camilla Jensen</span> har inviteret dig til projektet <span className="font-semibold text-gray-900">"Indvendig renovering - Valby"</span> på Contractr.
           </p>
 
           <div className="bg-gray-50 rounded-xl p-4 mb-6 space-y-2">

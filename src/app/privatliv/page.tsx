@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -21,7 +21,7 @@ const sektioner = [
   },
   {
     titel: "4. Retsgrundlag",
-    indhold: `Vi behandler dine oplysninger på grundlag af:\n\n• Opfyldelse af kontrakt (GDPR art. 6, stk. 1, litra b) — når du bruger platformen\n• Samtykke (GDPR art. 6, stk. 1, litra a) — for marketing og ikke-nødvendige cookies\n• Legitim interesse (GDPR art. 6, stk. 1, litra f) — for sikkerhed og drift`,
+    indhold: `Vi behandler dine oplysninger på grundlag af:\n\n• Opfyldelse af kontrakt (GDPR art. 6, stk. 1, litra b) - når du bruger platformen\n• Samtykke (GDPR art. 6, stk. 1, litra a) - for marketing og ikke-nødvendige cookies\n• Legitim interesse (GDPR art. 6, stk. 1, litra f) - for sikkerhed og drift`,
   },
   {
     titel: "5. Opbevaring af data",
@@ -80,7 +80,7 @@ export default function Privatliv() {
 
         <div className="mt-10 bg-primary/5 border border-primary/20 rounded-2xl p-6">
           <h2 className="text-sm font-bold text-gray-900 mb-2">Spørgsmål om dine data?</h2>
-          <p className="text-sm text-gray-600 mb-4">Kontakt os på <a href="mailto:hej@contractr.dk" className="text-primary font-medium hover:underline">hej@contractr.dk</a> — vi svarer inden for 2 arbejdsdage.</p>
+          <p className="text-sm text-gray-600 mb-4">Kontakt os på <a href="mailto:hej@contractr.dk" className="text-primary font-medium hover:underline">hej@contractr.dk</a> - vi svarer inden for 2 arbejdsdage.</p>
           <Link href="/kontakt" className="inline-block text-sm font-semibold text-primary hover:underline">Gå til kontaktside →</Link>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -29,7 +29,7 @@ const sektioner = [
   },
   {
     titel: "6. Intellektuel ejendomsret",
-    indhold: `Alt indhold på Contractr — herunder tekst, design, kode og AI-genererede rapporter — tilhører Contractr. Du må ikke kopiere, videresælge eller distribuere indhold fra platformen uden skriftlig tilladelse.`,
+    indhold: `Alt indhold på Contractr - herunder tekst, design, kode og AI-genererede rapporter - tilhører Contractr. Du må ikke kopiere, videresælge eller distribuere indhold fra platformen uden skriftlig tilladelse.`,
   },
   {
     titel: "7. Ansvarsbegrænsning",

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 export default function BookingBekraeftelse() {
   return (
@@ -19,7 +19,7 @@ export default function BookingBekraeftelse() {
               { label: "Ydelse", value: "Tal med en rådgiver" },
               { label: "Dato", value: "Onsdag d. 11. juni 2025" },
               { label: "Tidspunkt", value: "kl. 11:00 (90 min.)" },
-              { label: "Projekt", value: "Indvendig renovering – Valby" },
+              { label: "Projekt", value: "Indvendig renovering - Valby" },
               { label: "Pris betalt", value: "1.495 kr." },
             ].map((r) => (
               <div key={r.label} className="flex justify-between">

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 
@@ -24,7 +24,7 @@ export default function ProjektHeader() {
   }, []);
 
   const typeInfo = projektTypeLabels[projekttype] ?? { label: "Renovering", ikon: "🏠" };
-  const titel = adresse ? `${typeInfo.label} – ${adresse.split(",")[0]}` : typeInfo.label;
+  const titel = adresse ? `${typeInfo.label} - ${adresse.split(",")[0]}` : typeInfo.label;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">

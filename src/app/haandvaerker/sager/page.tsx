@@ -1,9 +1,9 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 const sager = [
   {
     id: 1,
-    titel: "Indvendig renovering – Valby",
+    titel: "Indvendig renovering - Valby",
     bygherre: "Camilla Jensen",
     adresse: "Valby Langgade 85, 2500 Valby",
     type: "Renovering",
@@ -16,7 +16,7 @@ const sager = [
   },
   {
     id: 2,
-    titel: "Nyt badeværelse – Frederiksberg",
+    titel: "Nyt badeværelse - Frederiksberg",
     bygherre: "Henrik Møller",
     adresse: "Smallegade 22, 2000 Frederiksberg",
     type: "Badeværelse",
@@ -29,7 +29,7 @@ const sager = [
   },
   {
     id: 3,
-    titel: "Tagudskiftning – Hellerup",
+    titel: "Tagudskiftning - Hellerup",
     bygherre: "Mette Lund",
     adresse: "Strandvejen 12, 2900 Hellerup",
     type: "Tag",

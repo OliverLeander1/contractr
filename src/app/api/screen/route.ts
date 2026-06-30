@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+﻿import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -18,9 +18,9 @@ Returner KUN et JSON-objekt i dette format (ingen markdown, ingen forklaring ude
       "kategori": "AB-Forbruger" | "Betalingsplan" | "Tidsplan" | "Pris" | "Ekstraarbejde" | "Mangler" | "Tilladelser" | "Forsikring" | "Andet",
       "status": "ok" | "advarsel" | "fejl",
       "titel": "Kort overskrift",
-      "forklaring": "Hvad vi fandt — på almindeligt dansk uden juridisk jargon",
-      "anbefaling": "Hvad bygherren bør gøre — eller null hvis status er ok",
-      "forslag": "Kopiérbar besked bygherren kan sende til håndværkeren — eller null hvis status er ok"
+      "forklaring": "Hvad vi fandt - på almindeligt dansk uden juridisk jargon",
+      "anbefaling": "Hvad bygherren bør gøre - eller null hvis status er ok",
+      "forslag": "Kopiérbar besked bygherren kan sende til håndværkeren - eller null hvis status er ok"
     }
   ]
 }
@@ -28,11 +28,11 @@ Returner KUN et JSON-objekt i dette format (ingen markdown, ingen forklaring ude
 Regler:
 - Screen for MINDST disse emner: AB-Forbruger nævnt, fast pris vs. overslag, betalingsplan koblet til fremdrift, bindende tidsplan med slutdato, procedure for ekstraarbejde, afleverings- og mangelprocedure
 - Skriv altid på dansk
-- Aldrig juridisk jargon — forklar som til en almindelig boligejer
+- Aldrig juridisk jargon - forklar som til en almindelig boligejer
 - Sæt "fejl" hvis noget er klart problematisk (fx 50%+ forudbetaling, ingen slutdato, AB-Forbruger ikke nævnt)
 - Sæt "advarsel" hvis noget bør afklares men ikke nødvendigvis er galt
 - Sæt "ok" kun hvis punktet faktisk er dækket tilfredsstillende
-- Basér alt på hvad der faktisk står — lav ikke noget op
+- Basér alt på hvad der faktisk står - lav ikke noget op
 - Inkludér mindst 4 punkter, typisk 5-8`;
 
 export async function POST(req: NextRequest) {
@@ -96,10 +96,10 @@ export async function POST(req: NextRequest) {
         try {
           parsed = JSON.parse(txt.slice(0, lastValid) + '}]}');
         } catch {
-          return NextResponse.json({ error: "Kunne ikke parse svar fra AI — prøv igen" }, { status: 500 });
+          return NextResponse.json({ error: "Kunne ikke parse svar fra AI - prøv igen" }, { status: 500 });
         }
       } else {
-        return NextResponse.json({ error: "Kunne ikke parse svar fra AI — prøv igen" }, { status: 500 });
+        return NextResponse.json({ error: "Kunne ikke parse svar fra AI - prøv igen" }, { status: 500 });
       }
     }
 

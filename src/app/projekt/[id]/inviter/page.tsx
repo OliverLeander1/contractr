@@ -47,7 +47,7 @@ export default function InviterEntreprenoer({ params }: { params: Promise<{ id: 
       <div className="max-w-2xl mx-auto px-6 py-10">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Inviter håndværkere</h1>
-          <p className="text-sm text-gray-400 mt-1">De modtager en e-mail med adgang til projektet — gratis for dem</p>
+          <p className="text-sm text-gray-400 mt-1">De modtager en e-mail med adgang til projektet - gratis for dem</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
@@ -58,7 +58,7 @@ export default function InviterEntreprenoer({ params }: { params: Promise<{ id: 
               <div key={i} className="flex gap-2">
                 <input
                   type="email"
-                  placeholder={`Håndværker ${i + 1} — f.eks. thomas@tmbyg.dk`}
+                  placeholder={`Håndværker ${i + 1} - f.eks. thomas@tmbyg.dk`}
                   value={e}
                   onChange={(ev) => opdaterEmail(i, ev.target.value)}
                   className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"

@@ -7,7 +7,7 @@ import Link from "next/link";
 
 const mangelListe = [
   { id: 1, punkt: "Gipsvægge og overflader", status: "ok" },
-  { id: 2, punkt: "Malerarbejde — vægge og lofter", status: "ok" },
+  { id: 2, punkt: "Malerarbejde - vægge og lofter", status: "ok" },
   { id: 3, punkt: "Gulvafslutninger", status: "mangel", note: "Overgangen mellem parket og fliser er ikke tætnet" },
   { id: 4, punkt: "El og afbrydere", status: "ok" },
   { id: 5, punkt: "VVS og afløb", status: "ok" },
@@ -36,7 +36,7 @@ export default function Aflevering({ params }: { params: Promise<{ id: string }>
       <div className="max-w-4xl mx-auto px-6 py-10">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Afleveringsforretning</h1>
-          <p className="text-sm text-gray-400 mt-1">Indvendig renovering – Valby · AB-Forbruger § 37–38</p>
+          <p className="text-sm text-gray-400 mt-1">Indvendig renovering - Valby · AB-Forbruger § 37-38</p>
         </div>
 
         {/* Trin-indikator */}
@@ -74,7 +74,7 @@ export default function Aflevering({ params }: { params: Promise<{ id: string }>
               paragraf="AB-Forbruger § 37"
               titel="Arbejdet er ikke afleveret endnu"
               resumé="Arbejdet betragtes ikke som afleveret, hvis der er væsentlige mangler, og du påberåber dig disse senest 10 arbejdsdage efter meddelelsen om, at arbejdet er udført."
-              detaljer="Gennemgå arbejdet grundigt nu. Alle mangler du påpeger noteres i afleveringsprotokollen — uanset om håndværkeren er enig eller ej."
+              detaljer="Gennemgå arbejdet grundigt nu. Alle mangler du påpeger noteres i afleveringsprotokollen - uanset om håndværkeren er enig eller ej."
               type="info"
             />
 
@@ -155,14 +155,14 @@ export default function Aflevering({ params }: { params: Promise<{ id: string }>
                 <div className="grid grid-cols-2 gap-4">
                   <div><p className="text-xs text-gray-400 mb-1">Bygherre</p><p className="font-medium text-gray-900">Camilla Jensen</p></div>
                   <div><p className="text-xs text-gray-400 mb-1">Entreprenør</p><p className="font-medium text-gray-900">Thomas Madsen, TM Byg ApS</p></div>
-                  <div><p className="text-xs text-gray-400 mb-1">Projekt</p><p className="font-medium text-gray-900">Indvendig renovering – Valby</p></div>
+                  <div><p className="text-xs text-gray-400 mb-1">Projekt</p><p className="font-medium text-gray-900">Indvendig renovering - Valby</p></div>
                   <div><p className="text-xs text-gray-400 mb-1">Afleveringsdato</p><p className="font-medium text-gray-900">{new Intl.DateTimeFormat("da-DK", { day: "numeric", month: "short", year: "numeric" }).format(new Date())}</p></div>
                 </div>
 
                 <div className="border-t border-gray-200 pt-4">
                   <p className="text-xs text-gray-400 mb-3 font-semibold uppercase tracking-wide">Påpegede mangler og bemærkninger</p>
                   {åbneMangler.length === 0 ? (
-                    <p className="text-green-700 font-medium">Ingen mangler påpeget — arbejdet godkendes uden forbehold.</p>
+                    <p className="text-green-700 font-medium">Ingen mangler påpeget - arbejdet godkendes uden forbehold.</p>
                   ) : (
                     <div className="space-y-2">
                       {åbneMangler.map((m, i) => (
@@ -299,7 +299,7 @@ export default function Aflevering({ params }: { params: Promise<{ id: string }>
               paragraf="AB-Forbruger § 58"
               titel="Husk 1-årseftersyn"
               resumé="For arbejder under 500.000 kr. kan du kræve 1-årseftersyn, hvis du meddeler det inden 1 år efter afleveringen. Platformen minder dig om det i god tid."
-              detaljer="Eftersynet giver dig mulighed for at påpege mangler, der er opstået det første år. Håndværkeren indkalder med 10–30 arbejdsdages varsel."
+              detaljer="Eftersynet giver dig mulighed for at påpege mangler, der er opstået det første år. Håndværkeren indkalder med 10-30 arbejdsdages varsel."
               type="info"
             />
 
