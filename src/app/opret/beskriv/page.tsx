@@ -17,6 +17,7 @@ export default function BeskrivProjekt() {
   const [beboet, setBeboet] = useState("");
   const [loading, setLoading] = useState(false);
   const [fejl, setFejl] = useState("");
+  const [billeder, setBilleder] = useState<{ navn: string; data: string }[]>([]);
 
   useEffect(() => {
     setProjekttype(sessionStorage.getItem("screening_projekttype") || "");
@@ -43,7 +44,7 @@ export default function BeskrivProjekt() {
         setLoading(false);
         return;
       }
-      sessionStorage.setItem("udbud_resultat", JSON.stringify(data));
+      sessionStorage.setItem("udbud_resultat", JSON.stringify({ ...data, billeder }));
       router.push("/opret/udbud-resultat");
     } catch {
       setFejl("Netværksfejl. Tjek din forbindelse og prøv igen.");
@@ -144,6 +145,46 @@ export default function BeskrivProjekt() {
           onChange={(e) => setKrav(e.target.value)}
           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all resize-none"
         />
+      </div>
+
+      {/* Billedupload */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
+        <h2 className="font-semibold text-gray-900 mb-1">Billeder af eksisterende forhold</h2>
+        <p className="text-sm text-gray-400 mb-4">Upload billeder af det nuværende rum eller problem. De sendes med til håndværkeren.</p>
+        <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-xl py-6 cursor-pointer hover:border-primary hover:bg-accent transition-all">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span className="text-sm text-gray-500">Klik for at vælge billeder</span>
+          <span className="text-xs text-gray-400">JPG, PNG, WEBP - maks 5 billeder</span>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              const filer = Array.from(e.target.files || []).slice(0, 5);
+              Promise.all(filer.map(fil => new Promise<{ navn: string; data: string }>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve({ navn: fil.name, data: reader.result as string });
+                reader.readAsDataURL(fil);
+              }))).then(setBilleder);
+            }}
+          />
+        </label>
+        {billeder.length > 0 && (
+          <div className="flex flex-wrap gap-3 mt-4">
+            {billeder.map((b, i) => (
+              <div key={i} className="relative group">
+                <img src={b.data} alt={b.navn} className="w-20 h-20 object-cover rounded-xl border border-gray-200" />
+                <button
+                  onClick={() => setBilleder(prev => prev.filter((_, j) => j !== i))}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {fejl && (

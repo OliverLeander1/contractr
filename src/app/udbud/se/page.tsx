@@ -19,6 +19,7 @@ interface UdbudData {
   bygherreKontakt?: string;
   tilbudsposter?: TilbudsPost[];
   tilbudsposter_original?: TilbudsPost[];
+  billeder?: { navn: string; data: string }[];
 }
 
 function prisNum(p: string): number {
@@ -178,6 +179,20 @@ export default function UdbudDel() {
             </div>
             {data.bygherreNavn && <p className="text-sm font-medium text-gray-800">{data.bygherreNavn}</p>}
             {data.bygherreKontakt && <p className="text-sm text-gray-600">{data.bygherreKontakt}</p>}
+          </div>
+        )}
+
+        {/* Billeder fra bygherre */}
+        {data.billeder && data.billeder.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mb-6">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Billeder af eksisterende forhold</p>
+            <div className="flex flex-wrap gap-3">
+              {data.billeder.map((b, i) => (
+                <a key={i} href={b.data} target="_blank" rel="noopener noreferrer">
+                  <img src={b.data} alt={b.navn} className="w-24 h-24 object-cover rounded-xl border border-gray-200 hover:opacity-90 transition-opacity cursor-zoom-in" />
+                </a>
+              ))}
+            </div>
           </div>
         )}
 

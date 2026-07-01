@@ -18,6 +18,7 @@ interface UdbudResultat {
   bygherreNavn: string;
   bygherreKontakt: string;
   tilbudsposter?: TilbudsPost[];
+  billeder?: { navn: string; data: string }[];
 }
 
 export default function UdbudResultat() {
@@ -40,7 +41,7 @@ export default function UdbudResultat() {
 
   function genererLink() {
     if (!data) return;
-    const payload = JSON.stringify({ titel: data.titel, resumé: data.resumé, dokument: tekst, bygherreNavn: data.bygherreNavn, bygherreKontakt: data.bygherreKontakt, tilbudsposter: data.tilbudsposter || [] });
+    const payload = JSON.stringify({ titel: data.titel, resumé: data.resumé, dokument: tekst, bygherreNavn: data.bygherreNavn, bygherreKontakt: data.bygherreKontakt, tilbudsposter: data.tilbudsposter || [], billeder: data.billeder || [] });
     const token = btoa(encodeURIComponent(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     const url = `${window.location.origin}/udbud/se#${token}`;
     navigator.clipboard.writeText(url).then(() => {
