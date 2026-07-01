@@ -1,10 +1,19 @@
 "use client";
 
-import { use, Suspense } from "react";
+import { use, useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import ProjektNav from "@/components/ProjektNav";
 import Chat from "@/components/Chat";
 import ProjektHeader from "@/components/ProjektHeader";
+
+interface GemtProjekt {
+  titel: string;
+  resumé: string;
+  bygherreNavn?: string;
+  accepteretDato: string;
+  total: number;
+  tilbudsposter: { id: string; beskrivelse: string; enhed: string; pris: string }[];
+}
 
 const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
 const fmt = (d: Date) => d.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" });
@@ -44,6 +53,50 @@ const aktiviteter = [
 
 export default function ProjektOversigt({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const [projekt, setProjekt] = useState<GemtProjekt | null | "loading">("loading");
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("contractr_projekt");
+      setProjekt(raw ? JSON.parse(raw) : null);
+    } catch {
+      setProjekt(null);
+    }
+  }, []);
+
+  if (projekt === "loading") return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-gray-300 border-t-green-600 rounded-full animate-spin" />
+    </div>
+  );
+
+  if (!projekt) return (
+    <div className="min-h-screen bg-gray-50">
+      <ProjektNav id={id} />
+      <div className="max-w-2xl mx-auto px-6 py-20 text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-400"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-3">Intet aktivt projekt endnu</h1>
+        <p className="text-gray-500 mb-8 leading-relaxed">
+          Projektet oprettes automatisk, naar du accepterer et tilbud fra en haandvaerker.
+          Start med at beskrive dit projekt og indhente tilbud.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Link href="/opret" className="px-6 py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:opacity-90 transition-opacity">
+            Beskriv dit projekt →
+          </Link>
+          <Link href="/opret/upload" className="px-6 py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors">
+            Har du allerede et tilbud? Tjek det her
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+
+  const fmtKr = (n: number) => n.toLocaleString("da-DK", { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + " kr.";
+  const acceptDato = new Date(projekt.accepteretDato).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
+
   return (
     <div className="min-h-screen bg-gray-50">
       <ProjektNav id={id} />
@@ -51,7 +104,17 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
       <div className="max-w-7xl mx-auto px-6 py-8">
 
         {/* Projekt header */}
-        <ProjektHeader />
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-1 rounded-full">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+              Tilbud accepteret {acceptDato}
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">{projekt.titel}</h1>
+          <p className="text-gray-500 text-sm mt-1">{projekt.resumé}</p>
+          <p className="text-sm font-semibold text-primary mt-1">Samlet tilbudssum: {fmtKr(projekt.total)}</p>
+        </div>
 
         {/* Statuskort */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">

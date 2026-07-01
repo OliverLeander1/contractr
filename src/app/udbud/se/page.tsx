@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface TilbudsPost {
   id: string;
@@ -65,6 +66,7 @@ function diffLines(original: string, revised: string): DiffLine[] {
 }
 
 export default function UdbudDel() {
+  const router = useRouter();
   const [data, setData] = useState<UdbudData | null>(null);
   const [poster, setPoster] = useState<TilbudsPost[]>([]);
   const [dokument, setDokument] = useState("");
@@ -73,6 +75,24 @@ export default function UdbudDel() {
   const [erBygherre, setErBygherre] = useState(false);
   const [visDiff, setVisDiff] = useState(true);
   const [accepteret, setAcepteret] = useState(false);
+
+  function accepterTilbud(d: UdbudData, p: TilbudsPost[]) {
+    const projekt = {
+      id: "1",
+      titel: d.titel,
+      resumé: d.resumé,
+      dokument: d.dokument,
+      bygherreNavn: d.bygherreNavn,
+      bygherreKontakt: d.bygherreKontakt,
+      tilbudsposter: p,
+      billeder: d.billeder || [],
+      accepteretDato: new Date().toISOString(),
+      total: p.reduce((s, post) => s + (parseFloat(post.pris) || 0), 0) * 1.25,
+    };
+    localStorage.setItem("contractr_projekt", JSON.stringify(projekt));
+    setAcepteret(true);
+    setTimeout(() => router.push("/projekt/1"), 1800);
+  }
 
   useEffect(() => {
     try {
@@ -385,12 +405,10 @@ export default function UdbudDel() {
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
               <p className="text-base font-bold text-green-800 mb-1">Tilbud accepteret</p>
-              <p className="text-sm text-green-700 mb-4">
-                Din accept er registreret. Kontakt nu håndværkeren for at aftale opstart.
+              <p className="text-sm text-green-700 mb-2">
+                Din accept er registreret. Du sendes videre til dit projekt...
               </p>
-              {data?.bygherreKontakt && (
-                <p className="text-xs text-green-600">Husk at bekræfte skriftligt pr. mail eller SMS.</p>
-              )}
+              <div className="w-5 h-5 border-2 border-green-300 border-t-green-600 rounded-full animate-spin mx-auto" />
             </div>
           ) : (
             <div className="space-y-3">
@@ -409,7 +427,7 @@ export default function UdbudDel() {
                 </div>
               </div>
               <button
-                onClick={() => setAcepteret(true)}
+                onClick={() => accepterTilbud(data!, poster)}
                 className="w-full py-4 rounded-xl text-base font-bold bg-primary text-white hover:opacity-90 shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
