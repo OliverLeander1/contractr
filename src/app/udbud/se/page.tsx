@@ -278,13 +278,13 @@ export default function UdbudDel() {
                   <span className="text-xs font-bold text-gray-400 mt-2.5 w-5 shrink-0">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     {erBygherre ? (
-                      <p className="text-sm text-gray-800 leading-relaxed">{post.beskrivelse}</p>
+                      <p className="text-sm text-gray-800 leading-relaxed break-words">{post.beskrivelse}</p>
                     ) : (
-                      <input
-                        type="text"
+                      <textarea
                         value={post.beskrivelse}
                         onChange={(e) => opdaterBeskrivelse(post.id, e.target.value)}
-                        className="w-full text-sm text-gray-800 border-0 border-b border-gray-200 focus:outline-none focus:border-primary pb-1 bg-transparent"
+                        rows={Math.max(1, Math.ceil(post.beskrivelse.length / 50))}
+                        className="w-full text-sm text-gray-800 border-0 border-b border-gray-200 focus:outline-none focus:border-primary pb-1 bg-transparent resize-none leading-relaxed"
                         placeholder="Beskriv opgaven..."
                       />
                     )}
