@@ -292,7 +292,7 @@ export default function UdbudDel() {
                   <div className="flex items-center gap-2 shrink-0">
                     {erBygherre ? (
                       <span className="text-sm font-semibold text-gray-900 whitespace-nowrap">
-                        {post.pris ? `${post.pris} kr.` : "Ikke angivet"}
+                        {post.pris ? fmtKr(prisNum(post.pris) * 1.25) : "Ikke angivet"}
                       </span>
                     ) : (
                       <div className="flex items-center gap-1">
@@ -336,18 +336,27 @@ export default function UdbudDel() {
           {/* Totaler */}
           {subtotal > 0 && (
             <div className="border-t border-gray-100 px-6 py-4 space-y-2">
-              <div className="flex justify-between text-sm text-gray-500">
-                <span>Subtotal ekskl. moms</span>
-                <span>{fmtKr(subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-sm text-gray-500">
-                <span>Moms (25%)</span>
-                <span>{fmtKr(moms)}</span>
-              </div>
-              <div className="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-100">
-                <span>Samlet tilbudssum inkl. moms</span>
-                <span className="text-primary">{fmtKr(total)}</span>
-              </div>
+              {erBygherre ? (
+                <div className="flex justify-between text-base font-bold text-gray-900">
+                  <span>Samlet pris inkl. moms</span>
+                  <span className="text-primary">{fmtKr(total)}</span>
+                </div>
+              ) : (
+                <>
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>Subtotal ekskl. moms</span>
+                    <span>{fmtKr(subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>Moms (25%)</span>
+                    <span>{fmtKr(moms)}</span>
+                  </div>
+                  <div className="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-100">
+                    <span>Samlet tilbudssum inkl. moms</span>
+                    <span className="text-primary">{fmtKr(total)}</span>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
