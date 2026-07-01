@@ -260,7 +260,7 @@ export default function UdbudDel() {
           <div className="px-6 py-4 border-b border-gray-100">
             <h2 className="font-semibold text-gray-900 text-sm">Tilbudsliste</h2>
             <p className="text-xs text-gray-400 mt-0.5">
-              {erBygherre ? "Priser udfyldt af håndværker" : "Udfyld pris pr. opgave inkl. moms"}
+              {erBygherre ? "Priser ekskl. moms, total inkl. moms" : "Udfyld pris pr. opgave ekskl. moms"}
             </p>
           </div>
 
