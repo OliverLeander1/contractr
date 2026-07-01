@@ -4,6 +4,22 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+const ipHits = new Map<string, { count: number; reset: number }>();
+const LIMIT = 10;
+const WINDOW = 60 * 60 * 1000; // 1 time
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = ipHits.get(ip);
+  if (!entry || now > entry.reset) {
+    ipHits.set(ip, { count: 1, reset: now + WINDOW });
+    return true;
+  }
+  if (entry.count >= LIMIT) return false;
+  entry.count++;
+  return true;
+}
+
 const SYSTEM = `Du er en erfaren byggesagkyndig der hjælper private bygherrer med at beskrive deres projekt professionelt til håndværkere.
 
 Baseret på bygherrens svar skal du skrive et professionelt udbudsdokument på dansk OG en tilbudsliste med forventede opgaveposter.
@@ -34,6 +50,11 @@ Regler for tilbudsposter:
 - Den sidste post skal altid være "Uforudsete arbejder" med enhed "samlet"`;
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json({ error: "For mange forsøg. Prøv igen om en time." }, { status: 429 });
+  }
+
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   try {
     const body = await req.json();

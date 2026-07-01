@@ -71,6 +71,7 @@ export default function UdbudDel() {
   const [linkKopieret, setLinkKopieret] = useState(false);
   const [erBygherre, setErBygherre] = useState(false);
   const [visDiff, setVisDiff] = useState(true);
+  const [accepteret, setAcepteret] = useState(false);
 
   useEffect(() => {
     try {
@@ -155,8 +156,8 @@ export default function UdbudDel() {
             </div>
             <span className="font-semibold text-gray-900 text-sm">Contractr</span>
           </div>
-          <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
-            {erBygherre ? "Modtaget tilbud" : "Anmodning om tilbud"}
+          <span className={`text-xs px-3 py-1 rounded-full font-medium ${erBygherre ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+            {erBygherre ? "Tilbud modtaget" : "Anmodning om tilbud"}
           </span>
         </div>
       </div>
@@ -361,13 +362,49 @@ export default function UdbudDel() {
           )}
         </div>
 
-        {/* Send tilbage / bygherre-info */}
+        {/* Accepter tilbud / send svar */}
         {erBygherre ? (
-          <div className="bg-green-50 border border-green-100 rounded-2xl p-5 text-center">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" className="mx-auto mb-2"><polyline points="20 6 9 17 4 12"/></svg>
-            <p className="text-sm font-semibold text-green-800 mb-1">Tilbud modtaget</p>
-            <p className="text-xs text-green-700">Kontakt håndværkeren direkte for at gå videre.</p>
-          </div>
+          accepteret ? (
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <p className="text-base font-bold text-green-800 mb-1">Tilbud accepteret</p>
+              <p className="text-sm text-green-700 mb-4">
+                Din accept er registreret. Kontakt nu håndværkeren for at aftale opstart.
+              </p>
+              {data?.bygherreKontakt && (
+                <p className="text-xs text-green-600">Husk at bekræfte skriftligt pr. mail eller SMS.</p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5">
+                <div className="flex items-start gap-3">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-600 flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <div>
+                    <p className="text-sm font-semibold text-amber-900 mb-1">Inden du accepterer</p>
+                    <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
+                      <li>Er prisen fast eller et overslag?</li>
+                      <li>Er start- og slutdato aftalt skriftligt?</li>
+                      <li>Er betalingsplan koblet til fremdrift?</li>
+                      <li>Er ekstraarbejde-procedure beskrevet?</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setAcepteret(true)}
+                className="w-full py-4 rounded-xl text-base font-bold bg-primary text-white hover:opacity-90 shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Jeg accepterer tilbuddet
+              </button>
+              <p className="text-center text-xs text-gray-400">
+                Accepten er vejledende. Send en skriftlig bekræftelse direkte til håndværkeren.
+              </p>
+            </div>
+          )
         ) : (
           <button
             onClick={sendSvar}
