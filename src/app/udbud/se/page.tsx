@@ -7,15 +7,18 @@ interface TilbudsPost {
   beskrivelse: string;
   enhed: string;
   pris: string;
+  erNy?: boolean;
 }
 
 interface UdbudData {
   titel: string;
   resumé: string;
   dokument: string;
+  dokument_original?: string;
   bygherreNavn?: string;
   bygherreKontakt?: string;
   tilbudsposter?: TilbudsPost[];
+  tilbudsposter_original?: TilbudsPost[];
 }
 
 function prisNum(p: string): number {
@@ -23,12 +26,51 @@ function prisNum(p: string): number {
   return isNaN(n) ? 0 : n;
 }
 
+type DiffLine = { type: "same" | "added" | "removed"; text: string };
+
+function diffLines(original: string, revised: string): DiffLine[] {
+  const origLines = original.split("\n");
+  const revLines = revised.split("\n");
+
+  // Build LCS table
+  const m = origLines.length;
+  const n = revLines.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = m - 1; i >= 0; i--) {
+    for (let j = n - 1; j >= 0; j--) {
+      if (origLines[i] === revLines[j]) {
+        dp[i][j] = 1 + dp[i + 1][j + 1];
+      } else {
+        dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+      }
+    }
+  }
+
+  const result: DiffLine[] = [];
+  let i = 0, j = 0;
+  while (i < m || j < n) {
+    if (i < m && j < n && origLines[i] === revLines[j]) {
+      result.push({ type: "same", text: origLines[i] });
+      i++; j++;
+    } else if (j < n && (i >= m || dp[i][j + 1] >= dp[i + 1][j])) {
+      result.push({ type: "added", text: revLines[j] });
+      j++;
+    } else {
+      result.push({ type: "removed", text: origLines[i] });
+      i++;
+    }
+  }
+  return result;
+}
+
 export default function UdbudDel() {
   const [data, setData] = useState<UdbudData | null>(null);
   const [poster, setPoster] = useState<TilbudsPost[]>([]);
+  const [dokument, setDokument] = useState("");
   const [fejl, setFejl] = useState(false);
   const [linkKopieret, setLinkKopieret] = useState(false);
   const [erBygherre, setErBygherre] = useState(false);
+  const [visDiff, setVisDiff] = useState(true);
 
   useEffect(() => {
     try {
@@ -37,6 +79,7 @@ export default function UdbudDel() {
       const json = decodeURIComponent(atob(hash.replace(/-/g, "+").replace(/_/g, "/")));
       const parsed = JSON.parse(json);
       setData(parsed);
+      setDokument(parsed.dokument || "");
       const initialPoster = (parsed.tilbudsposter || []).map((p: TilbudsPost) => ({
         ...p,
         pris: p.pris || "",
@@ -71,7 +114,10 @@ export default function UdbudDel() {
     if (!data) return;
     const payload = JSON.stringify({
       ...data,
+      dokument,
+      dokument_original: data.dokument_original ?? data.dokument,
       tilbudsposter: poster,
+      tilbudsposter_original: data.tilbudsposter_original ?? data.tilbudsposter,
     });
     const token = btoa(encodeURIComponent(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     const url = `${window.location.origin}/udbud/se#${token}`;
@@ -149,14 +195,63 @@ export default function UdbudDel() {
           </div>
         )}
 
-        {/* Projektbeskrivelse (låst, sammenfoldet) */}
-        <details className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
+        {/* Projektbeskrivelse */}
+        <details className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6" open={!erBygherre}>
           <summary className="px-6 py-4 cursor-pointer flex items-center justify-between">
             <span className="font-semibold text-gray-900 text-sm">Projektbeskrivelse</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400"><polyline points="6 9 12 15 18 9"/></svg>
           </summary>
-          <div className="px-6 pb-5 border-t border-gray-100 pt-4">
-            <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">{data.dokument}</pre>
+          <div className="border-t border-gray-100">
+            {erBygherre && data.dokument_original && data.dokument_original !== data.dokument ? (
+              /* Diff-visning for bygherre */
+              <div>
+                <div className="flex items-center justify-between px-6 pt-4 pb-2">
+                  <div className="flex items-center gap-3 text-xs">
+                    <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-green-100 border border-green-300" />Tilføjet af håndværker</span>
+                    <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-red-100 border border-red-300" />Fjernet af håndværker</span>
+                  </div>
+                  <button
+                    onClick={() => setVisDiff(v => !v)}
+                    className="text-xs text-gray-400 hover:text-gray-600 underline"
+                  >
+                    {visDiff ? "Vis fuld tekst" : "Vis ændringer"}
+                  </button>
+                </div>
+                {visDiff ? (
+                  <div className="px-6 pb-5 text-sm leading-relaxed font-sans">
+                    {diffLines(data.dokument_original, data.dokument).map((line, i) => (
+                      line.type === "same" ? (
+                        <div key={i} className="text-gray-700 whitespace-pre-wrap">{line.text || " "}</div>
+                      ) : line.type === "added" ? (
+                        <div key={i} className="bg-green-50 text-green-800 whitespace-pre-wrap rounded px-1 my-0.5">{line.text || " "}</div>
+                      ) : (
+                        <div key={i} className="bg-red-50 text-red-700 line-through whitespace-pre-wrap rounded px-1 my-0.5 opacity-70">{line.text || " "}</div>
+                      )
+                    ))}
+                  </div>
+                ) : (
+                  <div className="px-6 pb-5">
+                    <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">{data.dokument}</pre>
+                  </div>
+                )}
+              </div>
+            ) : erBygherre ? (
+              /* Bygherre, ingen ændringer */
+              <div className="px-6 py-5">
+                <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">{data.dokument}</pre>
+              </div>
+            ) : (
+              /* Contractor kan redigere */
+              <div className="px-6 py-5">
+                <p className="text-xs text-gray-400 mb-2">Du kan tilføje forbehold, rettelser eller præciseringer direkte i teksten.</p>
+                <textarea
+                  value={dokument}
+                  onChange={(e) => setDokument(e.target.value)}
+                  rows={Math.max(15, dokument.split("\n").length + 2)}
+                  className="w-full text-sm text-gray-700 leading-relaxed font-sans resize-none focus:outline-none border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                />
+              </div>
+            )}
           </div>
         </details>
 
@@ -170,8 +265,15 @@ export default function UdbudDel() {
           </div>
 
           <div className="divide-y divide-gray-50">
-            {poster.map((post, i) => (
-              <div key={post.id} className="px-6 py-4">
+            {poster.map((post, i) => {
+              const erNyPost = erBygherre && data?.tilbudsposter_original
+                ? !data.tilbudsposter_original.some(o => o.id === post.id)
+                : false;
+              return (
+              <div key={post.id} className={`px-6 py-4 ${erNyPost ? "bg-green-50" : ""}`}>
+                {erNyPost && (
+                  <span className="text-[10px] font-bold text-green-700 uppercase tracking-wide mb-1 block">Tilfojet af handvaerker</span>
+                )}
                 <div className="flex items-start gap-3">
                   <span className="text-xs font-bold text-gray-400 mt-2.5 w-5 shrink-0">{i + 1}</span>
                   <div className="flex-1 min-w-0">
@@ -215,7 +317,8 @@ export default function UdbudDel() {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
 
           {!erBygherre && (
