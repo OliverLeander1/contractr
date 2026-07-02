@@ -5,7 +5,7 @@ import Link from "next/link";
 
 type Trin = "invitation" | "konto" | "bekraeftet";
 
-export default function HaandvaerkerOpretKonto() {
+export default function HåndværkerOpretKonto() {
   const [trin, setTrin] = useState<Trin>("invitation");
   const [adgangskode, setAdgangskode] = useState("");
   const [bekræft, setBekræft] = useState("");
@@ -179,3 +179,4 @@ export default function HaandvaerkerOpretKonto() {
     </div>
   );
 }
+

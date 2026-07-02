@@ -38,7 +38,7 @@ function Stjerner({ antal }: { antal: number }) {
 
 const gennemsnit = (omtaler.reduce((a, o) => a + o.rating, 0) / omtaler.length).toFixed(1);
 
-export default function HaandvaerkerProfil() {
+export default function HåndværkerProfil() {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50">
@@ -150,3 +150,4 @@ export default function HaandvaerkerProfil() {
     </div>
   );
 }
+

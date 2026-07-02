@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -75,8 +75,8 @@ export default function UdbudDel() {
   const [erBygherre, setErBygherre] = useState(false);
   const [visDiff, setVisDiff] = useState(true);
   const [accepteret, setAcepteret] = useState(false);
-  const [haandvaerkerNavn, setHaandvaerkerNavn] = useState("");
-  const [haandvaerkerFirma, setHaandvaerkerFirma] = useState("");
+  const [haandvaerkerNavn, sethaandvaerkerNavn] = useState("");
+  const [haandvaerkerFirma, sethaandvaerkerFirma] = useState("");
   const [visNavnForm, setVisNavnForm] = useState(false);
 
   function accepterTilbud(d: UdbudData, p: TilbudsPost[]) {
@@ -155,7 +155,7 @@ export default function UdbudDel() {
     const token = btoa(encodeURIComponent(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     const url = `${window.location.origin}/udbud/se#${token}`;
 
-    // Gem sagen i haandvaerkerens lokale portal
+    // Gem sagen i Håndværkerens lokale portal
     const sag = {
       id: String(Date.now()),
       titel: data.titel,
@@ -430,7 +430,7 @@ export default function UdbudDel() {
           )}
         </div>
 
-        {/* Navn-modal for haandvaerker */}
+        {/* Navn-modal for Håndværker */}
         {visNavnForm && (
           <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
@@ -439,13 +439,13 @@ export default function UdbudDel() {
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1.5">Dit navn</label>
-                  <input type="text" value={haandvaerkerNavn} onChange={e => setHaandvaerkerNavn(e.target.value)}
+                  <input type="text" value={haandvaerkerNavn} onChange={e => sethaandvaerkerNavn(e.target.value)}
                     placeholder="F.eks. Thomas Madsen"
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1.5">Firma (valgfrit)</label>
-                  <input type="text" value={haandvaerkerFirma} onChange={e => setHaandvaerkerFirma(e.target.value)}
+                  <input type="text" value={haandvaerkerFirma} onChange={e => sethaandvaerkerFirma(e.target.value)}
                     placeholder="F.eks. TM Byg ApS"
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10" />
                 </div>
@@ -532,3 +532,4 @@ export default function UdbudDel() {
     </div>
   );
 }
+

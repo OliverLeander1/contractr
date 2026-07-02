@@ -24,7 +24,7 @@ const ydelser = [
     popular: false,
   },
   {
-    id: "raadgiver-online",
+    id: "Rådgiver-online",
     titel: "Tal med en rådgiver",
     beskrivelse: "90 minutters online møde med en uvildig byggerådgiver der har forberedt sig på dit projekt. Få svar på alt fra tilbud og kontrakt til materialer og proces.",
     pris: "1.495 kr.",

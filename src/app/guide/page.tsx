@@ -34,7 +34,7 @@ function Reveal({ children, delay = 0, className = "" }: { children: React.React
 }
 
 export default function Guide() {
-  const [aktivFane, setAktivFane] = useState<"bygherre" | "haandvaerker">("bygherre");
+  const [aktivFane, setAktivFane] = useState<"bygherre" | "Håndværker">("bygherre");
 
   return (
     <div className="bg-white min-h-screen overflow-x-hidden">
@@ -87,8 +87,8 @@ export default function Guide() {
                 Jeg er bygherre
               </button>
               <button
-                onClick={() => setAktivFane("haandvaerker")}
-                className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all ${aktivFane === "haandvaerker" ? "bg-white text-gray-900" : "text-white/60 hover:text-white"}`}
+                onClick={() => setAktivFane("Håndværker")}
+                className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all ${aktivFane === "Håndværker" ? "bg-white text-gray-900" : "text-white/60 hover:text-white"}`}
               >
                 Jeg er håndværker
               </button>
@@ -120,7 +120,7 @@ export default function Guide() {
         </div>
       </section>
 
-      {aktivFane === "bygherre" ? <BygherreGuide /> : <HaandvaerkerGuide />}
+      {aktivFane === "bygherre" ? <BygherreGuide /> : <HåndværkerGuide />}
 
       {/* CTA */}
       <section className="min-h-screen bg-[#1a5c38] flex items-center justify-center px-6 relative overflow-hidden">
@@ -377,7 +377,7 @@ function BygherreGuide() {
   );
 }
 
-function HaandvaerkerGuide() {
+function HåndværkerGuide() {
   return (
     <div>
 

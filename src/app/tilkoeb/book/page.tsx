@@ -5,7 +5,7 @@ import Link from "next/link";
 
 const ydelser = [
   { id: "ai-tilbud", label: "Er tilbuddet fair?", pris: "995 kr.", varighed: "AI-analyse, svar inden 24 timer" },
-  { id: "raadgiver-online", label: "Tal med en rådgiver", pris: "1.495 kr.", varighed: "Online video, 90 min." },
+  { id: "Rådgiver-online", label: "Tal med en rådgiver", pris: "1.495 kr.", varighed: "Online video, 90 min." },
   { id: "tilsyn", label: "Hold øje med arbejdet", pris: "Fra 2.495 kr.", varighed: "Fysisk besøg, ca. 2 timer" },
   { id: "mangel", label: "Håndværkeren vil ikke rette fejlene", pris: "Fra 1.995 kr.", varighed: "Rapport + mangelbrev" },
   { id: "aflevering", label: "Er arbejdet gjort ordentligt?", pris: "Fra 2.995 kr.", varighed: "Fysisk besøg + rapport" },
@@ -21,7 +21,7 @@ const inkluderet = [
   "Svar på dine spørgsmål",
 ];
 
-export default function BookRaadgiver() {
+export default function BookRådgiver() {
   const [valgtYdelse, setValgtYdelse] = useState(ydelser[1]);
   const [valgtTid, setValgtTid] = useState("11:00");
   const [trin, setTrin] = useState(1);

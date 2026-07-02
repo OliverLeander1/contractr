@@ -1,4 +1,4 @@
-import type { MetadataRoute } from "next";
+﻿import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -6,9 +6,10 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: ["/", "/opret", "/abforbruger", "/tilkoeb", "/pakke"],
-        disallow: ["/projekt/", "/konto/", "/notifikationer/", "/hub/", "/haandvaerker/", "/raadgiver/"],
+        disallow: ["/projekt/", "/konto/", "/notifikationer/", "/hub/", "/haandvaerker/", "/Rådgiver/"],
       },
     ],
     sitemap: "https://www.contractr.dk/sitemap.xml",
   };
 }
+

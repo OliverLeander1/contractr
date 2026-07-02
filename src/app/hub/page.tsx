@@ -67,7 +67,7 @@ const sektioner = [
     farve: "bg-gray-50 border-gray-200",
     badge: "bg-gray-200 text-gray-600",
     sider: [
-      { navn: "Rådgiverportal", url: "/raadgiver", beskrivelse: "Kalender, bookinger, projektoverblik og mangelsager" },
+      { navn: "Rådgiverportal", url: "/Rådgiver", beskrivelse: "Kalender, bookinger, projektoverblik og mangelsager" },
     ],
   },
 ];
@@ -122,3 +122,4 @@ export default function Hub() {
     </div>
   );
 }
+

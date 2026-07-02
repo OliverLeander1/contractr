@@ -137,7 +137,7 @@ const bygherreTrin = [
   },
 ];
 
-const haandvaerkerTrin = [
+const HåndværkerTrin = [
   {
     titel: "Du modtager en invitation",
     beskrivelse: "Bygherren inviterer dig via din e-mail. Du opretter en gratis håndværkerkonto på under 2 minutter - ingen abonnement.",
@@ -235,13 +235,13 @@ const haandvaerkerTrin = [
 ];
 
 export default function InteraktivDemo() {
-  const [aktivFane, setAktivFane] = useState<"bygherre" | "haandvaerker">("bygherre");
+  const [aktivFane, setAktivFane] = useState<"bygherre" | "Håndværker">("bygherre");
   const [aktivtTrin, setAktivtTrin] = useState(0);
 
-  const trin = aktivFane === "bygherre" ? bygherreTrin : haandvaerkerTrin;
+  const trin = aktivFane === "bygherre" ? bygherreTrin : HåndværkerTrin;
   const nuværendeTrin = trin[aktivtTrin];
 
-  const skiftFane = (fane: "bygherre" | "haandvaerker") => {
+  const skiftFane = (fane: "bygherre" | "Håndværker") => {
     setAktivFane(fane);
     setAktivtTrin(0);
   };
@@ -265,8 +265,8 @@ export default function InteraktivDemo() {
               Jeg er bygherre
             </button>
             <button
-              onClick={() => skiftFane("haandvaerker")}
-              className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${aktivFane === "haandvaerker" ? "bg-primary text-white shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
+              onClick={() => skiftFane("Håndværker")}
+              className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${aktivFane === "Håndværker" ? "bg-primary text-white shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
             >
               Jeg er håndværker
             </button>

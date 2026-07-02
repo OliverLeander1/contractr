@@ -22,7 +22,7 @@ const ugeplan = [
   { dag: "Fre 20/6", slots: [] },
 ];
 
-export default function RaadgiverPortal() {
+export default function RådgiverPortal() {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50">

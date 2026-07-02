@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-type BrugerType = "bygherre" | "haandvaerker" | null;
+type BrugerType = "bygherre" | "Håndværker" | null;
 
 export default function Login() {
   const router = useRouter();
@@ -15,7 +15,7 @@ export default function Login() {
   const [navn, setNavn] = useState("");
 
   const handleSubmit = () => {
-    if (brugerType === "haandvaerker") {
+    if (brugerType === "Håndværker") {
       router.push("/haandvaerker/sager");
     } else {
       router.push("/projekt/1");
@@ -54,7 +54,7 @@ export default function Login() {
               <p className="text-xs text-gray-400 leading-relaxed">Jeg skal renovere eller bygge og vil styre mit projekt</p>
             </button>
             <button
-              onClick={() => setBrugerType("haandvaerker")}
+              onClick={() => setBrugerType("Håndværker")}
               className="bg-white border-2 border-gray-100 rounded-2xl p-6 text-center hover:border-primary/40 hover:shadow-md transition-all group"
             >
               <div className="w-14 h-14 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/10 transition-colors">
@@ -137,3 +137,4 @@ export default function Login() {
     </div>
   );
 }
+

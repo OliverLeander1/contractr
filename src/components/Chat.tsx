@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 
 type Besked = {
   id: number;
-  afsender: "bygherre" | "haandvaerker";
+  afsender: "bygherre" | "Håndværker";
   navn: string;
   tekst: string;
   tid: string;
@@ -13,12 +13,12 @@ type Besked = {
 };
 
 const startBeskeder: Besked[] = [
-  { id: 1, afsender: "haandvaerker", navn: "Thomas", tekst: "Hej Camilla, jeg er i gang med gipsvæggene. Forventer at være færdig fredag.", tid: "30. apr. kl. 08:14" },
+  { id: 1, afsender: "Håndværker", navn: "Thomas", tekst: "Hej Camilla, jeg er i gang med gipsvæggene. Forventer at være færdig fredag.", tid: "30. apr. kl. 08:14" },
   { id: 2, afsender: "bygherre", navn: "Camilla", tekst: "Super, tak for opdateringen! Skal jeg kigge forbi inden da?", tid: "30. apr. kl. 09:22" },
-  { id: 3, afsender: "haandvaerker", navn: "Thomas", tekst: "Det er ikke nødvendigt, men du er selvfølgelig velkommen. Jeg sender billeder løbende.", tid: "30. apr. kl. 09:35" },
+  { id: 3, afsender: "Håndværker", navn: "Thomas", tekst: "Det er ikke nødvendigt, men du er selvfølgelig velkommen. Jeg sender billeder løbende.", tid: "30. apr. kl. 09:35" },
 ];
 
-export default function Chat({ bruger }: { bruger: "bygherre" | "haandvaerker" }) {
+export default function Chat({ bruger }: { bruger: "bygherre" | "Håndværker" }) {
   const searchParams = useSearchParams();
   const [beskeder, setBeskeder] = useState<Besked[]>(startBeskeder);
   const [ny, setNy] = useState("");
