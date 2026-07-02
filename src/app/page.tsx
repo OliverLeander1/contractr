@@ -64,24 +64,26 @@ export default function Forside() {
                   Understøtter AB-Forbruger 2012
                 </span>
                 <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 leading-[1.08] tracking-tight mb-6">
-                  Hele bygge&shy;projektet<br />
-                  <span className="text-[#1a5c38]">samlet ét sted</span>
+                  Har du modtaget<br />
+                  <span className="text-[#1a5c38]">et tilbud fra en håndværker?</span>
                 </h1>
-                <p className="text-lg text-gray-500 leading-relaxed mb-9 max-w-lg">
-                  Contractr sørger for at tilbud, kontrakter, betalinger og kommunikation er dokumenteret og tilgængeligt for alle parter.
+                <p className="text-lg text-gray-500 leading-relaxed mb-4 max-w-lg">
+                  Upload tilbuddet og få det tjekket på 2 minutter — gratis. Contractr sørger for at du forstår hvad du skriver under på, inden du siger ja.
+                </p>
+                <p className="text-sm text-gray-400 mb-8 max-w-lg">
+                  Ingen konto. Ingen binding. Bare et svar du kan handle på.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 mb-10">
-                  <Link href="/opret" className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-[#1a5c38] text-white font-bold rounded-xl hover:bg-[#163f28] transition-colors text-base shadow-sm">
-                    Start dit projekt gratis
+                  <Link href="/opret/upload" className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-[#1a5c38] text-white font-bold rounded-xl hover:bg-[#163f28] transition-colors text-base shadow-sm">
+                    Tjek dit tilbud gratis
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                   </Link>
-                  <Link href="/opret/upload" className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-white text-gray-800 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-base border border-gray-200">
-                    Få tjekket et tilbud
+                  <Link href="/opret" className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-white text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-base border border-gray-200">
+                    Send projekt i udbud
                   </Link>
                 </div>
-                {/* Tillids-signaler */}
                 <div className="flex items-center gap-6 text-xs text-gray-400">
-                  {["Gratis at starte", "Ingen konto krævet", "AB-Forbruger indbygget"].map((s) => (
+                  {["Gratis at starte", "Ingen konto krævet", "Svar på 2 minutter"].map((s) => (
                     <span key={s} className="flex items-center gap-1.5">
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                       {s}

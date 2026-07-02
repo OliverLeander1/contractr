@@ -178,24 +178,39 @@ export default function MinSide() {
           </div>
         </div>
 
-        {/* Abonnementer */}
+        {/* Pakke */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="font-semibold text-gray-900">Abonnement</h2>
+            <h2 className="font-semibold text-gray-900">Din pakke</h2>
             <Link href="/pakke" className="text-sm font-semibold text-[#1a5c38] hover:underline">Opgradér</Link>
           </div>
-          <div className="flex items-center justify-between p-4 bg-[#1a5c38]/5 rounded-xl border border-[#1a5c38]/10">
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 bg-[#1a5c38] rounded-xl flex items-center justify-center">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">Contractr Starter</p>
-                <p className="text-xs text-gray-500">299 kr./md. · Næste betaling 1. jul. 2025</p>
+                <p className="text-sm font-semibold text-gray-900">Gratis adgang</p>
+                <p className="text-xs text-gray-500">Screening og grundlæggende overblik inkluderet</p>
               </div>
             </div>
-            <span className="text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-1 rounded-full">Aktiv</span>
+            <Link href="/pakke" className="text-xs font-bold text-[#1a5c38] bg-[#1a5c38]/10 px-3 py-1.5 rounded-full hover:bg-[#1a5c38]/20 transition-colors">
+              Udvid adgang
+            </Link>
           </div>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {[
+              { navn: "Lille projekt", pris: "499 kr.", href: "/pakke/lille" },
+              { navn: "Mellem projekt", pris: "999 kr.", href: "/pakke/mellem" },
+              { navn: "Stort projekt", pris: "1.999 kr.", href: "/pakke/stort" },
+            ].map(p => (
+              <Link key={p.navn} href={p.href} className="flex flex-col items-center p-3 rounded-xl border border-gray-100 hover:border-[#1a5c38]/30 hover:bg-[#1a5c38]/5 transition-all group text-center">
+                <p className="text-xs font-semibold text-gray-700 group-hover:text-[#1a5c38] transition-colors">{p.navn}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{p.pris}</p>
+              </Link>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-3 text-center">Engangspris · Opgraderer du betaler du kun differencen</p>
         </div>
 
         {/* Mine projekter */}

@@ -55,8 +55,9 @@ export default function VaelgPakke() {
 
       <div className="max-w-5xl mx-auto px-6 py-12">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">Vælg den rigtige pakke</h1>
-          <p className="text-gray-500">Engangspris baseret på dit projekts størrelse. Ingen abonnement.</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">Udvid din adgang</h1>
+          <p className="text-gray-500 mb-2">Engangspris baseret på dit projekts størrelse. Ingen abonnement.</p>
+          <p className="text-sm text-gray-400">Opgraderer du undervejs betaler du kun differencen — aldrig det fulde beløb to gange.</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-5 mb-8">

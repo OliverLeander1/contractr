@@ -220,13 +220,42 @@ export default function Rapport() {
         </div>
       )}
 
-      <div className="bg-primary rounded-2xl p-6 text-white mb-6">
+      {/* Næste skridt: opret projektrum */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+        <div className="bg-[#111c17] px-6 py-5">
+          <p className="text-white/50 text-xs uppercase tracking-widest mb-1">Næste skridt</p>
+          <h3 className="text-white font-bold text-lg">Opret dit projektrum</h3>
+          <p className="text-white/60 text-sm mt-1">Du har nu set hvad Contractr kan. Hold hele projektet samlet her — kontrakt, tidsplan, betalinger og kommunikation.</p>
+        </div>
+        <div className="grid grid-cols-3 divide-x divide-gray-100">
+          {[
+            { navn: "Gratis", pris: "0 kr.", beskrivelse: "Screening og grundlæggende overblik", href: "/opret", primær: false },
+            { navn: "Lille projekt", pris: "499 kr.", beskrivelse: "Kontrakt, tidsplan, chat og betalinger", href: "/pakke/lille", primær: false },
+            { navn: "Mellem projekt", pris: "999 kr.", beskrivelse: "Alt i Lille + AI-screening af tilbud inkl.", href: "/pakke/mellem", primær: true },
+          ].map((p) => (
+            <Link key={p.navn} href={p.href} className={`flex flex-col p-5 hover:bg-gray-50 transition-colors group ${p.primær ? "bg-[#1a5c38]/5" : ""}`}>
+              <p className={`text-xs font-bold mb-1 ${p.primær ? "text-[#1a5c38]" : "text-gray-400"}`}>{p.navn}</p>
+              <p className={`text-xl font-bold mb-2 ${p.primær ? "text-[#1a5c38]" : "text-gray-900"}`}>{p.pris}</p>
+              <p className="text-xs text-gray-500 leading-relaxed flex-1">{p.beskrivelse}</p>
+              <p className={`text-xs font-semibold mt-3 group-hover:underline ${p.primær ? "text-[#1a5c38]" : "text-gray-400"}`}>Vælg →</p>
+            </Link>
+          ))}
+        </div>
+        <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
+          <p className="text-xs text-gray-400">Engangspris — ingen abonnement. Opgraderer du senere betaler du kun differencen.</p>
+        </div>
+      </div>
+
+      {/* Rådgiver */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 text-xl">👨‍💼</div>
+          <div className="w-10 h-10 rounded-xl bg-[#1a5c38]/10 flex items-center justify-center flex-shrink-0 text-[#1a5c38]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
           <div className="flex-1">
-            <h3 className="font-bold mb-1">Vil du have en rådgiver til at gennemgå aftalen?</h3>
-            <p className="text-white/70 text-sm mb-4">En byggesagkyndig kan give dig en professionel vurdering på 1-2 hverdage. Fra 1.495 kr.</p>
-            <Link href="/tilkoeb" className="inline-block bg-white text-primary text-sm font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">
+            <h3 className="font-semibold text-gray-900 mb-1">Vil du have en fagmand til at se på det?</h3>
+            <p className="text-sm text-gray-500 mb-3">En byggesagkyndig gennemgår aftalen og giver dig en professionel vurdering. Fra 1.495 kr.</p>
+            <Link href="/tilkoeb" className="inline-block bg-[#1a5c38] text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-[#163f28] transition-colors">
               Book rådgivergennemgang
             </Link>
           </div>
@@ -236,13 +265,13 @@ export default function Rapport() {
       <div className="flex gap-3">
         <button
           onClick={() => window.print()}
-          className="px-6 py-4 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
+          className="px-5 py-3.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 flex-shrink-0"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           Gem som PDF
         </button>
-        <Link href="/opret" className="flex-1 text-center py-4 rounded-xl bg-primary text-white text-sm font-bold hover:opacity-90 transition-opacity flex items-center justify-center">
-          Screen et nyt tilbud →
+        <Link href="/opret/upload" className="flex-1 text-center py-3.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors flex items-center justify-center">
+          Tjek et nyt tilbud →
         </Link>
       </div>
 
