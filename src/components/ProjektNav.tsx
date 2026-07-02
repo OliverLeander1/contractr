@@ -11,6 +11,7 @@ const navLinks = [
   { label: "Kontrakt", href: "/kontrakt" },
   { label: "Økonomi", href: "/betalinger" },
   { label: "Mangler", href: "/mangler" },
+  { label: "Ekstraarbejde", href: "/ekstraarbejde" },
 ];
 
 export default function ProjektNav({ id }: { id: string }) {
