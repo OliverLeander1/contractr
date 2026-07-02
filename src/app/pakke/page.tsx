@@ -95,10 +95,10 @@ export default function VaelgPakke() {
 
         <div className="flex justify-center">
           <button
-            onClick={() => router.push("/opret")}
+            onClick={() => router.push(`/pakke/${valgt}`)}
             className="bg-primary text-white font-bold px-10 py-4 rounded-xl hover:opacity-90 transition-opacity text-base flex items-center gap-2"
           >
-            Fortsæt med {pakker.find(p => p.id === valgt)?.navn}
+            Se detaljer om {pakker.find(p => p.id === valgt)?.navn}
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
           </button>
         </div>
