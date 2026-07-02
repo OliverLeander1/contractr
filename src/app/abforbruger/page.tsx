@@ -220,12 +220,24 @@ export default function ABForbruger() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-3">Dine rettigheder som bygherre</h1>
           <p className="text-gray-500 leading-relaxed">
-            AB-Forbruger er standardbetingelserne din aftale med håndværkeren er baseret på. Her er de vigtigste paragraffer oversat til almindeligt dansk, fordelt efter situation. Indholdet er gengivet direkte fra den officielle tekst.
+            AB-Forbruger (revideret juni 2012) er standardbetingelserne for private byggesager i Danmark. Her er de vigtigste paragraffer oversat til almindeligt dansk, fordelt efter situation.
           </p>
+
+          {/* Vigtig note: AB-Forbruger er ikke automatisk */}
+          <div className="mt-5 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="2" className="flex-shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div>
+              <p className="text-sm font-semibold text-amber-900 mb-1">AB-Forbruger træder ikke automatisk i kraft</p>
+              <p className="text-sm text-amber-800 leading-relaxed">
+                AB-Forbruger er standardbetingelser — ikke lovgivning. De skal eksplicit aftales mellem bygherre og entreprenør for at gælde. Det sker typisk ved at aftalen eller udbuddet reference til AB-Forbruger, og at entreprenøren accepterer dette. Contractr sørger for at dette er tydeligt fra starten, når du sender et projekt i udbud.
+              </p>
+            </div>
+          </div>
+
           <div className="mt-4 bg-accent border border-primary/20 rounded-xl p-4 flex items-start gap-3">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2" className="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <p className="text-sm text-primary leading-relaxed">
-              Platformen viser dig automatisk den relevante paragraf når noget sker i dit projekt. Det gælder fx betalingsfrister, forsinkelse eller mangler.
+              Platformen viser dig automatisk den relevante paragraf når noget sker i dit projekt — men kun hvis AB-Forbruger er aftalt som grundlag.
             </p>
           </div>
         </div>

@@ -61,7 +61,7 @@ export default function Forside() {
               <div>
                 <span className="inline-flex items-center gap-2 bg-white text-green-800 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-100 shadow-sm mb-7">
                   <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                  Baseret på AB-Forbruger 2012
+                  Understøtter AB-Forbruger 2012
                 </span>
                 <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 leading-[1.08] tracking-tight mb-6">
                   Hele bygge&shy;projektet<br />
@@ -318,7 +318,7 @@ export default function Forside() {
               <span className="text-xs font-semibold text-[#1a5c38] uppercase tracking-widest">AB-Forbruger 2012</span>
               <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-4">Dine rettigheder, oversat til handling</h2>
               <p className="text-gray-500 leading-relaxed mb-6">
-                AB-Forbruger er den officielle forbrugerbeskyttelse i private byggesager. Contractr oversætter paragrafterne til konkrete tjekpunkter, så du ved hvad der bør stå i din aftale.
+                AB-Forbruger er standardbetingelserne for private byggesager i Danmark — men de træder kun i kraft, hvis begge parter eksplicit aftaler det. Contractr sørger for at det sker korrekt fra dag ét, og oversætter paragrafterne til konkrete tjekpunkter undervejs.
               </p>
               <Link href="/abforbruger" className="text-sm font-semibold text-[#1a5c38] hover:underline">Læs om AB-Forbruger →</Link>
             </div>

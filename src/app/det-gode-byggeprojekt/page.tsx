@@ -155,7 +155,7 @@ export default function DetGodeByggeprojekt() {
           <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-5">Hvad AB-Forbruger egentlig giver dig</h2>
 
           <p className="text-gray-600 leading-relaxed mb-5">
-            AB-Forbruger 2012 er ikke et dokument du behøver at læse fra ende til anden. Det er standardvilkår der automatisk gælder som ramme for private byggeaftaler, og som giver bygherren en række konkrete rettigheder.
+            AB-Forbruger 2012 er ikke et dokument du behøver at læse fra ende til anden. Det er standardvilkår der kan aftales som ramme for private byggesager, og som giver bygherren en række konkrete rettigheder — men de træder kun i kraft, hvis begge parter eksplicit aftaler det.
           </p>
 
           <p className="text-gray-600 leading-relaxed mb-5">
