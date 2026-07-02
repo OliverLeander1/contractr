@@ -3,7 +3,17 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Contractr - Hele byggeprojektet samlet ét sted",
-  description: "Contractr samler tilbud, kontrakter, betalingsplan og kommunikation i ét digitalt projektrum. For bygherren der vil have styr på det og håndværkeren der vil arbejde professionelt.",
+  description: "Contractr samler tilbud, kontrakter, betalingsplan og kommunikation i ét digitalt projektrum. For private bygherrer der vil have styr på aftaler og rettigheder fra dag ét.",
+  keywords: ["byggeprojekt", "bygherre", "tilbud håndværker", "AB-Forbruger", "kontrakt screening", "digital projektrum", "renovering", "byggeaftale"],
+  openGraph: {
+    title: "Contractr - Hele byggeprojektet samlet ét sted",
+    description: "Tilbud, kontrakter, betalinger og kommunikation samlet ét sted. Gratis at starte.",
+    url: "https://www.contractr.dk",
+    type: "website",
+    siteName: "Contractr",
+  },
+  alternates: { canonical: "https://www.contractr.dk" },
+  robots: { index: true, follow: true },
 };
 
 export default function Forside() {
@@ -27,6 +37,7 @@ export default function Forside() {
           <nav className="hidden sm:flex items-center gap-8">
             <Link href="/opret/upload" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Tjek tilbud</Link>
             <Link href="/opret" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Send i udbud</Link>
+            <Link href="/det-gode-byggeprojekt" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Guide</Link>
             <Link href="/haandvaerker/sager" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Håndværker</Link>
           </nav>
           <Link href="/opret" className="text-sm font-semibold bg-[#1a5c38] text-white px-5 py-2.5 rounded-lg hover:bg-[#163f28] transition-colors">
@@ -359,9 +370,10 @@ export default function Forside() {
             <span className="text-xs text-gray-400">© 2025 Contractr</span>
           </div>
           <div className="flex items-center gap-6">
+            <Link href="/det-gode-byggeprojekt" className="text-xs text-gray-400 hover:text-gray-600">Det gode projekt</Link>
+            <Link href="/abforbruger" className="text-xs text-gray-400 hover:text-gray-600">AB-Forbruger</Link>
             <Link href="/vilkaar" className="text-xs text-gray-400 hover:text-gray-600">Vilkår</Link>
             <Link href="/privatliv" className="text-xs text-gray-400 hover:text-gray-600">Privatlivspolitik</Link>
-            <Link href="/abforbruger" className="text-xs text-gray-400 hover:text-gray-600">AB-Forbruger</Link>
             <Link href="/haandvaerker/sager" className="text-xs text-gray-400 hover:text-gray-600">Håndværker login</Link>
           </div>
         </div>
