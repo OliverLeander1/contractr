@@ -80,17 +80,25 @@ export default function UdbudDel() {
   const [visNavnForm, setVisNavnForm] = useState(false);
 
   function accepterTilbud(d: UdbudData, p: TilbudsPost[]) {
+    // Beregn total eksplicit fra de aktuelle poster
+    const beregnetTotal = p.reduce((s, post) => s + (parseFloat(post.pris) || 0), 0) * 1.25;
     const projekt = {
       id: "1",
       titel: d.titel,
       resumé: d.resumé,
+      // Gem den reviderede dokumenttekst (håndværkerens version)
       dokument: d.dokument,
+      dokument_original: d.dokument_original ?? d.dokument,
       bygherreNavn: d.bygherreNavn,
       bygherreKontakt: d.bygherreKontakt,
+      // Gem håndværkerens oplysninger til kontrakt
+      haandvaerkerNavn: (d as UdbudData & { haandvaerkerNavn?: string }).haandvaerkerNavn ?? "",
+      haandvaerkerFirma: (d as UdbudData & { haandvaerkerFirma?: string }).haandvaerkerFirma ?? "",
       tilbudsposter: p,
+      tilbudsposter_original: d.tilbudsposter_original ?? p,
       billeder: d.billeder || [],
       accepteretDato: new Date().toISOString(),
-      total: p.reduce((s, post) => s + (parseFloat(post.pris) || 0), 0) * 1.25,
+      total: beregnetTotal,
     };
     localStorage.setItem("contractr_projekt", JSON.stringify(projekt));
     setAcepteret(true);
@@ -476,6 +484,24 @@ export default function UdbudDel() {
             </div>
           ) : (
             <div className="space-y-3">
+              {/* Pris-resumé så bygherre kan verificere inden accept */}
+              {total > 0 && (
+                <div className="bg-white border border-gray-200 rounded-2xl p-5">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Du er ved at acceptere</p>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm text-gray-600">Samlet pris inkl. moms</span>
+                    <span className="text-xl font-bold text-gray-900">{fmtKr(total)}</span>
+                  </div>
+                  <div className="space-y-1">
+                    {poster.map((p, i) => p.pris ? (
+                      <div key={p.id} className="flex justify-between text-xs text-gray-400">
+                        <span className="truncate pr-4">{i + 1}. {p.beskrivelse || "Post"}</span>
+                        <span className="flex-shrink-0">{fmtKr(prisNum(p.pris) * 1.25)}</span>
+                      </div>
+                    ) : null)}
+                  </div>
+                </div>
+              )}
               <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5">
                 <div className="flex items-start gap-3">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-600 flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>

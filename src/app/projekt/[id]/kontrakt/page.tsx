@@ -11,6 +11,8 @@ interface GemtProjekt {
   dokument: string;
   bygherreNavn?: string;
   bygherreKontakt?: string;
+  haandvaerkerNavn?: string;
+  haandvaerkerFirma?: string;
   accepteretDato: string;
   total: number;
   tilbudsposter: TilbudsPost[];
@@ -103,7 +105,14 @@ export default function Kontrakt({ params }: { params: Promise<{ id: string }> }
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Entreprenør</p>
-                  <p className="text-gray-500 text-xs mt-1">Udfyldes af haandvaerker inden underskrift</p>
+                  {projekt.haandvaerkerNavn ? (
+                    <>
+                      <p className="font-semibold text-gray-900">{projekt.haandvaerkerNavn}</p>
+                      {projekt.haandvaerkerFirma && <p className="text-gray-500 text-sm">{projekt.haandvaerkerFirma}</p>}
+                    </>
+                  ) : (
+                    <p className="text-gray-400 text-xs mt-1">Udfyldes af håndværker inden underskrift</p>
+                  )}
                 </div>
               </div>
             </div>

@@ -41,26 +41,41 @@ export default function HaandvaerkerSager() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+      <header className="bg-white border-b border-gray-100 px-6 py-3.5 sticky top-0 z-50">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+          <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
+            <div className="w-8 h-8 bg-[#1a5c38] rounded-lg flex items-center justify-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                 <polyline points="9 22 9 12 15 12 15 22"/>
               </svg>
             </div>
-            <div>
-              <span style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>contractr</span>
-              <span className="ml-2 text-xs bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded">Håndværker</span>
+            <span style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}} className="text-gray-900">contractr</span>
+          </Link>
+
+          {/* Rolle-skifter */}
+          <div className="flex-1 flex justify-center">
+            <div className="inline-flex items-center bg-gray-100 rounded-xl p-1 gap-1">
+              <Link href="/" className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-white text-sm font-medium transition-all">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Bygherre
+              </Link>
+              <Link href="/haandvaerker/sager" className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-[#1a5c38] text-white text-sm font-semibold shadow-sm transition-all">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                Håndværker
+              </Link>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Link href="/" className="text-sm text-gray-400 hover:text-gray-700 transition-colors">← Forside</Link>
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">{initials}</div>
+
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <Link href="/haandvaerker/nyt-tilbud" className="hidden sm:flex items-center gap-2 text-sm font-semibold bg-[#1a5c38] text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nyt tilbud
+            </Link>
+            <div className="w-8 h-8 rounded-full bg-[#1a5c38]/10 flex items-center justify-center text-[#1a5c38] font-semibold text-sm">{initials}</div>
           </div>
         </div>
-      </nav>
+      </header>
 
       <div className="max-w-4xl mx-auto px-6 py-10">
         <div className="mb-8">
@@ -69,17 +84,29 @@ export default function HaandvaerkerSager() {
         </div>
 
         {sager.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-400">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+            <div className="w-16 h-16 bg-[#1a5c38]/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="1.5">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                 <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
               </svg>
             </div>
             <h2 className="font-bold text-gray-900 text-lg mb-2">Ingen sager endnu</h2>
-            <p className="text-sm text-gray-400 max-w-sm mx-auto leading-relaxed">
-              Når du udfylder et tilbud via et link fra en bygherre og sender det, dukker sagen op her automatisk.
+            <p className="text-sm text-gray-400 max-w-xs mx-auto leading-relaxed mb-6">
+              Opret dit første digitale tilbud og send det direkte til en bygherre. Når de accepterer, dukker sagen op her.
             </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href="/haandvaerker/nyt-tilbud"
+                className="inline-flex items-center justify-center gap-2 bg-[#1a5c38] text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity text-sm"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Opret nyt tilbud
+              </Link>
+              <p className="text-xs text-gray-400 mt-2 sm:hidden">eller modtag et link fra en bygherre</p>
+            </div>
+            <p className="text-xs text-gray-300 mt-4 hidden sm:block">Du kan også modtage et invitationslink fra en bygherre</p>
           </div>
         ) : (
           <>
