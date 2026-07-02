@@ -19,7 +19,7 @@ const pakker = [
     pris: "999 kr.",
     budget: "100.000 - 500.000 kr.",
     eksempler: "Tilbygning, nyt tag, køkken, større renovering",
-    features: ["Alt i Lille", "AI-tilbudsgennemgang inkluderet", "Inviter op til 3 entreprenører", "Prioriteret support"],
+    features: ["Kontrakt baseret på AB-Forbruger", "Tidsplan med milepæle", "Betalingsoverblik", "Dokumentdeling", "Mangel-registrering", "AI-tilbudsgennemgang inkluderet", "Inviter op til 3 entreprenører", "Prioriteret support"],
     popular: true,
   },
   {
@@ -28,7 +28,7 @@ const pakker = [
     pris: "1.999 kr.",
     budget: "Over 500.000 kr.",
     eksempler: "Ombygning, nybyg, total renovering",
-    features: ["Alt i Mellem", "Ubegrænsede entreprenører", "Dedikeret rådgiver tilknyttet", "Ugentlig statusrapport"],
+    features: ["Kontrakt baseret på AB-Forbruger", "Tidsplan med milepæle", "Betalingsoverblik", "Dokumentdeling", "Mangel-registrering", "AI-tilbudsgennemgang inkluderet", "Ubegrænsede entreprenører", "Dedikeret rådgiver tilknyttet", "Ugentlig statusrapport"],
   },
 ];
 

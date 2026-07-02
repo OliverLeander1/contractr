@@ -161,16 +161,6 @@ export default function Forside() {
                     </div>
                   </div>
                 </div>
-                {/* Flydende badge */}
-                <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg border border-gray-100 px-4 py-3 flex items-center gap-3">
-                  <div className="w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-gray-900">AB-Forbruger indbygget</p>
-                    <p className="text-xs text-gray-400">Tjekpunkter screenet automatisk</p>
-                  </div>
-                </div>
               </div>
 
             </div>
