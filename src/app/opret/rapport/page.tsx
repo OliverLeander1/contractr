@@ -222,27 +222,35 @@ export default function Rapport() {
 
       {/* Næste skridt: opret projektrum */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
-        <div className="bg-[#111c17] px-6 py-5">
-          <p className="text-white/50 text-xs uppercase tracking-widest mb-1">Næste skridt</p>
-          <h3 className="text-white font-bold text-lg">Opret dit projektrum</h3>
-          <p className="text-white/60 text-sm mt-1">Du har nu set hvad Contractr kan. Hold hele projektet samlet her — kontrakt, tidsplan, betalinger og kommunikation.</p>
+        <div className="bg-[#111c17] px-6 py-5 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-white/50 text-xs uppercase tracking-widest mb-1">Næste skridt</p>
+            <h3 className="text-white font-bold text-lg">Opret dit projektrum</h3>
+            <p className="text-white/60 text-sm mt-1">Kontrakt, tidsplan, betalinger, chat og dokumenter — samlet ét sted. Data gemmes for altid.</p>
+          </div>
+          <div className="flex-shrink-0 text-right">
+            <p className="text-white/40 text-xs mb-0.5">Engangspris</p>
+            <p className="text-white text-3xl font-bold">499 <span className="text-lg font-medium opacity-60">kr.</span></p>
+          </div>
         </div>
-        <div className="grid grid-cols-3 divide-x divide-gray-100">
-          {[
-            { navn: "Gratis", pris: "0 kr.", beskrivelse: "Screening og grundlæggende overblik", href: "/opret", primær: false },
-            { navn: "Lille projekt", pris: "499 kr.", beskrivelse: "Kontrakt, tidsplan, chat og betalinger", href: "/pakke/lille", primær: false },
-            { navn: "Mellem projekt", pris: "999 kr.", beskrivelse: "Alt i Lille + AI-screening af tilbud inkl.", href: "/pakke/mellem", primær: true },
-          ].map((p) => (
-            <Link key={p.navn} href={p.href} className={`flex flex-col p-5 hover:bg-gray-50 transition-colors group ${p.primær ? "bg-[#1a5c38]/5" : ""}`}>
-              <p className={`text-xs font-bold mb-1 ${p.primær ? "text-[#1a5c38]" : "text-gray-400"}`}>{p.navn}</p>
-              <p className={`text-xl font-bold mb-2 ${p.primær ? "text-[#1a5c38]" : "text-gray-900"}`}>{p.pris}</p>
-              <p className="text-xs text-gray-500 leading-relaxed flex-1">{p.beskrivelse}</p>
-              <p className={`text-xs font-semibold mt-3 group-hover:underline ${p.primær ? "text-[#1a5c38]" : "text-gray-400"}`}>Vælg →</p>
-            </Link>
-          ))}
-        </div>
-        <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
-          <p className="text-xs text-gray-400">Engangspris — ingen abonnement. Opgraderer du senere betaler du kun differencen.</p>
+        <div className="px-6 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 text-xs text-gray-400">
+            <span className="flex items-center gap-1.5">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+              Ingen abonnement
+            </span>
+            <span className="flex items-center gap-1.5">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+              Data gemmes permanent
+            </span>
+            <span className="flex items-center gap-1.5">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+              30 dages garanti
+            </span>
+          </div>
+          <Link href="/pakke" className="flex-shrink-0 bg-[#1a5c38] text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-[#163f28] transition-colors">
+            Opret projektrum →
+          </Link>
         </div>
       </div>
 
