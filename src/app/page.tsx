@@ -49,7 +49,7 @@ export default function Forside() {
               <span className="text-[#1a5c38]">samlet ét sted</span>
             </h1>
             <p className="text-xl text-gray-500 leading-relaxed mb-10 max-w-2xl">
-              Contractr sørger for at tilbud, kontrakter, betalinger og kommunikation er samlet ét sted. Fra første henvendelse til aflevering.
+              Contractr sørger for at tilbud, kontrakter, betalinger og kommunikation er samlet ét sted.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Link href="/opret" className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-[#1a5c38] text-white font-bold rounded-xl hover:bg-[#163f28] transition-colors text-base">
