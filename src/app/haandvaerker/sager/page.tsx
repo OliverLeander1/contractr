@@ -1,50 +1,43 @@
-﻿import Link from "next/link";
+"use client";
 
-const sager = [
-  {
-    id: 1,
-    titel: "Indvendig renovering, Valby",
-    bygherre: "Camilla Jensen",
-    adresse: "Valby Langgade 85, 2500 Valby",
-    type: "Renovering",
-    entreprisesum: "112.500 kr.",
-    status: "igang",
-    næsteMilepæl: "Gipsvægge",
-    næsteBetaling: "28.125 kr.",
-    ulæsteBeskeder: 2,
-    åbneMangler: 1,
-  },
-  {
-    id: 2,
-    titel: "Nyt badeværelse, Frederiksberg",
-    bygherre: "Henrik Møller",
-    adresse: "Smallegade 22, 2000 Frederiksberg",
-    type: "Badeværelse",
-    entreprisesum: "68.500 kr.",
-    status: "igang",
-    næsteMilepæl: "Fliser og VVS",
-    næsteBetaling: "17.125 kr.",
-    ulæsteBeskeder: 0,
-    åbneMangler: 0,
-  },
-  {
-    id: 3,
-    titel: "Tagudskiftning, Hellerup",
-    bygherre: "Mette Lund",
-    adresse: "Strandvejen 12, 2900 Hellerup",
-    type: "Tag",
-    entreprisesum: "245.000 kr.",
-    status: "afsluttet",
-    næsteMilepæl: null,
-    næsteBetaling: null,
-    ulæsteBeskeder: 0,
-    åbneMangler: 0,
-  },
-];
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
+interface Sag {
+  id: string;
+  titel: string;
+  resumé: string;
+  bygherreNavn?: string;
+  bygherreKontakt?: string;
+  total: number;
+  tilbudsposter: { id: string; beskrivelse: string; enhed: string; pris: string }[];
+  sendtDato: string;
+  status: "afventer" | "accepteret" | "afsluttet";
+  tilbudsLink: string;
+}
+
+const fmtKr = (n: number) => n.toLocaleString("da-DK", { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + " kr.";
+const fmtDato = (iso: string) => new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" });
 
 export default function HaandvaerkerSager() {
-  const aktive = sager.filter(s => s.status === "igang");
+  const [sager, setSager] = useState<Sag[]>([]);
+  const [navn, setNavn] = useState("");
+  const [firma, setFirma] = useState("");
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("contractr_haandvaerker_sager");
+      if (raw) setSager(JSON.parse(raw));
+      setNavn(localStorage.getItem("contractr_haandvaerker_navn") || "");
+      setFirma(localStorage.getItem("contractr_haandvaerker_firma") || "");
+    } catch { /* ignore */ }
+  }, []);
+
+  const aktive = sager.filter(s => s.status === "afventer" || s.status === "accepteret");
   const afsluttede = sager.filter(s => s.status === "afsluttet");
+  const samletVærdi = aktive.reduce((sum, s) => sum + s.total, 0);
+
+  const initials = navn ? navn.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : "H";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -58,15 +51,13 @@ export default function HaandvaerkerSager() {
               </svg>
             </div>
             <div>
-              <span className="" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Contractr</span>
+              <span style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Contractr</span>
               <span className="ml-2 text-xs bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded">Håndværker</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/haandvaerker/profil" className="text-sm text-gray-500 hover:text-gray-900 transition-colors font-medium">
-              Min profil & omtaler
-            </Link>
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">T</div>
+            <Link href="/" className="text-sm text-gray-400 hover:text-gray-700 transition-colors">← Forside</Link>
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">{initials}</div>
           </div>
         </div>
       </nav>
@@ -74,92 +65,104 @@ export default function HaandvaerkerSager() {
       <div className="max-w-4xl mx-auto px-6 py-10">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Mine sager</h1>
-          <p className="text-sm text-gray-400 mt-1">Thomas Madsen · TM Byg ApS</p>
+          {navn && <p className="text-sm text-gray-400 mt-1">{navn}{firma ? ` · ${firma}` : ""}</p>}
         </div>
 
-        {/* Overblik */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <p className="text-xs text-gray-400 mb-1">Aktive sager</p>
-            <p className="text-3xl font-bold text-primary">{aktive.length}</p>
+        {sager.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-400">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+            </div>
+            <h2 className="font-bold text-gray-900 text-lg mb-2">Ingen sager endnu</h2>
+            <p className="text-sm text-gray-400 max-w-sm mx-auto leading-relaxed">
+              Når du udfylder et tilbud via et link fra en bygherre og sender det, dukker sagen op her automatisk.
+            </p>
           </div>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <p className="text-xs text-gray-400 mb-1">Ulæste beskeder</p>
-            <p className="text-3xl font-bold text-gray-900">{sager.reduce((a, s) => a + s.ulæsteBeskeder, 0)}</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <p className="text-xs text-gray-400 mb-1">Åbne mangler</p>
-            <p className="text-3xl font-bold text-red-500">{sager.reduce((a, s) => a + s.åbneMangler, 0)}</p>
-          </div>
-        </div>
+        ) : (
+          <>
+            {/* Overblik */}
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <p className="text-xs text-gray-400 mb-1">Aktive tilbud</p>
+                <p className="text-3xl font-bold text-primary">{aktive.length}</p>
+              </div>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <p className="text-xs text-gray-400 mb-1">Afventer svar</p>
+                <p className="text-3xl font-bold text-amber-500">{sager.filter(s => s.status === "afventer").length}</p>
+              </div>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <p className="text-xs text-gray-400 mb-1">Samlet tilbudsværdi</p>
+                <p className="text-xl font-bold text-gray-900 mt-1">{fmtKr(samletVærdi)}</p>
+              </div>
+            </div>
 
-        {/* Aktive sager */}
-        <div className="mb-8">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Aktive sager</h2>
-          <div className="space-y-3">
-            {aktive.map((s) => (
-              <Link key={s.id} href={`/haandvaerker/projekt/${s.id}`} className="block bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-primary/30 hover:shadow-md transition-all group">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-primary transition-colors">{s.titel}</h3>
-                      <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full">I gang</span>
-                      {s.ulæsteBeskeder > 0 && (
-                        <span className="bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full">{s.ulæsteBeskeder} ny</span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-500 mb-3">{s.bygherre} · {s.adresse}</p>
-                    <div className="flex items-center gap-6 text-xs text-gray-400">
-                      {s.næsteMilepæl && (
-                        <span className="flex items-center gap-1.5">
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                          Næste: {s.næsteMilepæl}
-                        </span>
-                      )}
-                      {s.næsteBetaling && (
-                        <span className="flex items-center gap-1.5">
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                          Næste betaling: {s.næsteBetaling}
-                        </span>
-                      )}
-                      {s.åbneMangler > 0 && (
-                        <span className="flex items-center gap-1.5 text-red-500">
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                          {s.åbneMangler} åben mangel
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-bold text-gray-900">{s.entreprisesum}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{s.type}</p>
-                  </div>
+            {/* Aktive sager */}
+            {aktive.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Aktive tilbud</h2>
+                <div className="space-y-3">
+                  {aktive.map((s) => (
+                    <Link key={s.id} href={`/haandvaerker/projekt/${s.id}`} className="block bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-primary/30 hover:shadow-md transition-all group">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-gray-900 group-hover:text-primary transition-colors truncate">{s.titel}</h3>
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                              s.status === "accepteret" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                            }`}>
+                              {s.status === "accepteret" ? "Accepteret" : "Afventer"}
+                            </span>
+                          </div>
+                          {s.bygherreNavn && <p className="text-sm text-gray-500 mb-2">{s.bygherreNavn}{s.bygherreKontakt ? ` · ${s.bygherreKontakt}` : ""}</p>}
+                          <div className="flex flex-wrap items-center gap-4 text-xs text-gray-400">
+                            <span className="flex items-center gap-1.5">
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                              Sendt {fmtDato(s.sendtDato)}
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                              {s.tilbudsposter.length} poster
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-sm font-bold text-gray-900">{fmtKr(s.total)}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">inkl. moms</p>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
-              </Link>
-            ))}
-          </div>
-        </div>
+              </div>
+            )}
 
-        {/* Afsluttede sager */}
-        <div>
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Afsluttede sager</h2>
-          <div className="space-y-3">
-            {afsluttede.map((s) => (
-              <Link key={s.id} href={`/haandvaerker/projekt/${s.id}`} className="block bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-gray-200 transition-all opacity-70 hover:opacity-100">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-gray-900">{s.titel}</h3>
-                      <span className="bg-gray-100 text-gray-500 text-xs font-semibold px-2 py-0.5 rounded-full">Afsluttet</span>
+            {/* Afsluttede */}
+            {afsluttede.length > 0 && (
+              <div>
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Afsluttede</h2>
+                <div className="space-y-3">
+                  {afsluttede.map((s) => (
+                    <div key={s.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 opacity-60">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-gray-900">{s.titel}</h3>
+                            <span className="bg-gray-100 text-gray-500 text-xs font-semibold px-2 py-0.5 rounded-full">Afsluttet</span>
+                          </div>
+                          {s.bygherreNavn && <p className="text-sm text-gray-400">{s.bygherreNavn}</p>}
+                        </div>
+                        <p className="text-sm font-bold text-gray-900">{fmtKr(s.total)}</p>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-400">{s.bygherre} · {s.adresse}</p>
-                  </div>
-                  <p className="text-sm font-bold text-gray-900">{s.entreprisesum}</p>
+                  ))}
                 </div>
-              </Link>
-            ))}
-          </div>
-        </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

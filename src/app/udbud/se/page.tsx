@@ -75,6 +75,9 @@ export default function UdbudDel() {
   const [erBygherre, setErBygherre] = useState(false);
   const [visDiff, setVisDiff] = useState(true);
   const [accepteret, setAcepteret] = useState(false);
+  const [haandvaerkerNavn, setHaandvaerkerNavn] = useState("");
+  const [haandvaerkerFirma, setHaandvaerkerFirma] = useState("");
+  const [visNavnForm, setVisNavnForm] = useState(false);
 
   function accepterTilbud(d: UdbudData, p: TilbudsPost[]) {
     const projekt = {
@@ -134,17 +137,47 @@ export default function UdbudDel() {
 
   function sendSvar() {
     if (!data) return;
+    if (!haandvaerkerNavn) { setVisNavnForm(true); return; }
+    afsendTilbud();
+  }
+
+  function afsendTilbud() {
+    if (!data) return;
     const payload = JSON.stringify({
       ...data,
       dokument,
       dokument_original: data.dokument_original ?? data.dokument,
       tilbudsposter: poster,
       tilbudsposter_original: data.tilbudsposter_original ?? data.tilbudsposter,
+      haandvaerkerNavn,
+      haandvaerkerFirma,
     });
     const token = btoa(encodeURIComponent(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     const url = `${window.location.origin}/udbud/se#${token}`;
+
+    // Gem sagen i haandvaerkerens lokale portal
+    const sag = {
+      id: String(Date.now()),
+      titel: data.titel,
+      resumé: data.resumé,
+      bygherreNavn: data.bygherreNavn,
+      bygherreKontakt: data.bygherreKontakt,
+      total: poster.reduce((s, p) => s + (parseFloat(p.pris) || 0), 0) * 1.25,
+      tilbudsposter: poster,
+      sendtDato: new Date().toISOString(),
+      status: "afventer",
+      tilbudsLink: url,
+    };
+    try {
+      const existing = JSON.parse(localStorage.getItem("contractr_haandvaerker_sager") || "[]");
+      localStorage.setItem("contractr_haandvaerker_sager", JSON.stringify([sag, ...existing]));
+      localStorage.setItem("contractr_haandvaerker_navn", haandvaerkerNavn);
+      localStorage.setItem("contractr_haandvaerker_firma", haandvaerkerFirma);
+    } catch { /* ignore */ }
+
     navigator.clipboard.writeText(url).then(() => {
       setLinkKopieret(true);
+      setVisNavnForm(false);
       setTimeout(() => setLinkKopieret(false), 3000);
     });
   }
@@ -397,6 +430,37 @@ export default function UdbudDel() {
           )}
         </div>
 
+        {/* Navn-modal for haandvaerker */}
+        {visNavnForm && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+              <h2 className="font-bold text-gray-900 mb-1">Hvem sender tilbuddet?</h2>
+              <p className="text-xs text-gray-400 mb-5">Dit navn vises for bygherren og gemmes i din portal</p>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Dit navn</label>
+                  <input type="text" value={haandvaerkerNavn} onChange={e => setHaandvaerkerNavn(e.target.value)}
+                    placeholder="F.eks. Thomas Madsen"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Firma (valgfrit)</label>
+                  <input type="text" value={haandvaerkerFirma} onChange={e => setHaandvaerkerFirma(e.target.value)}
+                    placeholder="F.eks. TM Byg ApS"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10" />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-5">
+                <button onClick={() => setVisNavnForm(false)} className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium">Annuller</button>
+                <button onClick={afsendTilbud} disabled={!haandvaerkerNavn.trim()}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:opacity-90 disabled:bg-gray-100 disabled:text-gray-400 transition-all">
+                  Send tilbud
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Accepter tilbud / send svar */}
         {erBygherre ? (
           accepteret ? (
@@ -438,20 +502,30 @@ export default function UdbudDel() {
               </p>
             </div>
           )
+        ) : linkKopieret ? (
+          <div className="space-y-3">
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-5 text-center">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <p className="text-sm font-bold text-green-800 mb-1">Tilbud sendt!</p>
+              <p className="text-xs text-green-700">Linket er kopieret — send det til bygherren via SMS, mail eller anden besked.</p>
+            </div>
+            <button
+              onClick={() => router.push("/haandvaerker/sager")}
+              className="w-full py-4 rounded-xl text-base font-bold bg-primary text-white hover:opacity-90 shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              Gå til min portal
+            </button>
+          </div>
         ) : (
           <button
             onClick={sendSvar}
-            className={`w-full py-4 rounded-xl text-base font-bold transition-all flex items-center justify-center gap-2 ${
-              linkKopieret
-                ? "bg-green-600 text-white"
-                : "bg-primary text-white hover:opacity-90 shadow-md shadow-primary/20"
-            }`}
+            className="w-full py-4 rounded-xl text-base font-bold bg-primary text-white hover:opacity-90 shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2"
           >
-            {linkKopieret ? (
-              <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Link kopieret, send det til bygherren!</>
-            ) : (
-              <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Send tilbud til bygherren</>
-            )}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Send tilbud til bygherren
           </button>
         )}
       </div>
