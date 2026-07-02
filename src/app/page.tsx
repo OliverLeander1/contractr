@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Contractr — Hele byggeprojektet samlet ét sted",
-  description: "Contractr samler tilbud, kontrakter, betalingsplan og kommunikation i ét digitalt projektrum. For bygherren der vil have styr på det — og håndværkeren der vil arbejde professionelt.",
+  title: "Contractr - Hele byggeprojektet samlet ét sted",
+  description: "Contractr samler tilbud, kontrakter, betalingsplan og kommunikation i ét digitalt projektrum. For bygherren der vil have styr på det og håndværkeren der vil arbejde professionelt.",
 };
 
 export default function Forside() {
@@ -49,7 +49,7 @@ export default function Forside() {
               <span className="text-[#1a5c38]">samlet ét sted</span>
             </h1>
             <p className="text-xl text-gray-500 leading-relaxed mb-10 max-w-2xl">
-              Fra første tilbud til aflevering — Contractr giver dig overblik over aftaler, betalinger og kommunikation, uanset om du bygger for første gang eller er gammel i gårde.
+              Contractr giver dig styr på tilbud, kontrakter, betalinger og kommunikation i ét digitalt projektrum. Fra første henvendelse til aflevering.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Link href="/opret" className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-[#1a5c38] text-white font-bold rounded-xl hover:bg-[#163f28] transition-colors text-base">
@@ -75,7 +75,7 @@ export default function Forside() {
                   ),
                   label: "For dig der bygger",
                   titel: "Bygherre med eller uden byggeerfaring",
-                  tekst: "Få styr på tilbud, kontrakt og betalingsplan — og et samlet projektrum der dokumenterer alt undervejs. Du bestemmer selv hvor meget hjælp du vil have.",
+                  tekst: "Få styr på tilbud, kontrakt og betalingsplan. Et samlet projektrum dokumenterer alt undervejs, så du altid ved hvad der er aftalt.",
                   link: "/opret",
                   linkTekst: "Start projekt →",
                 },
@@ -85,7 +85,7 @@ export default function Forside() {
                   ),
                   label: "For dig der udfører",
                   titel: "Håndværker og entreprenørfirma",
-                  tekst: "Modtag udbudsforespørgsler digitalt, send strukturerede tilbud tilbage og hold styr på dine sager i din egen portal. Færre misforståelser, klarere aftaler.",
+                  tekst: "Modtag udbudsforespørgsler digitalt, send strukturerede tilbud tilbage og hold styr på alle dine sager i én portal. Klare aftaler og fuld dokumentation fra start.",
                   link: "/haandvaerker/sager",
                   linkTekst: "Se håndværkerportal →",
                 },
@@ -118,14 +118,14 @@ export default function Forside() {
         <section className="max-w-6xl mx-auto px-6 py-20">
           <div className="text-center mb-14">
             <h2 className="text-3xl font-bold text-gray-900 mb-3">Fra tilbud til aflevering i ét flow</h2>
-            <p className="text-gray-500 max-w-xl mx-auto">Et struktureret forløb der sikrer at alle parter er enige — og at dokumentationen er i orden hele vejen.</p>
+            <p className="text-gray-500 max-w-xl mx-auto">Et struktureret forløb der sikrer at alle parter er enige og at dokumentationen er i orden hele vejen.</p>
           </div>
           <div className="grid sm:grid-cols-4 gap-8">
             {[
               { nr: "01", titel: "Send i udbud", tekst: "Beskriv projektet og få et AI-genereret udbudsdokument med tilbudsliste. Del med 2–3 håndværkere via link." },
-              { nr: "02", titel: "Modtag tilbud", tekst: "Håndværkerne udfylder priser direkte i din tilbudsliste og sender den tilbage. Du ser præcis hvad de har ændret." },
+              { nr: "02", titel: "Modtag tilbud", tekst: "Håndværkerne udfylder priser direkte i din tilbudsliste og sender den tilbage. Du kan se hvad der er ændret." },
               { nr: "03", titel: "Godkend og aftal", tekst: "Screeningsrapport mod AB-Forbruger. Acceptér tilbuddet og projektrummet oprettes automatisk." },
-              { nr: "04", titel: "Styr projektet", tekst: "Betalingsplan, ekstraarbejde, mangler og kommunikation samlet ét sted for alle parter." },
+              { nr: "04", titel: "Styr projektet", tekst: "Betalingsplan, ekstraarbejde, mangler og kommunikation er samlet ét sted og tilgængeligt for alle parter." },
             ].map((t) => (
               <div key={t.nr}>
                 <div className="text-5xl font-black text-gray-100 mb-3 leading-none">{t.nr}</div>
@@ -141,7 +141,7 @@ export default function Forside() {
           <div className="max-w-6xl mx-auto px-6 py-20">
             <div className="text-center mb-14">
               <h2 className="text-3xl font-bold mb-3">Alt hvad et byggeprojekt kræver</h2>
-              <p className="text-green-200 max-w-xl mx-auto">Contractr er ikke endnu en app du skal lære. Det er projektets naturlige hjem — fra dag ét til 1-års eftersyn.</p>
+              <p className="text-green-200 max-w-xl mx-auto">Alle funktioner du har brug for i et byggeprojekt. Samlet i én platform, klar til brug fra dag ét.</p>
             </div>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
@@ -173,7 +173,7 @@ export default function Forside() {
               <span className="text-xs font-semibold text-[#1a5c38] uppercase tracking-widest">AB-Forbruger 2012</span>
               <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-4">Dine rettigheder, oversat til handling</h2>
               <p className="text-gray-500 leading-relaxed mb-6">
-                AB-Forbruger er den officielle forbrugerbeskyttelse i private byggesager. Contractr oversætter paragrafterne til konkrete tjekpunkter og påmindelser, så du altid ved hvad du har krav på — og hvad der bør stå i din aftale.
+                AB-Forbruger er den officielle forbrugerbeskyttelse i private byggesager. Contractr oversætter paragrafterne til konkrete tjekpunkter og påmindelser, så du altid ved hvad der bør stå i din aftale.
               </p>
               <Link href="/abforbruger" className="text-sm font-semibold text-[#1a5c38] hover:underline">Læs om AB-Forbruger →</Link>
             </div>
@@ -199,7 +199,7 @@ export default function Forside() {
           <div className="max-w-3xl mx-auto px-6 py-20 text-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Klar til at komme i gang?</h2>
             <p className="text-gray-500 mb-8 leading-relaxed">
-              Gratis at oprette. Ingen konto krævet for at tjekke et tilbud eller sende et projekt i udbud.
+              Det er gratis at komme i gang. Du behøver ikke oprette en konto for at tjekke et tilbud eller sende et projekt i udbud.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/opret" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#1a5c38] text-white font-bold rounded-xl hover:bg-[#163f28] transition-colors text-base">
