@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import FlowLayout from "@/components/FlowLayout";
+import ABForbrugerIntro from "@/components/ABForbrugerIntro";
 
 export default function UploadAftale() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function UploadAftale() {
   const [tekst, setTekst] = useState("");
   const [trækOver, setTrækOver] = useState(false);
   const [aktiv, setAktiv] = useState<"upload" | "tekst">("upload");
+  const [abfNævnt, setAbfNævnt] = useState<"ja" | "nej" | "ved-ikke" | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const håndterFiler = (nyeFiler: FileList | null) => {
@@ -59,14 +61,66 @@ export default function UploadAftale() {
   const fortsæt = () => {
     if (!kanFortsætte) return;
     if (!harPdf) sessionStorage.setItem("screening_tekst", tekst);
+    if (abfNævnt) sessionStorage.setItem("screening_abforbruger", abfNævnt === "ja" ? "ja" : "nej");
     router.push("/opret/screening");
   };
 
   return (
     <FlowLayout aktivTrin={3}>
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload din byggeaftale</h1>
-        <p className="text-gray-500">Tilbud, kontrakt, ordrebekræftelse eller mail. Vi screener det hele mod AB-Forbruger.</p>
+        <p className="text-gray-500">Tilbud, kontrakt, ordrebekræftelse eller mail. Vi gennemgår det og fortæller dig hvad du skal være opmærksom på.</p>
+      </div>
+
+      {/* AB-Forbruger intro */}
+      <div className="mb-6">
+        <ABForbrugerIntro kompakt />
+      </div>
+
+      {/* Spørgsmål om AB-Forbruger */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
+        <p className="text-sm font-semibold text-gray-900 mb-1">Er AB-Forbruger nævnt i dit tilbud eller din kontrakt?</p>
+        <p className="text-xs text-gray-400 mb-4">Det ændrer hvad vi tjekker — og hvad vi anbefaler at du gør.</p>
+        <div className="flex gap-2">
+          {([
+            { val: "ja", label: "Ja, det er nævnt" },
+            { val: "nej", label: "Nej, det er ikke nævnt" },
+            { val: "ved-ikke", label: "Ved ikke" },
+          ] as const).map((o) => (
+            <button
+              key={o.val}
+              onClick={() => setAbfNævnt(o.val)}
+              className={`flex-1 py-2.5 text-xs font-semibold rounded-xl border-2 transition-all ${
+                abfNævnt === o.val
+                  ? "border-[#1a5c38] bg-[#1a5c38]/5 text-[#1a5c38]"
+                  : "border-gray-100 text-gray-500 hover:border-gray-200"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+        {abfNævnt === "nej" && (
+          <div className="mt-4 bg-amber-50 border border-amber-100 rounded-xl p-3">
+            <p className="text-xs text-amber-800 leading-relaxed">
+              <strong>Det er meget almindeligt.</strong> Vi screener dit tilbud og foreslår konkret hvad du kan skrive til håndværkeren for at få AB-Forbruger inkluderet i jeres aftale.
+            </p>
+          </div>
+        )}
+        {abfNævnt === "ja" && (
+          <div className="mt-4 bg-green-50 border border-green-100 rounded-xl p-3">
+            <p className="text-xs text-green-800 leading-relaxed">
+              <strong>Godt.</strong> Vi tjekker at de vigtigste punkter er dækket korrekt — betaling, tidsplan, ekstraarbejde og manglerprocedure.
+            </p>
+          </div>
+        )}
+        {abfNævnt === "ved-ikke" && (
+          <div className="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-3">
+            <p className="text-xs text-blue-800 leading-relaxed">
+              Intet problem — vi finder det i dokumentet og fortæller dig hvad der gælder.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Fane-switcher */}

@@ -1,22 +1,24 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 type Trin = "invitation" | "konto" | "bekraeftet";
 
-export default function HåndværkerOpretKonto() {
+function HåndværkerOpretKontoInner() {
+  const params = useSearchParams();
   const [trin, setTrin] = useState<Trin>("invitation");
   const [adgangskode, setAdgangskode] = useState("");
   const [bekræft, setBekræft] = useState("");
   const [vis, setVis] = useState(false);
 
-  // I produktion ville disse komme fra URL-parameteret (invitation token)
+  const projektId = params.get("projekt") ?? "1";
   const invitation = {
-    bygherre: "Camilla Jensen",
-    projekt: "Indvendig renovering, Valby",
-    email: "thomas@tmbyg.dk",
-    firma: "TM Byg ApS",
+    bygherre: params.get("bygherre") ?? "Camilla Jensen",
+    projekt: params.get("projektNavn") ?? "Indvendig renovering, Valby",
+    email: params.get("email") ?? "thomas@tmbyg.dk",
+    firma: params.get("firma") ?? "TM Byg ApS",
   };
 
   const stærk = adgangskode.length >= 8;
@@ -36,7 +38,7 @@ export default function HåndværkerOpretKonto() {
                 <polyline points="9 22 9 12 15 12 15 22"/>
               </svg>
             </div>
-            <span className="text-xl" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Contractr</span>
+            <span className="text-xl" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>contractr</span>
           </Link>
         </div>
 
@@ -168,7 +170,7 @@ export default function HåndværkerOpretKonto() {
               Du er nu tilknyttet projektet <strong>{invitation.projekt}</strong> for {invitation.bygherre}. Du kan nu se projektet og kommunikere med bygherren.
             </p>
             <Link
-              href="/haandvaerker/projekt/1"
+              href={`/haandvaerker/projekt/${projektId}`}
               className="block w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity"
             >
               Gå til projektet →
@@ -180,3 +182,10 @@ export default function HåndværkerOpretKonto() {
   );
 }
 
+export default function HåndværkerOpretKonto() {
+  return (
+    <Suspense>
+      <HåndværkerOpretKontoInner />
+    </Suspense>
+  );
+}

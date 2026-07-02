@@ -24,8 +24,8 @@ const sektioner = [
     indhold: `Som bruger er du ansvarlig for:\n\n• At de dokumenter du uploader er korrekte og lovlige at dele\n• At du har ret til at uploade de pågældende dokumenter\n• At holde dit login fortroligt\n• At angive korrekte oplysninger ved oprettelse`,
   },
   {
-    titel: "5. Betaling og abonnement",
-    indhold: `Grundscreeningen er gratis. Betalte pakker faktureres månedligt eller som engangsbetaling. Alle priser er inklusive moms. Ved opsigelse beholder du adgang til udgangen af den betalte periode. Tilbagebetaling ydes ikke for påbegyndte perioder.`,
+    titel: "5. Betaling",
+    indhold: `Grundscreeningen er gratis. Adgang til projektrum koster 499 kr. som en engangsbetaling. Alle priser er inklusive moms. Der er ingen løbende abonnement. Tilbagebetaling behandles inden for 30 dage efter køb ved henvendelse til support.`,
   },
   {
     titel: "6. Intellektuel ejendomsret",

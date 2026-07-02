@@ -33,7 +33,7 @@ export default function VaelgPakke() {
             <div className="w-8 h-8 bg-[#1a5c38] rounded-lg flex items-center justify-center">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             </div>
-            <span className="text-lg" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Contractr</span>
+            <span className="text-lg" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>contractr</span>
           </Link>
           <Link href="/opret/upload" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Tjek tilbud gratis</Link>
         </div>
@@ -174,13 +174,13 @@ export default function VaelgPakke() {
 
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
               {[
-                { e: "🔒", t: "Sikker betaling via Stripe" },
-                { e: "♾️", t: "Data gemmes permanent" },
-                { e: "📋", t: "Ingen binding — engangskøb" },
-                { e: "↩️", t: "30 dages pengene-tilbage-garanti" },
+                { ikon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>, t: "Sikker betaling via Stripe" },
+                { ikon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, t: "Data gemmes permanent" },
+                { ikon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>, t: "Ingen binding, engangskøb" },
+                { ikon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>, t: "30 dages pengene-tilbage-garanti" },
               ].map(i => (
                 <div key={i.t} className="flex items-center gap-3">
-                  <span className="text-base">{i.e}</span>
+                  <div className="w-5 h-5 rounded-lg bg-[#1a5c38]/10 flex items-center justify-center flex-shrink-0">{i.ikon}</div>
                   <p className="text-xs text-gray-500">{i.t}</p>
                 </div>
               ))}

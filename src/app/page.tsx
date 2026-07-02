@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ABForbrugerIntro from "@/components/ABForbrugerIntro";
 
 export const metadata: Metadata = {
   title: "Contractr - Hele byggeprojektet samlet ét sted",
@@ -20,10 +21,31 @@ export default function Forside() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
 
-      {/* Header */}
-      <header className="px-6 py-4 border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-50">
+      {/* Publikumsskifte — tynd top-bar */}
+      <div className="bg-gray-50 border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-9">
+          <div className="flex items-center">
+            <Link
+              href="/"
+              className="text-xs font-semibold text-[#1a5c38] border-b-2 border-[#1a5c38] px-4 h-full flex items-center"
+            >
+              Bygherre
+            </Link>
+            <Link
+              href="/haandvaerker/sager"
+              className="text-xs font-medium text-gray-500 hover:text-gray-800 border-b-2 border-transparent hover:border-gray-300 px-4 h-full flex items-center transition-colors"
+            >
+              Håndværker
+            </Link>
+          </div>
+          <span className="text-xs text-gray-400 hidden sm:block">contractr.dk</span>
+        </div>
+      </div>
+
+      {/* Hoved-header */}
+      <header className="px-6 py-3.5 border-b border-gray-100 sticky top-9 bg-white/95 backdrop-blur z-40">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-2.5">
             <div className="w-8 h-8 bg-[#1a5c38] rounded-lg flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -33,15 +55,15 @@ export default function Forside() {
             <span style={{ fontFamily: "var(--font-logo)", fontWeight: 300, letterSpacing: "2px" }} className="text-gray-900 text-lg">
               contractr
             </span>
-          </div>
-          <nav className="hidden sm:flex items-center gap-8">
+          </Link>
+          <nav className="hidden sm:flex items-center gap-7">
             <Link href="/opret/upload" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Tjek tilbud</Link>
             <Link href="/opret" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Send i udbud</Link>
-            <Link href="/det-gode-byggeprojekt" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Guide</Link>
-            <Link href="/haandvaerker/sager" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Håndværker</Link>
+            <Link href="/det-gode-byggeprojekt" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Det gode byggeprojekt</Link>
+            <Link href="/tilkoeb" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Rådgivere</Link>
           </nav>
-          <Link href="/opret" className="text-sm font-semibold bg-[#1a5c38] text-white px-5 py-2.5 rounded-lg hover:bg-[#163f28] transition-colors">
-            Kom i gang gratis →
+          <Link href="/opret/upload" className="text-sm font-semibold bg-[#1a5c38] text-white px-5 py-2.5 rounded-lg hover:bg-[#163f28] transition-colors">
+            Tjek tilbud gratis →
           </Link>
         </div>
       </header>
@@ -68,7 +90,7 @@ export default function Forside() {
                   <span className="text-[#1a5c38]">et tilbud fra en håndværker?</span>
                 </h1>
                 <p className="text-lg text-gray-500 leading-relaxed mb-4 max-w-lg">
-                  Upload tilbuddet og få det tjekket på 2 minutter — gratis. Contractr sørger for at du forstår hvad du skriver under på, inden du siger ja.
+                  Upload tilbuddet og få det tjekket på 2 minutter, gratis. Contractr sørger for at du forstår hvad du skriver under på, inden du siger ja.
                 </p>
                 <p className="text-sm text-gray-400 mb-8 max-w-lg">
                   Ingen konto. Ingen binding. Bare et svar du kan handle på.
@@ -223,6 +245,20 @@ export default function Forside() {
           </div>
         </section>
 
+        {/* AB-Forbruger sektion */}
+        <section className="py-20 bg-[#f8faf9]">
+          <div className="max-w-5xl mx-auto px-6">
+            <div className="text-center mb-10">
+              <span className="text-xs font-semibold text-[#1a5c38] uppercase tracking-widest">Dine rettigheder som bygherre</span>
+              <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-3">AB-Forbruger — din rygrad i byggeaftalen</h2>
+              <p className="text-gray-500 max-w-xl mx-auto text-sm leading-relaxed">
+                De fleste private bygherrer har aldrig hørt om AB-Forbruger — men det er præcis de betingelser der eksisterer for at beskytte dig. De træder kun i kraft hvis du aktivt beder om dem.
+              </p>
+            </div>
+            <ABForbrugerIntro visLink={true} />
+          </div>
+        </section>
+
         {/* Sådan virker det */}
         <section className="py-20 bg-white">
           <div className="max-w-6xl mx-auto px-6">
@@ -240,27 +276,31 @@ export default function Forside() {
                   tekst: "Beskriv projektet og få et AI-genereret udbudsdokument. Del med håndværkere via link.",
                   ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
                   bg: "bg-[#1a5c38]",
+                  nrFarve: "text-[#1a5c38]/40",
                 },
                 {
                   nr: "02",
                   titel: "Modtag tilbud",
                   tekst: "Håndværkeren udfylder priser i din tilbudsliste og sender den tilbage.",
                   ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>,
-                  bg: "bg-blue-600",
+                  bg: "bg-[#236b43]",
+                  nrFarve: "text-[#1a5c38]/40",
                 },
                 {
                   nr: "03",
                   titel: "Godkend og aftal",
                   tekst: "Automatisk AB-Forbruger-screening. Acceptér tilbuddet og projektrummet oprettes.",
                   ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
-                  bg: "bg-amber-500",
+                  bg: "bg-[#2d8a57]",
+                  nrFarve: "text-[#1a5c38]/40",
                 },
                 {
                   nr: "04",
                   titel: "Styr projektet",
                   tekst: "Betalingsplan, ekstraarbejde, mangler og kommunikation samlet ét sted.",
                   ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>,
-                  bg: "bg-purple-600",
+                  bg: "bg-[#3aad6e]",
+                  nrFarve: "text-[#1a5c38]/40",
                 },
               ].map((t) => (
                 <div key={t.nr} className="relative z-10 flex flex-col items-center text-center">
@@ -286,15 +326,41 @@ export default function Forside() {
             </div>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
-                { titel: "Udbudsdokument", tekst: "AI genererer et professionelt dokument med struktureret tilbudsliste på få minutter.", ikon: "✦" },
-                { titel: "Tilbudsgenlæsning", tekst: "Se præcis hvad håndværkeren har ændret sammenlignet med din version.", ikon: "⇄" },
-                { titel: "AB-Forbruger tjek", tekst: "Automatisk screening af om aftalen dækker de vigtigste forbrugerbeskyttelsespunkter.", ikon: "⊕" },
-                { titel: "Digitalt projektrum", tekst: "Kontrakt, betalingsplan, mangler og ekstraarbejde samlet ét sted for alle parter.", ikon: "◻" },
-                { titel: "Ekstraarbejde-sedler", tekst: "Digital tillægsaftale med godkendelse fra bygherre inden arbejdet sættes i gang.", ikon: "+" },
-                { titel: "Mangelregistrering", tekst: "Registrér mangler med billeder og status og send direkte til håndværkeren.", ikon: "◎" },
+                {
+                  titel: "Udbudsdokument",
+                  tekst: "AI genererer et professionelt dokument med struktureret tilbudsliste på få minutter.",
+                  ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
+                },
+                {
+                  titel: "Tilbudsgenlæsning",
+                  tekst: "Se præcis hvad håndværkeren har ændret sammenlignet med din version.",
+                  ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>,
+                },
+                {
+                  titel: "AB-Forbruger tjek",
+                  tekst: "Automatisk screening af om aftalen dækker de vigtigste forbrugerbeskyttelsespunkter.",
+                  ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+                },
+                {
+                  titel: "Digitalt projektrum",
+                  tekst: "Kontrakt, betalingsplan, mangler og ekstraarbejde samlet ét sted for alle parter.",
+                  ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+                },
+                {
+                  titel: "Ekstraarbejde-sedler",
+                  tekst: "Digital tillægsaftale med godkendelse fra bygherre inden arbejdet sættes i gang.",
+                  ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>,
+                },
+                {
+                  titel: "Mangelregistrering",
+                  tekst: "Registrér mangler med billeder og status og send direkte til håndværkeren.",
+                  ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+                },
               ].map((f) => (
-                <div key={f.titel} className="bg-white/5 hover:bg-white/8 rounded-2xl p-6 border border-white/8 transition-colors group">
-                  <div className="text-green-400 text-xl mb-4 font-light">{f.ikon}</div>
+                <div key={f.titel} className="bg-white/5 hover:bg-white/[0.08] rounded-2xl p-6 border border-white/[0.08] transition-colors group">
+                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center mb-4 text-green-400">
+                    {f.ikon}
+                  </div>
                   <h3 className="font-bold text-white mb-2">{f.titel}</h3>
                   <p className="text-sm text-gray-400 leading-relaxed">{f.tekst}</p>
                 </div>

@@ -17,10 +17,9 @@ const demoBetalinger: Betaling[] = [
   { id: "b1", type: "entreprise", beskrivelse: "Betaling til Sven Hansen VVS · Milepæl 2", beloeb: 22500, dato: "2025-06-01", status: "betalt", projekt: "Badeværelse, Valby" },
   { id: "b2", type: "entreprise", beskrivelse: "Betaling til Sven Hansen VVS · Milepæl 1", beloeb: 18000, dato: "2025-05-10", status: "betalt", projekt: "Badeværelse, Valby" },
   { id: "b3", type: "raadgiver", beskrivelse: "Rådgivergennemgang · Maria Davidsen", beloeb: 1495, dato: "2025-05-05", status: "betalt", projekt: "Badeværelse, Valby" },
-  { id: "b4", type: "platform", beskrivelse: "Abonnement Starter · Maj 2025", beloeb: 299, dato: "2025-05-01", status: "betalt" },
+  { id: "b4", type: "platform", beskrivelse: "Projectrum adgang · Engangsbetaling", beloeb: 499, dato: "2025-05-01", status: "betalt" },
   { id: "b5", type: "platform", beskrivelse: "Aftaletjek rapport", beloeb: 995, dato: "2025-04-22", status: "betalt" },
   { id: "b6", type: "entreprise", beskrivelse: "Betaling til Sven Hansen VVS · Milepæl 3", beloeb: 28000, dato: "2025-06-20", status: "afventer", projekt: "Badeværelse, Valby" },
-  { id: "b7", type: "platform", beskrivelse: "Abonnement Starter · Jun 2025", beloeb: 299, dato: "2025-06-01", status: "betalt" },
 ];
 
 const typeLabel: Record<Betaling["type"], string> = {
@@ -108,7 +107,7 @@ export default function MinSide() {
             </div>
             <div className="text-right">
               <p className="text-xs text-gray-400 mb-1">Aktiv pakke</p>
-              <span className="bg-[#1a5c38] text-white text-xs font-bold px-3 py-1 rounded-full">Starter</span>
+              <span className="bg-[#1a5c38] text-white text-xs font-bold px-3 py-1 rounded-full">Projectrum</span>
             </div>
           </div>
         </div>
