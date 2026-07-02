@@ -115,24 +115,68 @@ export default function Forside() {
         </section>
 
         {/* Sådan virker det */}
-        <section className="max-w-6xl mx-auto px-6 py-20">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">Fra tilbud til aflevering i ét flow</h2>
-            <p className="text-gray-500 max-w-xl mx-auto">Et struktureret forløb der sikrer at alle parter er enige og at dokumentationen er i orden hele vejen.</p>
-          </div>
-          <div className="grid sm:grid-cols-4 gap-8">
-            {[
-              { nr: "01", titel: "Send i udbud", tekst: "Beskriv projektet og få et AI-genereret udbudsdokument med tilbudsliste. Del med 2–3 håndværkere via link." },
-              { nr: "02", titel: "Modtag tilbud", tekst: "Håndværkerne udfylder priser direkte i din tilbudsliste og sender den tilbage. Du kan se hvad der er ændret." },
-              { nr: "03", titel: "Godkend og aftal", tekst: "Screeningsrapport mod AB-Forbruger. Acceptér tilbuddet og projektrummet oprettes automatisk." },
-              { nr: "04", titel: "Styr projektet", tekst: "Betalingsplan, ekstraarbejde, mangler og kommunikation er samlet ét sted og tilgængeligt for alle parter." },
-            ].map((t) => (
-              <div key={t.nr}>
-                <div className="text-5xl font-black text-gray-100 mb-3 leading-none">{t.nr}</div>
-                <h3 className="font-bold text-gray-900 mb-2">{t.titel}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{t.tekst}</p>
-              </div>
-            ))}
+        <section className="bg-gray-50 border-y border-gray-100 py-20">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <span className="text-xs font-semibold text-[#1a5c38] uppercase tracking-widest">Sådan virker det</span>
+              <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-3">Fra tilbud til aflevering i ét flow</h2>
+              <p className="text-gray-500 max-w-lg mx-auto">Fire trin. Alle parter samlet. Al dokumentation på plads.</p>
+            </div>
+            <div className="grid sm:grid-cols-4 gap-6 relative">
+              {/* Forbindende linje (desktop) */}
+              <div className="hidden sm:block absolute top-9 left-[12.5%] right-[12.5%] h-px bg-gray-200 z-0" />
+              {[
+                {
+                  nr: "01",
+                  titel: "Send i udbud",
+                  tekst: "Beskriv projektet og få et AI-genereret udbudsdokument. Del med håndværkere via et link.",
+                  ikon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  ),
+                  bg: "bg-[#1a5c38]",
+                  color: "text-white",
+                },
+                {
+                  nr: "02",
+                  titel: "Modtag tilbud",
+                  tekst: "Håndværkeren udfylder priser i din tilbudsliste og sender den tilbage.",
+                  ikon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+                  ),
+                  bg: "bg-blue-600",
+                  color: "text-white",
+                },
+                {
+                  nr: "03",
+                  titel: "Godkend og aftal",
+                  tekst: "Automatisk AB-Forbruger-screening. Acceptér tilbuddet og projektrummet oprettes.",
+                  ikon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  ),
+                  bg: "bg-amber-500",
+                  color: "text-white",
+                },
+                {
+                  nr: "04",
+                  titel: "Styr projektet",
+                  tekst: "Betalingsplan, ekstraarbejde, mangler og kommunikation samlet ét sted for alle parter.",
+                  ikon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                  ),
+                  bg: "bg-purple-600",
+                  color: "text-white",
+                },
+              ].map((t) => (
+                <div key={t.nr} className="relative z-10 flex flex-col items-center text-center">
+                  <div className={`w-18 h-18 ${t.bg} rounded-2xl flex items-center justify-center mb-5 shadow-md`} style={{width:"4.5rem",height:"4.5rem"}}>
+                    <span className={t.color}>{t.ikon}</span>
+                  </div>
+                  <span className="text-xs font-bold text-gray-400 mb-1 tracking-widest">{t.nr}</span>
+                  <h3 className="font-bold text-gray-900 mb-2 text-base">{t.titel}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{t.tekst}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
