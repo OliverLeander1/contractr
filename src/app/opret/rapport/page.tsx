@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import FlowLayout from "@/components/FlowLayout";
+import LoginGate from "@/components/LoginGate";
 
 interface Punkt {
   id: string;
@@ -49,6 +50,14 @@ export default function Rapport() {
   const [sendtModal, setSendtModal] = useState(false);
   const [kopieret, setKopieret] = useState(false);
   const [haandvaerkerEmail, setHaandvaerkerEmail] = useState("");
+  const [loginGate, setLoginGate] = useState(false);
+  const [loginGateBesked, setLoginGateBesked] = useState("");
+  const [erLoggetInd, setErLoggetInd] = useState(false);
+
+  useEffect(() => {
+    const user = localStorage.getItem("contractr_user");
+    setErLoggetInd(!!user);
+  }, []);
 
   useEffect(() => {
     const gemt = sessionStorage.getItem("screening_resultat");
@@ -110,6 +119,7 @@ export default function Rapport() {
 
   return (
     <FlowLayout aktivTrin={4}>
+      <LoginGate trigger={loginGate} onLuk={() => setLoginGate(false)} besked={loginGateBesked} />
       {sendtModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={() => setSendtModal(false)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"/>
@@ -349,9 +359,12 @@ export default function Rapport() {
               30 dages garanti
             </span>
           </div>
-          <Link href="/pakke" className="flex-shrink-0 bg-[#1a5c38] text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-[#163f28] transition-colors">
+          <button
+            onClick={() => { if (erLoggetInd) { window.location.href = "/pakke"; } else { setLoginGateBesked("Gem din rapport og opret projektrum"); setLoginGate(true); } }}
+            className="flex-shrink-0 bg-[#1a5c38] text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-[#163f28] transition-colors"
+          >
             Opret projektrum →
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -364,9 +377,12 @@ export default function Rapport() {
           <div className="flex-1">
             <h3 className="font-semibold text-gray-900 mb-1">Vil du have en fagmand til at se på det?</h3>
             <p className="text-sm text-gray-500 mb-3">En byggesagkyndig gennemgår aftalen og giver dig en professionel vurdering. Fra 1.495 kr.</p>
-            <Link href="/tilkoeb" className="inline-block bg-[#1a5c38] text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-[#163f28] transition-colors">
+            <button
+              onClick={() => { if (erLoggetInd) { window.location.href = "/tilkoeb"; } else { setLoginGateBesked("Opret konto for at booke rådgivergennemgang"); setLoginGate(true); } }}
+              className="inline-block bg-[#1a5c38] text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-[#163f28] transition-colors"
+            >
               Book rådgivergennemgang
-            </Link>
+            </button>
           </div>
         </div>
       </div>
