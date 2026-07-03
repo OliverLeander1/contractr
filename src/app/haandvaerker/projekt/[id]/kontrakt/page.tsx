@@ -1,12 +1,43 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import Link from "next/link";
+
+interface GemtProjekt {
+  titel?: string;
+  resumé?: string;
+  bygherreNavn?: string;
+  bygherreKontakt?: string;
+  haandvaerkerNavn?: string;
+  haandvaerkerFirma?: string;
+  accepteretDato?: string;
+  total?: number;
+}
+
+const fmtKr = (n: number) => n.toLocaleString("da-DK") + " kr. inkl. moms";
 
 export default function HaandvaerkerKontrakt({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [underskrevet, setUnderskrevet] = useState(false);
   const [accepteret, setAkcepteret] = useState(false);
+  const [projekt, setProjekt] = useState<GemtProjekt | null>(null);
+  const [hvNavn, setHvNavn] = useState("");
+  const [hvFirma, setHvFirma] = useState("");
+  const [hvCvr, setHvCvr] = useState("");
+
+  useEffect(() => {
+    try {
+      const rawProjekt = localStorage.getItem("contractr_projekt");
+      if (rawProjekt) setProjekt(JSON.parse(rawProjekt));
+      const rawHv = localStorage.getItem("contractr_haandvaerker");
+      if (rawHv) {
+        const h = JSON.parse(rawHv);
+        if (h.navn) setHvNavn(h.navn);
+        if (h.virksomhed) setHvFirma(h.virksomhed);
+        if (h.cvr) setHvCvr(h.cvr);
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -29,7 +60,7 @@ export default function HaandvaerkerKontrakt({ params }: { params: Promise<{ id:
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Kontrakt til underskrift</h1>
-            <p className="text-sm text-gray-400 mt-1">Indvendig renovering, Valby · TM Byg ApS</p>
+            <p className="text-sm text-gray-400 mt-1">{projekt?.titel || projekt?.resumé?.slice(0, 40) || "Byggeprojekt"} · {hvFirma || hvNavn || "Entreprenør"}</p>
           </div>
           {underskrevet && (
             <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
@@ -49,12 +80,11 @@ export default function HaandvaerkerKontrakt({ params }: { params: Promise<{ id:
           <h2 className="font-semibold text-gray-900 mb-5">Aftalens indhold</h2>
           <div className="divide-y divide-gray-50">
             {[
-              { label: "Bygherre", value: "Camilla Jensen, Valby Langgade 85, 2500 Valby" },
-              { label: "Entreprenør", value: "TM Byg ApS, CVR 12345678" },
-              { label: "Arbejdets omfang", value: "Indvendig renovering inkl. gipsvægge, maling og lettere el-arbejde" },
-              { label: "Entreprisesum", value: "112.500 kr. inkl. moms (fast pris)" },
-              { label: "Startdato", value: "12. marts 2025" },
-              { label: "Slutdato", value: "30. september 2025" },
+              { label: "Bygherre", value: [projekt?.bygherreNavn, projekt?.bygherreKontakt].filter(Boolean).join(", ") || "Ikke angivet" },
+              { label: "Entreprenør", value: [hvFirma, hvCvr ? `CVR ${hvCvr}` : ""].filter(Boolean).join(", ") || hvNavn || "Ikke angivet" },
+              { label: "Arbejdets omfang", value: projekt?.resumé || projekt?.titel || "Se tilbud" },
+              { label: "Entreprisesum", value: projekt?.total ? fmtKr(projekt.total) + " (fast pris)" : "Se tilbud" },
+              { label: "Accepteret", value: projekt?.accepteretDato ? new Date(projekt.accepteretDato).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" }) : "Ikke angivet" },
               { label: "Ekstraarbejde", value: "Aftales skriftligt inden udførelse. Pris oplyses på forhånd." },
               { label: "Betalingsbetingelser", value: "Betaling sker ved godkendelse af milepæle. Se betalingsplan." },
               { label: "Reklamationsret", value: "5 år fra aflevering jf. AB-Forbruger § 36" },
@@ -71,20 +101,19 @@ export default function HaandvaerkerKontrakt({ params }: { params: Promise<{ id:
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
           <h2 className="font-semibold text-gray-900 mb-4">Betalingsplan</h2>
           <div className="space-y-2">
-            {[
-              { navn: "Opstart og nedrivning (20%)", beløb: "22.500 kr.", forfald: "12. mar. 2025" },
-              { navn: "Gipsvægge og installationer (25%)", beløb: "28.125 kr.", forfald: "30. apr. 2025" },
-              { navn: "Malerarbejde afsluttet (25%)", beløb: "28.125 kr.", forfald: "15. jun. 2025" },
-              { navn: "Endelig aflevering (30%)", beløb: "33.750 kr.", forfald: "30. sep. 2025" },
+            {projekt?.total ? [
+              { navn: "Opstart (20%)", beløb: fmtKr(projekt.total * 0.20) },
+              { navn: "Halvvejs (30%)", beløb: fmtKr(projekt.total * 0.30) },
+              { navn: "Naesten faerdig (30%)", beløb: fmtKr(projekt.total * 0.30) },
+              { navn: "Aflevering (20%)", beløb: fmtKr(projekt.total * 0.20) },
             ].map((b) => (
               <div key={b.navn} className="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0">
                 <p className="text-sm text-gray-700">{b.navn}</p>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-gray-900">{b.beløb}</p>
-                  <p className="text-xs text-gray-400">{b.forfald}</p>
-                </div>
+                <p className="text-sm font-bold text-gray-900">{b.beløb}</p>
               </div>
-            ))}
+            )) : (
+              <p className="text-sm text-gray-400 py-4 text-center">Betalingsplan fastsættes ud fra accepteret tilbud.</p>
+            )}
           </div>
         </div>
 

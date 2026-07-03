@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import ProjektNav from "@/components/ProjektNav";
 import ABTip from "@/components/ABTip";
 import Link from "next/link";
@@ -20,6 +20,35 @@ export default function Aflevering({ params }: { params: Promise<{ id: string }>
   const [mangler, setMangler] = useState(mangelListe);
   const [underskrevet, setUnderskrevet] = useState(false);
   const [nyMangel, setNyMangel] = useState("");
+  const [bygherreNavn, setBygherreNavn] = useState("Bygherre");
+  const [haandvaerkerNavn, setHaandvaerkerNavn] = useState("Håndværker");
+  const [haandvaerkerFirma, setHaandvaerkerFirma] = useState("");
+  const [projekttitel, setProjekttitel] = useState("Byggeprojekt");
+
+  useEffect(() => {
+    try {
+      const rawBruger = localStorage.getItem("contractr_user");
+      if (rawBruger) {
+        const b = JSON.parse(rawBruger);
+        if (b.navn) setBygherreNavn(b.navn);
+      }
+      const rawProjekt = localStorage.getItem("contractr_projekt");
+      if (rawProjekt) {
+        const p = JSON.parse(rawProjekt);
+        if (p.bygherreNavn) setBygherreNavn(p.bygherreNavn);
+        if (p.haandvaerkerNavn) setHaandvaerkerNavn(p.haandvaerkerNavn);
+        if (p.haandvaerkerFirma) setHaandvaerkerFirma(p.haandvaerkerFirma);
+        if (p.titel) setProjekttitel(p.titel);
+        else if (p.projekttype) setProjekttitel(p.projekttype);
+      }
+      const rawHv = localStorage.getItem("contractr_haandvaerker");
+      if (rawHv) {
+        const h = JSON.parse(rawHv);
+        if (h.navn) setHaandvaerkerNavn(h.navn);
+        if (h.virksomhed) setHaandvaerkerFirma(h.virksomhed);
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   const åbneMangler = mangler.filter(m => m.status === "mangel" || m.status === "advarsel");
 
@@ -36,7 +65,7 @@ export default function Aflevering({ params }: { params: Promise<{ id: string }>
       <div className="max-w-4xl mx-auto px-6 py-10">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Afleveringsforretning</h1>
-          <p className="text-sm text-gray-400 mt-1">Indvendig renovering, Valby · AB-Forbruger § 37-38</p>
+          <p className="text-sm text-gray-400 mt-1">{projekttitel} · AB-Forbruger § 37-38</p>
         </div>
 
         {/* Trin-indikator */}
@@ -153,9 +182,9 @@ export default function Aflevering({ params }: { params: Promise<{ id: string }>
 
               <div className="bg-gray-50 rounded-xl p-5 space-y-4 text-sm">
                 <div className="grid grid-cols-2 gap-4">
-                  <div><p className="text-xs text-gray-400 mb-1">Bygherre</p><p className="font-medium text-gray-900">Camilla Jensen</p></div>
-                  <div><p className="text-xs text-gray-400 mb-1">Entreprenør</p><p className="font-medium text-gray-900">Thomas Madsen, TM Byg ApS</p></div>
-                  <div><p className="text-xs text-gray-400 mb-1">Projekt</p><p className="font-medium text-gray-900">Indvendig renovering, Valby</p></div>
+                  <div><p className="text-xs text-gray-400 mb-1">Bygherre</p><p className="font-medium text-gray-900">{bygherreNavn}</p></div>
+                  <div><p className="text-xs text-gray-400 mb-1">Entreprenør</p><p className="font-medium text-gray-900">{[haandvaerkerNavn, haandvaerkerFirma].filter(Boolean).join(", ")}</p></div>
+                  <div><p className="text-xs text-gray-400 mb-1">Projekt</p><p className="font-medium text-gray-900">{projekttitel}</p></div>
                   <div><p className="text-xs text-gray-400 mb-1">Afleveringsdato</p><p className="font-medium text-gray-900">{new Intl.DateTimeFormat("da-DK", { day: "numeric", month: "short", year: "numeric" }).format(new Date())}</p></div>
                 </div>
 
@@ -219,9 +248,9 @@ export default function Aflevering({ params }: { params: Promise<{ id: string }>
               <div className="space-y-4 mb-6">
                 <div className="border border-gray-100 rounded-xl p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">C</div>
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">{bygherreNavn[0]?.toUpperCase() || "B"}</div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">Camilla Jensen</p>
+                      <p className="text-sm font-semibold text-gray-900">{bygherreNavn}</p>
                       <p className="text-xs text-gray-400">Bygherre</p>
                     </div>
                   </div>
@@ -229,10 +258,10 @@ export default function Aflevering({ params }: { params: Promise<{ id: string }>
                 </div>
                 <div className="border border-gray-100 rounded-xl p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">T</div>
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">{haandvaerkerNavn[0]?.toUpperCase() || "H"}</div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">Thomas Madsen</p>
-                      <p className="text-xs text-gray-400">TM Byg ApS</p>
+                      <p className="text-sm font-semibold text-gray-900">{haandvaerkerNavn}</p>
+                      {haandvaerkerFirma && <p className="text-xs text-gray-400">{haandvaerkerFirma}</p>}
                     </div>
                   </div>
                   <span className="text-xs font-semibold bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full">Afventer</span>

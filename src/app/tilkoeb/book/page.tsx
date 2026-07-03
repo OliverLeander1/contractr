@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 const ydelser = [
@@ -25,6 +25,19 @@ export default function BookRådgiver() {
   const [valgtYdelse, setValgtYdelse] = useState(ydelser[1]);
   const [valgtTid, setValgtTid] = useState("11:00");
   const [trin, setTrin] = useState(1);
+  const [projektNavn, setProjektNavn] = useState("");
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("contractr_projekt");
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (p.projekttype || p.adresse) {
+          setProjektNavn([p.projekttype, p.adresse].filter(Boolean).join(", "));
+        }
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -133,7 +146,7 @@ export default function BookRådgiver() {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 mt-0.5 flex-shrink-0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
                   <div>
                     <p className="text-xs text-gray-400">Projekt</p>
-                    <p className="text-sm font-medium text-gray-900">Indvendig renovering, Valby</p>
+                    <p className="text-sm font-medium text-gray-900">{projektNavn || "Ikke angivet"}</p>
                   </div>
                 </div>
                 <div className="border-t border-gray-100 pt-3 flex items-center justify-between">

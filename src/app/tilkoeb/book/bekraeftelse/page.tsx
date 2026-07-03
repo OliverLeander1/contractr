@@ -1,6 +1,21 @@
-﻿import Link from "next/link";
+﻿"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function BookingBekraeftelse() {
+  const [projektNavn, setProjektNavn] = useState("");
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("contractr_projekt");
+      if (raw) {
+        const p = JSON.parse(raw);
+        setProjektNavn([p.projekttype, p.adresse].filter(Boolean).join(", "));
+      }
+    } catch { /* ignore */ }
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-6">
       <div className="max-w-lg w-full">
@@ -19,7 +34,7 @@ export default function BookingBekraeftelse() {
               { label: "Ydelse", value: "Tal med en rådgiver" },
               { label: "Dato", value: "Onsdag d. 11. juni 2025" },
               { label: "Tidspunkt", value: "kl. 11:00 (90 min.)" },
-              { label: "Projekt", value: "Indvendig renovering, Valby" },
+              { label: "Projekt", value: projektNavn || "Ikke angivet" },
               { label: "Pris betalt", value: "1.495 kr." },
             ].map((r) => (
               <div key={r.label} className="flex justify-between">

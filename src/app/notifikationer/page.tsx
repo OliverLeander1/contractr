@@ -1,77 +1,7 @@
-﻿import Link from "next/link";
+﻿"use client";
 
-const notifikationer = [
-  {
-    id: 0,
-    type: "eftersyn",
-    titel: "1-årseftersyn udløber om 30 dage",
-    tekst: "Dit projekt 'Badeværelse, Valby' blev afleveret for ca. 11 måneder siden. Du kan kræve 1-årseftersyn jf. AB-Forbruger § 58. Fristen udløber den 15. jul. 2026. Meddel håndværkeren skriftligt inden da.",
-    tid: "I dag kl. 07:00",
-    ulæst: true,
-    link: "/projekt/1/aflevering",
-    linkTekst: "Se afleveringsprotokol",
-  },
-  {
-    id: 1,
-    type: "betaling",
-    titel: "Betaling klar til godkendelse",
-    tekst: "Thomas Madsen har markeret 'Malerarbejde afsluttet' som færdigt. Godkend og betal 28.125 kr.",
-    tid: "For 10 minutter siden",
-    ulæst: true,
-    link: "/projekt/1/betalinger",
-    linkTekst: "Godkend betaling",
-  },
-  {
-    id: 2,
-    type: "mangel",
-    titel: "Håndværker har svaret på din mangel",
-    tekst: "Thomas Madsen har svaret på manglen 'Skæve fliser i badeværelse'. Han bestrider manglen.",
-    tid: "For 2 timer siden",
-    ulæst: true,
-    link: "/projekt/1/mangler",
-    linkTekst: "Se svaret",
-  },
-  {
-    id: 3,
-    type: "besked",
-    titel: "Ny besked fra Thomas Madsen",
-    tekst: "\"Hej Camilla, jeg er i gang med malerarbejdet. Forventer at være klar fredag.\"",
-    tid: "I dag kl. 09:14",
-    ulæst: false,
-    link: "/projekt/1?chat=1",
-    linkTekst: "Åbn chat",
-  },
-  {
-    id: 4,
-    type: "abforbruger",
-    titel: "AB-Forbruger påmindelse: Betalingsfrist",
-    tekst: "Fakturaen for 'Malerarbejde afsluttet' er modtaget i dag. Jf. AB-Forbruger § 25 er betaling rettidig senest om 15 arbejdsdage.",
-    tid: "I dag kl. 08:00",
-    ulæst: false,
-    link: "/abforbruger",
-    linkTekst: "Læs § 25",
-  },
-  {
-    id: 5,
-    type: "dokument",
-    titel: "Nyt dokument uploaded",
-    tekst: "Thomas Madsen har uploaded 'Billeder fra malerarbejde dag 3' til projektet.",
-    tid: "I går kl. 16:42",
-    ulæst: false,
-    link: "/projekt/1/dokumenter",
-    linkTekst: "Se dokumenter",
-  },
-  {
-    id: 6,
-    type: "tidsplan",
-    titel: "Milepæl markeret færdig",
-    tekst: "Thomas Madsen har markeret 'Gipsvægge' som afsluttet. Næste milepæl: Malerarbejde (15. jun. 2025).",
-    tid: "2. maj 2025",
-    ulæst: false,
-    link: "/projekt/1/tidsplan",
-    linkTekst: "Se tidsplan",
-  },
-];
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 const typeIkon = (type: string) => {
   switch (type) {
@@ -86,7 +16,82 @@ const typeIkon = (type: string) => {
   }
 };
 
+type Notifikation = {
+  id: number;
+  type: string;
+  titel: string;
+  tekst: string;
+  tid: string;
+  ulæst: boolean;
+  link: string;
+  linkTekst: string;
+};
+
 export default function Notifikationer() {
+  const [notifikationer, setNotifikationer] = useState<Notifikation[]>([]);
+
+  useEffect(() => {
+    let haandvaerkerNavn = "Håndværkeren";
+    let projektNavn = "dit projekt";
+
+    try {
+      const rawProjekt = localStorage.getItem("contractr_projekt");
+      if (rawProjekt) {
+        const p = JSON.parse(rawProjekt);
+        if (p.haandvaerkerNavn) haandvaerkerNavn = p.haandvaerkerNavn;
+        if (p.projekttype) projektNavn = p.projekttype;
+      }
+      const rawHv = localStorage.getItem("contractr_haandvaerker");
+      if (rawHv) {
+        const h = JSON.parse(rawHv);
+        if (h.navn) haandvaerkerNavn = h.navn;
+      }
+    } catch { /* ignore */ }
+
+    setNotifikationer([
+      {
+        id: 0,
+        type: "abforbruger",
+        titel: "AB-Forbruger: Sørg for skriftlig tidsplan",
+        tekst: `Jf. AB-Forbruger § 12 skal start- og slutdato aftales skriftligt. Bed ${haandvaerkerNavn} bekræfte tidsplanen skriftligt inden opstart.`,
+        tid: "I dag",
+        ulæst: true,
+        link: "/abforbruger",
+        linkTekst: "Læs § 12",
+      },
+      {
+        id: 1,
+        type: "abforbruger",
+        titel: "AB-Forbruger: Ekstraarbejde skal aftales skriftligt",
+        tekst: "Jf. AB-Forbruger § 23 skal alt ekstraarbejde aftales og prissættes skriftligt inden udførelse. Accepter aldrig mundtlige aftaler om merarbejde.",
+        tid: "I dag",
+        ulæst: true,
+        link: "/abforbruger",
+        linkTekst: "Læs § 23",
+      },
+      {
+        id: 2,
+        type: "abforbruger",
+        titel: "AB-Forbruger: Betaling mod dokumenteret fremdrift",
+        tekst: "Jf. AB-Forbruger § 25 og § 37 bør du kun betale mod dokumenteret fremdrift. Undgå at forudbetale store beløb.",
+        tid: "I dag",
+        ulæst: false,
+        link: "/abforbruger",
+        linkTekst: "Læs § 25",
+      },
+      {
+        id: 3,
+        type: "abforbruger",
+        titel: "AB-Forbruger: Kræv afleveringsforretning",
+        tekst: `Jf. AB-Forbruger § 38 bør du afholde en afleveringsforretning med ${haandvaerkerNavn} inden du overtager arbejdet. Mangler noteres i protokollen.`,
+        tid: "Kommende",
+        ulæst: false,
+        link: "/projekt/1/aflevering",
+        linkTekst: "Se afleveringsflow",
+      },
+    ]);
+  }, []);
+
   const ulæste = notifikationer.filter(n => n.ulæst).length;
 
   return (

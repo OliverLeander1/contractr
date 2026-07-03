@@ -3,15 +3,7 @@
 import { use, useState } from "react";
 import ProjektNav from "@/components/ProjektNav";
 
-const dokumenter = [
-  { navn: "Kontrakt (underskrevet)", type: "PDF", størrelse: "1,2 MB", dato: "12. mar. 2025", kategori: "Kontrakt", uploadetAf: "Contractr" },
-  { navn: "Tilbud fra TM Byg ApS", type: "PDF", størrelse: "890 KB", dato: "8. mar. 2025", kategori: "Tilbud", uploadetAf: "Camilla Jensen" },
-  { navn: "Plantegning, stueplan", type: "PDF", størrelse: "4,8 MB", dato: "12. mar. 2025", kategori: "Tegninger", uploadetAf: "Camilla Jensen" },
-  { navn: "Aftaleseddel #1 - ekstra el", type: "PDF", størrelse: "345 KB", dato: "2. apr. 2025", kategori: "Aftalesedler", uploadetAf: "TM Byg ApS" },
-  { navn: "Aftaleseddel #2 - nye fliser", type: "PDF", størrelse: "290 KB", dato: "15. apr. 2025", kategori: "Aftalesedler", uploadetAf: "TM Byg ApS" },
-  { navn: "Flisevalg - badeværelse (til godkendelse)", type: "JPG", størrelse: "2,1 MB", dato: "20. apr. 2025", kategori: "Materialer", uploadetAf: "TM Byg ApS", afventerGodkendelse: true },
-  { navn: "Tidsplan v2", type: "PDF", størrelse: "780 KB", dato: "15. mar. 2025", kategori: "Tidsplan", uploadetAf: "TM Byg ApS" },
-];
+type Dokument = { navn: string; type: string; størrelse: string; dato: string; kategori: string; uploadetAf: string; afventerGodkendelse?: boolean; };
 
 const kategorier = ["Alle", "Kontrakt", "Tilbud", "Tegninger", "Aftalesedler", "Materialer", "Tidsplan"];
 
@@ -31,6 +23,7 @@ const ikonForType = (type: string) => {
 export default function Dokumenter({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [aktivKategori, setAktivKategori] = useState("Alle");
+  const dokumenter: Dokument[] = [];
 
   const synligeDokumenter = dokumenter.filter(d =>
     !d.afventerGodkendelse && (aktivKategori === "Alle" || d.kategori === aktivKategori)
