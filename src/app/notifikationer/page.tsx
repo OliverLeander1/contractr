@@ -5,7 +5,7 @@ const notifikationer = [
     id: 0,
     type: "eftersyn",
     titel: "1-årseftersyn udløber om 30 dage",
-    tekst: "Dit projekt 'Badeværelse, Valby' blev afleveret for ca. 11 måneder siden. Du kan kræve 1-årseftersyn jf. AB-Forbruger § 58 — fristen udløber den 15. jul. 2026. Meddel håndværkeren skriftligt inden da.",
+    tekst: "Dit projekt 'Badeværelse, Valby' blev afleveret for ca. 11 måneder siden. Du kan kræve 1-årseftersyn jf. AB-Forbruger § 58. Fristen udløber den 15. jul. 2026. Meddel håndværkeren skriftligt inden da.",
     tid: "I dag kl. 07:00",
     ulæst: true,
     link: "/projekt/1/aflevering",

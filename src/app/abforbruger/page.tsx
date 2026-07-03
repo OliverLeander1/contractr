@@ -229,7 +229,7 @@ export default function ABForbruger() {
             <div>
               <p className="text-sm font-semibold text-amber-900 mb-1">AB-Forbruger træder ikke automatisk i kraft</p>
               <p className="text-sm text-amber-800 leading-relaxed">
-                AB-Forbruger er standardbetingelser — ikke lovgivning. De skal eksplicit aftales mellem bygherre og entreprenør for at gælde. Det sker typisk ved at aftalen eller udbuddet reference til AB-Forbruger, og at entreprenøren accepterer dette. Contractr sørger for at dette er tydeligt fra starten, når du sender et projekt i udbud.
+                AB-Forbruger er standardbetingelser, ikke lovgivning. De skal eksplicit aftales mellem bygherre og entreprenør for at gælde. Det sker typisk ved at aftalen eller udbuddet reference til AB-Forbruger, og at entreprenøren accepterer dette. Contractr sørger for at dette er tydeligt fra starten, når du sender et projekt i udbud.
               </p>
             </div>
           </div>
@@ -237,7 +237,7 @@ export default function ABForbruger() {
           <div className="mt-4 bg-accent border border-primary/20 rounded-xl p-4 flex items-start gap-3">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2" className="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <p className="text-sm text-primary leading-relaxed">
-              Platformen viser dig automatisk den relevante paragraf når noget sker i dit projekt — men kun hvis AB-Forbruger er aftalt som grundlag.
+              Platformen viser dig automatisk den relevante paragraf når noget sker i dit projekt, men kun hvis AB-Forbruger er aftalt som grundlag.
             </p>
           </div>
         </div>

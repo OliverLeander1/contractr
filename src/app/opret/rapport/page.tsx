@@ -254,7 +254,7 @@ export default function Rapport() {
           <div>
             <p className="text-white/50 text-xs uppercase tracking-widest mb-1">Næste skridt</p>
             <h3 className="text-white font-bold text-lg">Opret dit projektrum</h3>
-            <p className="text-white/60 text-sm mt-1">Kontrakt, tidsplan, betalinger, chat og dokumenter — samlet ét sted. Data gemmes for altid.</p>
+            <p className="text-white/60 text-sm mt-1">Kontrakt, tidsplan, betalinger, chat og dokumenter samlet ét sted. Data gemmes for altid.</p>
           </div>
           <div className="flex-shrink-0 text-right">
             <p className="text-white/40 text-xs mb-0.5">Engangspris</p>

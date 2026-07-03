@@ -243,7 +243,7 @@ export default function NytTilbud() {
               <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
                 <div>
                   <h2 className="text-sm font-bold text-gray-900">Poster</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">Priser ekskl. moms — moms tilføjes automatisk (25%)</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Priser ekskl. moms. Moms tilføjes automatisk (25%)</p>
                 </div>
               </div>
 
@@ -400,7 +400,7 @@ export default function NytTilbud() {
                 {[
                   { n: "1", t: "Du sender linket til bygherren via e-mail eller SMS" },
                   { n: "2", t: "Bygherren åbner tilbuddet og ser alle poster og priser" },
-                  { n: "3", t: `Bygherren accepterer — sagen opdateres automatisk i din portal` },
+                  { n: "3", t: `Bygherren accepterer. Sagen opdateres automatisk i din portal` },
                 ].map(s => (
                   <div key={s.n} className="flex items-start gap-3">
                     <span className="w-5 h-5 rounded-full bg-[#1a5c38]/10 text-[#1a5c38] text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{s.n}</span>

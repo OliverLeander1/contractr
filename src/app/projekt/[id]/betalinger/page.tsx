@@ -103,7 +103,7 @@ export default function Betalinger({ params }: { params: Promise<{ id: string }>
               <div>
                 <p className="text-sm font-semibold text-amber-900 mb-1">Afventer godkendelse</p>
                 <p className="text-sm text-amber-800">
-                  Milepael &ldquo;{afventer.navn}&rdquo; er naet — godkend fremdriften og frigiv betaling pa {fmtKr(afventer.beløb)}.
+                  Milepael &ldquo;{afventer.navn}&rdquo; er naet. Godkend fremdriften og frigiv betaling pa {fmtKr(afventer.beløb)}.
                 </p>
                 <p className="text-xs text-amber-600 mt-1">Betal kun naar arbejdet er dokumenteret udfort jf. AB-Forbruger § 26</p>
               </div>

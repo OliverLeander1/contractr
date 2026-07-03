@@ -104,7 +104,7 @@ export default function InviterEntreprenoer({ params }: { params: Promise<{ id: 
               <div key={i} className="flex gap-2">
                 <input
                   type="email"
-                  placeholder={`Håndværker ${i + 1} — f.eks. thomas@tmbyg.dk`}
+                  placeholder={`Håndværker ${i + 1}, f.eks. thomas@tmbyg.dk`}
                   value={e}
                   onChange={(ev) => opdaterEmail(i, ev.target.value)}
                   className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"

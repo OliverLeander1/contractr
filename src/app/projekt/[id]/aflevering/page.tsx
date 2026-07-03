@@ -301,7 +301,7 @@ export default function Aflevering({ params }: { params: Promise<{ id: string }>
                   <div>
                     <p className="text-sm font-semibold text-[#1a5c38] mb-1">Dine data er gemt for altid</p>
                     <p className="text-xs text-gray-600 leading-relaxed">
-                      Alle dokumenter, kontrakter, beskeder og betalinger i dette projekt er permanent tilgængelige i dit projektrum. Du har reklamationsret i 5 år — og vi sender dig en påmindelse inden 1-årsfristen udløber.
+                      Alle dokumenter, kontrakter, beskeder og betalinger i dette projekt er permanent tilgængelige i dit projektrum. Du har reklamationsret i 5 år, og vi sender dig en påmindelse inden 1-årsfristen udløber.
                     </p>
                   </div>
                 </div>

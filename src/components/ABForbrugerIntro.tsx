@@ -4,7 +4,7 @@ const fordele = [
   {
     ikon: "M2 5h20v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5zm0 5h20",
     titel: "Betaling mod fremdrift",
-    tekst: "Du behøver ikke at forudbetale. Betaling sker løbende i takt med at arbejdet udføres — ikke på forhånd.",
+    tekst: "Du behøver ikke at forudbetale. Betaling sker løbende i takt med at arbejdet udføres, ikke på forhånd.",
   },
   {
     ikon: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
@@ -44,7 +44,7 @@ export default function ABForbrugerIntro({ kompakt = false, visLink = true }: Pr
           <div>
             <p className="font-semibold text-gray-900 text-sm">Hvad er AB-Forbruger?</p>
             <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-              AB-Forbruger 2012 er standardbetingelserne for private byggeaftaler i Danmark. De er lavet for at beskytte dig — men de træder kun i kraft, hvis du og håndværkeren eksplicit aftaler det. Det betyder at du aktivt skal bede om at AB-Forbruger inkluderes i jeres aftale.
+              AB-Forbruger 2012 er standardbetingelserne for private byggeaftaler i Danmark. De er lavet for at beskytte dig, men de træder kun i kraft hvis du og håndværkeren eksplicit aftaler det. Det betyder at du aktivt skal bede om at AB-Forbruger inkluderes i jeres aftale.
             </p>
           </div>
         </div>
@@ -81,7 +81,7 @@ export default function ABForbrugerIntro({ kompakt = false, visLink = true }: Pr
           </div>
         </div>
         <p className="text-white/70 text-sm leading-relaxed">
-          AB-Forbruger er lavet for at beskytte dig som privat bygherre — men de træder <strong className="text-white">kun i kraft hvis du og håndværkeren eksplicit aftaler det.</strong> De fleste aftaler nævner det slet ikke. Det er der vi kan hjælpe dig.
+          AB-Forbruger er lavet for at beskytte dig som privat bygherre, men de træder <strong className="text-white">kun i kraft hvis du og håndværkeren eksplicit aftaler det.</strong> De fleste aftaler nævner det slet ikke. Det er der vi kan hjælpe dig.
         </p>
       </div>
       <div className="divide-y divide-gray-50">

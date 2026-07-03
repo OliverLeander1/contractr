@@ -535,7 +535,7 @@ export default function UdbudDel() {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
               <p className="text-sm font-bold text-green-800 mb-1">Tilbud sendt!</p>
-              <p className="text-xs text-green-700">Linket er kopieret — send det til bygherren via SMS, mail eller anden besked.</p>
+              <p className="text-xs text-green-700">Linket er kopieret. Send det til bygherren via SMS, mail eller anden besked.</p>
             </div>
             <button
               onClick={() => router.push("/haandvaerker/sager")}

@@ -43,7 +43,7 @@ export default function ProjektChat() {
         afsender: "system",
         navn: "Contractr",
         rolle: "system",
-        tekst: "Projektchatten er oprettet. Her kan bygherre og håndværker kommunikere direkte — alt er dokumenteret og tidsstemplet.",
+        tekst: "Projektchatten er oprettet. Her kan bygherre og håndværker kommunikere direkte. Alt er dokumenteret og tidsstemplet.",
         tidspunkt: new Date().toISOString(),
       };
       setBeskeder([velkomst]);

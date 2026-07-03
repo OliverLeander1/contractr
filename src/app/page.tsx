@@ -255,9 +255,9 @@ export default function Forside() {
           <div className="max-w-5xl mx-auto px-6">
             <div className="text-center mb-10">
               <span className="text-xs font-semibold text-[#1a5c38] uppercase tracking-widest">Dine rettigheder som bygherre</span>
-              <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-3">AB-Forbruger — din rygrad i byggeaftalen</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-3">AB-Forbruger: din rygrad i byggeaftalen</h2>
               <p className="text-gray-500 max-w-xl mx-auto text-sm leading-relaxed">
-                De fleste private bygherrer har aldrig hørt om AB-Forbruger — men det er præcis de betingelser der eksisterer for at beskytte dig. De træder kun i kraft hvis du aktivt beder om dem.
+                De fleste private bygherrer har aldrig hørt om AB-Forbruger, men det er præcis de betingelser der eksisterer for at beskytte dig. De træder kun i kraft hvis du aktivt beder om dem.
               </p>
             </div>
             <ABForbrugerIntro visLink={true} />
@@ -381,7 +381,7 @@ export default function Forside() {
               <span className="text-xs font-semibold text-[#1a5c38] uppercase tracking-widest">AB-Forbruger 2012</span>
               <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-4">Dine rettigheder, oversat til handling</h2>
               <p className="text-gray-500 leading-relaxed mb-6">
-                AB-Forbruger er standardbetingelserne for private byggesager i Danmark — men de træder kun i kraft, hvis begge parter eksplicit aftaler det. Contractr sørger for at det sker korrekt fra dag ét, og oversætter paragrafterne til konkrete tjekpunkter undervejs.
+                AB-Forbruger er standardbetingelserne for private byggesager i Danmark, men de træder kun i kraft hvis begge parter eksplicit aftaler det. Contractr sørger for at det sker korrekt fra dag ét og oversætter paragrafterne til konkrete tjekpunkter undervejs.
               </p>
               <Link href="/abforbruger" className="text-sm font-semibold text-[#1a5c38] hover:underline">Læs om AB-Forbruger →</Link>
             </div>

@@ -20,7 +20,7 @@ const pakkeData = {
       { ikon: "money", label: "Betalingsoverblik koblet til fremdrift" },
       { ikon: "folder", label: "Dokumentarkiv til kontrakter og fakturaer" },
       { ikon: "alert", label: "Mangel-registrering med billeder og status" },
-      { ikon: "chat", label: "Projektchat — dokumenteret og tidsstemplet" },
+      { ikon: "chat", label: "Projektchat: dokumenteret og tidsstemplet" },
       { ikon: "person", label: "Inviter 1 håndværker til projektet" },
       { ikon: "guide", label: "Guide og AB-Forbruger-oversigt" },
       { ikon: "support", label: "E-mail support inden for 3 hverdage" },
@@ -54,7 +54,7 @@ const pakkeData = {
       { ikon: "folder", label: "Dokumentarkiv til kontrakter og fakturaer" },
       { ikon: "alert", label: "Mangel-registrering med billeder og status" },
       { ikon: "delivery", label: "Afleveringsflow med tjekliste" },
-      { ikon: "chat", label: "Projektchat — dokumenteret og tidsstemplet" },
+      { ikon: "chat", label: "Projektchat: dokumenteret og tidsstemplet" },
       { ikon: "person", label: "Inviter op til 3 håndværkere" },
       { ikon: "support", label: "Prioriteret support inden for 1 hverdag" },
     ],
@@ -84,11 +84,11 @@ const pakkeData = {
       { ikon: "folder", label: "Dokumentarkiv til kontrakter og fakturaer" },
       { ikon: "alert", label: "Mangel-registrering med billeder og status" },
       { ikon: "delivery", label: "Afleveringsflow med tjekliste" },
-      { ikon: "chat", label: "Projektchat — dokumenteret og tidsstemplet" },
+      { ikon: "chat", label: "Projektchat: dokumenteret og tidsstemplet" },
       { ikon: "people", label: "Ubegrænsede håndværkere i projektet" },
       { ikon: "advisor", label: "Dedikeret byggesagkyndig tilknyttet" },
       { ikon: "report", label: "Ugentlig statusrapport fra rådgiveren" },
-      { ikon: "support", label: "Prioriteret support — svar samme dag" },
+      { ikon: "support", label: "Prioriteret support: svar samme dag" },
     ],
     ikkeInkluderet: [
       "Fysisk byggetilsyn (kan tilkøbes)",
@@ -345,7 +345,7 @@ export default function PakkeDetalje() {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
               {[
                 { ikon: "🔒", tekst: "Sikker betaling via Stripe" },
-                { ikon: "📋", tekst: "Ingen binding — engangskøb" },
+                { ikon: "📋", tekst: "Ingen binding, engangskøb" },
                 { ikon: "↩️", tekst: "30 dages pengene-tilbage-garanti" },
                 { ikon: "🧑‍💼", tekst: "Vi arbejder kun for dig" },
               ].map(t => (

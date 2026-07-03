@@ -87,7 +87,7 @@ export default function Mangler({ params }: { params: Promise<{ id: string }> })
                     rows={3}
                     value={beskrivelse}
                     onChange={e => setBeskrivelse(e.target.value)}
-                    placeholder="Beskriv manglen praecist — hvad, hvor og hvornaar det blev opdaget..."
+                    placeholder="Beskriv manglen praecist: hvad, hvor og hvornaar det blev opdaget..."
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 resize-none"
                   />
                 </div>

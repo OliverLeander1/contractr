@@ -250,7 +250,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
                   <p className="text-sm font-semibold text-green-800">
-                    Tilbud accepteret — gå til &quot;Faser &amp; fakturering&quot; for at opdele arbejdet og fakturere etapevis.
+                    Tilbud accepteret. Gå til &quot;Faser &amp; fakturering&quot; for at opdele arbejdet og fakturere etapevis.
                   </p>
                 </div>
               </div>
@@ -326,7 +326,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                     "ikke-startet": { label: "Ikke startet", bg: "bg-gray-100", text: "text-gray-600" },
                     "igang": { label: "I gang", bg: "bg-blue-100", text: "text-blue-700" },
                     "done": { label: "Klar til godkendelse", bg: "bg-amber-100", text: "text-amber-700" },
-                    "godkendt": { label: "Godkendt — klar til fakturering", bg: "bg-green-100", text: "text-green-700" },
+                    "godkendt": { label: "Godkendt, klar til fakturering", bg: "bg-green-100", text: "text-green-700" },
                   }[fase.status];
 
                   return (
@@ -390,7 +390,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                           {fase.status === "godkendt" && (
                             <span className="text-xs text-green-700 font-semibold flex items-center gap-1.5">
                               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                              Klar til fakturering {faseTotal > 0 ? `— ${fmtKr(faseTotal)}` : ""}
+                              Klar til fakturering {faseTotal > 0 ? `: ${fmtKr(faseTotal)}` : ""}
                             </span>
                           )}
                         </div>

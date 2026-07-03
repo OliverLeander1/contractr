@@ -59,7 +59,7 @@ export default function DetGodeByggeprojekt() {
         <div className="prose prose-lg prose-gray max-w-none" style={{lineHeight: "1.8"}}>
 
           <p className="text-xl text-gray-600 leading-relaxed mb-8 font-light">
-            Hvert år påbegyndes over 100.000 private renoverings- og byggeprojekter i Danmark. Langt de fleste forløber uden store problemer. Men når det går galt — og det gør det for en betragtelig del — er historien næsten altid den samme: der var uklarhed om hvad der var aftalt.
+            Hvert år påbegyndes over 100.000 private renoverings- og byggeprojekter i Danmark. Langt de fleste forløber uden store problemer. Men når det går galt, og det gør det for en betragtelig del, er historien næsten altid den samme: der var uklarhed om hvad der var aftalt.
           </p>
 
           <hr className="border-gray-100 my-10" />
@@ -75,13 +75,13 @@ export default function DetGodeByggeprojekt() {
           </p>
 
           <p className="text-gray-600 leading-relaxed mb-5">
-            Det er den tavse antagelse. Begge parter forstod aftalen — de forstod den bare forskelligt. Og uden et skriftligt grundlag er det umuligt at afklare hvem der havde ret.
+            Det er den tavse antagelse. Begge parter forstod aftalen, de forstod den bare forskelligt. Og uden et skriftligt grundlag er det umuligt at afklare hvem der havde ret.
           </p>
 
           <div className="bg-amber-50 border border-amber-100 rounded-2xl p-6 my-8">
             <p className="text-amber-900 font-semibold text-sm mb-1">Vidste du?</p>
             <p className="text-amber-800 text-sm leading-relaxed">
-              AB-Forbruger 2012 er standardvilkårene for private byggesager i Danmark. De kræver at ekstraarbejde aftales skriftligt inden det påbegyndes (§ 23). Men de træder kun i kraft hvis begge parter eksplicit aftaler det — de gælder ikke automatisk.
+              AB-Forbruger 2012 er standardvilkårene for private byggesager i Danmark. De kræver at ekstraarbejde aftales skriftligt inden det påbegyndes (§ 23). Men de træder kun i kraft hvis begge parter eksplicit aftaler det. De gælder ikke automatisk.
             </p>
           </div>
 
@@ -104,7 +104,7 @@ export default function DetGodeByggeprojekt() {
               { nr: "1", spørgsmål: "Er prisen fast eller er det et overslag?", forklaring: "Et overslag giver håndværkeren ret til at overskride beløbet med op til 15 % uden yderligere godkendelse (AB-Forbruger § 14)." },
               { nr: "2", spørgsmål: "Hvornår begynder arbejdet, og hvornår er det forventet afsluttet?", forklaring: "Uden en aftalt tidsplan er forsinkelse svær at dokumentere og endnu sværere at kræve kompensation for." },
               { nr: "3", spørgsmål: "Hvad sker der hvis der opstår ekstraarbejde?", forklaring: "Hvem godkender det, til hvilken pris, og skal det aftales skriftligt inden det påbegyndes?" },
-              { nr: "4", spørgsmål: "Hvornår og hvordan betales der?", forklaring: "Betalingsplanen bør afspejle faktisk fremdrift — ikke faste datoer der ikke er knyttet til hvad der er udført." },
+              { nr: "4", spørgsmål: "Hvornår og hvordan betales der?", forklaring: "Betalingsplanen bør afspejle faktisk fremdrift, ikke faste datoer der ikke er knyttet til hvad der er udført." },
               { nr: "5", spørgsmål: "Hvad er proceduren ved mangler?", forklaring: "Hvornår anses arbejdet for afleveret, og hvad gøres der hvis der opdages fejl efterfølgende?" },
             ].map((item) => (
               <div key={item.nr} className="flex gap-4 bg-gray-50 rounded-xl p-4 border border-gray-100">
@@ -131,7 +131,7 @@ export default function DetGodeByggeprojekt() {
 
           <div className="border-l-4 border-[#1a5c38] pl-6 my-8">
             <p className="text-lg text-gray-700 italic leading-relaxed">
-              "De projekter der slutter godt, er næsten altid dem hvor forventningerne var tydelige fra dag ét. Det handler ikke om om der opstår problemer — det gør der næsten altid. Det handler om at parterne har et fælles grundlag at løse dem fra."
+              "De projekter der slutter godt, er næsten altid dem hvor forventningerne var tydelige fra dag ét. Det handler ikke om om der opstår problemer. Det gør der næsten altid. Det handler om at parterne har et fælles grundlag at løse dem fra."
             </p>
             <p className="text-sm text-gray-400 mt-3">Erfaring fra den danske byggebranche</p>
           </div>
@@ -148,7 +148,7 @@ export default function DetGodeByggeprojekt() {
             {[
               { paragraf: "§ 12", titel: "Tidsplan", tekst: "Du kan kræve en skriftlig tidsplan med angivelse af start og forventet afslutning." },
               { paragraf: "§ 23", titel: "Ekstraarbejde", tekst: "Ekstraarbejde skal aftales skriftligt inden opstart. Du er ikke forpligtet til at betale for ekstraarbejde der ikke er aftalt." },
-              { paragraf: "§ 25 + 37", titel: "Betaling", tekst: "Betaling bør ske i takt med dokumenteret fremdrift — ikke på forhånd og ikke på faste datoer uafhængigt af hvad der er udført." },
+              { paragraf: "§ 25 + 37", titel: "Betaling", tekst: "Betaling bør ske i takt med dokumenteret fremdrift, ikke på forhånd og ikke på faste datoer uafhængigt af hvad der er udført." },
               { paragraf: "§ 38", titel: "Aflevering", tekst: "Du kan kræve en formel afleveringsforretning, hvor mangler registreres skriftligt og der aftales en frist for udbedring." },
               { paragraf: "§ 58", titel: "1-årseftersyn", tekst: "Inden for ét år efter aflevering kan du kræve et eftersyn, hvor håndværkeren skal udbedre mangler der opdages." },
             ].map((p) => (
@@ -179,9 +179,9 @@ export default function DetGodeByggeprojekt() {
           <div className="space-y-2 mb-8">
             {[
               "Den originale aftale eller det accepterede tilbud",
-              "Alle aftaler om ekstraarbejde — skriftligt inden opstart",
+              "Alle aftaler om ekstraarbejde, skriftligt inden opstart",
               "Betalinger koblet til konkret fremdrift og datoer",
-              "Billeder af arbejdet undervejs — særligt inden noget dækkes til",
+              "Billeder af arbejdet undervejs, særligt inden noget dækkes til",
               "Skriftlig accept af leverancer og milepæle",
               "Registrerede mangler ved aflevering med aftalt udbedringsfrist",
             ].map((punkt) => (

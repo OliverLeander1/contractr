@@ -25,7 +25,7 @@ const ydelser = [
   {
     id: "ai-tilbud",
     titel: "Er tilbuddet fair?",
-    beskrivelse: "AI-gennemgang af dit tilbud — pris, forbehold og mangler på almindeligt dansk.",
+    beskrivelse: "AI-gennemgang af dit tilbud: pris, forbehold og mangler på almindeligt dansk.",
     pris: "995 kr.",
     detalje: "Svar inden for 24 timer",
     ikon: "search",
@@ -58,7 +58,7 @@ const ydelser = [
   {
     id: "aflevering",
     titel: "Er arbejdet gjort ordentligt?",
-    beskrivelse: "Gennemgang af udført arbejde før du betaler den sidste rate — med skriftlig rapport.",
+    beskrivelse: "Gennemgang af udført arbejde før du betaler den sidste rate. Inkluderer skriftlig rapport.",
     pris: "Fra 2.995 kr.",
     detalje: "Fysisk besøg + rapport",
     ikon: "check",

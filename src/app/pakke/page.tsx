@@ -11,12 +11,12 @@ const features = [
   { ikon: "extra", label: "Ekstraarbejde-sedler med digital godkendelse" },
   { ikon: "time", label: "Tidsplan med milepæle" },
   { ikon: "money", label: "Betalingsoverblik koblet til fremdrift" },
-  { ikon: "folder", label: "Dokumentarkiv — kontrakter, fakturaer og billeder" },
+  { ikon: "folder", label: "Dokumentarkiv: kontrakter, fakturaer og billeder" },
   { ikon: "alert", label: "Mangel-registrering med billeder og status" },
   { ikon: "delivery", label: "Afleveringsflow med tjekliste" },
-  { ikon: "chat", label: "Projektchat — dokumenteret og tidsstemplet" },
+  { ikon: "chat", label: "Projektchat: dokumenteret og tidsstemplet" },
   { ikon: "people", label: "Inviter håndværkere til projektet" },
-  { ikon: "forever", label: "Dine data gemmes for altid — klar til 1-års eftersyn og 5-års reklamationsret" },
+  { ikon: "forever", label: "Dine data gemmes for altid, klar til 1-års eftersyn og 5-års reklamationsret" },
 ];
 
 export default function VaelgPakke() {
@@ -45,7 +45,7 @@ export default function VaelgPakke() {
           <p className="text-white/40 text-xs uppercase tracking-widest mb-4 font-medium">Contractr Projektrum</p>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Hele projektet samlet ét sted</h1>
           <p className="text-white/60 text-lg max-w-xl mx-auto mb-8 leading-relaxed">
-            Én engangsbeløb. Ingen abonnement. Dine data gemmes for altid — klar til 1-års eftersyn og 5-års reklamationsret.
+            Én engangsbeløb. Ingen abonnement. Dine data gemmes for altid, klar til 1-års eftersyn og 5-års reklamationsret.
           </p>
           <div className="inline-flex items-end gap-3 bg-white/10 rounded-2xl px-8 py-5 mb-3">
             <p className="text-6xl font-bold">499</p>
@@ -88,7 +88,7 @@ export default function VaelgPakke() {
                 <div>
                   <p className="font-semibold text-gray-900 mb-1">Dine data slettes aldrig</p>
                   <p className="text-sm text-gray-500 leading-relaxed">
-                    Jf. AB-Forbruger har du reklamationsret i 5 år og ret til 1-års eftersyn ved entrepriser over 500.000 kr. Dit projektrum er altid tilgængeligt — ligesom dine beskeder på Facebook og Instagram. Du sletter selv hvis du vil.
+                    Jf. AB-Forbruger har du reklamationsret i 5 år og ret til 1-års eftersyn ved entrepriser over 500.000 kr. Dit projektrum er altid tilgængeligt. Du sletter selv hvis du vil.
                   </p>
                 </div>
               </div>
@@ -111,7 +111,7 @@ export default function VaelgPakke() {
                     </div>
                     <div className="flex items-start gap-2">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" className="mt-0.5 flex-shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                      Data gemmes permanent — klar til 1-års eftersyn.
+                      Data gemmes permanent, klar til 1-års eftersyn.
                     </div>
                   </div>
 

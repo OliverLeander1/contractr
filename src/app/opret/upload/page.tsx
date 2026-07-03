@@ -80,7 +80,7 @@ export default function UploadAftale() {
       {/* Spørgsmål om AB-Forbruger */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
         <p className="text-sm font-semibold text-gray-900 mb-1">Er AB-Forbruger nævnt i dit tilbud eller din kontrakt?</p>
-        <p className="text-xs text-gray-400 mb-4">Det ændrer hvad vi tjekker — og hvad vi anbefaler at du gør.</p>
+        <p className="text-xs text-gray-400 mb-4">Det ændrer hvad vi tjekker og hvad vi anbefaler at du gør.</p>
         <div className="flex gap-2">
           {([
             { val: "ja", label: "Ja, det er nævnt" },
@@ -110,14 +110,14 @@ export default function UploadAftale() {
         {abfNævnt === "ja" && (
           <div className="mt-4 bg-green-50 border border-green-100 rounded-xl p-3">
             <p className="text-xs text-green-800 leading-relaxed">
-              <strong>Godt.</strong> Vi tjekker at de vigtigste punkter er dækket korrekt — betaling, tidsplan, ekstraarbejde og manglerprocedure.
+              <strong>Godt.</strong> Vi tjekker at de vigtigste punkter er dækket korrekt: betaling, tidsplan, ekstraarbejde og manglerprocedure.
             </p>
           </div>
         )}
         {abfNævnt === "ved-ikke" && (
           <div className="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-3">
             <p className="text-xs text-blue-800 leading-relaxed">
-              Intet problem — vi finder det i dokumentet og fortæller dig hvad der gælder.
+              Intet problem. Vi finder det i dokumentet og fortæller dig hvad der gælder.
             </p>
           </div>
         )}

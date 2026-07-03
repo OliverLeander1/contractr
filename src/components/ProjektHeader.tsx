@@ -41,7 +41,7 @@ export default function ProjektHeader() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-1.5">
               {[
                 { label: "Projekttype", value: typeInfo.label },
-                { label: "Adresse", value: adresse || "—" },
+                { label: "Adresse", value: adresse || "Ikke angivet" },
                 { label: "Oprettet", value: oprettet },
                 { label: "Status", value: "Aftaletjek gennemført" },
               ].map((item) => (
