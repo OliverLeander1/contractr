@@ -248,6 +248,79 @@ export default function Rapport() {
         </div>
       )}
 
+      {/* Hvad får du ved at gå videre */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
+        <h3 className="font-semibold text-gray-900 mb-1">Hvad er forskellen på gratis og betalt?</h3>
+        <p className="text-xs text-gray-400 mb-5">Du har nu set den gratis screening. Her er hvad du går glip af uden projektrum.</p>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            {
+              titel: "Gratis screening",
+              pris: "Du er her",
+              prisfarge: "text-gray-400",
+              items: [
+                { ok: true, tekst: "Risikovurdering" },
+                { ok: true, tekst: "Liste over mangler" },
+                { ok: true, tekst: "Spørgsmål til håndværker" },
+                { ok: true, tekst: "Kopiérbar besked" },
+                { ok: false, tekst: "Gemmes ikke" },
+                { ok: false, tekst: "Ingen PDF" },
+                { ok: false, tekst: "Ingen kontrakt" },
+                { ok: false, tekst: "Ingen chat" },
+              ],
+            },
+            {
+              titel: "Projektrum",
+              pris: "499 kr.",
+              prisfarge: "text-[#1a5c38] font-bold",
+              highlight: true,
+              items: [
+                { ok: true, tekst: "Alt fra screening" },
+                { ok: true, tekst: "PDF du kan dele" },
+                { ok: true, tekst: "Kontrakt og tidsplan" },
+                { ok: true, tekst: "Betalingsplan" },
+                { ok: true, tekst: "Chat med håndværker" },
+                { ok: true, tekst: "Dokumentarkiv" },
+                { ok: true, tekst: "Gemmes permanent" },
+                { ok: true, tekst: "AB-Forbruger notif." },
+              ],
+            },
+            {
+              titel: "Rådgivergennemgang",
+              pris: "Fra 1.495 kr.",
+              prisfarge: "text-gray-700",
+              items: [
+                { ok: true, tekst: "Alt fra projektrum" },
+                { ok: true, tekst: "Fagperson læser aftalen" },
+                { ok: true, tekst: "Professionel vurdering" },
+                { ok: true, tekst: "Skriftlig anbefaling" },
+                { ok: true, tekst: "Juridisk rygrad" },
+              ],
+            },
+          ].map((kolonne) => (
+            <div key={kolonne.titel} className={`rounded-xl p-4 ${kolonne.highlight ? "bg-[#1a5c38] text-white" : "bg-gray-50"}`}>
+              <p className={`text-xs font-bold uppercase tracking-wide mb-0.5 ${kolonne.highlight ? "text-white/60" : "text-gray-400"}`}>{kolonne.titel}</p>
+              <p className={`text-base font-bold mb-4 ${kolonne.highlight ? "text-white" : kolonne.prisfarge}`}>{kolonne.pris}</p>
+              <div className="space-y-2">
+                {kolonne.items.map((item) => (
+                  <div key={item.tekst} className="flex items-start gap-2">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={item.ok ? (kolonne.highlight ? "white" : "#1a5c38") : "#d1d5db"} strokeWidth={item.ok ? "3" : "2"} className="flex-shrink-0 mt-0.5">
+                      {item.ok ? <polyline points="20 6 9 17 4 12"/> : <line x1="18" y1="6" x2="6" y2="18"/>}
+                    </svg>
+                    <span className={`text-xs leading-relaxed ${kolonne.highlight ? "text-white/90" : item.ok ? "text-gray-700" : "text-gray-300"}`}>{item.tekst}</span>
+                  </div>
+                ))}
+              </div>
+              {kolonne.highlight && (
+                <a href="/pakke" className="mt-4 block text-center bg-white text-[#1a5c38] text-xs font-bold py-2 rounded-lg hover:opacity-90 transition-opacity">
+                  Opret projektrum
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Næste skridt: opret projektrum */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
         <div className="bg-[#111c17] px-6 py-5 flex items-center justify-between gap-4">
