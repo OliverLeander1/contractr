@@ -41,14 +41,14 @@ export default function Forside() {
             <div className="inline-flex items-center bg-gray-100 rounded-xl p-1 gap-1">
               <Link
                 href="/"
-                className="flex items-center gap-2 px-5 py-2 rounded-lg bg-[#1a5c38] text-white text-sm font-semibold shadow-sm transition-all"
+                className="flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-lg bg-[#1a5c38] text-white text-sm font-semibold shadow-sm transition-all"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 Bygherre
               </Link>
               <Link
                 href="/haandvaerker/sager"
-                className="flex items-center gap-2 px-5 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-white text-sm font-medium transition-all"
+                className="flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-white text-sm font-medium transition-all"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
                 Håndværker
@@ -62,7 +62,7 @@ export default function Forside() {
               <Link href="/det-gode-byggeprojekt" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Guides</Link>
               <Link href="/tilkoeb" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Rådgivere</Link>
             </nav>
-            <Link href="/opret/upload" className="text-sm font-semibold bg-[#1a5c38] text-white px-5 py-2.5 rounded-lg hover:bg-[#163f28] transition-colors">
+            <Link href="/opret/upload" className="hidden sm:inline-flex text-sm font-semibold bg-[#1a5c38] text-white px-5 py-2.5 rounded-lg hover:bg-[#163f28] transition-colors">
               Tjek tilbud gratis →
             </Link>
           </div>
@@ -77,7 +77,7 @@ export default function Forside() {
           <div className="absolute inset-0 bg-gradient-to-br from-green-50/60 via-transparent to-transparent pointer-events-none" />
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#1a5c38]/4 rounded-full blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none" />
 
-          <div className="max-w-6xl mx-auto px-6 py-20 relative">
+          <div className="max-w-6xl mx-auto px-6 py-12 md:py-20 relative">
             <div className="grid md:grid-cols-2 gap-12 items-center">
 
               {/* Tekst */}
@@ -86,7 +86,7 @@ export default function Forside() {
                   <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                   Understøtter AB-Forbruger 2012
                 </span>
-                <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 leading-[1.08] tracking-tight mb-6">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 leading-[1.08] tracking-tight mb-6">
                   Har du modtaget<br />
                   <span className="text-[#1a5c38]">et tilbud fra en håndværker?</span>
                 </h1>
@@ -105,7 +105,7 @@ export default function Forside() {
                     Guides og råd
                   </Link>
                 </div>
-                <div className="flex items-center gap-6 text-xs text-gray-400">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-gray-400">
                   {["Gratis at starte", "Ingen konto krævet", "Svar på 2 minutter"].map((s) => (
                     <span key={s} className="flex items-center gap-1.5">
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
