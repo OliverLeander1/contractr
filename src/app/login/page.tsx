@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase";
 
 type BrugerType = "bygherre" | "haandvaerker" | null;
 
@@ -14,38 +15,122 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [navn, setNavn] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [bekraeftelse, setBekraeftelse] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError("");
     if (!email.trim()) { setError("Indtast din e-mail."); return; }
     if (!password.trim()) { setError("Indtast din adgangskode."); return; }
     if (mode === "opret" && !navn.trim()) { setError("Indtast dit navn."); return; }
+    if (password.length < 8) { setError("Adgangskoden skal være mindst 8 tegn."); return; }
 
-    // Gem brugerdata i localStorage så Min side og resten af platformen kan bruge det
-    const bruger = {
-      navn: mode === "opret" ? navn.trim() : (localStorage.getItem("contractr_user") ? JSON.parse(localStorage.getItem("contractr_user")!).navn : email.split("@")[0]),
+    setLoading(true);
+    const supabase = createClient();
+
+    if (mode === "opret") {
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: {
+            navn: navn.trim(),
+            brugerType,
+          },
+        },
+      });
+
+      if (signUpError) {
+        setLoading(false);
+        if (signUpError.message.includes("already registered")) {
+          setError("Der findes allerede en konto med denne e-mail. Prøv at logge ind i stedet.");
+        } else {
+          setError(signUpError.message);
+        }
+        return;
+      }
+
+      // Gem i localStorage så resten af platformen kan bruge det
+      localStorage.setItem("contractr_user", JSON.stringify({
+        navn: navn.trim(),
+        email: email.trim(),
+        brugerType,
+        loginDato: new Date().toISOString(),
+      }));
+
+      setBekraeftelse(true);
+      setLoading(false);
+      return;
+    }
+
+    // Login
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email: email.trim(),
-      brugerType,
+      password,
+    });
+
+    if (signInError) {
+      setLoading(false);
+      if (signInError.message.includes("Invalid login credentials")) {
+        setError("Forkert e-mail eller adgangskode.");
+      } else if (signInError.message.includes("Email not confirmed")) {
+        setError("Bekræft din e-mail inden du logger ind. Tjek din indbakke.");
+      } else {
+        setError(signInError.message);
+      }
+      return;
+    }
+
+    // Gem brugerdata i localStorage
+    const meta = data.user?.user_metadata;
+    const gemt = {
+      navn: meta?.navn || email.split("@")[0],
+      email: email.trim(),
+      brugerType: meta?.brugerType || brugerType,
       loginDato: new Date().toISOString(),
     };
-    localStorage.setItem("contractr_user", JSON.stringify(bruger));
+    localStorage.setItem("contractr_user", JSON.stringify(gemt));
 
-    // Opdater evt. eksisterende projektdata med navn/kontakt
-    if (brugerType === "bygherre") {
-      const raw = localStorage.getItem("contractr_projekt");
-      if (raw) {
-        try {
-          const p = JSON.parse(raw);
-          if (!p.navn && bruger.navn) p.navn = bruger.navn;
-          if (!p.kontakt && bruger.email) p.kontakt = bruger.email;
-          localStorage.setItem("contractr_projekt", JSON.stringify(p));
-        } catch { /* ignore */ }
-      }
-      router.push("/hub");
-    } else {
-      router.push("/haandvaerker/sager");
+    // Opdater evt. eksisterende projektdata
+    const raw = localStorage.getItem("contractr_projekt");
+    if (raw) {
+      try {
+        const p = JSON.parse(raw);
+        if (!p.navn && gemt.navn) p.navn = gemt.navn;
+        if (!p.kontakt && gemt.email) p.kontakt = gemt.email;
+        localStorage.setItem("contractr_projekt", JSON.stringify(p));
+      } catch { /* ignore */ }
     }
+
+    const type = meta?.brugerType || brugerType;
+    router.push(type === "haandvaerker" ? "/haandvaerker/sager" : "/hub");
   };
+
+  if (bekraeftelse) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-12">
+        <Link href="/" className="flex items-center gap-2.5 mb-10">
+          <div className="w-10 h-10 bg-[#1a5c38] rounded-xl flex items-center justify-center shadow-sm">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+          </div>
+          <span className="text-xl tracking-tight" style={{ fontFamily: "var(--font-logo)", fontWeight: 200, letterSpacing: "2px" }}>contractr</span>
+        </Link>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 w-full max-w-md text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Tjek din e-mail</h2>
+          <p className="text-sm text-gray-500 leading-relaxed mb-6">
+            Vi har sendt en bekræftelseslink til <strong>{email}</strong>. Klik på linket for at aktivere din konto og logge ind.
+          </p>
+          <p className="text-xs text-gray-400">Kan du ikke finde mailen? Tjek din spam-mappe.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-12">
@@ -159,7 +244,19 @@ export default function Login() {
             <div>
               <div className="flex justify-between mb-1.5">
                 <label className="text-sm font-medium text-gray-700">Adgangskode</label>
-                {mode === "login" && <button className="text-xs text-[#1a5c38] hover:underline">Glemt adgangskode?</button>}
+                {mode === "login" && (
+                  <button
+                    onClick={async () => {
+                      if (!email.trim()) { setError("Indtast din e-mail for at nulstille adgangskoden."); return; }
+                      const supabase = createClient();
+                      await supabase.auth.resetPasswordForEmail(email.trim());
+                      setError("Vi har sendt et link til at nulstille din adgangskode.");
+                    }}
+                    className="text-xs text-[#1a5c38] hover:underline"
+                  >
+                    Glemt adgangskode?
+                  </button>
+                )}
               </div>
               <input
                 type="password"
@@ -169,6 +266,9 @@ export default function Login() {
                 onKeyDown={e => e.key === "Enter" && handleSubmit()}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
               />
+              {mode === "opret" && (
+                <p className="text-xs text-gray-400 mt-1">Mindst 8 tegn.</p>
+              )}
             </div>
           </div>
 
@@ -180,16 +280,17 @@ export default function Login() {
 
           <button
             onClick={handleSubmit}
-            className="w-full bg-[#1a5c38] text-white font-bold py-3.5 rounded-xl mt-6 hover:opacity-90 transition-opacity"
+            disabled={loading}
+            className={`w-full font-bold py-3.5 rounded-xl mt-6 transition-all ${loading ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-[#1a5c38] text-white hover:opacity-90"}`}
           >
-            {mode === "login" ? "Log ind" : "Opret konto"}
+            {loading ? "Vent..." : mode === "login" ? "Log ind" : "Opret konto"}
           </button>
 
           {mode === "opret" && (
             <p className="text-xs text-gray-400 text-center mt-4 leading-relaxed">
               Ved oprettelse accepterer du vores{" "}
               <Link href="/vilkaar" className="text-[#1a5c38] hover:underline">vilkår</Link>{" "}og{" "}
-              <Link href="/vilkaar" className="text-[#1a5c38] hover:underline">privatlivspolitik</Link>.
+              <Link href="/privatliv" className="text-[#1a5c38] hover:underline">privatlivspolitik</Link>.
             </p>
           )}
         </div>
