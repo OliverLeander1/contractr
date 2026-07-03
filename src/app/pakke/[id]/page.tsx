@@ -6,12 +6,12 @@ import { useParams, useRouter } from "next/navigation";
 
 const pakkeData = {
   lille: {
-    navn: "Lille projekt",
-    tagline: "Kom trygt i gang",
-    beskrivelse: "Alt du behøver til et mindre byggeprojekt. Kontrakten er på plads, betalingerne er dokumenterede, og du har styr på manglerne.",
+    navn: "Projektrum",
+    tagline: "Kontrakt, betalinger og overblik",
+    beskrivelse: "Alt du behøver til at have styr på aftalen. Kontrakt, betalingsplan og dokumentarkiv samlet ét sted — fra accept til aflevering.",
     pris: 499,
     budget: "Under 100.000 kr.",
-    eksempler: "Badeværelse · Malerarbejde · Smårenoveringer",
+    eksempler: "Badeværelse · Malerarbejde · Vinduer · Smaller renoveringer",
     inkluderet: [
       { ikon: "doc", label: "Udbudsdokument med AB-Forbruger 2012" },
       { ikon: "contract", label: "Digital kontrakt til håndværker" },
@@ -34,9 +34,9 @@ const pakkeData = {
     ],
   },
   mellem: {
-    navn: "Mellem projekt",
-    tagline: "Det fulde overblik",
-    beskrivelse: "Til det seriøse projekt hvor der er penge på spil. Du får AI-screening af tilbuddet, plads til tre håndværkere og prioriteret support.",
+    navn: "Projektrum med AI-tjek",
+    tagline: "Inkl. AI-gennemgang af tilbud og ekstraaftaler",
+    beskrivelse: "Projektrummet plus AI der gennemgår dit tilbud og markerer hvad du bør stille spørgsmål til. Du ser risici på almindeligt dansk inden du siger ja.",
     pris: 999,
     budget: "100.000 – 500.000 kr.",
     eksempler: "Tilbygning · Nyt tag · Køkken · Større renovering",
@@ -65,12 +65,12 @@ const pakkeData = {
     ],
   },
   stort: {
-    navn: "Stort projekt",
-    tagline: "Professionel rygrad",
-    beskrivelse: "Til de store projekter med mange parter og høj kompleksitet. Du får en dedikeret byggesagkyndig tilknyttet og ugentlig statusrapport.",
-    pris: 1999,
-    budget: "Over 500.000 kr.",
-    eksempler: "Ombygning · Nybyg · Total renovering",
+    navn: "Projektrum med byggerådgiver",
+    tagline: "Inkl. byggerådgiver og faglig opfølgning",
+    beskrivelse: "Projektrummet med AI-tjek plus en tilknyttet byggerådgiver der gennemgår dit tilbud, besvarer dine spørgsmål og er med dig til afleveringen.",
+    pris: 2495,
+    budget: "Over 300.000 kr.",
+    eksempler: "Ombygning · Totalrenovering · Tilbygning · Nybyg",
     inkluderet: [
       { ikon: "doc", label: "Udbudsdokument med AB-Forbruger 2012" },
       { ikon: "contract", label: "Digital kontrakt til håndværker" },

@@ -329,9 +329,9 @@ export default function MinSide() {
               {!pakkeKobt && (
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { navn: "Lille projekt", pris: "499 kr.", href: "/pakke/lille" },
-                    { navn: "Mellem projekt", pris: "999 kr.", href: "/pakke/mellem" },
-                    { navn: "Stort projekt", pris: "1.999 kr.", href: "/pakke/stort" },
+                    { navn: "Projektrum", pris: "499 kr.", href: "/pakke/lille" },
+                    { navn: "Med AI-tjek", pris: "999 kr.", href: "/pakke/mellem" },
+                    { navn: "Med byggerådgiver", pris: "2.495 kr.", href: "/pakke/stort" },
                   ].map(p => (
                     <Link key={p.navn} href={p.href} className="flex flex-col items-center p-3 rounded-xl border border-gray-100 hover:border-[#1a5c38]/30 hover:bg-[#1a5c38]/5 transition-all group text-center">
                       <p className="text-xs font-semibold text-gray-700 group-hover:text-[#1a5c38] transition-colors">{p.navn}</p>

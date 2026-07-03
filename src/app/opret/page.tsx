@@ -58,6 +58,28 @@ export default function OpretProjekt() {
 
   const kanFortsætte = valgtType && adresse && navn;
 
+  // Statiker-vurdering baseret på projekttype
+  const statikerNiveau: Record<string, "høj" | "middel" | "lav" | null> = {
+    tilbygning: "høj",
+    tag: "middel",
+    totalrenovering: "middel",
+    badevarelse: "lav",
+    kokken: "lav",
+    vinduer: null,
+    maler: null,
+    andet: "lav",
+  };
+  const statikerRisiko = valgtType ? statikerNiveau[valgtType] ?? null : null;
+
+  const statikerSpørgsmål: Record<string, string[]> = {
+    tilbygning: ["Kræver fundament eller betonarbejde", "Kræver næsten altid bærende konstruktioner", "Kræver typisk byggetilladelse og ingeniørberegninger"],
+    tag: ["Ændres tagkonstruktionen eller spærene?", "Etableres der tagetage til beboelse?"],
+    totalrenovering: ["Fjernes der bærende vægge eller søjler?", "Ændres etageadskillelse eller dæk?"],
+    badevarelse: ["Monteres der badekar, boblebad eller dampbad? (tung gulvlast)", "Er boligen i en etageejendom? (kræver vådrumsberegning)"],
+    kokken: ["Fjernes der vægge for at åbne køkkenet?"],
+    andet: ["Indebærer projektet fjernelse af vægge eller bærende konstruktioner?"],
+  };
+
   return (
     <FlowLayout aktivTrin={1}>
       <div className="mb-8">
@@ -88,6 +110,36 @@ export default function OpretProjekt() {
           ))}
         </div>
       </div>
+
+      {/* Statiker-vurdering */}
+      {valgtType && statikerRisiko && (
+        <div className={`rounded-2xl border-2 p-5 mb-5 ${statikerRisiko === "høj" ? "border-amber-300 bg-amber-50" : "border-gray-200 bg-white"}`}>
+          <div className="flex items-start gap-3">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${statikerRisiko === "høj" ? "bg-amber-100" : "bg-gray-100"}`}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={statikerRisiko === "høj" ? "#d97706" : "#6b7280"} strokeWidth="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className={`font-semibold text-sm mb-1 ${statikerRisiko === "høj" ? "text-amber-800" : "text-gray-800"}`}>
+                {statikerRisiko === "høj" ? "Dette projekt kræver sandsynligvis ingeniørberegninger" : "Tjek om der kræves statiker eller ingeniørberegninger"}
+              </p>
+              <div className="space-y-1 mb-3">
+                {(statikerSpørgsmål[valgtType] ?? []).map((s, i) => (
+                  <p key={i} className="text-xs text-gray-500 flex items-start gap-1.5">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" className="mt-0.5 flex-shrink-0"><polyline points="9 18 15 12 9 6"/></svg>
+                    {s}
+                  </p>
+                ))}
+              </div>
+              <a href="/statiker" className={`inline-flex items-center gap-1.5 text-xs font-semibold hover:underline ${statikerRisiko === "høj" ? "text-amber-700" : "text-[#1a5c38]"}`}>
+                Få gratis vurdering af en byggerådgiver →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Adresse */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
