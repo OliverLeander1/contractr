@@ -125,7 +125,7 @@ export default function Forside() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
               <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-50 flex flex-col items-center text-center">
                 <UploadAnimation />
-                <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug mt-2">Upload og glem det</h3>
+                <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug mt-2">Send dit tilbud til os</h3>
                 <p className="text-xs text-gray-500 leading-relaxed">Send tilbud, kontrakt eller mail. Vi læser det og tjekker det samme.</p>
               </div>
               <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-50 flex flex-col items-center text-center">
