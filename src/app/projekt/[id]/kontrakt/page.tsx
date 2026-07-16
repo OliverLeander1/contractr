@@ -123,33 +123,16 @@ export default function Kontrakt({ params }: { params: Promise<{ id: string }> }
             </div>
 
             <div className="border-t border-gray-100 pt-6">
-              <h3 className="font-bold text-gray-900 mb-3 text-xs uppercase tracking-widest text-primary">§ 3 - Tilbudsliste og pris</h3>
-              <p className="mb-4">Entreprisesummen er aftalt til <strong className="text-gray-900">{fmtKr(total)} inkl. moms</strong> (fast pris). Aendringer i arbejdets art og omfang aftales skriftligt jf. AB-Forbruger § 23.</p>
-              <table className="w-full text-xs mb-3">
-                <thead>
-                  <tr className="text-left border-b border-gray-100">
-                    <th className="pb-2 font-semibold text-gray-500">Nr.</th>
-                    <th className="pb-2 font-semibold text-gray-500">Opgave</th>
-                    <th className="pb-2 font-semibold text-gray-500 text-right">Pris inkl. moms</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {projekt.tilbudsposter.map((p, i) => {
-                    const prisInklMoms = (parseFloat(p.pris) || 0) * 1.25;
-                    return (
-                      <tr key={p.id}>
-                        <td className="py-2 pr-3 text-gray-400">{i + 1}</td>
-                        <td className="py-2 pr-3 text-gray-800">{p.beskrivelse}</td>
-                        <td className="py-2 text-right font-medium text-gray-800">{prisInklMoms > 0 ? fmtKr(prisInklMoms) : "-"}</td>
-                      </tr>
-                    );
-                  })}
-                  <tr className="border-t border-gray-200 font-bold">
-                    <td colSpan={2} className="pt-2 text-gray-900">Total inkl. moms</td>
-                    <td className="pt-2 text-right text-primary">{fmtKr(total)}</td>
-                  </tr>
-                </tbody>
-              </table>
+              <h3 className="font-bold text-gray-900 mb-3 text-xs uppercase tracking-widest text-primary">§ 3 - Entreprisesum</h3>
+              <p className="mb-5">Entreprisesummen er aftalt til fast pris. Ændringer i arbejdets art og omfang aftales skriftligt jf. AB-Forbruger § 23.</p>
+              <div className="bg-[#f0f7f3] border border-green-100 rounded-xl px-6 py-5 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-1">Samlet entreprisesum</p>
+                  <p className="text-xs text-gray-400">Fast pris inkl. moms · AB-Forbruger § 23</p>
+                </div>
+                <p className="text-2xl font-bold text-[#1a5c38]">{fmtKr(total)}</p>
+              </div>
+              <p className="text-xs text-gray-400 mt-3">Detaljeret tilbudsliste fra entreprenøren vedlægges som bilag og er en del af aftalegrundlaget.</p>
             </div>
 
             <div className="border-t border-gray-100 pt-6">
