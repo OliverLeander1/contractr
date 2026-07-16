@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import LottieHover from "@/components/LottieHover";
+import { UploadAnimation, ScanAnimation, AdvisorAnimation, ProjectAnimation } from "@/components/BenefitAnimation";
 
 export const metadata: Metadata = {
   title: "Nembyggestyring - Forstå din byggeaftale inden du siger ja",
@@ -16,8 +16,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.nembyggestyring.dk" },
   robots: { index: true, follow: true },
 };
-
-const LOTTIE_BASE = "https://cdn.lordicon.com";
 
 export default function Forside() {
   return (
@@ -109,7 +107,7 @@ export default function Forside() {
           </div>
         </section>
 
-        {/* Fordele med Lottie-animationer */}
+        {/* Fordele med animerede ikoner */}
         <section className="bg-[#fdf9f6] py-16 sm:py-24">
           {/* Bølge øverst */}
           <div className="w-full overflow-hidden -mt-1 mb-12">
@@ -125,36 +123,26 @@ export default function Forside() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
-              {[
-                {
-                  lottie: `${LOTTIE_BASE}/rbbnmpcf.json`,
-                  titel: "Upload og glem det",
-                  tekst: "Send tilbud, kontrakt eller mail. Vi læser det og tjekker det samme.",
-                },
-                {
-                  lottie: `${LOTTIE_BASE}/msoeawqm.json`,
-                  titel: "Screenet på 2 minutter",
-                  tekst: "Vi afdækker hvad der mangler i aftalen — konkret og forståeligt.",
-                },
-                {
-                  lottie: `${LOTTIE_BASE}/eszyyflr.json`,
-                  titel: "Rådgiver på ét klik",
-                  tekst: "Ved middel eller høj risiko kan du booke en byggesagkyndig direkte.",
-                },
-                {
-                  lottie: `${LOTTIE_BASE}/cnpvyndp.json`,
-                  titel: "Projektet samlet ét sted",
-                  tekst: "Fra tilbud til aflevering — kontrakt, betalinger og kommunikation.",
-                },
-              ].map((f) => (
-                <div key={f.titel} className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-50 flex flex-col items-center text-center group">
-                  <div className="mb-4">
-                    <LottieHover src={f.lottie} size={90} />
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug">{f.titel}</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">{f.tekst}</p>
-                </div>
-              ))}
+              <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-50 flex flex-col items-center text-center">
+                <UploadAnimation />
+                <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug mt-2">Upload og glem det</h3>
+                <p className="text-xs text-gray-500 leading-relaxed">Send tilbud, kontrakt eller mail. Vi læser det og tjekker det samme.</p>
+              </div>
+              <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-50 flex flex-col items-center text-center">
+                <ScanAnimation />
+                <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug mt-2">Screenet på 2 minutter</h3>
+                <p className="text-xs text-gray-500 leading-relaxed">Vi afdækker hvad der mangler i aftalen — konkret og forståeligt.</p>
+              </div>
+              <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-50 flex flex-col items-center text-center">
+                <AdvisorAnimation />
+                <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug mt-2">Rådgiver på ét klik</h3>
+                <p className="text-xs text-gray-500 leading-relaxed">Ved middel eller høj risiko kan du booke en byggesagkyndig direkte.</p>
+              </div>
+              <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-50 flex flex-col items-center text-center">
+                <ProjectAnimation />
+                <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug mt-2">Projektet samlet ét sted</h3>
+                <p className="text-xs text-gray-500 leading-relaxed">Fra tilbud til aflevering — kontrakt, betalinger og kommunikation.</p>
+              </div>
             </div>
           </div>
 
