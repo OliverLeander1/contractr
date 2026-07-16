@@ -54,7 +54,6 @@ export default function Forside() {
 
         {/* Hero */}
         <section className="relative overflow-hidden bg-[#f5f9f6] px-4 sm:px-6 py-14 sm:py-20 md:py-28">
-          {/* Blob-dekorationer */}
           <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#1a5c38]/6 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-emerald-100/60 rounded-full blur-2xl pointer-events-none" />
 
@@ -79,7 +78,7 @@ export default function Forside() {
               </Link>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-gray-400">
-              {["Svar på 2 minutter", "Ingen konto krævet", "AB-Forbruger 2012"].map((s) => (
+              {["Svar på 2 minutter", "Ingen konto krævet", "Tjekkes mod AB-Forbruger 2012"].map((s) => (
                 <span key={s} className="flex items-center gap-1.5">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                   {s}
@@ -89,125 +88,108 @@ export default function Forside() {
           </div>
         </section>
 
-        {/* Stats-strip */}
-        <section className="bg-white border-y border-gray-100">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-            <div className="grid grid-cols-3 gap-6 text-center">
-              {[
-                { tal: "2 min", label: "Gennemsnitlig svartid" },
-                { tal: "100%", label: "Gratis at starte" },
-                { tal: "AB-Forbruger", label: "Standardvilkår vi tjekker mod" },
-              ].map((s) => (
-                <div key={s.label}>
-                  <p className="text-xl sm:text-2xl font-bold text-[#1a5c38] mb-1">{s.tal}</p>
-                  <p className="text-xs text-gray-400 leading-snug">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Fordele med animerede ikoner */}
-        <section className="bg-[#fdf9f6] py-16 sm:py-24">
-          {/* Bølge øverst */}
-          <div className="w-full overflow-hidden -mt-1 mb-12">
-            <svg viewBox="0 0 1440 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-              <path d="M0 40 C360 0 1080 0 1440 40 L1440 0 L0 0 Z" fill="#ffffff"/>
-            </svg>
-          </div>
-
+        <section className="bg-[#fdf9f6] py-16 sm:py-24 border-b border-[#eef4f0]">
           <div className="max-w-5xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-12">
               <span className="text-xs font-semibold text-[#1a5c38] uppercase tracking-widest">Fordele</span>
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">Derfor bruger private bygherrer Nembyggestyring</h2>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
-              <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-50 flex flex-col items-center text-center">
-                <UploadAnimation />
-                <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug mt-2">Send dit tilbud til os</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">Send tilbud, kontrakt eller mail. Vi læser det og tjekker det samme.</p>
-              </div>
-              <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-50 flex flex-col items-center text-center">
-                <ScanAnimation />
-                <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug mt-2">Screenet på 2 minutter</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">Vi afdækker hvad der mangler i aftalen — konkret og forståeligt.</p>
-              </div>
-              <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-50 flex flex-col items-center text-center">
-                <AdvisorAnimation />
-                <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug mt-2">Rådgiver på ét klik</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">Ved middel eller høj risiko kan du booke en byggesagkyndig direkte.</p>
-              </div>
-              <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-gray-50 flex flex-col items-center text-center">
-                <ProjectAnimation />
-                <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug mt-2">Projektet samlet ét sted</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">Fra tilbud til aflevering — kontrakt, betalinger og kommunikation.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Bølge nederst */}
-          <div className="w-full overflow-hidden mt-12">
-            <svg viewBox="0 0 1440 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-              <path d="M0 0 C360 40 1080 40 1440 0 L1440 40 L0 40 Z" fill="#ffffff"/>
-            </svg>
-          </div>
-        </section>
-
-        {/* Sådan virker det */}
-        <section className="bg-white py-16 sm:py-20 border-b border-gray-100">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6">
-            <div className="text-center mb-12">
-              <span className="text-xs font-semibold text-[#1a5c38] uppercase tracking-widest">Sådan virker det</span>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">Tre trin. To minutter. Ét klart svar.</h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6 relative">
-              {/* Forbindelseslinje */}
-              <div className="hidden sm:block absolute top-8 left-[calc(16.66%+1rem)] right-[calc(16.66%+1rem)] h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-6">
               {[
-                {
-                  nr: "01",
-                  titel: "Upload tilbuddet",
-                  tekst: "Tilbud, kontrakt, mail eller screenshot. Vi tager alle formater.",
-                  farve: "bg-[#f0f7f3] text-[#1a5c38]",
-                },
-                {
-                  nr: "02",
-                  titel: "Vi screener aftalen",
-                  tekst: "Automatisk tjek mod AB-Forbruger 2012 med risikovurdering på hvert punkt.",
-                  farve: "bg-amber-50 text-amber-700",
-                },
-                {
-                  nr: "03",
-                  titel: "Du handler",
-                  tekst: "Konkrete spørgsmål du kan sende til håndværkeren — eller book en rådgiver.",
-                  farve: "bg-[#f0f7f3] text-[#1a5c38]",
-                },
-              ].map((t) => (
-                <div key={t.nr} className="relative z-10 flex flex-col items-center text-center">
-                  <div className={`w-14 h-14 ${t.farve} rounded-2xl flex items-center justify-center mb-5 shadow-sm`}>
-                    <span className="text-lg font-bold">{t.nr}</span>
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-2">{t.titel}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed max-w-[200px]">{t.tekst}</p>
+                { anim: <UploadAnimation />, titel: "Send dit tilbud til os", tekst: "Tilbud, kontrakt eller mail. Vi læser det og tjekker det med det samme." },
+                { anim: <ScanAnimation />, titel: "Screenet på 2 minutter", tekst: "Vi afdækker hvad der mangler i aftalen — konkret og forståeligt." },
+                { anim: <AdvisorAnimation />, titel: "Rådgiver på ét klik", tekst: "Ved middel eller høj risiko kan du booke en byggesagkyndig direkte." },
+                { anim: <ProjectAnimation />, titel: "Projektet samlet ét sted", tekst: "Fra tilbud til aflevering — kontrakt, betalinger og kommunikation." },
+              ].map((f) => (
+                <div key={f.titel} className="bg-white rounded-2xl pt-6 pb-7 px-5 shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col items-center text-center">
+                  {f.anim}
+                  <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug mt-3">{f.titel}</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">{f.tekst}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
+        {/* Sådan virker det — stor illustreret sektion */}
+        <section className="bg-[#111c17] py-16 sm:py-24">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <div className="text-center mb-14">
+              <span className="text-xs font-semibold text-green-400 uppercase tracking-widest">Sådan virker det</span>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mt-2">Tre trin. To minutter. Ét klart svar.</h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+              {/* Trin 1 */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-7 flex flex-col items-center text-center hover:bg-white/8 transition-colors">
+                <div className="w-20 h-20 bg-[#1a5c38] rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-black/30">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                </div>
+                <span className="text-green-400 text-xs font-bold uppercase tracking-widest mb-2">Trin 1</span>
+                <h3 className="text-white font-bold text-lg mb-3">Upload dit tilbud</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Send tilbud, kontrakt, mail eller screenshot. Vi tager alle formater — PDF, billede eller kopi-indsæt.
+                </p>
+              </div>
+
+              {/* Trin 2 */}
+              <div className="bg-amber-400/10 border border-amber-400/20 rounded-2xl p-7 flex flex-col items-center text-center hover:bg-amber-400/15 transition-colors">
+                <div className="w-20 h-20 bg-amber-400 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-black/30">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    <line x1="11" y1="8" x2="11" y2="14"/>
+                    <line x1="8" y1="11" x2="14" y2="11"/>
+                  </svg>
+                </div>
+                <span className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-2">Trin 2</span>
+                <h3 className="text-white font-bold text-lg mb-3">Vi screener aftalen</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Automatisk tjek mod AB-Forbruger 2012 med risikovurdering på hvert enkelt punkt i aftalen.
+                </p>
+              </div>
+
+              {/* Trin 3 */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-7 flex flex-col items-center text-center hover:bg-white/8 transition-colors">
+                <div className="w-20 h-20 bg-[#1a5c38] rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-black/30">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </div>
+                <span className="text-green-400 text-xs font-bold uppercase tracking-widest mb-2">Trin 3</span>
+                <h3 className="text-white font-bold text-lg mb-3">Du handler trygt</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Konkrete spørgsmål du kan sende til håndværkeren — eller book en byggesagkyndig direkte fra rapporten.
+                </p>
+              </div>
+            </div>
+
+            <div className="text-center mt-10">
+              <Link href="/opret/upload" className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-white text-[#1a5c38] font-bold rounded-xl hover:bg-green-50 transition-colors text-base shadow-lg">
+                Prøv det gratis nu
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* AB-Forbruger */}
-        <section className="py-16 sm:py-20 bg-[#f5f9f6] relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#1a5c38]/5 rounded-full blur-3xl pointer-events-none translate-x-1/3 -translate-y-1/3" />
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 relative">
-            <div className="grid sm:grid-cols-2 gap-10 sm:gap-16 items-center">
+        <section className="py-16 sm:py-24 bg-white relative overflow-hidden border-b border-gray-100">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <div className="grid sm:grid-cols-2 gap-10 sm:gap-20 items-center">
               <div>
                 <span className="text-xs font-semibold text-[#1a5c38] uppercase tracking-widest">AB-Forbruger 2012</span>
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2 mb-4">Det du ikke vidste du skulle spørge om</h2>
-                <p className="text-sm text-gray-600 leading-relaxed mb-4">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2 mb-5">Det du ikke vidste du skulle spørge om</h2>
+                <p className="text-base text-gray-600 leading-relaxed mb-4">
                   AB-Forbruger er standardvilkårene der beskytter private bygherrer i Danmark — men de træder kun i kraft hvis begge parter eksplicit aftaler det. De fleste husejere opdager det for sent.
                 </p>
-                <p className="text-sm text-gray-600 leading-relaxed mb-6">
+                <p className="text-base text-gray-600 leading-relaxed mb-7">
                   Nembyggestyring tjekker automatisk om din aftale dækker de kritiske paragraffer, og fortæller dig hvad du skal kræve af håndværkeren inden du skriver under.
                 </p>
                 <Link href="/abforbruger" className="inline-flex items-center gap-2 text-sm font-semibold text-[#1a5c38] hover:underline">
@@ -215,7 +197,7 @@ export default function Forside() {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </Link>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {[
                   { paragraf: "§ 12", tekst: "Er start- og slutdato aftalt skriftligt?", ok: true },
                   { paragraf: "§ 23", tekst: "Er procedure for ekstraarbejde beskrevet?", ok: false },
@@ -223,12 +205,12 @@ export default function Forside() {
                   { paragraf: "§ 38", tekst: "Er afleverings- og mangelprocedure beskrevet?", ok: false },
                   { paragraf: "§ 58", tekst: "Er 1-års eftersyn nævnt i aftalen?", ok: false },
                 ].map((p) => (
-                  <div key={p.paragraf} className={`flex items-center gap-3 rounded-xl px-4 py-3 border text-sm ${p.ok ? "bg-white border-green-100" : "bg-amber-50 border-amber-100"}`}>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-lg w-12 text-center flex-shrink-0 ${p.ok ? "bg-[#f0f7f3] text-[#1a5c38]" : "bg-amber-100 text-amber-700"}`}>{p.paragraf}</span>
-                    <span className="text-gray-700 text-xs">{p.tekst}</span>
+                  <div key={p.paragraf} className={`flex items-center gap-3 rounded-xl px-4 py-3.5 border ${p.ok ? "bg-[#f0f7f3] border-green-100" : "bg-amber-50 border-amber-100"}`}>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-lg w-12 text-center flex-shrink-0 ${p.ok ? "bg-white text-[#1a5c38] shadow-sm" : "bg-amber-100 text-amber-700"}`}>{p.paragraf}</span>
+                    <span className="text-gray-700 text-sm flex-1">{p.tekst}</span>
                     {p.ok
-                      ? <svg className="ml-auto flex-shrink-0 text-green-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                      : <svg className="ml-auto flex-shrink-0 text-amber-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+                      ? <svg className="flex-shrink-0 text-green-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      : <svg className="flex-shrink-0 text-amber-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
                     }
                   </div>
                 ))}
@@ -238,35 +220,40 @@ export default function Forside() {
           </div>
         </section>
 
-        {/* Funktioner — mørk sektion */}
-        <section className="bg-[#111c17] text-white py-16 sm:py-20">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6">
+        {/* Funktioner */}
+        <section className="bg-[#f5f9f6] py-16 sm:py-20">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-10">
-              <span className="text-xs font-semibold text-green-400 uppercase tracking-widest">Hele projektet samlet</span>
-              <h2 className="text-2xl sm:text-3xl font-bold mt-2 mb-3">Fra første tilbud til 1-års eftersyn</h2>
-              <p className="text-sm text-gray-400 max-w-lg mx-auto">
-                Nembyggestyring er ikke bare en screener. Det er et komplet digitalt projektrum for private bygherrer — med alle parter samlet på ét sted og AB-Forbruger som motor.
+              <span className="text-xs font-semibold text-[#1a5c38] uppercase tracking-widest">Hele projektet samlet</span>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2 mb-3">Fra første tilbud til 1-års eftersyn</h2>
+              <p className="text-base text-gray-500 max-w-lg mx-auto">
+                Nembyggestyring er ikke bare en screener. Det er et komplet digitalt projektrum med alle parter samlet på ét sted.
               </p>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { titel: "Tilbudstjek", tekst: "Screenet mod AB-Forbruger på 2 minutter" },
-                { titel: "Digitalt projektrum", tekst: "Kontrakt, betalinger og kommunikation ét sted" },
-                { titel: "Ekstraarbejde-sedler", tekst: "Digital tillægsaftale med godkendelse inden opstart" },
-                { titel: "Betalingsplan", tekst: "Koblet til dokumenteret fremdrift — ikke bare datoer" },
-                { titel: "Mangelregistrering", tekst: "Billeder og status sendt direkte til håndværkeren" },
-                { titel: "Rådgiverbooking", tekst: "Book en byggesagkyndig ved middel eller høj risiko" },
+                { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>, titel: "Tilbudstjek", tekst: "Screenet mod AB-Forbruger på 2 minutter — gratis at starte." },
+                { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>, titel: "Digitalt projektrum", tekst: "Kontrakt, betalinger og kommunikation samlet ét sted." },
+                { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>, titel: "Ekstraarbejde-sedler", tekst: "Digital tillægsaftale med godkendelse inden opstart." },
+                { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="1.8" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>, titel: "Betalingsplan", tekst: "Koblet til dokumenteret fremdrift — ikke bare datoer." },
+                { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="1.8" strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, titel: "Mangelregistrering", tekst: "Billeder og status sendt direkte til håndværkeren." },
+                { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="1.8" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, titel: "Rådgiverbooking", tekst: "Book en byggesagkyndig ved middel eller høj risiko." },
               ].map((f) => (
-                <div key={f.titel} className="bg-white/5 rounded-xl p-4 border border-white/8 hover:bg-white/8 transition-colors">
-                  <p className="font-semibold text-white text-sm mb-1">{f.titel}</p>
-                  <p className="text-xs text-gray-400 leading-relaxed">{f.tekst}</p>
+                <div key={f.titel} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex gap-4 items-start">
+                  <div className="w-10 h-10 bg-[#f0f7f3] rounded-xl flex items-center justify-center flex-shrink-0">
+                    {f.ikon}
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900 mb-1">{f.titel}</p>
+                    <p className="text-sm text-gray-500 leading-relaxed">{f.tekst}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* SEO-tekst / Om platformen */}
+        {/* SEO-tekst */}
         <section className="bg-white py-14 sm:py-16 border-t border-gray-100">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Digital tryghed for private bygherrer i Danmark</h2>
@@ -274,20 +261,20 @@ export default function Forside() {
               Hvert år indgår tusindvis af danske boligejere aftaler med håndværkere og entreprenører uden at kende deres rettigheder. Manglende tidsplan, uklar betalingsplan og fraværende ekstraarbejde-procedure er de hyppigste årsager til konflikter. AB-Forbruger 2012 eksisterer præcis for at beskytte dig — men kun hvis du ved det, og kun hvis du beder om det.
             </p>
             <p className="text-sm text-gray-500 leading-relaxed">
-              Nembyggestyring giver private bygherrer adgang til den samme viden og de samme redskaber som professionelle byggesagkyndige bruger. Fra screening af tilbud og kontrakter til et komplet digitalt projektrum med betalingsplan, ekstraarbejde-sedler, mangelregistrering og afleveringsflow. Alt samlet — og forklaret i et sprog du forstår.
+              Nembyggestyring giver private bygherrer adgang til den samme viden og de samme redskaber som professionelle byggesagkyndige bruger. Fra screening af tilbud og kontrakter til et komplet digitalt projektrum med betalingsplan, ekstraarbejde-sedler, mangelregistrering og afleveringsflow.
             </p>
           </div>
         </section>
 
         {/* CTA */}
-        <section className="bg-[#1a5c38] px-4 sm:px-6 py-14 sm:py-20 relative overflow-hidden">
+        <section className="bg-[#1a5c38] px-4 sm:px-6 py-16 sm:py-20 relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute -top-20 -right-20 w-80 h-80 bg-white rounded-full" />
             <div className="absolute -bottom-20 -left-10 w-60 h-60 bg-white rounded-full" />
           </div>
           <div className="relative max-w-2xl mx-auto text-center">
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">Tjek dit tilbud nu — det er gratis</h2>
-            <p className="text-green-200 mb-8 text-sm sm:text-base leading-relaxed">
+            <p className="text-green-200 mb-8 text-base leading-relaxed">
               Ingen konto. Ingen binding. Svar på 2 minutter.
             </p>
             <Link href="/opret/upload" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-[#1a5c38] font-bold rounded-xl hover:bg-green-50 transition-colors text-base shadow-lg">
