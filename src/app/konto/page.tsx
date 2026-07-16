@@ -157,10 +157,7 @@ export default function MinSide() {
             Mine projekter
           </Link>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#1a5c38] rounded-lg flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            </div>
-            <span className="text-lg" style={{ fontFamily: "var(--font-logo)", fontWeight: 200, letterSpacing: "2px" }}>Nembyggestyring</span>
+            <span style={{ fontFamily: "var(--font-logo)", fontWeight: 700, letterSpacing: "-0.5px", color: "#1a5c38" }}>nembyggestyring</span>
           </div>
           <Link href="/login" className="text-sm font-medium text-gray-400 hover:text-gray-700 transition-colors">Log ud</Link>
         </div>
