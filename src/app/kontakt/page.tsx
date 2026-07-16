@@ -15,7 +15,7 @@ export default function Kontakt() {
                 <polyline points="9 22 9 12 15 12 15 22"/>
               </svg>
             </div>
-            <span className="" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Contractr</span>
+            <span className="" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Nembyggestyring</span>
           </Link>
           <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Tilbage til forsiden</Link>
         </div>
@@ -37,7 +37,7 @@ export default function Kontakt() {
             </div>
             <h2 className="font-bold text-gray-900 mb-1">E-mail</h2>
             <p className="text-sm text-gray-500 mb-3">Til generelle spørgsmål og support</p>
-            <a href="mailto:hej@contractr.dk" className="text-sm font-semibold text-primary hover:underline">hej@contractr.dk</a>
+            <a href="mailto:hej@nembyggestyring.dk" className="text-sm font-semibold text-primary hover:underline">hej@nembyggestyring.dk</a>
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
@@ -104,7 +104,7 @@ export default function Kontakt() {
 
         <div className="mt-8 bg-amber-50 border border-amber-100 rounded-2xl p-5">
           <p className="text-sm font-semibold text-amber-900 mb-1">Er du rådgiver og vil tilkobles platformen?</p>
-          <p className="text-sm text-amber-700">Skriv til os på <a href="mailto:partner@contractr.dk" className="font-medium hover:underline">partner@contractr.dk</a> med en kort beskrivelse af din virksomhed.</p>
+          <p className="text-sm text-amber-700">Skriv til os på <a href="mailto:partner@nembyggestyring.dk" className="font-medium hover:underline">partner@nembyggestyring.dk</a> med en kort beskrivelse af din virksomhed.</p>
         </div>
       </div>
     </div>

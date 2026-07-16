@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Det gode byggeprojekt: Kommunikation og aftaler der holder | Contractr",
+  title: "Det gode byggeprojekt: Kommunikation og aftaler der holder | Nembyggestyring",
   description: "Læs om hvad der adskiller det gode byggeprojekt fra det kaotiske. Klare aftaler, skriftlig kommunikation og AB-Forbruger er nøglerne til et projekt der slutter godt for alle parter.",
   keywords: ["byggeprojekt", "kommunikation på byggepladsen", "aftale med håndværker", "AB-Forbruger", "bygherre rettigheder", "godt samarbejde håndværker", "renovering aftale", "byggekontrakt"],
   openGraph: {
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     description: "Hvad adskiller det projekt der slutter med et håndtryk fra det der ender i konflikt? Svaret handler næsten aldrig om håndværket — det handler om aftalen.",
     type: "article",
   },
-  alternates: { canonical: "https://contractr.dk/det-gode-byggeprojekt" },
+  alternates: { canonical: "https://Nembyggestyring.dk/det-gode-byggeprojekt" },
 };
 
 export default function DetGodeByggeprojekt() {
@@ -28,7 +28,7 @@ export default function DetGodeByggeprojekt() {
               </svg>
             </div>
             <span style={{ fontFamily: "var(--font-logo)", fontWeight: 300, letterSpacing: "2px" }} className="text-gray-900 text-lg">
-              contractr
+              Nembyggestyring
             </span>
           </Link>
           <Link href="/opret/upload" className="text-sm font-semibold bg-[#1a5c38] text-white px-5 py-2.5 rounded-lg hover:bg-[#163f28] transition-colors">
@@ -205,7 +205,7 @@ export default function DetGodeByggeprojekt() {
           </p>
 
           <p className="text-gray-600 leading-relaxed mb-8">
-            Bygherren er den eneste part i et byggeprojekt uden professionel rygrad. Håndværkeren har gjort det hundrede gange. Rådgiveren kender spillereglerne. Bygherren er måske i gang med det første og eneste store renoveringsprojekt i sit liv. Det er præcis dér Contractr er bygget til at hjælpe.
+            Bygherren er den eneste part i et byggeprojekt uden professionel rygrad. Håndværkeren har gjort det hundrede gange. Rådgiveren kender spillereglerne. Bygherren er måske i gang med det første og eneste store renoveringsprojekt i sit liv. Det er præcis dér Nembyggestyring er bygget til at hjælpe.
           </p>
 
         </div>
@@ -214,7 +214,7 @@ export default function DetGodeByggeprojekt() {
         <div className="bg-[#111c17] rounded-2xl p-8 text-white text-center mt-12">
           <h3 className="text-2xl font-bold mb-3">Klar til at starte dit projekt rigtigt?</h3>
           <p className="text-white/60 mb-7 leading-relaxed max-w-lg mx-auto text-sm">
-            Contractr sørger for at aftaler, betalinger og kommunikation er dokumenteret fra første dag. Gratis at starte.
+            Nembyggestyring sørger for at aftaler, betalinger og kommunikation er dokumenteret fra første dag. Gratis at starte.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/opret/upload" className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-[#1a5c38] text-white font-bold rounded-xl hover:opacity-90 transition-opacity">

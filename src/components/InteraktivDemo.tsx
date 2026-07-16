@@ -6,7 +6,7 @@ import Link from "next/link";
 const bygherreTrin = [
   {
     titel: "Upload dit tilbud",
-    beskrivelse: "Du har modtaget et tilbud fra en håndværker. Du uploader PDF'en direkte i Contractr - det tager under 30 sekunder.",
+    beskrivelse: "Du har modtaget et tilbud fra en håndværker. Du uploader PDF'en direkte i Nembyggestyring - det tager under 30 sekunder.",
     skærm: () => (
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
         <div className="flex items-center gap-3 mb-2">
@@ -251,7 +251,7 @@ export default function InteraktivDemo() {
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-12">
           <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">Interaktiv demo</p>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Se hvordan Contractr virker</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Se hvordan Nembyggestyring virker</h2>
           <p className="text-gray-500 max-w-xl mx-auto">Klik dig igennem et rigtigt eksempel - som bygherre eller håndværker.</p>
         </div>
 

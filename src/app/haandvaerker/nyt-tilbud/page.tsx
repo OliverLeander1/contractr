@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -131,7 +131,7 @@ export default function NytTilbud() {
                   <polyline points="9 22 9 12 15 12 15 22"/>
                 </svg>
               </div>
-              <span style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>contractr</span>
+              <span style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Nembyggestyring</span>
             </Link>
             <span className="text-xs bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded ml-1">Håndværker</span>
           </div>

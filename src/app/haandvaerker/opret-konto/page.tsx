@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, Suspense } from "react";
 import Link from "next/link";
@@ -59,7 +59,7 @@ function Inner() {
                 <polyline points="9 22 9 12 15 12 15 22"/>
               </svg>
             </div>
-            <span className="text-xl" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>contractr</span>
+            <span className="text-xl" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Nembyggestyring</span>
           </Link>
           <p className="text-xs text-gray-400 mt-2 font-medium uppercase tracking-widest">Håndværker</p>
         </div>
@@ -249,7 +249,7 @@ function Inner() {
               </svg>
             </div>
             <h1 className="text-xl font-bold text-gray-900 mb-2">
-              {harInvitation ? "Konto oprettet!" : "Velkommen til Contractr!"}
+              {harInvitation ? "Konto oprettet!" : "Velkommen til Nembyggestyring!"}
             </h1>
             <p className="text-sm text-gray-500 mb-6 leading-relaxed">
               {harInvitation

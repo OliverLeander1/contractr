@@ -1,19 +1,19 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import ABForbrugerIntro from "@/components/ABForbrugerIntro";
 
 export const metadata: Metadata = {
-  title: "Contractr - Hele byggeprojektet samlet ét sted",
-  description: "Contractr samler tilbud, kontrakter, betalingsplan og kommunikation i ét digitalt projektrum. For private bygherrer der vil have styr på aftaler og rettigheder fra dag ét.",
+  title: "Nembyggestyring - Hele byggeprojektet samlet ét sted",
+  description: "Nembyggestyring samler tilbud, kontrakter, betalingsplan og kommunikation i ét digitalt projektrum. For private bygherrer der vil have styr på aftaler og rettigheder fra dag ét.",
   keywords: ["byggeprojekt", "bygherre", "tilbud håndværker", "AB-Forbruger", "kontrakt screening", "digital projektrum", "renovering", "byggeaftale"],
   openGraph: {
-    title: "Contractr - Hele byggeprojektet samlet ét sted",
+    title: "Nembyggestyring - Hele byggeprojektet samlet ét sted",
     description: "Tilbud, kontrakter, betalinger og kommunikation samlet ét sted. Gratis at starte.",
-    url: "https://www.contractr.dk",
+    url: "https://www.Nembyggestyring.dk",
     type: "website",
-    siteName: "Contractr",
+    siteName: "Nembyggestyring",
   },
-  alternates: { canonical: "https://www.contractr.dk" },
+  alternates: { canonical: "https://www.Nembyggestyring.dk" },
   robots: { index: true, follow: true },
 };
 
@@ -32,7 +32,7 @@ export default function Forside() {
               </svg>
             </div>
             <span style={{ fontFamily: "var(--font-logo)", fontWeight: 300, letterSpacing: "2px" }} className="text-gray-900 text-lg">
-              contractr
+              Nembyggestyring
             </span>
           </Link>
 
@@ -91,7 +91,7 @@ export default function Forside() {
                   <span className="text-[#1a5c38]">et tilbud fra en håndværker?</span>
                 </h1>
                 <p className="text-lg text-gray-500 leading-relaxed mb-4 max-w-lg">
-                  Upload tilbuddet og få det tjekket på 2 minutter, gratis. Contractr sørger for at du forstår hvad du skriver under på, inden du siger ja.
+                  Upload tilbuddet og få det tjekket på 2 minutter, gratis. Nembyggestyring sørger for at du forstår hvad du skriver under på, inden du siger ja.
                 </p>
                 <p className="text-sm text-gray-400 mb-8 max-w-lg">
                   Ingen konto. Ingen binding. Bare et svar du kan handle på.
@@ -125,7 +125,7 @@ export default function Forside() {
                       <div className="w-3 h-3 rounded-full bg-white/20" />
                       <div className="w-3 h-3 rounded-full bg-white/20" />
                     </div>
-                    <span className="text-xs text-white/60 font-mono ml-1">contractr.dk/projekt</span>
+                    <span className="text-xs text-white/60 font-mono ml-1">nembyggestyring.dk/projekt</span>
                   </div>
 
                   <div className="p-5 space-y-4">
@@ -381,7 +381,7 @@ export default function Forside() {
               <span className="text-xs font-semibold text-[#1a5c38] uppercase tracking-widest">AB-Forbruger 2012</span>
               <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-4">Dine rettigheder, oversat til handling</h2>
               <p className="text-gray-500 leading-relaxed mb-6">
-                AB-Forbruger er standardbetingelserne for private byggesager i Danmark, men de træder kun i kraft hvis begge parter eksplicit aftaler det. Contractr sørger for at det sker korrekt fra dag ét og oversætter paragrafterne til konkrete tjekpunkter undervejs.
+                AB-Forbruger er standardbetingelserne for private byggesager i Danmark, men de træder kun i kraft hvis begge parter eksplicit aftaler det. Nembyggestyring sørger for at det sker korrekt fra dag ét og oversætter paragrafterne til konkrete tjekpunkter undervejs.
               </p>
               <Link href="/abforbruger" className="text-sm font-semibold text-[#1a5c38] hover:underline">Læs om AB-Forbruger →</Link>
             </div>
@@ -430,7 +430,7 @@ export default function Forside() {
             <div className="w-6 h-6 bg-[#1a5c38] rounded flex items-center justify-center">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             </div>
-            <span className="text-xs text-gray-400">© 2025 Contractr</span>
+            <span className="text-xs text-gray-400">© 2025 Nembyggestyring</span>
           </div>
           <div className="flex items-center gap-6">
             <Link href="/det-gode-byggeprojekt" className="text-xs text-gray-400 hover:text-gray-600">Det gode projekt</Link>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 
@@ -32,7 +32,7 @@ export default function FlowLayout({
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
             </div>
-            <span className="" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>contractr</span>
+            <span className="" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Nembyggestyring</span>
           </Link>
 
           <div className="flex items-center gap-2">

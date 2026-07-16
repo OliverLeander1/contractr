@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -39,7 +39,7 @@ export default function ProjektNav({ id }: { id: string }) {
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
-          <span style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}} className="text-gray-900">contractr</span>
+          <span style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}} className="text-gray-900">Nembyggestyring</span>
         </Link>
 
         {/* Desktop nav — 5 punkter */}

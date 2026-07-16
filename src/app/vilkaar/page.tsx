@@ -8,16 +8,16 @@ export const metadata: Metadata = {
 
 const sektioner = [
   {
-    titel: "1. Om Contractr",
-    indhold: `Contractr er en digital platform der hjælper private bygherrer med at forstå og gennemgå byggeaftaler, kontrakter og tilbud. Platformen er ikke en advokatydelse og erstatter ikke juridisk rådgivning.`,
+    titel: "1. Om Nembyggestyring",
+    indhold: `Nembyggestyring er en digital platform der hjælper private bygherrer med at forstå og gennemgå byggeaftaler, kontrakter og tilbud. Platformen er ikke en advokatydelse og erstatter ikke juridisk rådgivning.`,
   },
   {
     titel: "2. Accept af vilkår",
-    indhold: `Ved at oprette en konto og bruge Contractr accepterer du disse vilkår. Hvis du ikke accepterer vilkårene, bedes du undlade at bruge platformen.`,
+    indhold: `Ved at oprette en konto og bruge Nembyggestyring accepterer du disse vilkår. Hvis du ikke accepterer vilkårene, bedes du undlade at bruge platformen.`,
   },
   {
-    titel: "3. Hvad Contractr tilbyder",
-    indhold: `Contractr tilbyder:\n\n• AI-baseret screening af byggeaftaler og kontrakter mod AB-Forbruger 2012\n• Digitalt projektoverblik med tidsplan, dokumenter og betalingsplan\n• Kommunikation med håndværkere og rådgivere via platformen\n• Adgang til uafhængige byggerådgivere (særskilt aftale)\n\nAI-screeningen er vejledende og kan ikke garantere at alle fejl eller mangler i en aftale identificeres.`,
+    titel: "3. Hvad Nembyggestyring tilbyder",
+    indhold: `Nembyggestyring tilbyder:\n\n• AI-baseret screening af byggeaftaler og kontrakter mod AB-Forbruger 2012\n• Digitalt projektoverblik med tidsplan, dokumenter og betalingsplan\n• Kommunikation med håndværkere og rådgivere via platformen\n• Adgang til uafhængige byggerådgivere (særskilt aftale)\n\nAI-screeningen er vejledende og kan ikke garantere at alle fejl eller mangler i en aftale identificeres.`,
   },
   {
     titel: "4. Brugerens ansvar",
@@ -29,11 +29,11 @@ const sektioner = [
   },
   {
     titel: "6. Intellektuel ejendomsret",
-    indhold: `Alt indhold på Contractr - herunder tekst, design, kode og AI-genererede rapporter - tilhører Contractr. Du må ikke kopiere, videresælge eller distribuere indhold fra platformen uden skriftlig tilladelse.`,
+    indhold: `Alt indhold på Nembyggestyring - herunder tekst, design, kode og AI-genererede rapporter - tilhører Nembyggestyring. Du må ikke kopiere, videresælge eller distribuere indhold fra platformen uden skriftlig tilladelse.`,
   },
   {
     titel: "7. Ansvarsbegrænsning",
-    indhold: `Contractr er ikke ansvarlig for:\n\n• Tab som følge af fejl i AI-screeningen\n• Juridiske konsekvenser af de aftaler du indgår med håndværkere\n• Nedetid eller tekniske fejl\n\nVores ansvar er i alle tilfælde begrænset til det beløb du har betalt til os i de seneste 12 måneder.`,
+    indhold: `Nembyggestyring er ikke ansvarlig for:\n\n• Tab som følge af fejl i AI-screeningen\n• Juridiske konsekvenser af de aftaler du indgår med håndværkere\n• Nedetid eller tekniske fejl\n\nVores ansvar er i alle tilfælde begrænset til det beløb du har betalt til os i de seneste 12 måneder.`,
   },
   {
     titel: "8. Ændringer til vilkårene",
@@ -57,7 +57,7 @@ export default function Vilkaar() {
                 <polyline points="9 22 9 12 15 12 15 22"/>
               </svg>
             </div>
-            <span className="" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Contractr</span>
+            <span className="" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Nembyggestyring</span>
           </Link>
           <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Tilbage til forsiden</Link>
         </div>
@@ -66,7 +66,7 @@ export default function Vilkaar() {
       <div className="max-w-3xl mx-auto px-6 py-16">
         <div className="mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-3">Vilkår og betingelser</h1>
-          <p className="text-gray-500">Senest opdateret: juni 2025 · Gælder for alle brugere af Contractr-platformen.</p>
+          <p className="text-gray-500">Senest opdateret: juni 2025 · Gælder for alle brugere af Nembyggestyring-platformen.</p>
         </div>
 
         <div className="space-y-8">
@@ -80,7 +80,7 @@ export default function Vilkaar() {
 
         <div className="mt-10 bg-primary/5 border border-primary/20 rounded-2xl p-6">
           <h2 className="text-sm font-bold text-gray-900 mb-2">Spørgsmål til vilkårene?</h2>
-          <p className="text-sm text-gray-600 mb-4">Kontakt os på <a href="mailto:hej@contractr.dk" className="text-primary font-medium hover:underline">hej@contractr.dk</a></p>
+          <p className="text-sm text-gray-600 mb-4">Kontakt os på <a href="mailto:hej@nembyggestyring.dk" className="text-primary font-medium hover:underline">hej@nembyggestyring.dk</a></p>
           <Link href="/kontakt" className="inline-block text-sm font-semibold text-primary hover:underline">Gå til kontaktside →</Link>
         </div>
       </div>

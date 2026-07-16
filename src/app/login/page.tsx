@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -116,7 +116,7 @@ export default function Login() {
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
-          <span className="text-xl tracking-tight" style={{ fontFamily: "var(--font-logo)", fontWeight: 200, letterSpacing: "2px" }}>contractr</span>
+          <span className="text-xl tracking-tight" style={{ fontFamily: "var(--font-logo)", fontWeight: 200, letterSpacing: "2px" }}>Nembyggestyring</span>
         </Link>
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 w-full max-w-md text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
@@ -141,7 +141,7 @@ export default function Login() {
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
         </div>
-        <span className="text-xl tracking-tight" style={{ fontFamily: "var(--font-logo)", fontWeight: 200, letterSpacing: "2px" }}>contractr</span>
+        <span className="text-xl tracking-tight" style={{ fontFamily: "var(--font-logo)", fontWeight: 200, letterSpacing: "2px" }}>Nembyggestyring</span>
       </Link>
 
       {!brugerType && (

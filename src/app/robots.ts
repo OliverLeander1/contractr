@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/projekt/", "/konto/", "/notifikationer/", "/hub/", "/haandvaerker/", "/Rådgiver/"],
       },
     ],
-    sitemap: "https://www.contractr.dk/sitemap.xml",
+    sitemap: "https://www.Nembyggestyring.dk/sitemap.xml",
   };
 }
 

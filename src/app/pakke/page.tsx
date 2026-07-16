@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -33,7 +33,7 @@ export default function VaelgPakke() {
             <div className="w-8 h-8 bg-[#1a5c38] rounded-lg flex items-center justify-center">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             </div>
-            <span className="text-lg" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>contractr</span>
+            <span className="text-lg" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Nembyggestyring</span>
           </Link>
           <Link href="/opret/upload" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Tjek tilbud gratis</Link>
         </div>
@@ -42,7 +42,7 @@ export default function VaelgPakke() {
       {/* Hero */}
       <div className="bg-[#111c17] text-white">
         <div className="max-w-4xl mx-auto px-6 py-16 text-center">
-          <p className="text-white/40 text-xs uppercase tracking-widest mb-4 font-medium">Contractr Projektrum</p>
+          <p className="text-white/40 text-xs uppercase tracking-widest mb-4 font-medium">Nembyggestyring Projektrum</p>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Hele projektet samlet ét sted</h1>
           <p className="text-white/60 text-lg max-w-xl mx-auto mb-8 leading-relaxed">
             Én engangsbeløb. Ingen abonnement. Dine data gemmes for altid, klar til 1-års eftersyn og 5-års reklamationsret.

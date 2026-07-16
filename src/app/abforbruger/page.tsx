@@ -8,9 +8,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: "AB-Forbruger 2012: Dine rettigheder som bygherre",
     description: "Forstå AB-Forbruger 2012 og dine rettigheder om betaling, mangler og aflevering.",
-    url: "https://www.contractr.dk/abforbruger",
+    url: "https://www.Nembyggestyring.dk/abforbruger",
   },
-  alternates: { canonical: "https://www.contractr.dk/abforbruger" },
+  alternates: { canonical: "https://www.Nembyggestyring.dk/abforbruger" },
 };
 
 const sektioner = [
@@ -205,7 +205,7 @@ export default function ABForbruger() {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             </div>
-            <span className="" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Contractr</span>
+            <span className="" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Nembyggestyring</span>
           </div>
         </div>
       </nav>
@@ -229,7 +229,7 @@ export default function ABForbruger() {
             <div>
               <p className="text-sm font-semibold text-amber-900 mb-1">AB-Forbruger træder ikke automatisk i kraft</p>
               <p className="text-sm text-amber-800 leading-relaxed">
-                AB-Forbruger er standardbetingelser, ikke lovgivning. De skal eksplicit aftales mellem bygherre og entreprenør for at gælde. Det sker typisk ved at aftalen eller udbuddet reference til AB-Forbruger, og at entreprenøren accepterer dette. Contractr sørger for at dette er tydeligt fra starten, når du sender et projekt i udbud.
+                AB-Forbruger er standardbetingelser, ikke lovgivning. De skal eksplicit aftales mellem bygherre og entreprenør for at gælde. Det sker typisk ved at aftalen eller udbuddet reference til AB-Forbruger, og at entreprenøren accepterer dette. Nembyggestyring sørger for at dette er tydeligt fra starten, når du sender et projekt i udbud.
               </p>
             </div>
           </div>

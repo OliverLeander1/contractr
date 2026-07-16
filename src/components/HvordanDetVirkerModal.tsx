@@ -6,7 +6,7 @@ const TRIN = [
   {
     nummer: 1,
     titel: "Upload dit tilbud eller kontrakt",
-    beskrivelse: "Træk og slip din PDF direkte ind. Contractr læser dokumentet på sekunder - du behøver ikke forklare noget.",
+    beskrivelse: "Træk og slip din PDF direkte ind. Nembyggestyring læser dokumentet på sekunder - du behøver ikke forklare noget.",
     farve: "#1a5c38",
     baggrund: "#f0fdf4",
     ikon: (

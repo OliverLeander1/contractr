@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -34,7 +34,7 @@ export default function StatikerVurdering() {
             <div className="w-8 h-8 bg-[#1a5c38] rounded-lg flex items-center justify-center">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             </div>
-            <span style={{ fontFamily: "var(--font-logo)", fontWeight: 200, letterSpacing: "2px" }}>contractr</span>
+            <span style={{ fontFamily: "var(--font-logo)", fontWeight: 200, letterSpacing: "2px" }}>Nembyggestyring</span>
           </Link>
           <Link href="/tilkoeb" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Alle ydelser</Link>
         </div>

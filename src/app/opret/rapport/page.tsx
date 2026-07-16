@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -401,7 +401,7 @@ export default function Rapport() {
       </div>
 
       <p className="text-center text-xs text-gray-400 mt-6">
-        Contractr giver ikke juridisk rådgivning. Rapporten er vejledende og erstatter ikke professionel rådgivning ved tvivl eller tvist.
+        Nembyggestyring giver ikke juridisk rådgivning. Rapporten er vejledende og erstatter ikke professionel rådgivning ved tvivl eller tvist.
       </p>
     </FlowLayout>
   );

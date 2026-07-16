@@ -278,7 +278,7 @@ export default function OpretProjekt() {
               </div>
               {!inkluderABF && (
                 <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mt-3">
-                  Uden AB-Forbruger er det op til aftalen selv at definere rettigheder og pligter. Du kan stadig bruge Contractr til kommunikation, betalinger og dokumentation.
+                  Uden AB-Forbruger er det op til aftalen selv at definere rettigheder og pligter. Du kan stadig bruge Nembyggestyring til kommunikation, betalinger og dokumentation.
                 </p>
               )}
             </div>

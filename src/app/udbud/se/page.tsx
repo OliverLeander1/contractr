@@ -216,7 +216,7 @@ export default function UdbudDel() {
             <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
             </div>
-            <span className="font-semibold text-gray-900 text-sm">Contractr</span>
+            <span className="font-semibold text-gray-900 text-sm">Nembyggestyring</span>
           </div>
           <span className={`text-xs px-3 py-1 rounded-full font-medium ${erBygherre ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
             {erBygherre ? "Tilbud modtaget" : "Anmodning om tilbud"}

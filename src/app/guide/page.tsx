@@ -45,7 +45,7 @@ export default function Guide() {
           <div className="w-8 h-8 bg-[#1a5c38] rounded-lg flex items-center justify-center">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </div>
-          <span style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}} className="text-white text-lg">contractr</span>
+          <span style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}} className="text-white text-lg">Nembyggestyring</span>
         </Link>
         <div className="flex items-center gap-6">
           <Link href="/" className="text-sm text-white/60 hover:text-white transition-colors">← Tilbage</Link>
@@ -60,7 +60,7 @@ export default function Guide() {
 
         <div className="relative z-10 max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 border border-white/10 text-white/50 text-xs font-medium px-4 py-2 rounded-full mb-10 tracking-widest uppercase">
-            {aktivFane === "bygherre" ? "Vær med til at styre projektet" : "Sådan virker Contractr"}
+            {aktivFane === "bygherre" ? "Vær med til at styre projektet" : "Sådan virker Nembyggestyring"}
           </div>
 
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-8 leading-[1.2] tracking-tight">
@@ -73,8 +73,8 @@ export default function Guide() {
 
           <p className="text-xl text-white/50 max-w-xl mx-auto mb-14 leading-relaxed">
             {aktivFane === "bygherre"
-              ? "Uanset om du renoverer badeværelset eller bygger tilbygning, giver Contractr dig overblik, tryghed og stærke kort på hånden."
-              : "Undgå misforståelser, mundtlige aftaler og tvister. Contractr giver dig en professionel platform du inviterer kunden ind i. Gratis for dig."}
+              ? "Uanset om du renoverer badeværelset eller bygger tilbygning, giver Nembyggestyring dig overblik, tryghed og stærke kort på hånden."
+              : "Undgå misforståelser, mundtlige aftaler og tvister. Nembyggestyring giver dig en professionel platform du inviterer kunden ind i. Gratis for dig."}
           </p>
 
           {/* Fane */}

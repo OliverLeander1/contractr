@@ -84,7 +84,7 @@ export default function Hub() {
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Contractr - sideoverblik</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Nembyggestyring - sideoverblik</h1>
         </div>
         <p className="text-sm text-gray-400 mb-10 ml-13">Klik på en side for at åbne den. Brug til at navigere rundt i platformen.</p>
 
@@ -116,7 +116,7 @@ export default function Hub() {
         </div>
 
         <div className="mt-10 text-center text-xs text-gray-300">
-          Contractr prototype · Kun til intern visning
+          Nembyggestyring prototype · Kun til intern visning
         </div>
       </div>
     </div>

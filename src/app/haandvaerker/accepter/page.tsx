@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -51,7 +51,7 @@ function AccepterInvitationInner() {
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
         </div>
-        <span className="text-xl" style={{ fontFamily: "var(--font-logo)", fontWeight: 200, letterSpacing: "2px" }}>contractr</span>
+        <span className="text-xl" style={{ fontFamily: "var(--font-logo)", fontWeight: 200, letterSpacing: "2px" }}>Nembyggestyring</span>
       </Link>
 
       {trin === 1 && (
@@ -64,7 +64,7 @@ function AccepterInvitationInner() {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Du er inviteret</h1>
           <p className="text-gray-500 mb-6 leading-relaxed">
             <span className="font-semibold text-gray-900">{bygherreNavn}</span> har inviteret dig til projektet{" "}
-            <span className="font-semibold text-gray-900">&ldquo;{projektNavn}&rdquo;</span> på Contractr.
+            <span className="font-semibold text-gray-900">&ldquo;{projektNavn}&rdquo;</span> på Nembyggestyring.
           </p>
 
           <div className="bg-gray-50 rounded-xl p-4 mb-6 space-y-2">

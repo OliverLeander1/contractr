@@ -3,13 +3,13 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privatlivspolitik",
-  description: "Læs hvordan Contractr behandler dine personlige oplysninger og data i henhold til GDPR.",
+  description: "Læs hvordan Nembyggestyring behandler dine personlige oplysninger og data i henhold til GDPR.",
 };
 
 const sektioner = [
   {
     titel: "1. Dataansvarlig",
-    indhold: `Contractr er dataansvarlig for behandlingen af de personoplysninger, vi modtager om dig. Du kan kontakte os på hej@contractr.dk.`,
+    indhold: `Nembyggestyring er dataansvarlig for behandlingen af de personoplysninger, vi modtager om dig. Du kan kontakte os på hej@nembyggestyring.dk.`,
   },
   {
     titel: "2. Hvilke oplysninger indsamler vi?",
@@ -57,7 +57,7 @@ export default function Privatliv() {
                 <polyline points="9 22 9 12 15 12 15 22"/>
               </svg>
             </div>
-            <span className="" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Contractr</span>
+            <span className="" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Nembyggestyring</span>
           </Link>
           <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Tilbage til forsiden</Link>
         </div>
@@ -80,7 +80,7 @@ export default function Privatliv() {
 
         <div className="mt-10 bg-primary/5 border border-primary/20 rounded-2xl p-6">
           <h2 className="text-sm font-bold text-gray-900 mb-2">Spørgsmål om dine data?</h2>
-          <p className="text-sm text-gray-600 mb-4">Kontakt os på <a href="mailto:hej@contractr.dk" className="text-primary font-medium hover:underline">hej@contractr.dk</a> - vi svarer inden for 2 arbejdsdage.</p>
+          <p className="text-sm text-gray-600 mb-4">Kontakt os på <a href="mailto:hej@nembyggestyring.dk" className="text-primary font-medium hover:underline">hej@nembyggestyring.dk</a> - vi svarer inden for 2 arbejdsdage.</p>
           <Link href="/kontakt" className="inline-block text-sm font-semibold text-primary hover:underline">Gå til kontaktside →</Link>
         </div>
       </div>

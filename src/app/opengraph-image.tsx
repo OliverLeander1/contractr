@@ -1,7 +1,7 @@
 ﻿import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Contractr: Forstå din byggeaftale inden det er for sent";
+export const alt = "Nembyggestyring: Forstå din byggeaftale inden det er for sent";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -34,7 +34,7 @@ export default function OgImage() {
               <polyline points="9 22 9 12 15 12 15 22"/>
             </svg>
           </div>
-          <span style={{ color: "white", fontSize: 28, fontWeight: 700, letterSpacing: "-0.5px" }}>Contractr</span>
+          <span style={{ color: "white", fontSize: 28, fontWeight: 700, letterSpacing: "-0.5px" }}>Nembyggestyring</span>
         </div>
 
         {/* Headline */}

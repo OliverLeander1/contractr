@@ -7,9 +7,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Tjek din byggeaftale gratis",
     description: "Upload dit tilbud eller kontrakt. AI-screening på under 2 minutter, gratis og fortroligt.",
-    url: "https://www.contractr.dk/opret",
+    url: "https://www.Nembyggestyring.dk/opret",
   },
-  alternates: { canonical: "https://www.contractr.dk/opret" },
+  alternates: { canonical: "https://www.Nembyggestyring.dk/opret" },
 };
 
 export default function OpretLayout({ children }: { children: React.ReactNode }) {
