@@ -33,7 +33,7 @@ export default function ProjektNav({ id }: { id: string }) {
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
-          <span style={{ fontFamily: "var(--font-logo)", fontWeight: 700, letterSpacing: "-0.5px", color: "#1a5c38" }}>nembyggestyring</span>
+          <span className="logo">nembyggestyring</span>
         </Link>
 
         {/* Desktop nav — 5 punkter */}

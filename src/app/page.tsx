@@ -21,40 +21,39 @@ export default function Forside() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
 
-      {/* Hoved-header med rolle-skifter */}
-      <header className="px-6 py-3.5 border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-50">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
-            <span style={{ fontFamily: "var(--font-logo)", fontWeight: 700, letterSpacing: "-0.5px", color: "#1a5c38" }}>nembyggestyring</span>
+      {/* Hoved-header */}
+      <header className="px-4 sm:px-6 py-3.5 border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-50">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+          <Link href="/" className="flex-shrink-0">
+            <span className="logo">nembyggestyring</span>
           </Link>
 
-          {/* Rolle-skifter — centreret og tydelig */}
-          <div className="flex-1 flex justify-center">
+          {/* Rolle-skifter — skjult på meget små skærme */}
+          <div className="hidden sm:flex flex-1 justify-center">
             <div className="inline-flex items-center bg-gray-100 rounded-xl p-1 gap-1">
               <Link
                 href="/"
-                className="flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-lg bg-[#1a5c38] text-white text-sm font-semibold shadow-sm transition-all"
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#1a5c38] text-white text-xs font-semibold shadow-sm transition-all"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 Bygherre
               </Link>
               <Link
                 href="/haandvaerker/sager"
-                className="flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-white text-sm font-medium transition-all"
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-white text-xs font-medium transition-all"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
                 Håndværker
               </Link>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <nav className="hidden md:flex items-center gap-6">
-              <Link href="/opret/upload" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Tjek tilbud</Link>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <nav className="hidden md:flex items-center gap-5">
               <Link href="/det-gode-byggeprojekt" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Guides</Link>
               <Link href="/tilkoeb" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Rådgivere</Link>
             </nav>
-            <Link href="/opret/upload" className="hidden sm:inline-flex text-sm font-semibold bg-[#1a5c38] text-white px-5 py-2.5 rounded-lg hover:bg-[#163f28] transition-colors">
+            <Link href="/opret/upload" className="text-xs sm:text-sm font-semibold bg-[#1a5c38] text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-lg hover:bg-[#163f28] transition-colors whitespace-nowrap">
               Tjek tilbud gratis →
             </Link>
           </div>
@@ -69,26 +68,26 @@ export default function Forside() {
           <div className="absolute inset-0 bg-gradient-to-br from-green-50/60 via-transparent to-transparent pointer-events-none" />
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#1a5c38]/4 rounded-full blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none" />
 
-          <div className="max-w-6xl mx-auto px-6 py-12 md:py-20 relative">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16 md:py-24 relative">
+            <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
 
               {/* Tekst */}
               <div>
-                <span className="inline-flex items-center gap-2 bg-white text-green-800 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-100 shadow-sm mb-7">
+                <span className="inline-flex items-center gap-2 bg-white text-green-800 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-100 shadow-sm mb-6">
                   <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                   Understøtter AB-Forbruger 2012
                 </span>
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 leading-[1.08] tracking-tight mb-6">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-5">
                   Har du modtaget<br />
                   <span className="text-[#1a5c38]">et tilbud fra en håndværker?</span>
                 </h1>
-                <p className="text-lg text-gray-500 leading-relaxed mb-4 max-w-lg">
+                <p className="text-base sm:text-lg text-gray-500 leading-relaxed mb-3 max-w-lg">
                   Upload tilbuddet og få det tjekket på 2 minutter, gratis. Nembyggestyring sørger for at du forstår hvad du skriver under på, inden du siger ja.
                 </p>
-                <p className="text-sm text-gray-400 mb-8 max-w-lg">
+                <p className="text-sm text-gray-400 mb-7 max-w-lg">
                   Ingen konto. Ingen binding. Bare et svar du kan handle på.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 mb-10">
+                <div className="flex flex-col sm:flex-row gap-3 mb-8">
                   <Link href="/opret/upload" className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-[#1a5c38] text-white font-bold rounded-xl hover:bg-[#163f28] transition-colors text-base shadow-sm">
                     Tjek dit tilbud gratis
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -186,8 +185,8 @@ export default function Forside() {
 
         {/* Guides — praktiske scenarier */}
         <section className="border-y border-gray-100">
-          <div className="max-w-6xl mx-auto px-6 py-16">
-            <div className="text-center mb-10">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+            <div className="text-center mb-8 sm:mb-10">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Guides</p>
               <h2 className="text-2xl font-bold text-gray-900">Hvad er din situation?</h2>
             </div>
@@ -243,8 +242,8 @@ export default function Forside() {
 
 
         {/* AB-Forbruger sektion */}
-        <section className="py-20 bg-[#f8faf9]">
-          <div className="max-w-5xl mx-auto px-6">
+        <section className="py-12 sm:py-20 bg-[#f8faf9]">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-10">
               <span className="text-xs font-semibold text-[#1a5c38] uppercase tracking-widest">Dine rettigheder som bygherre</span>
               <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-3">AB-Forbruger: din rygrad i byggeaftalen</h2>
@@ -257,14 +256,14 @@ export default function Forside() {
         </section>
 
         {/* Sådan virker det */}
-        <section className="py-20 bg-white">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="text-center mb-16">
+        <section className="py-12 sm:py-20 bg-white">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="text-center mb-10 sm:mb-16">
               <span className="text-xs font-semibold text-[#1a5c38] uppercase tracking-widest">Sådan virker det</span>
               <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-3">Fire trin. Alle parter samlet.</h2>
               <p className="text-gray-500 max-w-lg mx-auto">Al dokumentation på plads fra start til aflevering.</p>
             </div>
-            <div className="grid sm:grid-cols-4 gap-6 relative">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 relative">
               <div className="hidden sm:block absolute top-9 left-[12.5%] right-[12.5%] h-px bg-gray-100 z-0" />
               {[
                 {
@@ -315,13 +314,13 @@ export default function Forside() {
 
         {/* Features grid — mørk sektion */}
         <section className="bg-[#111c17] text-white">
-          <div className="max-w-6xl mx-auto px-6 py-20">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
             <div className="text-center mb-14">
               <span className="text-xs font-semibold text-green-400 uppercase tracking-widest">Funktioner</span>
               <h2 className="text-3xl font-bold mt-2 mb-3">Alt hvad et byggeprojekt kræver</h2>
               <p className="text-gray-400 max-w-xl mx-auto">Samlet i én platform, klar til brug fra dag ét.</p>
             </div>
-            <div className="grid sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
                 {
                   titel: "Udbudsdokument",
@@ -367,8 +366,8 @@ export default function Forside() {
         </section>
 
         {/* AB-Forbruger sektion */}
-        <section className="max-w-6xl mx-auto px-6 py-20">
-          <div className="grid sm:grid-cols-2 gap-16 items-center">
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+          <div className="grid sm:grid-cols-2 gap-10 sm:gap-16 items-center">
             <div>
               <span className="text-xs font-semibold text-[#1a5c38] uppercase tracking-widest">AB-Forbruger 2012</span>
               <h2 className="text-3xl font-bold text-gray-900 mt-2 mb-4">Dine rettigheder, oversat til handling</h2>
@@ -397,9 +396,9 @@ export default function Forside() {
 
         {/* CTA */}
         <section className="bg-[#1a5c38]">
-          <div className="max-w-4xl mx-auto px-6 py-20 text-center">
-            <h2 className="text-4xl font-bold text-white mb-4">Klar til at komme i gang?</h2>
-            <p className="text-green-200 mb-10 leading-relaxed text-lg">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-20 text-center">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Klar til at komme i gang?</h2>
+            <p className="text-green-200 mb-8 sm:mb-10 leading-relaxed text-base sm:text-lg">
               Det er gratis. Du behøver ikke oprette en konto for at tjekke et tilbud eller sende et projekt i udbud.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -416,15 +415,10 @@ export default function Forside() {
 
       </main>
 
-      <footer className="border-t border-gray-100 px-6 py-6">
+      <footer className="border-t border-gray-100 px-4 sm:px-6 py-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-[#1a5c38] rounded flex items-center justify-center">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            </div>
-            <span className="text-xs text-gray-400">© 2025 Nembyggestyring</span>
-          </div>
-          <div className="flex items-center gap-6">
+          <span className="text-xs text-gray-400">© 2025 Nembyggestyring</span>
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
             <Link href="/det-gode-byggeprojekt" className="text-xs text-gray-400 hover:text-gray-600">Det gode projekt</Link>
             <Link href="/abforbruger" className="text-xs text-gray-400 hover:text-gray-600">AB-Forbruger</Link>
             <Link href="/vilkaar" className="text-xs text-gray-400 hover:text-gray-600">Vilkår</Link>

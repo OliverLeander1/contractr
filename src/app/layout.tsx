@@ -12,7 +12,7 @@ const jakarta = Plus_Jakarta_Sans({
 const dmSans = DM_Sans({
   variable: "--font-logo",
   subsets: ["latin"],
-  weight: ["200"],
+  weight: ["400", "600", "700"],
 });
 
 const BASE_URL = "https://www.Nembyggestyring.dk";

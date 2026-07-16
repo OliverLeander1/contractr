@@ -26,7 +26,7 @@ export default function FlowLayout({
       <nav className="bg-white border-b border-gray-100 px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <span style={{ fontFamily: "var(--font-logo)", fontWeight: 700, letterSpacing: "-0.5px", color: "#1a5c38" }}>nembyggestyring</span>
+            <span className="logo">nembyggestyring</span>
           </Link>
 
           <div className="flex items-center gap-2">

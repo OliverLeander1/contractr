@@ -77,7 +77,7 @@ export default function HaandvaerkerProfil() {
             Mine sager
           </Link>
           <div className="flex items-center gap-2.5">
-            <span style={{ fontFamily: "var(--font-logo)", fontWeight: 700, letterSpacing: "-0.5px", color: "#1a5c38" }}>nembyggestyring</span>
+            <span className="logo">nembyggestyring</span>
           </div>
         </div>
       </nav>

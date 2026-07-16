@@ -125,7 +125,7 @@ export default function NytTilbud() {
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Link href="/" className="flex items-center gap-2.5">
-              <span style={{ fontFamily: "var(--font-logo)", fontWeight: 700, letterSpacing: "-0.5px", color: "#1a5c38" }}>nembyggestyring</span>
+              <span className="logo">nembyggestyring</span>
             </Link>
             <span className="text-xs bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded ml-1">Håndværker</span>
           </div>

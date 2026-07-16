@@ -213,7 +213,7 @@ export default function UdbudDel() {
       <div className="bg-white border-b border-gray-100 px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span style={{ fontFamily: "var(--font-logo)", fontWeight: 700, letterSpacing: "-0.5px", color: "#1a5c38" }}>nembyggestyring</span>
+            <span className="logo">nembyggestyring</span>
           </div>
           <span className={`text-xs px-3 py-1 rounded-full font-medium ${erBygherre ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
             {erBygherre ? "Tilbud modtaget" : "Anmodning om tilbud"}

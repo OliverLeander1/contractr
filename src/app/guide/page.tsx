@@ -42,7 +42,7 @@ export default function Guide() {
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-8 py-5 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
-          <span style={{ fontFamily: "var(--font-logo)", fontWeight: 700, letterSpacing: "-0.5px", color: "#1a5c38" }}>nembyggestyring</span>
+          <span className="logo">nembyggestyring</span>
         </Link>
         <div className="flex items-center gap-6">
           <Link href="/" className="text-sm text-white/60 hover:text-white transition-colors">← Tilbage</Link>

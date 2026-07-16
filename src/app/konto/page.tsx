@@ -157,7 +157,7 @@ export default function MinSide() {
             Mine projekter
           </Link>
           <div className="flex items-center gap-2.5">
-            <span style={{ fontFamily: "var(--font-logo)", fontWeight: 700, letterSpacing: "-0.5px", color: "#1a5c38" }}>nembyggestyring</span>
+            <span className="logo">nembyggestyring</span>
           </div>
           <Link href="/login" className="text-sm font-medium text-gray-400 hover:text-gray-700 transition-colors">Log ud</Link>
         </div>

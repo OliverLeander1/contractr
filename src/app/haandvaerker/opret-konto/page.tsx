@@ -53,7 +53,7 @@ function Inner() {
 
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5">
-            <span style={{ fontFamily: "var(--font-logo)", fontWeight: 700, letterSpacing: "-0.5px", color: "#1a5c38" }}>nembyggestyring</span>
+            <span className="logo">nembyggestyring</span>
           </Link>
           <p className="text-xs text-gray-400 mt-2 font-medium uppercase tracking-widest">Håndværker</p>
         </div>

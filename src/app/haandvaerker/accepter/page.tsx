@@ -45,7 +45,7 @@ function AccepterInvitationInner() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-12">
       <Link href="/" className="flex items-center gap-2.5 mb-10">
-        <span style={{ fontFamily: "var(--font-logo)", fontWeight: 700, letterSpacing: "-0.5px", color: "#1a5c38" }}>nembyggestyring</span>
+        <span className="logo">nembyggestyring</span>
       </Link>
 
       {trin === 1 && (
