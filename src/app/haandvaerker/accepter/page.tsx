@@ -51,7 +51,7 @@ function AccepterInvitationInner() {
       {trin === 1 && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 w-full max-w-md">
           <div className="w-14 h-14 bg-[#f0f7f3] rounded-2xl flex items-center justify-center mb-6">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="1.8">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
             </svg>
           </div>
@@ -80,7 +80,7 @@ function AccepterInvitationInner() {
 
           <button
             onClick={() => setTrin(2)}
-            className="w-full bg-[#1a5c38] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity mb-3"
+            className="w-full bg-[#1e3a2a] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity mb-3"
           >
             Accepter invitation
           </button>
@@ -105,7 +105,7 @@ function AccepterInvitationInner() {
                 placeholder="Dit fulde navn"
                 value={navn}
                 onChange={e => setNavn(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
               />
             </div>
             <div>
@@ -115,7 +115,7 @@ function AccepterInvitationInner() {
                 placeholder="Din virksomheds navn"
                 value={virksomhed}
                 onChange={e => setVirksomhed(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
               />
             </div>
             <div>
@@ -125,7 +125,7 @@ function AccepterInvitationInner() {
                 placeholder="8 cifre"
                 value={cvr}
                 onChange={e => setCvr(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
               />
             </div>
             <div>
@@ -135,14 +135,14 @@ function AccepterInvitationInner() {
                 placeholder="f.eks. 20 12 34 56"
                 value={telefon}
                 onChange={e => setTelefon(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
               />
             </div>
           </div>
           <button
             onClick={accepter}
             disabled={!navn.trim()}
-            className="w-full bg-[#1a5c38] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity mt-6 disabled:opacity-40"
+            className="w-full bg-[#1e3a2a] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity mt-6 disabled:opacity-40"
           >
             Gå til projektet
           </button>

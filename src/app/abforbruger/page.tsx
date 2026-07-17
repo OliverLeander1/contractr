@@ -232,7 +232,7 @@ export default function ABForbruger() {
           </div>
 
           <div className="mt-4 bg-accent border border-primary/20 rounded-xl p-4 flex items-start gap-3">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2" className="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2" className="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <p className="text-sm text-primary leading-relaxed">
               Platformen viser dig automatisk den relevante paragraf når noget sker i dit projekt, men kun hvis AB-Forbruger er aftalt som grundlag.
             </p>

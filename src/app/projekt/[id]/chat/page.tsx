@@ -128,7 +128,7 @@ export default function ProjektChat() {
         <div key={b.id} className={`flex gap-3 mb-3 ${erMig ? "flex-row-reverse" : "flex-row"}`}>
           {/* Avatar */}
           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-1 ${
-            b.rolle === "bygherre" ? "bg-[#1a5c38]/10 text-[#1a5c38]" : "bg-blue-100 text-blue-700"
+            b.rolle === "bygherre" ? "bg-[#1e3a2a]/10 text-[#1e3a2a]" : "bg-blue-100 text-blue-700"
           }`}>
             {b.navn.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
           </div>
@@ -139,7 +139,7 @@ export default function ProjektChat() {
             </div>
             <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
               erMig
-                ? "bg-[#1a5c38] text-white rounded-tr-md"
+                ? "bg-[#1e3a2a] text-white rounded-tr-md"
                 : "bg-white border border-gray-100 text-gray-800 rounded-tl-md shadow-sm"
             }`}>
               {b.tekst.split("\n").map((linje, li) => (
@@ -164,7 +164,7 @@ export default function ProjektChat() {
             Projekt
           </Link>
           <div className="flex-1 flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#1a5c38] rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#1e3a2a] rounded-lg flex items-center justify-center">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
@@ -207,11 +207,11 @@ export default function ProjektChat() {
         <div className="max-w-2xl mx-auto">
           <div className="flex gap-3 items-end">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-              rolle === "bygherre" ? "bg-[#1a5c38]/10 text-[#1a5c38]" : "bg-blue-100 text-blue-700"
+              rolle === "bygherre" ? "bg-[#1e3a2a]/10 text-[#1e3a2a]" : "bg-blue-100 text-blue-700"
             }`}>
               {(rolle === "bygherre" ? bygherreNavn : (haandvaerkerNavn || "HV")).split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
             </div>
-            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 flex items-end gap-3 focus-within:border-[#1a5c38] focus-within:ring-2 focus-within:ring-[#1a5c38]/10 transition-all">
+            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 flex items-end gap-3 focus-within:border-[#1e3a2a] focus-within:ring-2 focus-within:ring-[#1e3a2a]/10 transition-all">
               <textarea
                 ref={inputRef}
                 value={tekst}
@@ -230,7 +230,7 @@ export default function ProjektChat() {
               <button
                 onClick={sendBesked}
                 disabled={!tekst.trim()}
-                className="w-8 h-8 bg-[#1a5c38] rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-30 hover:bg-[#163f28] transition-all"
+                className="w-8 h-8 bg-[#1e3a2a] rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-30 hover:bg-[#163f28] transition-all"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
                   <line x1="22" y1="2" x2="11" y2="13"/>

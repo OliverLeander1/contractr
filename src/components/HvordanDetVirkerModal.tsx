@@ -7,7 +7,7 @@ const TRIN = [
     nummer: 1,
     titel: "Upload dit tilbud eller kontrakt",
     beskrivelse: "Træk og slip din PDF direkte ind. Nembyggestyring læser dokumentet på sekunder - du behøver ikke forklare noget.",
-    farve: "#1a5c38",
+    farve: "#1e3a2a",
     baggrund: "#f0fdf4",
     ikon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -198,7 +198,7 @@ export default function HvordanDetVirkerModal({ åben, luk }: { åben: boolean; 
             <a
               href="/opret"
               className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white text-center transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#1a5c38" }}
+              style={{ backgroundColor: "#1e3a2a" }}
             >
               Tjek min byggeaftale gratis →
             </a>

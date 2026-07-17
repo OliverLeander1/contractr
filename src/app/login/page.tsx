@@ -139,10 +139,10 @@ export default function Login() {
           <div className="grid grid-cols-2 gap-4">
             <button
               onClick={() => setBrugerType("bygherre")}
-              className="bg-white border-2 border-gray-100 rounded-2xl p-6 text-center hover:border-[#1a5c38]/40 hover:shadow-md transition-all group"
+              className="bg-white border-2 border-gray-100 rounded-2xl p-6 text-center hover:border-[#1e3a2a]/40 hover:shadow-md transition-all group"
             >
-              <div className="w-14 h-14 bg-[#f0f7f3] rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#1a5c38]/10 transition-colors">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="1.8">
+              <div className="w-14 h-14 bg-[#f0f7f3] rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#1e3a2a]/10 transition-colors">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
                   <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                   <polyline points="9 22 9 12 15 12 15 22"/>
                 </svg>
@@ -152,10 +152,10 @@ export default function Login() {
             </button>
             <button
               onClick={() => setBrugerType("haandvaerker")}
-              className="bg-white border-2 border-gray-100 rounded-2xl p-6 text-center hover:border-[#1a5c38]/40 hover:shadow-md transition-all group"
+              className="bg-white border-2 border-gray-100 rounded-2xl p-6 text-center hover:border-[#1e3a2a]/40 hover:shadow-md transition-all group"
             >
-              <div className="w-14 h-14 bg-[#f0f7f3] rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#1a5c38]/10 transition-colors">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="1.8">
+              <div className="w-14 h-14 bg-[#f0f7f3] rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#1e3a2a]/10 transition-colors">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
                   <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
                 </svg>
               </div>
@@ -179,9 +179,9 @@ export default function Login() {
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-[#f0f7f3] rounded-xl flex items-center justify-center">
               {brugerType === "bygherre" ? (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
               ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
               )}
             </div>
             <div>
@@ -214,7 +214,7 @@ export default function Login() {
                   placeholder="Dit fulde navn"
                   value={navn}
                   onChange={e => setNavn(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                 />
               </div>
             )}
@@ -226,7 +226,7 @@ export default function Login() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handleSubmit()}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
               />
             </div>
             <div>
@@ -240,7 +240,7 @@ export default function Login() {
                       await supabase.auth.resetPasswordForEmail(email.trim());
                       setError("Vi har sendt et link til at nulstille din adgangskode.");
                     }}
-                    className="text-xs text-[#1a5c38] hover:underline"
+                    className="text-xs text-[#1e3a2a] hover:underline"
                   >
                     Glemt adgangskode?
                   </button>
@@ -252,7 +252,7 @@ export default function Login() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handleSubmit()}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
               />
               {mode === "opret" && (
                 <p className="text-xs text-gray-400 mt-1">Mindst 8 tegn.</p>
@@ -269,7 +269,7 @@ export default function Login() {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className={`w-full font-bold py-3.5 rounded-xl mt-6 transition-all ${loading ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-[#1a5c38] text-white hover:opacity-90"}`}
+            className={`w-full font-bold py-3.5 rounded-xl mt-6 transition-all ${loading ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-[#1e3a2a] text-white hover:opacity-90"}`}
           >
             {loading ? "Vent..." : mode === "login" ? "Log ind" : "Opret konto"}
           </button>
@@ -277,8 +277,8 @@ export default function Login() {
           {mode === "opret" && (
             <p className="text-xs text-gray-400 text-center mt-4 leading-relaxed">
               Ved oprettelse accepterer du vores{" "}
-              <Link href="/vilkaar" className="text-[#1a5c38] hover:underline">vilkår</Link>{" "}og{" "}
-              <Link href="/privatliv" className="text-[#1a5c38] hover:underline">privatlivspolitik</Link>.
+              <Link href="/vilkaar" className="text-[#1e3a2a] hover:underline">vilkår</Link>{" "}og{" "}
+              <Link href="/privatliv" className="text-[#1e3a2a] hover:underline">privatlivspolitik</Link>.
             </p>
           )}
         </div>

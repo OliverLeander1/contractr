@@ -133,7 +133,7 @@ export default function OpretProjekt() {
                   </p>
                 ))}
               </div>
-              <a href="/statiker" className={`inline-flex items-center gap-1.5 text-xs font-semibold hover:underline ${statikerRisiko === "høj" ? "text-amber-700" : "text-[#1a5c38]"}`}>
+              <a href="/statiker" className={`inline-flex items-center gap-1.5 text-xs font-semibold hover:underline ${statikerRisiko === "høj" ? "text-amber-700" : "text-[#1e3a2a]"}`}>
                 Få gratis vurdering af en byggerådgiver →
               </a>
             </div>
@@ -271,7 +271,7 @@ export default function OpretProjekt() {
                   "1-års eftersyn ved arbejde over 500.000 kr. (§ 58)",
                 ].map((punkt) => (
                   <div key={punkt} className="flex items-start gap-2 text-xs text-gray-500">
-                    <svg className="mt-0.5 flex-shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <svg className="mt-0.5 flex-shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                     {punkt}
                   </div>
                 ))}

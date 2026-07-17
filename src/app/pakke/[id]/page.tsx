@@ -137,7 +137,7 @@ export default function PakkeDetalje() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500 mb-4">Pakken findes ikke.</p>
-          <Link href="/pakke" className="text-[#1a5c38] font-semibold hover:underline">← Tilbage til pakker</Link>
+          <Link href="/pakke" className="text-[#1e3a2a] font-semibold hover:underline">← Tilbage til pakker</Link>
         </div>
       </div>
     );
@@ -156,7 +156,7 @@ export default function PakkeDetalje() {
             Alle pakker
           </Link>
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#1a5c38] rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#1e3a2a] rounded-lg flex items-center justify-center">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             </div>
             <span className="text-lg" style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}}>Contractr</span>
@@ -170,7 +170,7 @@ export default function PakkeDetalje() {
         <div className="max-w-5xl mx-auto px-6 py-14 flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
           <div>
             {erPopulaer && (
-              <span className="inline-block bg-[#1a5c38] text-white text-xs font-bold px-3 py-1 rounded-full mb-4">Mest valgte</span>
+              <span className="inline-block bg-[#1e3a2a] text-white text-xs font-bold px-3 py-1 rounded-full mb-4">Mest valgte</span>
             )}
             <p className="text-sm text-white/50 uppercase tracking-widest mb-2 font-medium">{pakke.tagline}</p>
             <h1 className="text-4xl md:text-5xl font-bold mb-3">{pakke.navn}</h1>
@@ -222,7 +222,7 @@ export default function PakkeDetalje() {
               <div className="divide-y divide-gray-50">
                 {pakke.inkluderet.map((item) => (
                   <div key={item.label} className="px-6 py-3.5 flex items-center gap-3.5">
-                    <div className="w-7 h-7 rounded-lg bg-[#1a5c38]/10 flex items-center justify-center text-[#1a5c38] flex-shrink-0">
+                    <div className="w-7 h-7 rounded-lg bg-[#1e3a2a]/10 flex items-center justify-center text-[#1e3a2a] flex-shrink-0">
                       {ikonSvg[item.ikon]}
                     </div>
                     <p className="text-sm text-gray-700">{item.label}</p>
@@ -248,9 +248,9 @@ export default function PakkeDetalje() {
               <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
                 <p className="text-xs text-gray-400">
                   Brug for mere?{" "}
-                  <Link href="/tilkoeb" className="text-[#1a5c38] font-semibold hover:underline">Tilkøb enkeltydelser →</Link>
+                  <Link href="/tilkoeb" className="text-[#1e3a2a] font-semibold hover:underline">Tilkøb enkeltydelser →</Link>
                   {" "}eller{" "}
-                  <Link href="/pakke" className="text-[#1a5c38] font-semibold hover:underline">se en større pakke →</Link>
+                  <Link href="/pakke" className="text-[#1e3a2a] font-semibold hover:underline">se en større pakke →</Link>
                 </p>
               </div>
             </div>
@@ -262,7 +262,7 @@ export default function PakkeDetalje() {
 
             {!sendt ? (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className={`px-6 py-5 ${erPopulaer ? "bg-[#1a5c38]" : "bg-gray-900"}`}>
+                <div className={`px-6 py-5 ${erPopulaer ? "bg-[#1e3a2a]" : "bg-gray-900"}`}>
                   <p className="text-white/60 text-xs mb-1">Engangsbetaling · inkl. moms</p>
                   <p className="text-white text-3xl font-bold">{pakke.pris.toLocaleString("da-DK")} <span className="text-lg font-medium opacity-70">kr.</span></p>
                 </div>
@@ -284,14 +284,14 @@ export default function PakkeDetalje() {
                     placeholder="Dit navn"
                     value={navn}
                     onChange={(e) => setNavn(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                   />
                   <input
                     type="email"
                     placeholder="Din e-mail"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                   />
 
                   {/* Kortfelt (ikke-funktionelt) */}
@@ -313,7 +313,7 @@ export default function PakkeDetalje() {
                     className={`w-full py-3.5 rounded-xl text-sm font-bold transition-all ${
                       navn && email
                         ? erPopulaer
-                          ? "bg-[#1a5c38] text-white hover:bg-[#163f28] shadow-md shadow-[#1a5c38]/20"
+                          ? "bg-[#1e3a2a] text-white hover:bg-[#163f28] shadow-md shadow-[#1e3a2a]/20"
                           : "bg-gray-900 text-white hover:bg-gray-800"
                         : "bg-gray-100 text-gray-400 cursor-not-allowed"
                     }`}
@@ -334,7 +334,7 @@ export default function PakkeDetalje() {
                 </p>
                 <button
                   onClick={() => router.push("/opret")}
-                  className="w-full bg-[#1a5c38] text-white text-sm font-bold py-3.5 rounded-xl hover:bg-[#163f28] transition-colors"
+                  className="w-full bg-[#1e3a2a] text-white text-sm font-bold py-3.5 rounded-xl hover:bg-[#163f28] transition-colors"
                 >
                   Opret projekt gratis i mellemtiden →
                 </button>

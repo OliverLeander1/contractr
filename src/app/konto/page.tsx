@@ -172,7 +172,7 @@ export default function MinSide() {
             </div>
             <p className="font-semibold text-gray-900 mb-1">Ingen kontodata fundet</p>
             <p className="text-sm text-gray-400 mb-6">Log ind eller opret en konto for at se din profil og dine projekter.</p>
-            <Link href="/login" className="inline-block bg-[#1a5c38] text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">
+            <Link href="/login" className="inline-block bg-[#1e3a2a] text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity">
               Log ind
             </Link>
           </div>
@@ -184,7 +184,7 @@ export default function MinSide() {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
               <div className="flex items-start justify-between gap-4 mb-5">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-[#1a5c38]/10 flex items-center justify-center text-[#1a5c38] font-bold text-xl flex-shrink-0">
+                  <div className="w-14 h-14 rounded-2xl bg-[#1e3a2a]/10 flex items-center justify-center text-[#1e3a2a] font-bold text-xl flex-shrink-0">
                     {initialer}
                   </div>
                   <div>
@@ -197,7 +197,7 @@ export default function MinSide() {
                 </div>
                 <button
                   onClick={() => setRedigerer(!redigerer)}
-                  className="text-sm font-semibold text-[#1a5c38] hover:underline flex-shrink-0"
+                  className="text-sm font-semibold text-[#1e3a2a] hover:underline flex-shrink-0"
                 >
                   {redigerer ? "Annuller" : "Redigér"}
                 </button>
@@ -211,7 +211,7 @@ export default function MinSide() {
                       type="text"
                       value={nytNavn}
                       onChange={e => setNytNavn(e.target.value)}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                     />
                   </div>
                   <div>
@@ -220,7 +220,7 @@ export default function MinSide() {
                       type="email"
                       value={nyEmail}
                       onChange={e => setNyEmail(e.target.value)}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                     />
                   </div>
                   <div>
@@ -230,12 +230,12 @@ export default function MinSide() {
                       value={nyTelefon}
                       onChange={e => setNyTelefon(e.target.value)}
                       placeholder="f.eks. 12 34 56 78"
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                     />
                   </div>
                   <button
                     onClick={gemProfil}
-                    className="bg-[#1a5c38] text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity text-sm"
+                    className="bg-[#1e3a2a] text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity text-sm"
                   >
                     Gem oplysninger
                   </button>
@@ -253,14 +253,14 @@ export default function MinSide() {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="font-semibold text-gray-900">Mine projekter</h2>
-                <Link href="/opret" className="flex items-center gap-1.5 text-sm font-semibold text-[#1a5c38] hover:underline">
+                <Link href="/opret" className="flex items-center gap-1.5 text-sm font-semibold text-[#1e3a2a] hover:underline">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                   Nyt projekt
                 </Link>
               </div>
 
               {projekt ? (
-                <Link href="/projekt/1" className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-[#1a5c38]/30 hover:shadow-sm transition-all group">
+                <Link href="/projekt/1" className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-[#1e3a2a]/30 hover:shadow-sm transition-all group">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#f0f7f3] flex items-center justify-center text-xl flex-shrink-0">
                       {projekt.projekttype === "badevarelse" ? "🚿" :
@@ -269,7 +269,7 @@ export default function MinSide() {
                        projekt.projekttype === "tilbygning" ? "🏗️" : "🔨"}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900 group-hover:text-[#1a5c38] transition-colors">
+                      <p className="text-sm font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors">
                         {projekt.adresse || projekttypeLabels[projekt.projekttype || ""] || "Byggeprojekt"}
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">
@@ -289,7 +289,7 @@ export default function MinSide() {
               ) : (
                 <div className="p-8 text-center border border-dashed border-gray-200 rounded-xl">
                   <p className="text-sm text-gray-400 mb-3">Du har ingen projekter endnu.</p>
-                  <Link href="/opret/upload" className="inline-block text-sm font-semibold text-[#1a5c38] hover:underline">
+                  <Link href="/opret/upload" className="inline-block text-sm font-semibold text-[#1e3a2a] hover:underline">
                     Tjek dit første tilbud gratis
                   </Link>
                 </div>
@@ -300,12 +300,12 @@ export default function MinSide() {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="font-semibold text-gray-900">Din adgang</h2>
-                <Link href="/pakke" className="text-sm font-semibold text-[#1a5c38] hover:underline">Udvid adgang</Link>
+                <Link href="/pakke" className="text-sm font-semibold text-[#1e3a2a] hover:underline">Udvid adgang</Link>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 mb-4">
                 <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${pakkeKobt ? "bg-[#1a5c38]" : "bg-gray-200"}`}>
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${pakkeKobt ? "bg-[#1e3a2a]" : "bg-gray-200"}`}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                   </div>
                   <div>
@@ -314,7 +314,7 @@ export default function MinSide() {
                   </div>
                 </div>
                 {!pakkeKobt && (
-                  <Link href="/pakke" className="text-xs font-bold text-[#1a5c38] bg-[#1a5c38]/10 px-3 py-1.5 rounded-full hover:bg-[#1a5c38]/20 transition-colors">
+                  <Link href="/pakke" className="text-xs font-bold text-[#1e3a2a] bg-[#1e3a2a]/10 px-3 py-1.5 rounded-full hover:bg-[#1e3a2a]/20 transition-colors">
                     Opgrader
                   </Link>
                 )}
@@ -330,8 +330,8 @@ export default function MinSide() {
                     { navn: "Med AI-tjek", pris: "999 kr.", href: "/pakke/mellem" },
                     { navn: "Med byggerådgiver", pris: "2.495 kr.", href: "/pakke/stort" },
                   ].map(p => (
-                    <Link key={p.navn} href={p.href} className="flex flex-col items-center p-3 rounded-xl border border-gray-100 hover:border-[#1a5c38]/30 hover:bg-[#1a5c38]/5 transition-all group text-center">
-                      <p className="text-xs font-semibold text-gray-700 group-hover:text-[#1a5c38] transition-colors">{p.navn}</p>
+                    <Link key={p.navn} href={p.href} className="flex flex-col items-center p-3 rounded-xl border border-gray-100 hover:border-[#1e3a2a]/30 hover:bg-[#1e3a2a]/5 transition-all group text-center">
+                      <p className="text-xs font-semibold text-gray-700 group-hover:text-[#1e3a2a] transition-colors">{p.navn}</p>
                       <p className="text-xs text-gray-400 mt-0.5">{p.pris}</p>
                     </Link>
                   ))}
@@ -354,7 +354,7 @@ export default function MinSide() {
                     </div>
                     <button
                       onClick={() => item.set(!item.value)}
-                      className={`relative w-11 h-6 rounded-full transition-colors ${item.value ? "bg-[#1a5c38]" : "bg-gray-200"}`}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${item.value ? "bg-[#1e3a2a]" : "bg-gray-200"}`}
                     >
                       <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${item.value ? "translate-x-5" : "translate-x-0.5"}`} />
                     </button>
@@ -363,7 +363,7 @@ export default function MinSide() {
               </div>
               <button
                 onClick={gemProfil}
-                className="mt-5 text-sm font-semibold text-[#1a5c38] hover:underline"
+                className="mt-5 text-sm font-semibold text-[#1e3a2a] hover:underline"
               >
                 Gem indstillinger
               </button>

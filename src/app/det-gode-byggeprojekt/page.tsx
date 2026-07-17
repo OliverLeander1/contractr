@@ -23,7 +23,7 @@ export default function DetGodeByggeprojekt() {
           <Link href="/" className="flex items-center gap-2.5">
             <span className="logo">nembyggestyring</span>
           </Link>
-          <Link href="/opret/upload" className="text-sm font-semibold bg-[#1a5c38] text-white px-5 py-2.5 rounded-lg hover:bg-[#163f28] transition-colors">
+          <Link href="/opret/upload" className="text-sm font-semibold bg-[#1e3a2a] text-white px-5 py-2.5 rounded-lg hover:bg-[#163f28] transition-colors">
             Tjek dit tilbud gratis →
           </Link>
         </div>
@@ -34,7 +34,7 @@ export default function DetGodeByggeprojekt() {
         <div className="max-w-3xl mx-auto px-6 py-16">
           <Link href="/" className="text-xs text-gray-400 hover:text-gray-600 transition-colors mb-6 inline-block">← Tilbage til forsiden</Link>
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-xs font-semibold bg-[#1a5c38]/10 text-[#1a5c38] border border-[#1a5c38]/15 px-3 py-1 rounded-full">Det gode byggeprojekt</span>
+            <span className="text-xs font-semibold bg-[#1e3a2a]/10 text-[#1e3a2a] border border-[#1e3a2a]/15 px-3 py-1 rounded-full">Det gode byggeprojekt</span>
             <span className="text-xs text-gray-400">8 minutters læsning</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-5">
@@ -100,7 +100,7 @@ export default function DetGodeByggeprojekt() {
               { nr: "5", spørgsmål: "Hvad er proceduren ved mangler?", forklaring: "Hvornår anses arbejdet for afleveret, og hvad gøres der hvis der opdages fejl efterfølgende?" },
             ].map((item) => (
               <div key={item.nr} className="flex gap-4 bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <div className="w-7 h-7 bg-[#1a5c38] text-white rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{item.nr}</div>
+                <div className="w-7 h-7 bg-[#1e3a2a] text-white rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{item.nr}</div>
                 <div>
                   <p className="font-semibold text-gray-900 text-sm mb-1">{item.spørgsmål}</p>
                   <p className="text-sm text-gray-500 leading-relaxed">{item.forklaring}</p>
@@ -121,7 +121,7 @@ export default function DetGodeByggeprojekt() {
             En veldokumenteret aftale er det bedste udgangspunkt for begge parter. Håndværkeren ved præcist hvad der er bestilt. Bygherren ved præcist hvad der er inkluderet. Ingen af dem bruger tid og energi på misforståelser eller den ubehagelige samtale om hvem der dækker et uventet beløb.
           </p>
 
-          <div className="border-l-4 border-[#1a5c38] pl-6 my-8">
+          <div className="border-l-4 border-[#1e3a2a] pl-6 my-8">
             <p className="text-lg text-gray-700 italic leading-relaxed">
               "De projekter der slutter godt, er næsten altid dem hvor forventningerne var tydelige fra dag ét. Det handler ikke om om der opstår problemer. Det gør der næsten altid. Det handler om at parterne har et fælles grundlag at løse dem fra."
             </p>
@@ -146,7 +146,7 @@ export default function DetGodeByggeprojekt() {
             ].map((p) => (
               <div key={p.paragraf} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-bold text-[#1a5c38] bg-[#1a5c38]/10 border border-[#1a5c38]/15 px-2 py-0.5 rounded-lg">{p.paragraf}</span>
+                  <span className="text-xs font-bold text-[#1e3a2a] bg-[#1e3a2a]/10 border border-[#1e3a2a]/15 px-2 py-0.5 rounded-lg">{p.paragraf}</span>
                   <span className="font-semibold text-gray-900 text-sm">{p.titel}</span>
                 </div>
                 <p className="text-xs text-gray-500 leading-relaxed">{p.tekst}</p>
@@ -178,7 +178,7 @@ export default function DetGodeByggeprojekt() {
               "Registrerede mangler ved aflevering med aftalt udbedringsfrist",
             ].map((punkt) => (
               <div key={punkt} className="flex items-start gap-3 text-sm text-gray-600">
-                <svg className="mt-0.5 flex-shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg className="mt-0.5 flex-shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 {punkt}
               </div>
             ))}
@@ -209,7 +209,7 @@ export default function DetGodeByggeprojekt() {
             Nembyggestyring sørger for at aftaler, betalinger og kommunikation er dokumenteret fra første dag. Gratis at starte.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/opret/upload" className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-[#1a5c38] text-white font-bold rounded-xl hover:opacity-90 transition-opacity">
+            <Link href="/opret/upload" className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-[#1e3a2a] text-white font-bold rounded-xl hover:opacity-90 transition-opacity">
               Tjek dit tilbud gratis
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </Link>
@@ -223,21 +223,21 @@ export default function DetGodeByggeprojekt() {
         <div className="mt-12 pt-8 border-t border-gray-100">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-5">Læs også</p>
           <div className="grid sm:grid-cols-2 gap-4">
-            <Link href="/abforbruger" className="group flex items-start gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#1a5c38]/20 hover:bg-[#f0f7f3] transition-all">
-              <div className="w-8 h-8 bg-[#1a5c38]/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <Link href="/abforbruger" className="group flex items-start gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#1e3a2a]/20 hover:bg-[#f0f7f3] transition-all">
+              <div className="w-8 h-8 bg-[#1e3a2a]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
               <div>
-                <p className="font-semibold text-gray-900 text-sm group-hover:text-[#1a5c38] transition-colors">AB-Forbruger 2012</p>
+                <p className="font-semibold text-gray-900 text-sm group-hover:text-[#1e3a2a] transition-colors">AB-Forbruger 2012</p>
                 <p className="text-xs text-gray-400 mt-0.5">Dine rettigheder som privat bygherre</p>
               </div>
             </Link>
-            <Link href="/opret/upload" className="group flex items-start gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#1a5c38]/20 hover:bg-[#f0f7f3] transition-all">
-              <div className="w-8 h-8 bg-[#1a5c38]/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <Link href="/opret/upload" className="group flex items-start gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#1e3a2a]/20 hover:bg-[#f0f7f3] transition-all">
+              <div className="w-8 h-8 bg-[#1e3a2a]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               </div>
               <div>
-                <p className="font-semibold text-gray-900 text-sm group-hover:text-[#1a5c38] transition-colors">Tjek dit tilbud</p>
+                <p className="font-semibold text-gray-900 text-sm group-hover:text-[#1e3a2a] transition-colors">Tjek dit tilbud</p>
                 <p className="text-xs text-gray-400 mt-0.5">Upload kontrakt eller tilbud og få det screenet</p>
               </div>
             </Link>

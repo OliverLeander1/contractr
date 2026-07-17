@@ -71,7 +71,7 @@ export default function StatikerVurdering() {
                         placeholder="Anders Jensen"
                         value={navn}
                         onChange={e => setNavn(e.target.value)}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                       />
                     </div>
                     <div>
@@ -81,7 +81,7 @@ export default function StatikerVurdering() {
                         placeholder="20 12 34 56"
                         value={telefon}
                         onChange={e => setTelefon(e.target.value)}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                       />
                     </div>
                   </div>
@@ -92,7 +92,7 @@ export default function StatikerVurdering() {
                       placeholder="din@email.dk"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                     />
                   </div>
                   <div>
@@ -102,14 +102,14 @@ export default function StatikerVurdering() {
                       placeholder="F.eks.: Jeg vil fjerne væggen mellem stue og køkken. Huset er fra 1968 og væggen ser bærende ud. Vil også gerne vide om der kræves tilladelse."
                       value={beskrivelse}
                       onChange={e => setBeskrivelse(e.target.value)}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all resize-none"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all resize-none"
                     />
                     <p className="text-xs text-gray-400 mt-1">Jo mere du skriver, jo præcisere svar får du.</p>
                   </div>
                   <button
                     onClick={send}
                     disabled={!kanSende}
-                    className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all ${kanSende ? "bg-[#1a5c38] text-white hover:opacity-90 shadow-md shadow-[#1a5c38]/20" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+                    className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all ${kanSende ? "bg-[#1e3a2a] text-white hover:opacity-90 shadow-md shadow-[#1e3a2a]/20" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
                   >
                     Send til gratis vurdering
                   </button>
@@ -126,19 +126,19 @@ export default function StatikerVurdering() {
                   Vi har modtaget din beskrivelse og sender svar til <strong>{email}</strong> inden for 1 hverdag. Hvis vi har brug for at stille et opklarende spørgsmål, ringer vi.
                 </p>
                 <div className="bg-[#f0f7f3] rounded-xl p-4 mb-6 text-left">
-                  <p className="text-xs font-semibold text-[#1a5c38] mb-2">Hvad sker der nu?</p>
+                  <p className="text-xs font-semibold text-[#1e3a2a] mb-2">Hvad sker der nu?</p>
                   {[
                     "En byggerådgiver gennemgår din beskrivelse",
                     "Du modtager en klar anbefaling: ja/nej til statiker og hvad det koster",
                     "Har du brug for hjælp videre, kan vi tilkøbe beregningerne direkte",
                   ].map((s, i) => (
                     <div key={i} className="flex items-start gap-2 mb-1.5 last:mb-0">
-                      <span className="text-[#1a5c38] font-bold text-xs mt-0.5">{i + 1}.</span>
+                      <span className="text-[#1e3a2a] font-bold text-xs mt-0.5">{i + 1}.</span>
                       <p className="text-xs text-gray-600">{s}</p>
                     </div>
                   ))}
                 </div>
-                <Link href="/opret" className="inline-block bg-[#1a5c38] text-white text-sm font-bold px-8 py-3 rounded-xl hover:opacity-90 transition-opacity">
+                <Link href="/opret" className="inline-block bg-[#1e3a2a] text-white text-sm font-bold px-8 py-3 rounded-xl hover:opacity-90 transition-opacity">
                   Opret dit projekt imens →
                 </Link>
               </div>
@@ -175,14 +175,14 @@ export default function StatikerVurdering() {
               </p>
               <Link href="/tilkoeb" className="flex items-center justify-between p-3 bg-[#f0f7f3] rounded-xl hover:bg-[#e6f4ec] transition-colors group">
                 <div>
-                  <p className="text-xs font-bold text-[#1a5c38]">Statiker og ingeniørberegninger</p>
+                  <p className="text-xs font-bold text-[#1e3a2a]">Statiker og ingeniørberegninger</p>
                   <p className="text-xs text-gray-500">Fra 3.995 kr.</p>
                 </div>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
               </Link>
             </div>
 
-            <div className="bg-[#1a5c38] text-white rounded-2xl p-5">
+            <div className="bg-[#1e3a2a] text-white rounded-2xl p-5">
               <p className="font-bold text-sm mb-1">Gratis. Ingen binding.</p>
               <p className="text-xs text-white/70 leading-relaxed">
                 Vurderingen er gratis og uforpligtende. Vi tjener kun penge hvis du vælger at gå videre med beregninger eller en rådgiverydelse.

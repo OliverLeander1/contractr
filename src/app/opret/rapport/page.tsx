@@ -282,7 +282,7 @@ export default function Rapport() {
             {
               titel: "Projektrum",
               pris: "499 kr.",
-              prisfarge: "text-[#1a5c38] font-bold",
+              prisfarge: "text-[#1e3a2a] font-bold",
               highlight: true,
               items: [
                 { ok: true, tekst: "Alt fra screening" },
@@ -308,13 +308,13 @@ export default function Rapport() {
               ],
             },
           ].map((kolonne) => (
-            <div key={kolonne.titel} className={`rounded-xl p-4 ${kolonne.highlight ? "bg-[#1a5c38] text-white" : "bg-gray-50"}`}>
+            <div key={kolonne.titel} className={`rounded-xl p-4 ${kolonne.highlight ? "bg-[#1e3a2a] text-white" : "bg-gray-50"}`}>
               <p className={`text-xs font-bold uppercase tracking-wide mb-0.5 ${kolonne.highlight ? "text-white/60" : "text-gray-400"}`}>{kolonne.titel}</p>
               <p className={`text-base font-bold mb-4 ${kolonne.highlight ? "text-white" : kolonne.prisfarge}`}>{kolonne.pris}</p>
               <div className="space-y-2">
                 {kolonne.items.map((item) => (
                   <div key={item.tekst} className="flex items-start gap-2">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={item.ok ? (kolonne.highlight ? "white" : "#1a5c38") : "#d1d5db"} strokeWidth={item.ok ? "3" : "2"} className="flex-shrink-0 mt-0.5">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={item.ok ? (kolonne.highlight ? "white" : "#1e3a2a") : "#d1d5db"} strokeWidth={item.ok ? "3" : "2"} className="flex-shrink-0 mt-0.5">
                       {item.ok ? <polyline points="20 6 9 17 4 12"/> : <line x1="18" y1="6" x2="6" y2="18"/>}
                     </svg>
                     <span className={`text-xs leading-relaxed ${kolonne.highlight ? "text-white/90" : item.ok ? "text-gray-700" : "text-gray-300"}`}>{item.tekst}</span>
@@ -322,7 +322,7 @@ export default function Rapport() {
                 ))}
               </div>
               {kolonne.highlight && (
-                <a href="/pakke" className="mt-4 block text-center bg-white text-[#1a5c38] text-xs font-bold py-2 rounded-lg hover:opacity-90 transition-opacity">
+                <a href="/pakke" className="mt-4 block text-center bg-white text-[#1e3a2a] text-xs font-bold py-2 rounded-lg hover:opacity-90 transition-opacity">
                   Opret projektrum
                 </a>
               )}
@@ -347,45 +347,59 @@ export default function Rapport() {
         <div className="px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 text-xs text-gray-400">
             <span className="flex items-center gap-1.5">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
               Ingen abonnement
             </span>
             <span className="flex items-center gap-1.5">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
               Data gemmes permanent
             </span>
             <span className="flex items-center gap-1.5">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
               30 dages garanti
             </span>
           </div>
           <button
             onClick={() => { if (erLoggetInd) { window.location.href = "/pakke"; } else { setLoginGateBesked("Gem din rapport og opret projektrum"); setLoginGate(true); } }}
-            className="flex-shrink-0 bg-[#1a5c38] text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-[#163f28] transition-colors"
+            className="flex-shrink-0 bg-[#1e3a2a] text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-[#163f28] transition-colors"
           >
             Opret projektrum →
           </button>
         </div>
       </div>
 
-      {/* Rådgiver */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
-        <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-[#1a5c38]/10 flex items-center justify-center flex-shrink-0 text-[#1a5c38]">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      {/* Rådgiver — fremtrædende */}
+      {(resultat.samletRisiko === "middel" || resultat.samletRisiko === "høj") && (
+        <div className="bg-[#1e3a2a] rounded-2xl p-6 mb-4">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 text-white">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-white/60 text-xs uppercase tracking-widest mb-0.5">Vores anbefaling</p>
+              <h3 className="text-white font-bold text-lg mb-1">Få en fagmand til at gennemgå aftalen</h3>
+              <p className="text-green-200/70 text-sm leading-relaxed">
+                Vi har identificeret {fejlAntal + advarsler} punkter der bør afklares. En byggesagkyndig kan gennemgå aftalen og give dig en professionel vurdering inden du skriver under.
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 mb-1">Vil du have en fagmand til at se på det?</h3>
-            <p className="text-sm text-gray-500 mb-3">En byggesagkyndig gennemgår aftalen og giver dig en professionel vurdering. Fra 1.495 kr.</p>
-            <button
-              onClick={() => { if (erLoggetInd) { window.location.href = "/tilkoeb"; } else { setLoginGateBesked("Opret konto for at booke rådgivergennemgang"); setLoginGate(true); } }}
-              className="inline-block bg-[#1a5c38] text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-[#163f28] transition-colors"
-            >
-              Book rådgivergennemgang
-            </button>
+          <div className="flex items-center justify-between gap-4 bg-white/10 rounded-xl px-5 py-4">
+            <div>
+              <p className="text-white font-semibold">Online møde med rådgiver</p>
+              <p className="text-green-200/60 text-xs mt-0.5">90 min. inkl. forberedelse · video</p>
+            </div>
+            <div className="flex items-center gap-4 flex-shrink-0">
+              <p className="text-white font-bold">1.495 kr.</p>
+              <button
+                onClick={() => { if (erLoggetInd) { window.location.href = "/tilkoeb"; } else { setLoginGateBesked("Opret konto for at booke rådgivergennemgang"); setLoginGate(true); } }}
+                className="bg-white text-[#1e3a2a] text-sm font-bold px-4 py-2.5 rounded-xl hover:bg-[#f5f3ee] transition-colors"
+              >
+                Book nu →
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="flex gap-3">
         <button

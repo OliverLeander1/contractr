@@ -8,10 +8,10 @@ const typeIkon = (type: string) => {
     case "betaling": return { path: "M2 5h20v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5zm0 5h20", bg: "bg-green-100", farve: "#16a34a" };
     case "mangel": return { path: "M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z", bg: "bg-red-100", farve: "#dc2626" };
     case "besked": return { path: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z", bg: "bg-blue-100", farve: "#3b82f6" };
-    case "abforbruger": return { path: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z", bg: "bg-primary/10", farve: "#1a5c38" };
+    case "abforbruger": return { path: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z", bg: "bg-primary/10", farve: "#1e3a2a" };
     case "dokument": return { path: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6", bg: "bg-gray-100", farve: "#6b7280" };
     case "tidsplan": return { path: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01", bg: "bg-amber-100", farve: "#d97706" };
-    case "eftersyn": return { path: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", bg: "bg-[#1a5c38]/10", farve: "#1a5c38" };
+    case "eftersyn": return { path: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", bg: "bg-[#1e3a2a]/10", farve: "#1e3a2a" };
     default: return { path: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z", bg: "bg-gray-100", farve: "#6b7280" };
   }
 };

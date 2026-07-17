@@ -67,7 +67,7 @@ export default function VaelgPakke() {
               <div className="divide-y divide-gray-50">
                 {features.map((f) => (
                   <div key={f.label} className="px-6 py-3.5 flex items-center gap-3.5">
-                    <div className="w-6 h-6 rounded-lg bg-[#1a5c38]/10 flex items-center justify-center text-[#1a5c38] flex-shrink-0">
+                    <div className="w-6 h-6 rounded-lg bg-[#1e3a2a]/10 flex items-center justify-center text-[#1e3a2a] flex-shrink-0">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                     </div>
                     <p className="text-sm text-gray-700">{f.label}</p>
@@ -77,9 +77,9 @@ export default function VaelgPakke() {
             </div>
 
             {/* Data-garanti */}
-            <div className="bg-[#1a5c38]/5 rounded-2xl border border-[#1a5c38]/10 p-5">
+            <div className="bg-[#1e3a2a]/5 rounded-2xl border border-[#1e3a2a]/10 p-5">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-[#1a5c38] rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-[#1e3a2a] rounded-xl flex items-center justify-center flex-shrink-0">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </div>
                 <div>
@@ -96,7 +96,7 @@ export default function VaelgPakke() {
           <div className="md:col-span-2 space-y-4">
             {!sendt ? (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="bg-[#1a5c38] px-6 py-5">
+                <div className="bg-[#1e3a2a] px-6 py-5">
                   <p className="text-white/60 text-xs mb-1">Engangsbetaling · inkl. moms</p>
                   <p className="text-white text-4xl font-bold">499 <span className="text-xl font-medium opacity-60">kr.</span></p>
                 </div>
@@ -124,14 +124,14 @@ export default function VaelgPakke() {
                     placeholder="Dit navn"
                     value={navn}
                     onChange={(e) => setNavn(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                   />
                   <input
                     type="email"
                     placeholder="Din e-mail"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                   />
                   <div className="border border-dashed border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3 bg-gray-50">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -144,7 +144,7 @@ export default function VaelgPakke() {
                     onClick={() => { if (navn && email) setSendt(true); }}
                     className={`w-full py-3.5 rounded-xl text-sm font-bold transition-all ${
                       navn && email
-                        ? "bg-[#1a5c38] text-white hover:bg-[#163f28] shadow-md shadow-[#1a5c38]/20"
+                        ? "bg-[#1e3a2a] text-white hover:bg-[#163f28] shadow-md shadow-[#1e3a2a]/20"
                         : "bg-gray-100 text-gray-400 cursor-not-allowed"
                     }`}
                   >
@@ -162,7 +162,7 @@ export default function VaelgPakke() {
                 <p className="text-sm text-gray-500 leading-relaxed mb-6">Vi sender dig en besked på <strong>{email}</strong> når betalingsløsningen er klar.</p>
                 <button
                   onClick={() => router.push("/opret")}
-                  className="w-full bg-[#1a5c38] text-white text-sm font-bold py-3.5 rounded-xl hover:bg-[#163f28] transition-colors"
+                  className="w-full bg-[#1e3a2a] text-white text-sm font-bold py-3.5 rounded-xl hover:bg-[#163f28] transition-colors"
                 >
                   Opret projekt gratis i mellemtiden →
                 </button>
@@ -171,13 +171,13 @@ export default function VaelgPakke() {
 
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
               {[
-                { ikon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>, t: "Sikker betaling via Stripe" },
-                { ikon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, t: "Data gemmes permanent" },
-                { ikon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>, t: "Ingen binding, engangskøb" },
-                { ikon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>, t: "30 dages pengene-tilbage-garanti" },
+                { ikon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>, t: "Sikker betaling via Stripe" },
+                { ikon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, t: "Data gemmes permanent" },
+                { ikon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>, t: "Ingen binding, engangskøb" },
+                { ikon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>, t: "30 dages pengene-tilbage-garanti" },
               ].map(i => (
                 <div key={i.t} className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-lg bg-[#1a5c38]/10 flex items-center justify-center flex-shrink-0">{i.ikon}</div>
+                  <div className="w-5 h-5 rounded-lg bg-[#1e3a2a]/10 flex items-center justify-center flex-shrink-0">{i.ikon}</div>
                   <p className="text-xs text-gray-500">{i.t}</p>
                 </div>
               ))}
@@ -186,7 +186,7 @@ export default function VaelgPakke() {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">Har du brug for en fagmand?</p>
               <p className="text-xs text-gray-500 leading-relaxed mb-3">Book en uvildig byggesagkyndig til gennemgang, tilsyn eller aflevering.</p>
-              <Link href="/tilkoeb" className="text-xs font-bold text-[#1a5c38] hover:underline">Se rådgiverydelser →</Link>
+              <Link href="/tilkoeb" className="text-xs font-bold text-[#1e3a2a] hover:underline">Se rådgiverydelser →</Link>
             </div>
           </div>
         </div>

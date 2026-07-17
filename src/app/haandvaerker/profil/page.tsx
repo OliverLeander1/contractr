@@ -17,7 +17,7 @@ function Stjerner({ antal }: { antal: number }) {
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map((i) => (
-        <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill={i <= antal ? "#1a5c38" : "none"} stroke="#1a5c38" strokeWidth="2">
+        <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill={i <= antal ? "#1e3a2a" : "none"} stroke="#1e3a2a" strokeWidth="2">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
         </svg>
       ))}
@@ -99,7 +99,7 @@ export default function HaandvaerkerProfil() {
             {/* Profilkort */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
               <div className="flex items-start gap-5">
-                <div className="w-16 h-16 rounded-2xl bg-[#1a5c38]/10 flex items-center justify-center text-[#1a5c38] font-bold text-2xl flex-shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-[#1e3a2a]/10 flex items-center justify-center text-[#1e3a2a] font-bold text-2xl flex-shrink-0">
                   {initial}
                 </div>
                 <div className="flex-1">
@@ -142,26 +142,26 @@ export default function HaandvaerkerProfil() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Navn</label>
                     <input type="text" value={nytNavn} onChange={e => setNytNavn(e.target.value)}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all" />
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Virksomhed</label>
                     <input type="text" value={nyVirksomhed} onChange={e => setNyVirksomhed(e.target.value)}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all" />
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">CVR</label>
                       <input type="text" value={nytCvr} onChange={e => setNytCvr(e.target.value)}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all" />
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">Telefon</label>
                       <input type="tel" value={nytTelefon} onChange={e => setNytTelefon(e.target.value)}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all" />
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
                     </div>
                   </div>
-                  <button onClick={gemProfil} className="bg-[#1a5c38] text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity text-sm">
+                  <button onClick={gemProfil} className="bg-[#1e3a2a] text-white font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity text-sm">
                     Gem profil
                   </button>
                 </div>

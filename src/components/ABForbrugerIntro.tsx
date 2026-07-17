@@ -36,9 +36,9 @@ interface Props {
 export default function ABForbrugerIntro({ kompakt = false, visLink = true }: Props) {
   if (kompakt) {
     return (
-      <div className="bg-[#1a5c38]/5 border border-[#1a5c38]/15 rounded-2xl p-5">
+      <div className="bg-[#1e3a2a]/5 border border-[#1e3a2a]/15 rounded-2xl p-5">
         <div className="flex items-start gap-3 mb-4">
-          <div className="w-9 h-9 bg-[#1a5c38] rounded-xl flex items-center justify-center flex-shrink-0">
+          <div className="w-9 h-9 bg-[#1e3a2a] rounded-xl flex items-center justify-center flex-shrink-0">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           </div>
           <div>
@@ -51,7 +51,7 @@ export default function ABForbrugerIntro({ kompakt = false, visLink = true }: Pr
         <div className="grid grid-cols-1 gap-2">
           {fordele.map((f) => (
             <div key={f.titel} className="flex items-start gap-2.5">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2.5" className="mt-0.5 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2.5" className="mt-0.5 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
               <div>
                 <span className="text-xs font-semibold text-gray-800">{f.titel}: </span>
                 <span className="text-xs text-gray-500">{f.tekst}</span>
@@ -60,7 +60,7 @@ export default function ABForbrugerIntro({ kompakt = false, visLink = true }: Pr
           ))}
         </div>
         {visLink && (
-          <Link href="/abforbruger" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1a5c38] hover:underline mt-4">
+          <Link href="/abforbruger" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1e3a2a] hover:underline mt-4">
             Læs hele AB-Forbruger-oversigten →
           </Link>
         )}
@@ -87,8 +87,8 @@ export default function ABForbrugerIntro({ kompakt = false, visLink = true }: Pr
       <div className="divide-y divide-gray-50">
         {fordele.map((f) => (
           <div key={f.titel} className="px-6 py-4 flex items-start gap-4">
-            <div className="w-8 h-8 rounded-lg bg-[#1a5c38]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="1.8">
+            <div className="w-8 h-8 rounded-lg bg-[#1e3a2a]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
                 <path d={f.ikon}/>
               </svg>
             </div>
@@ -102,7 +102,7 @@ export default function ABForbrugerIntro({ kompakt = false, visLink = true }: Pr
       {visLink && (
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
           <p className="text-xs text-gray-400">AB-Forbruger 2012 · DI Byggeri og Forbrugerrådet Tænk</p>
-          <Link href="/abforbruger" className="text-xs font-semibold text-[#1a5c38] hover:underline">
+          <Link href="/abforbruger" className="text-xs font-semibold text-[#1e3a2a] hover:underline">
             Læs alle paragraffer →
           </Link>
         </div>

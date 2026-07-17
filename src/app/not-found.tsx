@@ -5,7 +5,7 @@ export default function NotFound() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
       <div className="text-center max-w-md">
         <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-8">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="1.8">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>

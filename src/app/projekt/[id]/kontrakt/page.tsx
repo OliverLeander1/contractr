@@ -130,7 +130,7 @@ export default function Kontrakt({ params }: { params: Promise<{ id: string }> }
                   <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-1">Samlet entreprisesum</p>
                   <p className="text-xs text-gray-400">Fast pris inkl. moms · AB-Forbruger § 23</p>
                 </div>
-                <p className="text-2xl font-bold text-[#1a5c38]">{fmtKr(total)}</p>
+                <p className="text-2xl font-bold text-[#1e3a2a]">{fmtKr(total)}</p>
               </div>
               <p className="text-xs text-gray-400 mt-3">Detaljeret tilbudsliste fra entreprenøren vedlægges som bilag og er en del af aftalegrundlaget.</p>
             </div>

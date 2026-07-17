@@ -63,8 +63,8 @@ function Inner() {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
             {harInvitation ? (
               <>
-                <div className="w-14 h-14 bg-[#1a5c38]/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2">
+                <div className="w-14 h-14 bg-[#1e3a2a]/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                     <polyline points="22,6 12,13 2,6"/>
                   </svg>
@@ -90,8 +90,8 @@ function Inner() {
               </>
             ) : (
               <>
-                <div className="w-14 h-14 bg-[#1a5c38]/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2">
+                <div className="w-14 h-14 bg-[#1e3a2a]/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
                     <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
                   </svg>
                 </div>
@@ -101,12 +101,12 @@ function Inner() {
                 </p>
                 <div className="space-y-3 mb-6">
                   {[
-                    { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>, t: "Opret og send digitale tilbud direkte til kunder" },
-                    { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>, t: "Bygherre accepterer via platformen, alt dokumenteret" },
-                    { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>, t: "Se alle dine sager samlet ét sted" },
+                    { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>, t: "Opret og send digitale tilbud direkte til kunder" },
+                    { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>, t: "Bygherre accepterer via platformen, alt dokumenteret" },
+                    { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>, t: "Se alle dine sager samlet ét sted" },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-lg bg-[#1a5c38]/10 flex items-center justify-center flex-shrink-0">{item.icon}</div>
+                      <div className="w-7 h-7 rounded-lg bg-[#1e3a2a]/10 flex items-center justify-center flex-shrink-0">{item.icon}</div>
                       <p className="text-sm text-gray-600">{item.t}</p>
                     </div>
                   ))}
@@ -116,13 +116,13 @@ function Inner() {
 
             <button
               onClick={() => setTrin("konto")}
-              className="w-full bg-[#1a5c38] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity"
+              className="w-full bg-[#1e3a2a] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity"
             >
               {harInvitation ? "Opret konto og accepter invitation →" : "Opret gratis håndværkerprofil →"}
             </button>
             <p className="text-xs text-gray-400 text-center mt-4">
               Har du allerede en konto?{" "}
-              <Link href="/login" className="text-[#1a5c38] font-medium hover:underline">Log ind her</Link>
+              <Link href="/login" className="text-[#1e3a2a] font-medium hover:underline">Log ind her</Link>
             </p>
           </div>
         )}
@@ -141,7 +141,7 @@ function Inner() {
                   value={navn}
                   onChange={e => setNavn(e.target.value)}
                   placeholder="F.eks. Thomas Madsen"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5c38]/20 focus:border-[#1a5c38] transition-colors"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20 focus:border-[#1e3a2a] transition-colors"
                 />
               </div>
 
@@ -152,7 +152,7 @@ function Inner() {
                   value={firma}
                   onChange={e => setFirma(e.target.value)}
                   placeholder="F.eks. TM Byg ApS"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5c38]/20 focus:border-[#1a5c38] transition-colors"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20 focus:border-[#1e3a2a] transition-colors"
                 />
               </div>
 
@@ -164,7 +164,7 @@ function Inner() {
                   onChange={e => setEmail(e.target.value)}
                   disabled={harInvitation && !!inviteEmail}
                   placeholder="din@email.dk"
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5c38]/20 focus:border-[#1a5c38] transition-colors ${harInvitation && inviteEmail ? "border-gray-100 bg-gray-50 text-gray-400" : "border-gray-200"}`}
+                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20 focus:border-[#1e3a2a] transition-colors ${harInvitation && inviteEmail ? "border-gray-100 bg-gray-50 text-gray-400" : "border-gray-200"}`}
                 />
               </div>
 
@@ -174,7 +174,7 @@ function Inner() {
                   <select
                     value={fag}
                     onChange={e => setFag(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5c38]/20 focus:border-[#1a5c38] transition-colors bg-white"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20 focus:border-[#1e3a2a] transition-colors bg-white"
                   >
                     <option value="">Vælg fagområde...</option>
                     {FAGS.map(f => <option key={f} value={f}>{f}</option>)}
@@ -190,7 +190,7 @@ function Inner() {
                     value={adgangskode}
                     onChange={e => setAdgangskode(e.target.value)}
                     placeholder="Mindst 8 tegn"
-                    className={`w-full border rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5c38]/20 transition-colors ${stærk || !adgangskode ? "border-gray-200 focus:border-[#1a5c38]" : "border-red-200"}`}
+                    className={`w-full border rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20 transition-colors ${stærk || !adgangskode ? "border-gray-200 focus:border-[#1e3a2a]" : "border-red-200"}`}
                   />
                   <button type="button" onClick={() => setVisAdgangskode(!visAdgangskode)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -211,7 +211,7 @@ function Inner() {
                   value={bekræft}
                   onChange={e => setBekræft(e.target.value)}
                   placeholder="Gentag adgangskode"
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5c38]/20 transition-colors ${!bekræft || matcher ? "border-gray-200 focus:border-[#1a5c38]" : "border-red-200"}`}
+                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20 transition-colors ${!bekræft || matcher ? "border-gray-200 focus:border-[#1e3a2a]" : "border-red-200"}`}
                 />
                 {bekræft && !matcher && <p className="text-xs text-red-500 mt-1">Adgangskoderne matcher ikke</p>}
               </div>
@@ -220,15 +220,15 @@ function Inner() {
             <div className="mt-6 space-y-3">
               <button
                 onClick={fuldfør}
-                className={`w-full font-bold py-3.5 rounded-xl transition-all ${kanOprette ? "bg-[#1a5c38] text-white hover:opacity-90" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+                className={`w-full font-bold py-3.5 rounded-xl transition-all ${kanOprette ? "bg-[#1e3a2a] text-white hover:opacity-90" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
               >
                 Opret konto →
               </button>
               <p className="text-xs text-gray-400 text-center leading-relaxed">
                 Ved at oprette en konto accepterer du vores{" "}
-                <Link href="/vilkaar" className="text-[#1a5c38] hover:underline">vilkår</Link>{" "}
+                <Link href="/vilkaar" className="text-[#1e3a2a] hover:underline">vilkår</Link>{" "}
                 og{" "}
-                <Link href="/privatliv" className="text-[#1a5c38] hover:underline">privatlivspolitik</Link>
+                <Link href="/privatliv" className="text-[#1e3a2a] hover:underline">privatlivspolitik</Link>
               </p>
             </div>
           </div>
@@ -254,7 +254,7 @@ function Inner() {
             {harInvitation ? (
               <Link
                 href={`/haandvaerker/projekt/${projektId}`}
-                className="block w-full bg-[#1a5c38] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity"
+                className="block w-full bg-[#1e3a2a] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity"
               >
                 Gå til projektet →
               </Link>
@@ -262,7 +262,7 @@ function Inner() {
               <div className="space-y-3">
                 <Link
                   href="/haandvaerker/nyt-tilbud"
-                  className="block w-full bg-[#1a5c38] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity"
+                  className="block w-full bg-[#1e3a2a] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity"
                 >
                   Opret dit første tilbud →
                 </Link>

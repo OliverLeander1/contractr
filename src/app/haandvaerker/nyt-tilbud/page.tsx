@@ -142,8 +142,8 @@ export default function NytTilbud() {
           <div className="flex items-center gap-3 mb-8">
             {(["kunde", "poster"] as ("kunde" | "poster")[]).map((t, i) => (
               <div key={t} className="flex items-center gap-3">
-                <div className={`flex items-center gap-2 text-sm font-semibold ${trin === t ? "text-gray-900" : (t === "kunde" && trin === "poster") ? "text-[#1a5c38]" : "text-gray-400"}`}>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${trin === t ? "bg-[#1a5c38] text-white" : (t === "kunde" && trin === "poster") ? "bg-[#1a5c38]/20 text-[#1a5c38]" : "bg-gray-100 text-gray-400"}`}>
+                <div className={`flex items-center gap-2 text-sm font-semibold ${trin === t ? "text-gray-900" : (t === "kunde" && trin === "poster") ? "text-[#1e3a2a]" : "text-gray-400"}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${trin === t ? "bg-[#1e3a2a] text-white" : (t === "kunde" && trin === "poster") ? "bg-[#1e3a2a]/20 text-[#1e3a2a]" : "bg-gray-100 text-gray-400"}`}>
                     {t === "kunde" && trin === "poster" ? (
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                     ) : i + 1}
@@ -174,7 +174,7 @@ export default function NytTilbud() {
                   value={kundeNavn}
                   onChange={e => setKundeNavn(e.target.value)}
                   placeholder="F.eks. Camilla Jensen"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                 />
               </div>
 
@@ -185,7 +185,7 @@ export default function NytTilbud() {
                   value={kundeEmail}
                   onChange={e => setKundeEmail(e.target.value)}
                   placeholder="kunde@email.dk"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                 />
               </div>
             </div>
@@ -200,7 +200,7 @@ export default function NytTilbud() {
                   value={projektTitel}
                   onChange={e => setProjektTitel(e.target.value)}
                   placeholder="F.eks. Renovering af badeværelse, Valby"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                 />
               </div>
 
@@ -211,14 +211,14 @@ export default function NytTilbud() {
                   onChange={e => setProjektBeskrivelse(e.target.value)}
                   placeholder="Beskriv kort hvad tilbuddet dækker, eventuelle forbehold, materialevalg m.m."
                   rows={4}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all resize-none leading-relaxed"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all resize-none leading-relaxed"
                 />
               </div>
             </div>
 
             <button
               onClick={() => kanGaaTilPoster && setTrin("poster")}
-              className={`w-full py-4 rounded-xl text-base font-bold transition-all ${kanGaaTilPoster ? "bg-[#1a5c38] text-white hover:opacity-90 shadow-md shadow-[#1a5c38]/20" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+              className={`w-full py-4 rounded-xl text-base font-bold transition-all ${kanGaaTilPoster ? "bg-[#1e3a2a] text-white hover:opacity-90 shadow-md shadow-[#1e3a2a]/20" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
             >
               Næste: tilbudsposter →
             </button>
@@ -252,7 +252,7 @@ export default function NytTilbud() {
                           value={post.beskrivelse}
                           onChange={e => opdaterPost(post.id, "beskrivelse", e.target.value)}
                           placeholder="Beskriv opgaven..."
-                          className="w-full text-sm border-0 border-b border-gray-200 focus:outline-none focus:border-[#1a5c38] pb-1 bg-transparent transition-colors"
+                          className="w-full text-sm border-0 border-b border-gray-200 focus:outline-none focus:border-[#1e3a2a] pb-1 bg-transparent transition-colors"
                         />
                         <div className="flex items-center gap-2">
                           <input
@@ -260,7 +260,7 @@ export default function NytTilbud() {
                             value={post.pris}
                             onChange={e => opdaterPost(post.id, "pris", e.target.value)}
                             placeholder="0"
-                            className="w-28 text-sm text-right border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#1a5c38] transition-colors"
+                            className="w-28 text-sm text-right border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#1e3a2a] transition-colors"
                           />
                           <span className="text-xs text-gray-400">kr. ekskl. moms</span>
                           {post.pris && parseFloat(post.pris) > 0 && (
@@ -286,7 +286,7 @@ export default function NytTilbud() {
               <div className="px-6 py-3 border-t border-gray-50">
                 <button
                   onClick={tilfoejPost}
-                  className="flex items-center gap-2 text-sm font-semibold text-[#1a5c38] hover:opacity-70 transition-opacity"
+                  className="flex items-center gap-2 text-sm font-semibold text-[#1e3a2a] hover:opacity-70 transition-opacity"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -307,15 +307,15 @@ export default function NytTilbud() {
                   </div>
                   <div className="flex justify-between text-base font-bold text-gray-900 pt-1 border-t border-gray-200">
                     <span>Samlet tilbudssum inkl. moms</span>
-                    <span className="text-[#1a5c38]">{fmtKr(total)}</span>
+                    <span className="text-[#1e3a2a]">{fmtKr(total)}</span>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="bg-[#1a5c38]/5 border border-[#1a5c38]/10 rounded-2xl p-4 flex items-start gap-3">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2" className="mt-0.5 flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              <p className="text-xs text-[#1a5c38] leading-relaxed">
+            <div className="bg-[#1e3a2a]/5 border border-[#1e3a2a]/10 rounded-2xl p-4 flex items-start gap-3">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2" className="mt-0.5 flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <p className="text-xs text-[#1e3a2a] leading-relaxed">
                 Bygherren modtager et link til at se tilbuddet og acceptere det. Accepten registreres automatisk i din portal.
               </p>
             </div>
@@ -329,7 +329,7 @@ export default function NytTilbud() {
               </button>
               <button
                 onClick={() => kanSende && genererOgSend()}
-                className={`flex-1 py-3.5 rounded-xl text-sm font-bold transition-all ${kanSende ? "bg-[#1a5c38] text-white hover:opacity-90 shadow-md shadow-[#1a5c38]/20" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+                className={`flex-1 py-3.5 rounded-xl text-sm font-bold transition-all ${kanSende ? "bg-[#1e3a2a] text-white hover:opacity-90 shadow-md shadow-[#1e3a2a]/20" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
               >
                 Generer tilbudslink →
               </button>
@@ -351,7 +351,7 @@ export default function NytTilbud() {
                 Send linket til <strong>{kundeNavn}</strong> via e-mail, SMS eller anden besked. Bygherren kan se og acceptere tilbuddet direkte.
               </p>
               {total > 0 && (
-                <p className="text-sm font-bold text-[#1a5c38] mt-2">Tilbudssum: {fmtKr(total)} inkl. moms</p>
+                <p className="text-sm font-bold text-[#1e3a2a] mt-2">Tilbudssum: {fmtKr(total)} inkl. moms</p>
               )}
             </div>
 
@@ -367,7 +367,7 @@ export default function NytTilbud() {
               <div className="space-y-2">
                 <button
                   onClick={mailLink}
-                  className="w-full flex items-center justify-center gap-2 bg-[#1a5c38] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity text-sm"
+                  className="w-full flex items-center justify-center gap-2 bg-[#1e3a2a] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity text-sm"
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -397,7 +397,7 @@ export default function NytTilbud() {
                   { n: "3", t: `Bygherren accepterer. Sagen opdateres automatisk i din portal` },
                 ].map(s => (
                   <div key={s.n} className="flex items-start gap-3">
-                    <span className="w-5 h-5 rounded-full bg-[#1a5c38]/10 text-[#1a5c38] text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{s.n}</span>
+                    <span className="w-5 h-5 rounded-full bg-[#1e3a2a]/10 text-[#1e3a2a] text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{s.n}</span>
                     <p className="text-sm text-gray-600 leading-relaxed">{s.t}</p>
                   </div>
                 ))}
@@ -417,7 +417,7 @@ export default function NytTilbud() {
               </button>
               <Link
                 href="/haandvaerker/sager"
-                className="flex-1 py-3.5 rounded-xl bg-[#1a5c38] text-white text-sm font-bold hover:opacity-90 transition-opacity text-center"
+                className="flex-1 py-3.5 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 transition-opacity text-center"
               >
                 Gå til mine sager →
               </Link>

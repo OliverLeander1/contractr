@@ -324,11 +324,11 @@ export default function Aflevering({ params }: { params: Promise<{ id: string }>
               </div>
 
               {/* Data-garanti */}
-              <div className="bg-[#1a5c38]/5 border border-[#1a5c38]/10 rounded-xl p-4 text-left">
+              <div className="bg-[#1e3a2a]/5 border border-[#1e3a2a]/10 rounded-xl p-4 text-left">
                 <div className="flex items-start gap-3">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2" className="mt-0.5 flex-shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2" className="mt-0.5 flex-shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                   <div>
-                    <p className="text-sm font-semibold text-[#1a5c38] mb-1">Dine data er gemt for altid</p>
+                    <p className="text-sm font-semibold text-[#1e3a2a] mb-1">Dine data er gemt for altid</p>
                     <p className="text-xs text-gray-600 leading-relaxed">
                       Alle dokumenter, kontrakter, beskeder og betalinger i dette projekt er permanent tilgængelige i dit projektrum. Du har reklamationsret i 5 år, og vi sender dig en påmindelse inden 1-årsfristen udløber.
                     </p>

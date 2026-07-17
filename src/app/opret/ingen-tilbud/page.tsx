@@ -219,7 +219,7 @@ export default function IngenTilbud() {
 
       {/* AB-Forbruger info */}
       <div className="flex items-start gap-3 bg-primary/5 border border-primary/15 rounded-2xl p-5 mb-8">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2" className="shrink-0 mt-0.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2" className="shrink-0 mt-0.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <div>
           <p className="text-sm font-semibold text-gray-900 mb-1">Vidste du? AB-Forbruger beskytter dig - men kun hvis det er aftalt</p>
           <p className="text-xs text-gray-600 leading-relaxed mb-2">AB-Forbruger 2012 gælder ikke automatisk. Det skal stå i kontrakten at begge parter accepterer den. Uden den reference er du ikke dækket af rettigheder om mangler, reklamation og dagbod.</p>

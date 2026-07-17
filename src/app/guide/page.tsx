@@ -53,7 +53,7 @@ export default function Guide() {
       {/* HERO - mørk */}
       <section className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-6 text-center relative overflow-hidden">
         {/* Baggrund cirkel */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#1a5c38]/20 blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#1e3a2a]/20 blur-[120px] pointer-events-none" />
 
         <div className="relative z-10 max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 border border-white/10 text-white/50 text-xs font-medium px-4 py-2 rounded-full mb-10 tracking-widest uppercase">
@@ -120,7 +120,7 @@ export default function Guide() {
       {aktivFane === "bygherre" ? <BygherreGuide /> : <HåndværkerGuide />}
 
       {/* CTA */}
-      <section className="min-h-screen bg-[#1a5c38] flex items-center justify-center px-6 relative overflow-hidden">
+      <section className="min-h-screen bg-[#1e3a2a] flex items-center justify-center px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djZoNnYtNmgtNnptNiA2djZoNnYtNmgtNnptLTEyIDBoNnY2aC02di02em0xMiAwaDZ2NmgtNnYtNnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-40" />
         <Reveal className="relative z-10 text-center max-w-3xl mx-auto">
           <p className="text-green-300/60 text-sm font-medium uppercase tracking-widest mb-6">Klar til at starte?</p>
@@ -130,7 +130,7 @@ export default function Guide() {
           <p className="text-xl text-white/60 mb-12 leading-relaxed">
             Ingen konto nødvendig. Ingen binding. Bare upload og få svar på under 2 minutter.
           </p>
-          <Link href="/opret" className="inline-block bg-white text-[#1a5c38] font-bold text-lg px-12 py-5 rounded-2xl hover:scale-105 transition-transform shadow-2xl">
+          <Link href="/opret" className="inline-block bg-white text-[#1e3a2a] font-bold text-lg px-12 py-5 rounded-2xl hover:scale-105 transition-transform shadow-2xl">
             Tjek min byggeaftale gratis →
           </Link>
         </Reveal>
@@ -149,7 +149,7 @@ function BygherreGuide() {
         <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-20 items-center">
           <div>
             <Reveal>
-              <p className="text-xs font-bold text-[#1a5c38] uppercase tracking-[0.2em] mb-6">Trin 01</p>
+              <p className="text-xs font-bold text-[#1e3a2a] uppercase tracking-[0.2em] mb-6">Trin 01</p>
               <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight">Upload dit tilbud</h2>
               <p className="text-xl text-gray-400 leading-relaxed mb-10">
                 Du har fået et tilbud. Du ved ikke om det er fair. Upload PDF'en. Vi finder det du ikke vidste du skulle kigge efter.
@@ -158,7 +158,7 @@ function BygherreGuide() {
                 {["PDF, Word eller billede", "Krypteret og fortroligt", "Analyseret på under 60 sekunder"].map((p, i) => (
                   <Reveal key={p} delay={0.1 * i}>
                     <div className="flex items-center gap-4">
-                      <div className="w-6 h-6 bg-[#1a5c38] rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-6 h-6 bg-[#1e3a2a] rounded-full flex items-center justify-center flex-shrink-0">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                       </div>
                       <span className="text-gray-600">{p}</span>
@@ -171,8 +171,8 @@ function BygherreGuide() {
           <Reveal delay={0.2}>
             <div className="bg-gray-50 rounded-3xl p-8 border border-gray-100">
               <div className="flex items-center gap-3 mb-6 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                <div className="w-10 h-10 bg-[#1a5c38]/10 rounded-xl flex items-center justify-center">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <div className="w-10 h-10 bg-[#1e3a2a]/10 rounded-xl flex items-center justify-center">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-gray-900">Tilbud_TM_Byg_badevarelse.pdf</p>
@@ -180,7 +180,7 @@ function BygherreGuide() {
                 </div>
                 <span className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">✓ Klar</span>
               </div>
-              <div className="border-2 border-dashed border-gray-200 rounded-2xl p-10 text-center mb-6 hover:border-[#1a5c38]/30 transition-colors">
+              <div className="border-2 border-dashed border-gray-200 rounded-2xl p-10 text-center mb-6 hover:border-[#1e3a2a]/30 transition-colors">
                 <svg className="mx-auto mb-3" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 <p className="text-sm text-gray-400 mb-1">Træk dit tilbud hertil</p>
                 <p className="text-xs text-gray-300">eller klik for at vælge fil</p>
@@ -247,7 +247,7 @@ function BygherreGuide() {
         <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-20 items-center">
           <div>
             <Reveal>
-              <p className="text-xs font-bold text-[#1a5c38] uppercase tracking-[0.2em] mb-6">Trin 03</p>
+              <p className="text-xs font-bold text-[#1e3a2a] uppercase tracking-[0.2em] mb-6">Trin 03</p>
               <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight">Send dine krav til håndværkeren</h2>
               <p className="text-xl text-gray-400 leading-relaxed mb-10">
                 Platformen skriver automatisk en professionel besked. Du sender den direkte, og håndværkeren svarer i platformen.
@@ -260,7 +260,7 @@ function BygherreGuide() {
                 ].map((p, i) => (
                   <Reveal key={p} delay={0.1 * i}>
                     <div className="flex items-center gap-4">
-                      <div className="w-6 h-6 bg-[#1a5c38] rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-6 h-6 bg-[#1e3a2a] rounded-full flex items-center justify-center flex-shrink-0">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                       </div>
                       <span className="text-gray-600">{p}</span>
@@ -304,7 +304,7 @@ function BygherreGuide() {
         <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-20 items-center">
           <Reveal delay={0.1} className="order-2 md:order-1">
             <div className="rounded-3xl overflow-hidden border border-white/10">
-              <div className="bg-[#1a5c38] px-6 py-5 flex items-center gap-3">
+              <div className="bg-[#1e3a2a] px-6 py-5 flex items-center gap-3">
                 <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
                 </div>
@@ -354,7 +354,7 @@ function BygherreGuide() {
                 ].map((f, i) => (
                   <Reveal key={f.titel} delay={0.1 * i}>
                     <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/10">
-                      <div className="w-8 h-8 bg-[#1a5c38]/40 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 bg-[#1e3a2a]/40 rounded-lg flex items-center justify-center flex-shrink-0">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                       </div>
                       <div>
@@ -383,7 +383,7 @@ function HåndværkerGuide() {
         <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-20 items-center">
           <div>
             <Reveal>
-              <p className="text-xs font-bold text-[#1a5c38] uppercase tracking-[0.2em] mb-6">Trin 01</p>
+              <p className="text-xs font-bold text-[#1e3a2a] uppercase tracking-[0.2em] mb-6">Trin 01</p>
               <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight">Gratis for håndværkere</h2>
               <p className="text-xl text-gray-400 leading-relaxed mb-10">
                 Bygherren inviterer dig. Du opretter konto på 2 minutter. Gratis at komme i gang.
@@ -396,7 +396,7 @@ function HåndværkerGuide() {
                 ].map((f, i) => (
                   <Reveal key={f.titel} delay={0.1 * i}>
                     <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                      <div className="w-6 h-6 bg-[#1a5c38] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-6 h-6 bg-[#1e3a2a] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                       </div>
                       <div>
@@ -412,8 +412,8 @@ function HåndværkerGuide() {
           <Reveal delay={0.2}>
             <div className="bg-gray-50 rounded-3xl p-8 border border-gray-100">
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5">
-                <div className="w-14 h-14 bg-[#1a5c38]/10 rounded-2xl flex items-center justify-center mx-auto">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <div className="w-14 h-14 bg-[#1e3a2a]/10 rounded-2xl flex items-center justify-center mx-auto">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 </div>
                 <div className="text-center">
                   <p className="font-bold text-gray-900 text-lg">Du er inviteret</p>
@@ -456,7 +456,7 @@ function HåndværkerGuide() {
                   </ol>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <button className="bg-[#1a5c38] text-white font-semibold py-3.5 rounded-xl text-sm">Acceptér alle</button>
+                  <button className="bg-[#1e3a2a] text-white font-semibold py-3.5 rounded-xl text-sm">Acceptér alle</button>
                   <button className="bg-white/10 text-white font-semibold py-3.5 rounded-xl text-sm border border-white/10">Foreslå alternativ</button>
                 </div>
                 <div className="bg-white/5 border border-white/5 rounded-xl p-4">
@@ -483,7 +483,7 @@ function HåndværkerGuide() {
         <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-20 items-center">
           <div>
             <Reveal>
-              <p className="text-xs font-bold text-[#1a5c38] uppercase tracking-[0.2em] mb-6">Trin 03</p>
+              <p className="text-xs font-bold text-[#1e3a2a] uppercase tracking-[0.2em] mb-6">Trin 03</p>
               <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight">Underskriv og kør professionelt</h2>
               <p className="text-xl text-gray-400 leading-relaxed mb-10">
                 Digital underskrift med fuld juridisk gyldighed. Begge parter har overblik over tidsplan, betalinger og aflevering.
@@ -496,7 +496,7 @@ function HåndværkerGuide() {
                 ].map((f, i) => (
                   <Reveal key={f.titel} delay={0.1 * i}>
                     <div className="flex items-start gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                      <div className="w-6 h-6 bg-[#1a5c38] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-6 h-6 bg-[#1e3a2a] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                       </div>
                       <div>

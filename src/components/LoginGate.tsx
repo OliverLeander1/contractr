@@ -149,7 +149,7 @@ export default function LoginGate({ trigger, onLuk, besked }: Props) {
                     placeholder="Dit fulde navn"
                     value={navn}
                     onChange={e => setNavn(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                   />
                 </div>
               )}
@@ -160,7 +160,7 @@ export default function LoginGate({ trigger, onLuk, besked }: Props) {
                   placeholder="din@email.dk"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                 />
               </div>
               <div>
@@ -171,7 +171,7 @@ export default function LoginGate({ trigger, onLuk, besked }: Props) {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && handleSubmit()}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                 />
               </div>
 
@@ -184,7 +184,7 @@ export default function LoginGate({ trigger, onLuk, besked }: Props) {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className={`w-full font-bold py-3 rounded-xl transition-all text-sm ${loading ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-[#1a5c38] text-white hover:opacity-90 shadow-md shadow-[#1a5c38]/20"}`}
+                className={`w-full font-bold py-3 rounded-xl transition-all text-sm ${loading ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-[#1e3a2a] text-white hover:opacity-90 shadow-md shadow-[#1e3a2a]/20"}`}
               >
                 {loading ? "Vent..." : mode === "opret" ? "Opret gratis konto" : "Log ind"}
               </button>

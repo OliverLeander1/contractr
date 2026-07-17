@@ -91,7 +91,7 @@ export default function Chat({ bruger, projektId }: { bruger: "bygherre" | "haan
       {/* Chat-knap */}
       <button
         onClick={() => setÅben(!åben)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-[#1a5c38] text-white rounded-full shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity z-50"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-[#1e3a2a] text-white rounded-full shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity z-50"
       >
         {åben ? (
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -111,7 +111,7 @@ export default function Chat({ bruger, projektId }: { bruger: "bygherre" | "haan
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-[#1a5c38]/10 flex items-center justify-center text-[#1a5c38] font-semibold text-sm">
+              <div className="w-9 h-9 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center text-[#1e3a2a] font-semibold text-sm">
                 {modpartInitial}
               </div>
               <div>
@@ -141,7 +141,7 @@ export default function Chat({ bruger, projektId }: { bruger: "bygherre" | "haan
                 <div key={b.id} className={`flex ${erMig ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-[75%] ${erMig ? "items-end" : "items-start"} flex flex-col gap-1`}>
                     {!erMig && <p className="text-xs text-gray-400 ml-1">{b.navn}</p>}
-                    <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${erMig ? "bg-[#1a5c38] text-white rounded-tr-sm" : "bg-gray-100 text-gray-900 rounded-tl-sm"}`}>
+                    <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${erMig ? "bg-[#1e3a2a] text-white rounded-tr-sm" : "bg-gray-100 text-gray-900 rounded-tl-sm"}`}>
                       {b.tekst}
                     </div>
                     <p className="text-[10px] text-gray-400 mx-1">{b.tid}</p>
@@ -156,7 +156,7 @@ export default function Chat({ bruger, projektId }: { bruger: "bygherre" | "haan
           <div className="p-3 border-t border-gray-100">
             {billedeValgt && (
               <div className="bg-[#f0f7f3] rounded-xl px-3 py-2 mb-2 flex items-center justify-between">
-                <span className="text-xs text-[#1a5c38] font-medium">📷 Billede klar til afsendelse</span>
+                <span className="text-xs text-[#1e3a2a] font-medium">📷 Billede klar til afsendelse</span>
                 <button onClick={() => setBilledeValgt(false)} className="text-gray-400 hover:text-gray-600">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
@@ -165,7 +165,7 @@ export default function Chat({ bruger, projektId }: { bruger: "bygherre" | "haan
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setBilledeValgt(true)}
-                className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-gray-400 hover:text-[#1a5c38] hover:border-[#1a5c38]/30 transition-colors flex-shrink-0"
+                className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-gray-400 hover:text-[#1e3a2a] hover:border-[#1e3a2a]/30 transition-colors flex-shrink-0"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
               </button>
@@ -175,12 +175,12 @@ export default function Chat({ bruger, projektId }: { bruger: "bygherre" | "haan
                 onChange={e => setNy(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && sendBesked()}
                 placeholder="Skriv en besked..."
-                className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1a5c38] transition-all"
+                className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1e3a2a] transition-all"
               />
               <button
                 onClick={sendBesked}
                 disabled={!ny.trim() && !billedeValgt}
-                className="w-9 h-9 bg-[#1a5c38] text-white rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-40 flex-shrink-0"
+                className="w-9 h-9 bg-[#1e3a2a] text-white rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-40 flex-shrink-0"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               </button>

@@ -24,7 +24,7 @@ export default function Kontakt() {
         <div className="grid md:grid-cols-2 gap-6 mb-10">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                 <polyline points="22,6 12,13 2,6"/>
               </svg>
@@ -36,7 +36,7 @@ export default function Kontakt() {
 
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
             </div>

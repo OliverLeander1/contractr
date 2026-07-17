@@ -117,7 +117,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
       <div className="text-center">
         <p className="text-gray-500 text-sm mb-4">Sag ikke fundet.</p>
-        <Link href="/haandvaerker/sager" className="text-[#1a5c38] font-semibold text-sm hover:underline">
+        <Link href="/haandvaerker/sager" className="text-[#1e3a2a] font-semibold text-sm hover:underline">
           ← Tilbage til mine sager
         </Link>
       </div>
@@ -136,7 +136,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#1a5c38] rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-[#1e3a2a] rounded-lg flex items-center justify-center">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
                   <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                   <polyline points="9 22 9 12 15 12 15 22"/>
@@ -150,7 +150,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
             <Link href="/haandvaerker/sager" className="text-sm text-gray-400 hover:text-gray-700 transition-colors">
               ← Mine sager
             </Link>
-            <div className="w-8 h-8 rounded-full bg-[#1a5c38]/10 flex items-center justify-center text-[#1a5c38] font-semibold text-sm">
+            <div className="w-8 h-8 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center text-[#1e3a2a] font-semibold text-sm">
               {initials}
             </div>
           </div>
@@ -192,7 +192,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
               className={`flex items-center gap-2 text-sm font-semibold border px-4 py-2 rounded-xl flex-shrink-0 transition-all ${
                 linkKopieret
                   ? "border-green-300 bg-green-50 text-green-700"
-                  : "border-[#1a5c38]/30 bg-[#f0f7f3] text-[#1a5c38] hover:bg-[#1a5c38] hover:text-white"
+                  : "border-[#1e3a2a]/30 bg-[#f0f7f3] text-[#1e3a2a] hover:bg-[#1e3a2a] hover:text-white"
               }`}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -283,7 +283,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
               </div>
               <div className="border-t border-gray-100 px-6 py-4 flex justify-between bg-gray-50">
                 <span className="text-sm font-bold text-gray-900">Samlet inkl. moms</span>
-                <span className="text-sm font-bold text-[#1a5c38]">{fmtKr(sag.total)}</span>
+                <span className="text-sm font-bold text-[#1e3a2a]">{fmtKr(sag.total)}</span>
               </div>
             </div>
 
@@ -300,14 +300,14 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
         {/* FASER-TAB */}
         {aktivTab === "faser" && (
           <div className="space-y-4">
-            <div className="bg-[#f0f7f3] border border-[#1a5c38]/15 rounded-2xl p-5">
+            <div className="bg-[#f0f7f3] border border-[#1e3a2a]/15 rounded-2xl p-5">
               <div className="flex items-start gap-3">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2" className="flex-shrink-0 mt-0.5">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2" className="flex-shrink-0 mt-0.5">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
                 <div>
-                  <p className="text-sm font-semibold text-[#1a5c38] mb-1">Fakturering koblet til fremdrift (AB-Forbruger §25)</p>
-                  <p className="text-sm text-[#1a5c38]/80 leading-relaxed">
+                  <p className="text-sm font-semibold text-[#1e3a2a] mb-1">Fakturering koblet til fremdrift (AB-Forbruger §25)</p>
+                  <p className="text-sm text-[#1e3a2a]/80 leading-relaxed">
                     Opdel arbejdet i faser. Når en fase er færdig og godkendt af bygherren, kan du fakturere for den del.
                     Bygherren kan tilbageholde betaling ved dokumenterede mangler.
                   </p>
@@ -369,7 +369,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                           {fase.status === "ikke-startet" && (
                             <button
                               onClick={() => opdaterFaseStatus(fase.id, "igang")}
-                              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#1a5c38] text-white hover:opacity-90 transition-opacity"
+                              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#1e3a2a] text-white hover:opacity-90 transition-opacity"
                             >
                               Marker som i gang
                             </button>
@@ -411,7 +411,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
             {!visFaseForm ? (
               <button
                 onClick={() => setVisFaseForm(true)}
-                className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-2xl py-5 text-sm font-semibold text-gray-400 hover:border-[#1a5c38] hover:text-[#1a5c38] transition-all"
+                className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-2xl py-5 text-sm font-semibold text-gray-400 hover:border-[#1e3a2a] hover:text-[#1e3a2a] transition-all"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -429,7 +429,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                     value={faseNavn}
                     onChange={e => setFaseNavn(e.target.value)}
                     placeholder="F.eks. Badeværelse, Køkken, Stue..."
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                   />
                 </div>
 
@@ -440,7 +440,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                     onChange={e => setFaseBeskrivelse(e.target.value)}
                     placeholder="Kort beskrivelse af hvad der indgår i denne fase"
                     rows={2}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-2 focus:ring-[#1a5c38]/10 transition-all resize-none"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all resize-none"
                   />
                 </div>
 
@@ -457,7 +457,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                             key={p.id}
                             className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                               fasePosterIds.includes(p.id)
-                                ? "border-[#1a5c38] bg-[#f0f7f3]"
+                                ? "border-[#1e3a2a] bg-[#f0f7f3]"
                                 : alleredeIFase
                                 ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
                                 : "border-gray-100 hover:border-gray-200"
@@ -468,7 +468,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                               checked={fasePosterIds.includes(p.id)}
                               onChange={() => !alleredeIFase && togglePosterId(p.id)}
                               disabled={alleredeIFase}
-                              className="mt-0.5 accent-[#1a5c38]"
+                              className="mt-0.5 accent-[#1e3a2a]"
                             />
                             <div className="flex-1 min-w-0">
                               <span className="text-xs text-gray-400 mr-2">{i + 1}.</span>
@@ -482,7 +482,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                       })}
                     </div>
                     {fasePosterIds.length > 0 && (
-                      <p className="text-xs text-[#1a5c38] font-semibold mt-2">
+                      <p className="text-xs text-[#1e3a2a] font-semibold mt-2">
                         Fasebeløb: {fmtKr(
                           sag.tilbudsposter
                             .filter(p => fasePosterIds.includes(p.id))
@@ -503,7 +503,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                   <button
                     onClick={opretFase}
                     disabled={!faseNavn.trim()}
-                    className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${faseNavn.trim() ? "bg-[#1a5c38] text-white hover:opacity-90" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+                    className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${faseNavn.trim() ? "bg-[#1e3a2a] text-white hover:opacity-90" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
                   >
                     Opret fase
                   </button>
@@ -529,7 +529,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                   })}
                   <div className="border-t border-gray-100 pt-2 flex justify-between text-sm font-bold">
                     <span className="text-gray-900">Total tilbudssum</span>
-                    <span className="text-[#1a5c38]">{fmtKr(sag.total)}</span>
+                    <span className="text-[#1e3a2a]">{fmtKr(sag.total)}</span>
                   </div>
                 </div>
               </div>
