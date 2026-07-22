@@ -91,44 +91,45 @@ export default function Forside() {
 
               {/* Højre: Produkt-mockup */}
               <div className="relative hidden md:block">
-                <div className="bg-white rounded-2xl border border-[#e0ddd6] shadow-xl p-6 max-w-sm ml-auto">
+                <div className="bg-white rounded-2xl border border-[#e0ddd6] shadow-xl overflow-hidden max-w-sm ml-auto">
                   {/* Mockup header */}
-                  <div className="flex items-center justify-between mb-5">
-                    <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">Screening</p>
-                      <p className="font-bold text-gray-900 mt-0.5">Badeværelse · Hansen VVS</p>
-                    </div>
-                    <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full">Middel risiko</span>
-                  </div>
-
-                  {/* Risiko-bar */}
-                  <div className="flex gap-1 mb-5">
-                    {[true, true, true, false, false, false].map((ok, i) => (
-                      <div key={i} className={`flex-1 h-2 rounded-full ${ok ? "bg-[#1e3a2a]" : "bg-amber-300"}`} />
-                    ))}
-                  </div>
-
-                  {/* Tjekpunkter */}
-                  <div className="space-y-2.5">
-                    {[
-                      { ok: true, tekst: "AB-Forbruger er nævnt" },
-                      { ok: true, tekst: "Fast pris aftalt" },
-                      { ok: false, tekst: "Betalingsplan mangler" },
-                      { ok: false, tekst: "Tidsplan ikke specificeret" },
-                      { ok: true, tekst: "Mangelprocedure OK" },
-                    ].map((p) => (
-                      <div key={p.tekst} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm ${p.ok ? "bg-[#e5ede7]" : "bg-amber-50"}`}>
-                        {p.ok
-                          ? <svg className="flex-shrink-0 text-[#1e3a2a]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                          : <svg className="flex-shrink-0 text-amber-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
-                        }
-                        <span className={p.ok ? "text-[#1e3a2a] font-medium" : "text-amber-800"}>{p.tekst}</span>
+                  <div className="px-5 pt-5 pb-4 border-b border-[#f0ede8]">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Dit tilbud · Badeværelse</p>
+                        <p className="font-bold text-gray-900">Hansen VVS · 87.500 kr.</p>
                       </div>
-                    ))}
+                      <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">Middel risiko</span>
+                    </div>
+                    {/* Risiko-bar */}
+                    <div className="flex gap-1 mt-4">
+                      {[true, true, true, false, false, false].map((ok, i) => (
+                        <div key={i} className={`flex-1 h-1.5 rounded-full ${ok ? "bg-[#1e3a2a]" : "bg-amber-300"}`} />
+                      ))}
+                    </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-[#e0ddd6]">
-                    <p className="text-xs text-gray-400 text-center">Eksempel på screening-output</p>
+                  {/* Hvad mangler */}
+                  <div className="px-5 py-4">
+                    <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-3">Det skal du afklare</p>
+                    <div className="space-y-2">
+                      {[
+                        { tekst: "Hvornår starter arbejdet og hvornår er det færdigt?", alvor: "høj" },
+                        { tekst: "Er betalingen koblet til fremdrift, eller kræves den på bestemte datoer?", alvor: "høj" },
+                        { tekst: "Hvad sker der hvis der opstår ekstraarbejde?", alvor: "middel" },
+                      ].map((p) => (
+                        <div key={p.tekst} className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-amber-50">
+                          <svg className="flex-shrink-0 text-amber-500 mt-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+                          <span className="text-xs text-amber-900 leading-snug">{p.tekst}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Anbefaling */}
+                  <div className="mx-5 mb-5 bg-[#1e3a2a] rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                    <p className="text-xs text-green-100 font-medium leading-snug">Afklar disse punkter inden du siger ja</p>
+                    <svg className="flex-shrink-0 text-green-300" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                   </div>
                 </div>
 
@@ -139,18 +140,35 @@ export default function Forside() {
           </div>
         </section>
 
-        {/* Stats strip */}
+        {/* Værdipåstande */}
         <section className="bg-[#1e3a2a] py-12 sm:py-16">
           <div className="max-w-5xl mx-auto px-4 sm:px-6">
-            <div className="grid grid-cols-3 gap-8 text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12">
               {[
-                { tal: "6", label: "AB-Forbruger tjekpunkter" },
-                { tal: "2 min", label: "svar på dit tilbud" },
-                { tal: "0 kr.", label: "gratis at starte" },
+                {
+                  ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>,
+                  titel: "Du ser præcist hvad der mangler",
+                  tekst: "Vi gennemgår om pris, tidsplan, betaling og mangelprocedure er aftalt korrekt — og forklarer det i almindeligt dansk.",
+                },
+                {
+                  ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+                  titel: "Du får spørgsmål klar til håndværkeren",
+                  tekst: "Screeningen giver dig konkrete spørgsmål du kan sende direkte — ingen juridisk viden kræves.",
+                },
+                {
+                  ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+                  titel: "Gratis at starte, ingen konto krævet",
+                  tekst: "Upload dit tilbud og få svar inden for 2 minutter. Betal kun hvis du vil have den fulde rapport.",
+                },
               ].map((s) => (
-                <div key={s.label}>
-                  <p className="text-3xl sm:text-5xl font-bold text-white leading-none mb-2">{s.tal}</p>
-                  <p className="text-xs sm:text-sm text-green-200/70 font-medium">{s.label}</p>
+                <div key={s.titel} className="flex gap-4">
+                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-green-200 flex-shrink-0 mt-0.5">
+                    {s.ikon}
+                  </div>
+                  <div>
+                    <p className="font-bold text-white text-base mb-1">{s.titel}</p>
+                    <p className="text-sm text-green-200/70 leading-relaxed">{s.tekst}</p>
+                  </div>
                 </div>
               ))}
             </div>
