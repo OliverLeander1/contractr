@@ -33,6 +33,7 @@ export default function Login() {
         email: email.trim(),
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             navn: navn.trim(),
             brugerType,
