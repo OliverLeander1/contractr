@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase";
 
 const PAKKER = [
   {
@@ -68,9 +69,44 @@ export default function VaelgPakke() {
   const [valgt, setValgt] = useState<string>("renovering");
   const [navn, setNavn] = useState("");
   const [email, setEmail] = useState("");
-  const [sendt, setSendt] = useState(false);
+  const [projekId, setProjektId] = useState<string | null>(null);
+  const [brugerId, setBrugerId] = useState<string | null>(null);
+  const [betaler, setBetaler] = useState(false);
 
   const valgtPakke = PAKKER.find(p => p.id === valgt)!;
+
+  useEffect(() => {
+    const hent = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setBrugerId(user.id);
+        setEmail(user.email ?? "");
+        const { data: profil } = await supabase.from("profiler").select("navn").eq("id", user.id).single();
+        if (profil?.navn) setNavn(profil.navn);
+      }
+      const projektId = sessionStorage.getItem("screening_projekt_id");
+      if (projektId) setProjektId(projektId);
+    };
+    hent();
+  }, []);
+
+  const startBetaling = async () => {
+    if (!email) return;
+    setBetaler(true);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, navn, pakke: valgt, projekt_id: projekId, bruger_id: brugerId }),
+      });
+      const { url, error } = await res.json();
+      if (error) { setBetaler(false); return; }
+      window.location.href = url;
+    } catch {
+      setBetaler(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f5f3ee]">
@@ -168,7 +204,6 @@ export default function VaelgPakke() {
 
         {/* Betaling */}
         <div className="max-w-md mx-auto">
-          {!sendt ? (
             <div className="bg-white rounded-2xl border border-[#e0ddd6] shadow-sm overflow-hidden">
               <div className="bg-[#1e3a2a] px-6 py-5 flex items-center justify-between">
                 <div>
@@ -202,23 +237,16 @@ export default function VaelgPakke() {
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                 />
 
-                <div className="border border-dashed border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3 bg-gray-50">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                  <div>
-                    <p className="text-xs text-gray-400 font-medium">Kortoplysninger</p>
-                    <p className="text-xs text-gray-300">Betalingsløsning aktiveres snart</p>
-                  </div>
-                </div>
-
                 <button
-                  onClick={() => { if (navn && email) setSendt(true); }}
+                  onClick={startBetaling}
+                  disabled={betaler || !email}
                   className={`w-full py-3.5 rounded-xl text-sm font-bold transition-all ${
-                    navn && email
+                    email && !betaler
                       ? "bg-[#1e3a2a] text-white hover:bg-[#162d20] shadow-md shadow-[#1e3a2a]/20"
                       : "bg-gray-100 text-gray-400 cursor-not-allowed"
                   }`}
                 >
-                  Betal {valgtPakke.pris} kr. og opret projektrum
+                  {betaler ? "Sender til betaling..." : `Betal ${valgtPakke.pris} kr. og opret projektrum`}
                 </button>
 
                 <div className="grid grid-cols-2 gap-2 pt-1">
@@ -236,23 +264,6 @@ export default function VaelgPakke() {
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-[#e0ddd6] shadow-sm p-8 text-center">
-              <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              </div>
-              <p className="font-bold text-gray-900 text-lg mb-1">Tak, {navn.split(" ")[0]}!</p>
-              <p className="text-sm text-gray-500 leading-relaxed mb-6">
-                Vi skriver til <strong>{email}</strong> når betalingen er klar. I mellemtiden kan du oprette dit projekt gratis.
-              </p>
-              <Link
-                href="/opret"
-                className="block w-full bg-[#1e3a2a] text-white text-sm font-bold py-3.5 rounded-xl hover:bg-[#162d20] transition-colors"
-              >
-                Opret projekt i mellemtiden →
-              </Link>
-            </div>
-          )}
 
           <div className="mt-5 text-center">
             <p className="text-xs text-gray-400">
