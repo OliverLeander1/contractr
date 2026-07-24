@@ -103,7 +103,7 @@ export default function Login() {
     }
 
     const type = meta?.brugerType || brugerType;
-    router.push(type === "haandvaerker" ? "/haandvaerker/sager" : "/hub");
+    router.push(type === "haandvaerker" ? "/haandvaerker/sager" : "/dashboard");
   };
 
   if (bekraeftelse) {
