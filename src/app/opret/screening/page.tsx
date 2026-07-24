@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FlowLayout from "@/components/FlowLayout";
+import { createClient } from "@/lib/supabase";
 
 const trin = [
   "Læser dokumentet...",
@@ -25,34 +26,45 @@ export default function Screening() {
     const tekst = sessionStorage.getItem("screening_tekst") || "";
     const pdfBase64 = sessionStorage.getItem("screening_pdf_base64") || undefined;
     const projekttype = sessionStorage.getItem("screening_projekttype") || "renovation";
+    const adresse = sessionStorage.getItem("screening_adresse") || undefined;
+    const navn = sessionStorage.getItem("screening_navn") || undefined;
+    const kontakt = sessionStorage.getItem("screening_kontakt") || undefined;
+    const status = sessionStorage.getItem("screening_status") || "tilbud";
 
     const interval = setInterval(() => {
       setAktivtTrin(prev => Math.min(prev + 1, trin.length - 2));
     }, 700);
 
-    fetch("/api/screen", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tekst, projekttype, pdfBase64 }),
-    })
-      .then(res => res.json())
-      .then(data => {
-        clearInterval(interval);
-        if (data.error) {
-          setFejl(data.error);
-          return;
-        }
-        sessionStorage.setItem("screening_resultat", JSON.stringify(data));
-        setAktivtTrin(trin.length - 1);
-        setTimeout(() => {
-          setFærdig(true);
-          setTimeout(() => router.push("/opret/rapport"), 1000);
-        }, 500);
+    // Hent bruger-id hvis logget ind
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      const bruger_id = data.user?.id;
+
+      fetch("/api/screen", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tekst, projekttype, pdfBase64, bruger_id, adresse, navn, kontakt, status }),
       })
-      .catch(() => {
-        clearInterval(interval);
-        setFejl("Noget gik galt. Prøv igen.");
-      });
+        .then(res => res.json())
+        .then(data => {
+          clearInterval(interval);
+          if (data.error) {
+            setFejl(data.error);
+            return;
+          }
+          sessionStorage.setItem("screening_resultat", JSON.stringify(data));
+          if (data._projekt_id) sessionStorage.setItem("screening_projekt_id", data._projekt_id);
+          setAktivtTrin(trin.length - 1);
+          setTimeout(() => {
+            setFærdig(true);
+            setTimeout(() => router.push("/opret/rapport"), 1000);
+          }, 500);
+        })
+        .catch(() => {
+          clearInterval(interval);
+          setFejl("Noget gik galt. Prøv igen.");
+        });
+    });
 
     return () => clearInterval(interval);
   }, [router]);

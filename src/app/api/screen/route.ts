@@ -1,5 +1,6 @@
 ﻿import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { createServiceClient } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -100,6 +101,67 @@ export async function POST(req: NextRequest) {
         }
       } else {
         return NextResponse.json({ error: "Kunne ikke parse svar fra AI - prøv igen" }, { status: 500 });
+      }
+    }
+
+    // Gem screening i Supabase hvis bruger og projekt er angivet
+    const { bruger_id, projekt_id } = body;
+    if (bruger_id && parsed) {
+      try {
+        const db = createServiceClient();
+
+        // Opret projekt hvis ikke angivet
+        let aktivProjektId = projekt_id;
+        if (!aktivProjektId) {
+          const { data: nytProjekt } = await db
+            .from("projekter")
+            .insert({
+              bygherre_id: bruger_id,
+              projekttype: body.projekttype || "andet",
+              adresse: body.adresse || null,
+              navn: body.navn || null,
+              kontakt: body.kontakt || null,
+              status: body.status || "tilbud",
+              ab_forbruger: true,
+            })
+            .select("id")
+            .single();
+          aktivProjektId = nytProjekt?.id;
+        }
+
+        if (aktivProjektId) {
+          // Gem screening
+          const { data: screening } = await db
+            .from("screeninger")
+            .insert({
+              projekt_id: aktivProjektId,
+              samlet_risiko: parsed.samletRisiko,
+              status: "færdig",
+              model_version: "v1",
+            })
+            .select("id")
+            .single();
+
+          // Gem risikopunkter
+          if (screening?.id && parsed.punkter?.length) {
+            await db.from("risiko_punkter").insert(
+              parsed.punkter.map((p: { kategori: string; status: string; forklaring: string; anbefaling: string | null; titel?: string }, i: number) => ({
+                screening_id: screening.id,
+                kategori: p.kategori,
+                status: p.status,
+                forklaring: p.forklaring,
+                anbefaling: p.anbefaling,
+                alvorlighed: p.status === "fejl" ? "høj" : p.status === "advarsel" ? "middel" : "lav",
+                sorteret_index: i,
+              }))
+            );
+          }
+
+          parsed._projekt_id = aktivProjektId;
+          parsed._screening_id = screening?.id;
+        }
+      } catch {
+        // Gem fejl må ikke blokere bruger — fortsæt uden
       }
     }
 
