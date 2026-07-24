@@ -27,7 +27,7 @@ const SCENARIER = [
     id: "faerdig",
     emoji: "🏁",
     situation: "Er arbejdet færdigt?",
-    beskrivelse: "Inden du betaler den sidste rate, bør en fagmand gennemgå arbejdet. Og husk: du har ret til en formel afleveringsforretning.",
+    beskrivelse: "Inden du betaler den sidste rate, bør en fagmand gennemgå arbejdet. Vi anbefaler at du beder om en formel afleveringsforretning, så mangler er dokumenteret skriftligt.",
     ydelser: [
       { titel: "Afleveringstjek", pris: "Fra 2.995 kr.", detalje: "Fysisk gennemgang + rapport", href: "/tilkoeb/book?ydelse=aflevering" },
       { titel: "Mangelliste og dokumentation", pris: "Fra 1.995 kr.", detalje: "Rapport + mangelbrev til håndværker", href: "/tilkoeb/book?ydelse=mangel" },
@@ -64,7 +64,7 @@ export default function Tilkoeb() {
           <span className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest">Rådgivning</span>
           <h1 className="text-3xl font-bold text-gray-900 mt-2 mb-3">Brug for hjælp fra en fagmand?</h1>
           <p className="text-gray-500 max-w-lg leading-relaxed">
-            Uvildige rådgivere der arbejder udelukkende for dig som bygherre. Vælg din situation nedenfor.
+            Uvildige rådgivere og byggesagkyndige der kun arbejder for dig. Vælg din situation, så finder vi den rette hjælp.
           </p>
         </div>
 
@@ -147,7 +147,7 @@ export default function Tilkoeb() {
           <p className="text-green-200/60 text-xs uppercase tracking-widest mb-2">For rådgivere og byggesagkyndige</p>
           <h3 className="text-white font-bold text-lg mb-2">Er du byggesagkyndig eller rådgiver?</h3>
           <p className="text-green-200/70 text-sm mb-5 max-w-sm mx-auto leading-relaxed">
-            Modtag kvalificerede leads med dokumentation klar. Ingen forgæves henvendelser.
+            Modtag kvalificerede leads med screening-rapport og dokumentation klar fra dag ét. Ingen forgæves henvendelser.
           </p>
           <Link
             href="/raadgiver"

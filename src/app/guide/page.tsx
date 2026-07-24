@@ -70,8 +70,8 @@ export default function Guide() {
 
           <p className="text-xl text-white/50 max-w-xl mx-auto mb-14 leading-relaxed">
             {aktivFane === "bygherre"
-              ? "Uanset om du renoverer badeværelset eller bygger tilbygning, giver Nembyggestyring dig overblik, tryghed og stærke kort på hånden."
-              : "Undgå misforståelser, mundtlige aftaler og tvister. Nembyggestyring giver dig en professionel platform du inviterer kunden ind i. Gratis for dig."}
+              ? "Uanset om du renoverer badeværelset eller bygger en tilbygning, viser Nembyggestyring dig præcist hvad der mangler i aftalen og hvad du skal afklare."
+              : "Undgå misforståelser, mundtlige aftaler og tvister. Nembyggestyring er en fælles platform du inviterer kunden ind i. Gratis for dig."}
           </p>
 
           {/* Fane */}
@@ -152,7 +152,7 @@ function BygherreGuide() {
               <p className="text-xs font-bold text-[#1e3a2a] uppercase tracking-[0.2em] mb-6">Trin 01</p>
               <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight">Upload dit tilbud</h2>
               <p className="text-xl text-gray-400 leading-relaxed mb-10">
-                Du har fået et tilbud. Du ved ikke om det er fair. Upload PDF'en. Vi finder det du ikke vidste du skulle kigge efter.
+                Du har fået et tilbud. Du ved ikke hvad du mangler at spørge om. Upload PDF'en, så gennemgår vi det mod AB-Forbruger 2012.
               </p>
               <div className="space-y-4">
                 {["PDF, Word eller billede", "Krypteret og fortroligt", "Analyseret på under 60 sekunder"].map((p, i) => (
@@ -231,7 +231,7 @@ function BygherreGuide() {
               <p className="text-xs font-bold text-[#4ade80] uppercase tracking-[0.2em] mb-6">Trin 02</p>
               <h2 className="text-5xl md:text-6xl font-bold text-white mb-8 leading-tight">Vi finder præcist hvad der mangler</h2>
               <p className="text-xl text-white/40 leading-relaxed mb-10">
-                AI'en gennemgår hvert eneste punkt og sammenligner med AB-Forbruger 2012. Du får grønt, gult og rødt på almindeligt dansk.
+                Vi gennemgår hvert punkt og sammenligner med AB-Forbruger 2012. Du får grønt, gult og rødt på almindeligt dansk, uden juridisk jargon.
               </p>
               <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
                 <p className="text-sm font-bold text-white mb-2">Vidste du?</p>
@@ -250,11 +250,11 @@ function BygherreGuide() {
               <p className="text-xs font-bold text-[#1e3a2a] uppercase tracking-[0.2em] mb-6">Trin 03</p>
               <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight">Send dine krav til håndværkeren</h2>
               <p className="text-xl text-gray-400 leading-relaxed mb-10">
-                Platformen skriver automatisk en professionel besked. Du sender den direkte, og håndværkeren svarer i platformen.
+                Vi genererer en besked med dine ændringsønsker. Du sender den direkte til håndværkeren, og alt er dokumenteret skriftligt.
               </p>
               <div className="space-y-4">
                 {[
-                  "Juridisk korrekt dansk",
+                  "Klart og præcist dansk",
                   "Send direkte eller kopiér",
                   "Alt er skriftligt dokumenteret",
                 ].map((p, i) => (

@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import FlowLayout from "@/components/FlowLayout";
-import ABForbrugerIntro from "@/components/ABForbrugerIntro";
 
 const projekttyper = [
   { id: "badevarelse", label: "Badeværelse", ikon: "🚿" },
@@ -28,7 +27,7 @@ export default function OpretProjekt() {
   const [navn, setNavn] = useState("");
   const [kontakt, setKontakt] = useState("");
   const [status, setStatus] = useState("tilbud");
-  const [inkluderABF, setInkluderABF] = useState(true);
+  const inkluderABF = true; // AB-Forbruger er altid standard på platformen
   const [forslag, setForslag] = useState<DawaForslag[]>([]);
   const [visForslag, setVisForslag] = useState(false);
   const adresseRef = useRef<HTMLDivElement>(null);
@@ -238,53 +237,18 @@ export default function OpretProjekt() {
         </div>
       </div>
 
-      {/* AB-Forbruger intro — for alle statuser undtagen dialog (der har sin egen) */}
-      {status !== "dialog" && (
-        <div className="mb-5">
-          <ABForbrugerIntro kompakt />
+      {/* AB-Forbruger — altid inkluderet som standard, ingen valg */}
+      <div className="bg-[#1e3a2a]/5 border border-[#1e3a2a]/10 rounded-2xl px-5 py-4 mb-5 flex items-start gap-4">
+        <div className="w-9 h-9 bg-[#1e3a2a] rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
-      )}
-
-      {/* AB-Forbruger valg — kun relevant når bygherre sender i udbud */}
-      {status === "dialog" && (
-        <div className={`rounded-2xl border-2 p-6 mb-5 transition-all ${inkluderABF ? "border-primary bg-accent" : "border-gray-200 bg-white"}`}>
-          <div className="flex items-start gap-4">
-            <button
-              onClick={() => setInkluderABF(!inkluderABF)}
-              className={`w-6 h-6 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${inkluderABF ? "bg-primary border-primary" : "border-gray-300"}`}
-            >
-              {inkluderABF && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg>}
-            </button>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <p className="font-semibold text-gray-900 text-sm">Inkludér AB-Forbruger 2012 i udbuddet</p>
-                <span className="text-xs bg-green-100 text-green-800 font-semibold px-2 py-0.5 rounded-full">Anbefalet</span>
-              </div>
-              <p className="text-sm text-gray-500 leading-relaxed mb-3">
-                AB-Forbruger er standardbetingelserne for private byggeaftaler i Danmark. De træder kun i kraft, hvis begge parter eksplicit aftaler det. Når du inkluderer det i udbuddet, accepterer entreprenøren vilkårene ved at indsende sit tilbud.
-              </p>
-              <div className="space-y-1.5">
-                {[
-                  "Ekstraarbejde skal aftales skriftligt inden opstart (§ 23)",
-                  "Betaling kobles til dokumenteret fremdrift (§ 25–26)",
-                  "Ret til afleveringsforretning ved arbejde over 50.000 kr. (§ 38)",
-                  "1-års eftersyn ved arbejde over 500.000 kr. (§ 58)",
-                ].map((punkt) => (
-                  <div key={punkt} className="flex items-start gap-2 text-xs text-gray-500">
-                    <svg className="mt-0.5 flex-shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                    {punkt}
-                  </div>
-                ))}
-              </div>
-              {!inkluderABF && (
-                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mt-3">
-                  Uden AB-Forbruger er det op til aftalen selv at definere rettigheder og pligter. Du kan stadig bruge Nembyggestyring til kommunikation, betalinger og dokumentation.
-                </p>
-              )}
-            </div>
-          </div>
+        <div>
+          <p className="font-semibold text-gray-900 text-sm mb-1">AB-Forbruger 2012 er standard</p>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            Alle projekter på platformen bruger AB-Forbruger 2012 som grundlag. Håndværkeren accepterer det ved at bruge platformen. Det betyder at ekstraarbejde skal aftales skriftligt, betaling kobles til fremdrift, og du har ret til afleveringsforretning.
+          </p>
         </div>
-      )}
+      </div>
 
       <button
         onClick={() => {

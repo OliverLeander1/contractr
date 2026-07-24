@@ -260,8 +260,8 @@ export default function Rapport() {
 
       {/* Hvad får du ved at gå videre */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
-        <h3 className="font-semibold text-gray-900 mb-1">Hvad er forskellen på gratis og betalt?</h3>
-        <p className="text-xs text-gray-400 mb-5">Du har nu set den gratis screening. Her er hvad du går glip af uden projektrum.</p>
+        <h3 className="font-semibold text-gray-900 mb-1">Gratis screening eller fuldt projektrum?</h3>
+        <p className="text-xs text-gray-400 mb-5">Du har set screeningen. Herunder er hvad der følger med et projektrum.</p>
         <div className="grid grid-cols-3 gap-3">
           {[
             {
@@ -337,7 +337,7 @@ export default function Rapport() {
           <div>
             <p className="text-white/50 text-xs uppercase tracking-widest mb-1">Næste skridt</p>
             <h3 className="text-white font-bold text-lg">Opret dit projektrum</h3>
-            <p className="text-white/60 text-sm mt-1">Kontrakt, tidsplan, betalinger, chat og dokumenter samlet ét sted. Data gemmes for altid.</p>
+            <p className="text-white/60 text-sm mt-1">Kontrakt, tidsplan, betalinger, chat og dokumenter samlet ét sted. Alt gemmes og kan tilgås når du har brug for det.</p>
           </div>
           <div className="flex-shrink-0 text-right">
             <p className="text-white/40 text-xs mb-0.5">Engangspris</p>
@@ -356,7 +356,7 @@ export default function Rapport() {
             </span>
             <span className="flex items-center gap-1.5">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-              30 dages garanti
+              Pengene-tilbage garanti i 30 dage
             </span>
           </div>
           <button
@@ -377,9 +377,9 @@ export default function Rapport() {
             </div>
             <div className="flex-1">
               <p className="text-white/60 text-xs uppercase tracking-widest mb-0.5">Vores anbefaling</p>
-              <h3 className="text-white font-bold text-lg mb-1">Få en fagmand til at gennemgå aftalen</h3>
+              <h3 className="text-white font-bold text-lg mb-1">Book en fagmand til at gennemgå aftalen</h3>
               <p className="text-green-200/70 text-sm leading-relaxed">
-                Vi har identificeret {fejlAntal + advarsler} punkter der bør afklares. En byggesagkyndig kan gennemgå aftalen og give dig en professionel vurdering inden du skriver under.
+                Vi har fundet {fejlAntal + advarsler} punkter der bør afklares. En byggesagkyndig kan gennemgå aftalen med dig og give dig en skriftlig vurdering inden du skriver under.
               </p>
             </div>
           </div>

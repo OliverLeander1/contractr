@@ -2,15 +2,15 @@
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "AB-Forbruger 2012: Dine rettigheder som bygherre",
-  description: "Få overblik over AB-Forbruger 2012 - standardbetingelserne der beskytter dig som privat bygherre. Forstå dine rettigheder om betaling, mangler, reklamation og aflevering.",
-  keywords: ["AB-Forbruger", "AB-Forbruger 2012", "bygherre rettigheder", "byggeri rettigheder", "reklamationsret byggeri"],
+  title: "AB-Forbruger 2012: De vigtigste paragraffer for private bygherrer",
+  description: "Hvad siger AB-Forbruger 2012 om betaling, tidsplan, mangler og aflevering? Her er de mest relevante paragraffer oversat til almindeligt dansk.",
+  keywords: ["AB-Forbruger", "AB-Forbruger 2012", "bygherre rettigheder", "byggeri betaling", "reklamationsret byggeri", "mangelprocedure byggeri"],
   openGraph: {
-    title: "AB-Forbruger 2012: Dine rettigheder som bygherre",
-    description: "Forstå AB-Forbruger 2012 og dine rettigheder om betaling, mangler og aflevering.",
-    url: "https://www.Nembyggestyring.dk/abforbruger",
+    title: "AB-Forbruger 2012: De vigtigste paragraffer for private bygherrer",
+    description: "De mest relevante paragraffer i AB-Forbruger 2012 oversat til almindeligt dansk, fordelt efter situation.",
+    url: "https://www.nembyggestyring.dk/abforbruger",
   },
-  alternates: { canonical: "https://www.Nembyggestyring.dk/abforbruger" },
+  alternates: { canonical: "https://www.nembyggestyring.dk/abforbruger" },
 };
 
 const sektioner = [
@@ -215,12 +215,12 @@ export default function ABForbruger() {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             AB-Forbruger 2012
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">Dine rettigheder som bygherre</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">AB-Forbruger 2012 på almindeligt dansk</h1>
           <p className="text-gray-500 leading-relaxed mb-3">
-            AB-Forbruger (revideret juni 2012) er standardbetingelserne for private byggesager i Danmark. Her er de vigtigste paragraffer oversat til almindeligt dansk, fordelt efter situation.
+            AB-Forbruger (revideret juni 2012) er standardbetingelserne for private byggesager i Danmark. Her er de vigtigste paragraffer, fordelt efter situation, skrevet uden juridisk jargon.
           </p>
           <p className="text-sm text-gray-400 leading-relaxed">
-            AB-Forbruger indeholder 72 paragraffer i alt. Vi viser kun dem der typisk er relevante for dig som privat bygherre. Paragraffer om fagentreprise, sikkerhedsstillelse og voldgift er udeladt, da de sjældent er aktuelle i almindelige boligprojekter.
+            AB-Forbruger indeholder 72 paragraffer i alt. Vi viser kun dem der typisk er relevante for dig som privat bygherre. Paragraffer om fagentreprise, sikkerhedsstillelse og voldgift er udeladt, da de sjældent er aktuelle i et almindeligt boligprojekt.
           </p>
 
           {/* Vigtig note: AB-Forbruger er ikke automatisk */}
@@ -229,7 +229,7 @@ export default function ABForbruger() {
             <div>
               <p className="text-sm font-semibold text-amber-900 mb-1">AB-Forbruger træder ikke automatisk i kraft</p>
               <p className="text-sm text-amber-800 leading-relaxed">
-                AB-Forbruger er standardbetingelser, ikke lovgivning. De skal eksplicit aftales mellem bygherre og entreprenør for at gælde. Det sker typisk ved at aftalen eller udbuddet reference til AB-Forbruger, og at entreprenøren accepterer dette. Nembyggestyring sørger for at dette er tydeligt fra starten, når du sender et projekt i udbud.
+                AB-Forbruger er standardbetingelser, ikke lovgivning. De skal eksplicit aftales mellem bygherre og entreprenør for at gælde. Det sker typisk ved at aftalen eller udbuddet henviser til AB-Forbruger, og at entreprenøren accepterer dette. Nembyggestyring tjekker om din aftale gør det, og fortæller dig hvad du skal bede om skriftligt.
               </p>
             </div>
           </div>
@@ -237,7 +237,7 @@ export default function ABForbruger() {
           <div className="mt-4 bg-accent border border-primary/20 rounded-xl p-4 flex items-start gap-3">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2" className="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <p className="text-sm text-primary leading-relaxed">
-              Platformen viser dig automatisk den relevante paragraf når noget sker i dit projekt, men kun hvis AB-Forbruger er aftalt som grundlag.
+              Nembyggestyring viser dig den relevante paragraf når noget sker i dit projekt. Det kræver at AB-Forbruger er aftalt som grundlag, og det er præcis det første vi tjekker.
             </p>
           </div>
         </div>

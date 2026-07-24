@@ -3,11 +3,11 @@ import Link from "next/link";
 import { UploadAnimation, ScanAnimation, AdvisorAnimation, ProjectAnimation } from "@/components/BenefitAnimation";
 
 export const metadata: Metadata = {
-  title: "Nembyggestyring - Forstå din byggeaftale inden du siger ja",
-  description: "Upload dit tilbud eller kontrakt og få det screenet gratis på 2 minutter mod AB-Forbruger 2012. Vi sørger for at du som privat bygherre forstår hvad du skriver under på, inden du siger ja til håndværkeren.",
-  keywords: ["byggeaftale", "tilbud håndværker", "AB-Forbruger", "kontrakt screening", "bygherre", "renovering", "byggetilsyn", "håndværker kontrakt", "byggesagkyndig"],
+  title: "Nembyggestyring - Tjek dit tilbud fra håndværkeren inden du siger ja",
+  description: "Upload tilbuddet fra håndværkeren og få det screenet gratis på 2 minutter mod AB-Forbruger 2012. Vi viser dig præcist hvad du skal afklare inden du skriver under.",
+  keywords: ["byggeaftale", "tilbud håndværker", "AB-Forbruger", "kontrakt screening", "bygherre", "renovering", "håndværker tilbud tjek", "håndværker kontrakt", "byggesagkyndig"],
   openGraph: {
-    title: "Nembyggestyring - Forstå din byggeaftale inden du siger ja",
+    title: "Nembyggestyring - Tjek dit tilbud fra håndværkeren inden du siger ja",
     description: "Gratis screening af dit tilbud mod AB-Forbruger 2012. Upload og få svar på 2 minutter.",
     url: "https://www.nembyggestyring.dk",
     type: "website",
@@ -199,7 +199,7 @@ export default function Forside() {
                 },
                 {
                   nr: "3",
-                  titel: "Du handler trygt",
+                  titel: "Du ved hvad du skal gøre",
                   tekst: "Du får konkrete spørgsmål til håndværkeren, eller du kan booke en byggesagkyndig direkte fra rapporten.",
                   ikon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>,
                 },
@@ -233,7 +233,7 @@ export default function Forside() {
           <div className="max-w-5xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-12">
               <span className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest">Platformen</span>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">Alt hvad du har brug for</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">Fra tilbud til aflevering</h2>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-6">
@@ -301,7 +301,7 @@ export default function Forside() {
               <span className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest">Hele projektet samlet</span>
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2 mb-2">Fra første tilbud til 1-års eftersyn</h2>
               <p className="text-base text-gray-500 max-w-lg">
-                Nembyggestyring er ikke bare en screener. Det er et komplet digitalt projektrum med alle parter samlet på ét sted.
+                Nembyggestyring er ikke bare en screener. Det er et digitalt projektrum hvor kontrakt, betalinger, dokumenter og kommunikation samles ét sted.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -330,12 +330,12 @@ export default function Forside() {
         {/* SEO-tekst */}
         <section className="bg-white py-14 sm:py-16 border-t border-[#e0ddd6]">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Digital tryghed for private bygherrer i Danmark</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Tjek tilbuddet fra håndværkeren inden du siger ja</h2>
             <p className="text-sm text-gray-500 leading-relaxed mb-4">
-              Hvert år indgår tusindvis af danske boligejere aftaler med håndværkere og entreprenører uden at kende deres rettigheder. Manglende tidsplan, uklar betalingsplan og fraværende ekstraarbejde-procedure er de hyppigste årsager til konflikter. AB-Forbruger 2012 eksisterer præcis for at beskytte dig, men kun hvis du ved det og beder om det.
+              Hvert år indgår tusindvis af danske boligejere aftaler med håndværkere uden at vide hvad de skriver under på. Manglende tidsplan, uklar betalingsplan og ingen procedure for ekstraarbejde er de hyppigste årsager til konflikter. AB-Forbruger 2012 beskytter dig som bygherre, men kun hvis det er aftalt skriftligt fra starten.
             </p>
             <p className="text-sm text-gray-500 leading-relaxed">
-              Nembyggestyring giver private bygherrer adgang til den samme viden og de samme redskaber som professionelle byggesagkyndige bruger. Fra screening af tilbud og kontrakter til et komplet digitalt projektrum med betalingsplan, ekstraarbejde-sedler, mangelregistrering og afleveringsflow.
+              Nembyggestyring screener dit tilbud eller din kontrakt mod AB-Forbruger 2012 og fortæller dig konkret hvad du skal afklare med håndværkeren inden du siger ja. Upload dit tilbud gratis og få svar på 2 minutter.
             </p>
           </div>
         </section>

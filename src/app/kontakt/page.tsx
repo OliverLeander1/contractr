@@ -40,8 +40,8 @@ export default function Kontakt() {
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
             </div>
-            <h2 className="font-bold text-gray-900 mb-1">Live chat</h2>
-            <p className="text-sm text-gray-500 mb-3">Hurtigst svar - tilgængelig når du er logget ind</p>
+            <h2 className="font-bold text-gray-900 mb-1">Chat</h2>
+            <p className="text-sm text-gray-500 mb-3">Tilgængelig når du er logget ind. Typisk svar inden for få timer.</p>
             <Link href="/login" className="text-sm font-semibold text-primary hover:underline">Log ind og åbn chat →</Link>
           </div>
         </div>
