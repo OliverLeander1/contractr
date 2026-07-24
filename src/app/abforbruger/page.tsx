@@ -216,8 +216,11 @@ export default function ABForbruger() {
             AB-Forbruger 2012
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-3">Dine rettigheder som bygherre</h1>
-          <p className="text-gray-500 leading-relaxed">
+          <p className="text-gray-500 leading-relaxed mb-3">
             AB-Forbruger (revideret juni 2012) er standardbetingelserne for private byggesager i Danmark. Her er de vigtigste paragraffer oversat til almindeligt dansk, fordelt efter situation.
+          </p>
+          <p className="text-sm text-gray-400 leading-relaxed">
+            AB-Forbruger indeholder 72 paragraffer i alt. Vi viser kun dem der typisk er relevante for dig som privat bygherre. Paragraffer om fagentreprise, sikkerhedsstillelse og voldgift er udeladt, da de sjældent er aktuelle i almindelige boligprojekter.
           </p>
 
           {/* Vigtig note: AB-Forbruger er ikke automatisk */}
