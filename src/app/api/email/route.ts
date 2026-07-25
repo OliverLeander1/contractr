@@ -61,7 +61,8 @@ export async function POST(req: NextRequest) {
         </p>
 
         <hr style="border: none; border-top: 1px solid #f0f0f0; margin: 28px 0;">
-        <p style="font-size: 12px; color: #d1d5db;">nembyggestyring.dk · Færre misforståelser. Mere tid til at bygge.</p>
+        <p style="font-size: 13px; font-weight: 600; color: #6b7280; margin-bottom: 4px;">NemByggestyring · Vi skaber rammerne for det gode projekt</p>
+        <p style="font-size: 12px; color: #d1d5db;">nembyggestyring.dk</p>
       </div>
     `,
   });
