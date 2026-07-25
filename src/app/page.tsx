@@ -34,7 +34,7 @@ export default function Forside() {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 Bygherre
               </Link>
-              <Link href="/haandvaerker/sager" className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-white text-xs font-medium transition-all">
+              <Link href="/entreprenoer" className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-white text-xs font-medium transition-all">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
                 Entreprenør
               </Link>
@@ -335,7 +335,7 @@ export default function Forside() {
                 <p className="text-base text-gray-600 leading-relaxed mb-7">
                   Betaling kobles til dokumenteret fremdrift. Når du markerer en milepæl som udført og bygherre godkender, frigives betalingen. Ingen rykkere, ingen ventetid.
                 </p>
-                <Link href="/haandvaerker/sager" className="inline-flex items-center gap-2 text-sm font-semibold text-[#1e3a2a] hover:underline">
+                <Link href="/entreprenoer" className="inline-flex items-center gap-2 text-sm font-semibold text-[#1e3a2a] hover:underline">
                   Læs mere om platformen for entreprenører
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </Link>
@@ -408,7 +408,7 @@ export default function Forside() {
             <Link href="/tilkoeb" className="text-xs text-gray-400 hover:text-gray-600">Rådgivere</Link>
             <Link href="/vilkaar" className="text-xs text-gray-400 hover:text-gray-600">Vilkår</Link>
             <Link href="/privatliv" className="text-xs text-gray-400 hover:text-gray-600">Privatlivspolitik</Link>
-            <Link href="/haandvaerker/sager" className="text-xs text-gray-400 hover:text-gray-600">Entreprenør</Link>
+            <Link href="/entreprenoer" className="text-xs text-gray-400 hover:text-gray-600">Entreprenør</Link>
           </div>
         </div>
       </footer>
