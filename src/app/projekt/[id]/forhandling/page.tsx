@@ -34,7 +34,7 @@ interface Kontrakt {
 }
 
 const fmtKr = (n: number) =>
-  n.toLocaleString("da-DK", { minimumFractionDigits: 0 }) + " kr.";
+  n.toLocaleString("da-DK", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + " kr.";
 
 const feltLabels: Record<string, string> = {
   titel: "Projekttitel",
@@ -54,6 +54,8 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const [sender, setSender] = useState(false);
   const [godkender, setGodkender] = useState(false);
   const [gemmer, setGemmer] = useState(false);
+  const [redigererBetalingsplan, setRedigererBetalingsplan] = useState(false);
+  const [betalingsplanRækker, setBetalingsplanRækker] = useState<{milepæl: string; andel: string}[]>([]);
   const [brugerNavn, setBrugerNavn] = useState("");
 
   const hentKontrakt = useCallback(async () => {
@@ -81,6 +83,24 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
     await navigator.clipboard.writeText(invitationslink);
     setKopieret(true);
     setTimeout(() => setKopieret(false), 2500);
+  }
+
+  async function gemBetalingsplan() {
+    if (!kontrakt || typeof kontrakt !== "object") return;
+    const gyldige = betalingsplanRækker.filter(r => r.milepæl.trim() && r.andel.trim());
+    setGemmer(true);
+    try {
+      const r = await fetch("/api/kontrakt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kontrakt_id: kontrakt.id, betalingsplan: gyldige }),
+      });
+      const data = await r.json();
+      if (!data.error) setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, ...data } : prev);
+    } finally {
+      setGemmer(false);
+      setRedigererBetalingsplan(false);
+    }
   }
 
   async function gemFeltOpdatering(felt: string) {
@@ -415,6 +435,98 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 </div>
               );
             })}
+
+            {/* Betalingsplan */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-5 py-4">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Betalingsplan</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Koblet til fremdrift jf. AB-Forbruger § 26</p>
+                  </div>
+                  {!erBeggeGodkendt && !redigererBetalingsplan && (
+                    <button
+                      onClick={() => {
+                        setBetalingsplanRækker(
+                          kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0
+                            ? [...kontrakt.betalingsplan]
+                            : [{ milepæl: "", andel: "" }]
+                        );
+                        setRedigererBetalingsplan(true);
+                      }}
+                      className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors flex-shrink-0"
+                    >
+                      {kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0 ? "Rediger" : "Tilføj"}
+                    </button>
+                  )}
+                </div>
+
+                {redigererBetalingsplan ? (
+                  <div>
+                    <div className="space-y-2 mb-3">
+                      {betalingsplanRækker.map((r, i) => (
+                        <div key={i} className="flex gap-2 items-center">
+                          <input
+                            placeholder="Milepæl (fx Opstart)"
+                            value={r.milepæl}
+                            onChange={e => {
+                              const ny = [...betalingsplanRækker];
+                              ny[i] = { ...ny[i], milepæl: e.target.value };
+                              setBetalingsplanRækker(ny);
+                            }}
+                            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
+                          />
+                          <input
+                            placeholder="%"
+                            value={r.andel}
+                            onChange={e => {
+                              const ny = [...betalingsplanRækker];
+                              ny[i] = { ...ny[i], andel: e.target.value };
+                              setBetalingsplanRækker(ny);
+                            }}
+                            className="w-20 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
+                          />
+                          <button
+                            onClick={() => setBetalingsplanRækker(prev => prev.filter((_, j) => j !== i))}
+                            className="text-gray-300 hover:text-red-400 transition-colors p-1"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => setBetalingsplanRækker(prev => [...prev, { milepæl: "", andel: "" }])}
+                      className="text-xs text-[#1e3a2a] font-semibold hover:underline mb-4 block"
+                    >
+                      + Tilføj milepæl
+                    </button>
+                    <div className="flex gap-2">
+                      <button onClick={() => setRedigererBetalingsplan(false)} className="flex-1 py-2 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50">Annuller</button>
+                      <button onClick={gemBetalingsplan} disabled={gemmer} className="flex-1 py-2 bg-[#1e3a2a] text-white text-xs font-bold rounded-lg hover:opacity-90 disabled:bg-gray-200 disabled:text-gray-400">
+                        {gemmer ? "Gemmer..." : "Gem"}
+                      </button>
+                    </div>
+                  </div>
+                ) : kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0 ? (
+                  <div className="space-y-1">
+                    {kontrakt.betalingsplan.map((b, i) => (
+                      <div key={i} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+                        <p className="text-sm text-gray-700">{b.milepæl}</p>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {b.andel}
+                          {kontrakt.total_pris && !isNaN(parseFloat(b.andel))
+                            ? ` · ${fmtKr(kontrakt.total_pris * (parseFloat(b.andel) / 100))}`
+                            : ""}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 italic">Ikke aftalt endnu — klik Tilføj for at oprette betalingsplan</p>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Sidebar */}

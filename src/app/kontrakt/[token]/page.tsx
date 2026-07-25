@@ -32,7 +32,7 @@ interface Kontrakt {
 }
 
 const fmtKr = (n: number) =>
-  n.toLocaleString("da-DK", { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + " kr.";
+  n.toLocaleString("da-DK", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + " kr.";
 
 const feltLabels: Record<string, string> = {
   titel: "Projekttitel",
@@ -329,17 +329,23 @@ export default function HaandvaerkerKontraktView({ params }: { params: Promise<{
 
           {/* Betalingsplan */}
           <div className="bg-white rounded-2xl border border-[#e0ddd6] shadow-sm p-5">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Betalingsplan</p>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Betalingsplan</p>
             <p className="text-xs text-gray-500 mb-4">Koblet til fremdrift jf. AB-Forbruger § 26</p>
-            {kontrakt.betalingsplan?.map((b, i) => (
-              <div key={i} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
-                <p className="text-sm text-gray-700">{b.milepæl}</p>
-                <p className="text-sm font-semibold text-gray-900">
-                  {b.andel}
-                  {kontrakt.total_pris && ` · ${fmtKr(kontrakt.total_pris * (parseFloat(b.andel) / 100))}`}
-                </p>
-              </div>
-            ))}
+            {kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0 ? (
+              kontrakt.betalingsplan.map((b, i) => (
+                <div key={i} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+                  <p className="text-sm text-gray-700">{b.milepæl}</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {b.andel}
+                    {kontrakt.total_pris && !isNaN(parseFloat(b.andel))
+                      ? ` · ${fmtKr(kontrakt.total_pris * (parseFloat(b.andel) / 100))}`
+                      : ""}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-gray-400 italic">Endnu ikke aftalt — bygherre tilføjer betalingsplan under forhandlingen</p>
+            )}
           </div>
         </div>
 
