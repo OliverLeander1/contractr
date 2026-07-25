@@ -49,9 +49,12 @@ export async function POST(req: NextRequest) {
         </p>
 
         <hr style="border: none; border-top: 1px solid #f0f0f0; margin: 28px 0;">
-        <p style="font-size: 12px; color: #d1d5db;">
-          NemByggestyring · Digital tryghedsplatform for private bygherrer i Danmark
+        <p style="font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px;">NemByggestyring skaber rammerne for den gode byggesag.</p>
+        <p style="font-size: 13px; color: #6b7280; line-height: 1.7; margin-bottom: 16px;">
+          Klare aftaler fra start. Skriftlig dokumentation undervejs. Ingen tvivl om hvad der er aftalt, hvornår betaling sker, eller hvem der har ansvaret for hvad.<br><br>
+          Det er godt for bygherren — og det er godt for dig som håndværker. Færre konflikter. Færre forgæves ture. Og et aftalegrundlag begge parter har godkendt, inden arbejdet går i gang.
         </p>
+        <p style="font-size: 12px; color: #d1d5db;">nembyggestyring.dk</p>
       </div>
     `,
   });
