@@ -53,6 +53,10 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const [redigererFelt, setRedigererFelt] = useState<string | null>(null);
   const [feltVaerdi, setFeltVaerdi] = useState("");
   const [inviterEmail, setInviterEmail] = useState("");
+  const [inviterCvr, setInviterCvr] = useState("");
+  const [cvrData, setCvrData] = useState<{ navn: string; adresse: string } | null>(null);
+  const [cvrFejl, setCvrFejl] = useState("");
+  const [cvrSoeger, setCvrSoeger] = useState(false);
   const [visInviter, setVisInviter] = useState(false);
   const [kopieret, setKopieret] = useState(false);
   const [sender, setSender] = useState(false);
@@ -130,22 +134,58 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
     }
   }
 
+  async function slaaCvrOp() {
+    const nr = inviterCvr.replace(/\s/g, "");
+    if (nr.length !== 8) return;
+    setCvrSoeger(true);
+    setCvrFejl("");
+    setCvrData(null);
+    try {
+      const r = await fetch(`/api/cvr?nr=${nr}`);
+      const d = await r.json();
+      if (d.error) { setCvrFejl("CVR-nummer ikke fundet"); }
+      else { setCvrData({ navn: d.navn, adresse: d.adresse }); }
+    } catch {
+      setCvrFejl("Kunne ikke hente CVR-data");
+    } finally {
+      setCvrSoeger(false);
+    }
+  }
+
   async function sendInvitation() {
     if (!kontrakt || typeof kontrakt !== "object" || !inviterEmail.trim()) return;
     setSender(true);
     try {
+      // Gem håndværkerinfo + email på kontrakten
       await fetch("/api/kontrakt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           kontrakt_id: kontrakt.id,
           haandvaerker_email: inviterEmail.trim(),
+          ...(cvrData ? { haandvaerker_firma: cvrData.navn } : {}),
+          ...(inviterCvr.replace(/\s/g, "").length === 8 ? { haandvaerker_cvr: inviterCvr.replace(/\s/g, "") } : {}),
         }),
       });
+
+      // Send e-mail til håndværker
+      await fetch("/api/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: inviterEmail.trim(),
+          link: invitationslink,
+          firma: cvrData?.navn || null,
+          projekttitel: kontrakt.titel || null,
+        }),
+      });
+
       setKontrakt(prev => prev && typeof prev === "object"
-        ? { ...prev, haandvaerker_email: inviterEmail.trim(), status: "inviteret" }
+        ? { ...prev, haandvaerker_email: inviterEmail.trim(), haandvaerker_firma: cvrData?.navn || prev.haandvaerker_firma, status: "inviteret" }
         : prev);
       setVisInviter(false);
+      setInviterCvr("");
+      setCvrData(null);
     } finally {
       setSender(false);
     }
@@ -268,6 +308,37 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
               <h2 className="font-bold text-gray-900 mb-1">Inviter håndværker</h2>
               <p className="text-sm text-gray-400 mb-5">Håndværkeren modtager et direkte link til forhandlingsrummet. Ingen konto krævet for at se og kommentere.</p>
+
+              {/* CVR-opslag */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">CVR-nummer (valgfrit)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={inviterCvr}
+                    onChange={e => { setInviterCvr(e.target.value); setCvrData(null); setCvrFejl(""); }}
+                    onBlur={slaaCvrOp}
+                    placeholder="12345678"
+                    maxLength={8}
+                    className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
+                  />
+                  <button
+                    type="button"
+                    onClick={slaaCvrOp}
+                    disabled={cvrSoeger || inviterCvr.replace(/\s/g, "").length !== 8}
+                    className="px-4 py-3 text-sm font-semibold text-[#1e3a2a] border border-[#1e3a2a]/20 bg-[#1e3a2a]/5 hover:bg-[#1e3a2a]/10 rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {cvrSoeger ? "..." : "Slå op"}
+                  </button>
+                </div>
+                {cvrData && (
+                  <div className="mt-2 px-3 py-2.5 bg-green-50 border border-green-200 rounded-xl">
+                    <p className="text-sm font-semibold text-green-900">{cvrData.navn}</p>
+                    {cvrData.adresse && <p className="text-xs text-green-700 mt-0.5">{cvrData.adresse}</p>}
+                  </div>
+                )}
+                {cvrFejl && <p className="mt-1.5 text-xs text-red-600">{cvrFejl}</p>}
+              </div>
 
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Håndværkerens e-mail</label>
