@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import FlowLayout from "@/components/FlowLayout";
+import { createClient } from "@/lib/supabase";
 
 const projekttyper = [
   { id: "badevarelse", label: "Badeværelse", ikon: "🚿" },
@@ -23,6 +24,13 @@ interface DawaForslag {
 export default function OpretProjekt() {
   const router = useRouter();
   const [valgtType, setValgtType] = useState("");
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) router.replace("/login?next=/opret");
+    });
+  }, [router]);
   const [adresse, setAdresse] = useState("");
   const [navn, setNavn] = useState("");
   const [kontakt, setKontakt] = useState("");

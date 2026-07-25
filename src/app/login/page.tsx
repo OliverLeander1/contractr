@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 
 type BrugerType = "bygherre" | "haandvaerker" | null;
 
 export default function Login() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextUrl = searchParams.get("next") || null;
   const [brugerType, setBrugerType] = useState<BrugerType>(null);
   const [mode, setMode] = useState<"login" | "opret">("login");
   const [email, setEmail] = useState("");
@@ -73,7 +75,7 @@ export default function Login() {
       }
 
       setLoading(false);
-      router.push(brugerType === "haandvaerker" ? "/haandvaerker/sager" : "/dashboard");
+      router.push(nextUrl || (brugerType === "haandvaerker" ? "/haandvaerker/sager" : "/dashboard"));
       return;
     }
 
@@ -117,7 +119,7 @@ export default function Login() {
     }
 
     const type = meta?.brugerType || brugerType;
-    router.push(type === "haandvaerker" ? "/haandvaerker/sager" : "/dashboard");
+    router.push(nextUrl || (type === "haandvaerker" ? "/haandvaerker/sager" : "/dashboard"));
   };
 
   if (bekraeftelse) {
