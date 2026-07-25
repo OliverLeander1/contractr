@@ -3,12 +3,12 @@ import Link from "next/link";
 import { UploadAnimation, ScanAnimation, AdvisorAnimation, ProjectAnimation } from "@/components/BenefitAnimation";
 
 export const metadata: Metadata = {
-  title: "Nembyggestyring - Tjek dit tilbud fra håndværkeren inden du siger ja",
-  description: "Upload tilbuddet fra håndværkeren og få det screenet gratis på 2 minutter mod AB-Forbruger 2012. Vi viser dig præcist hvad du skal afklare inden du skriver under.",
-  keywords: ["byggeaftale", "tilbud håndværker", "AB-Forbruger", "kontrakt screening", "bygherre", "renovering", "håndværker tilbud tjek", "håndværker kontrakt", "byggesagkyndig"],
+  title: "Nembyggestyring - Hele byggeprojektet samlet ét sted",
+  description: "Opret dit byggeprojekt, inviter entreprenøren og styr hele sagen digitalt. Med tilbudstjek, kontrakt, ekstraarbejde og betalingsplan samlet ét sted.",
+  keywords: ["byggesag", "byggeprojekt", "tilbud håndværker", "AB-Forbruger", "kontrakt screening", "bygherre", "renovering", "projektstyring", "byggesagkyndig"],
   openGraph: {
-    title: "Nembyggestyring - Tjek dit tilbud fra håndværkeren inden du siger ja",
-    description: "Gratis screening af dit tilbud mod AB-Forbruger 2012. Upload og få svar på 2 minutter.",
+    title: "Nembyggestyring - Hele byggeprojektet samlet ét sted",
+    description: "Opret dit byggeprojekt, inviter entreprenøren og styr hele sagen digitalt.",
     url: "https://www.nembyggestyring.dk",
     type: "website",
     siteName: "Nembyggestyring",
