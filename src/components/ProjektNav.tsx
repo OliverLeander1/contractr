@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase";
 
 const navLinks = [
   { label: "Oversigt",     href: "" },
@@ -17,6 +18,20 @@ export default function ProjektNav({ id }: { id: string }) {
   const pathname = usePathname();
   const base = `/projekt/${id}`;
   const [menuÅben, setMenuÅben] = useState(false);
+  const [initialer, setInitialer] = useState("?");
+
+  useEffect(() => {
+    const hent = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profil } = await supabase
+        .from("profiler").select("navn").eq("id", user.id).single();
+      const navn = profil?.navn || user.user_metadata?.navn || user.email || "";
+      setInitialer(navn.charAt(0).toUpperCase() || "?");
+    };
+    hent();
+  }, []);
 
   // Bestem aktiv link — /betalinger og /ekstraarbejde begge markerer "Økonomi"
   function erAktiv(href: string) {
@@ -75,10 +90,9 @@ export default function ProjektNav({ id }: { id: string }) {
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
               </svg>
             </div>
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-[9px] font-bold flex items-center justify-center">2</span>
           </Link>
           <Link href="/konto">
-            <div className="w-8 h-8 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center text-[#1e3a2a] font-semibold text-sm">C</div>
+            <div className="w-8 h-8 rounded-full bg-[#1e3a2a] flex items-center justify-center text-white font-semibold text-sm">{initialer}</div>
           </Link>
 
           {/* Burger — mobil */}

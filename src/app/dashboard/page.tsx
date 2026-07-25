@@ -55,6 +55,7 @@ export default function Dashboard() {
   const [projekter, setProjekter] = useState<Projekt[]>([]);
   const [aftaler, setAftaler] = useState<Aftale[]>([]);
   const [indlæser, setIndlæser] = useState(true);
+  const [opretter, setOpretter] = useState(false);
 
   useEffect(() => {
     const hent = async () => {
@@ -88,6 +89,22 @@ export default function Dashboard() {
     };
     hent();
   }, [router]);
+
+  async function opretNyAftale() {
+    setOpretter(true);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const projekt_id = crypto.randomUUID();
+      const r = await fetch(`/api/kontrakt?projekt_id=${projekt_id}&bygherre_id=${user.id}`);
+      if (r.ok) {
+        router.push(`/projekt/${projekt_id}/aftale`);
+      }
+    } finally {
+      setOpretter(false);
+    }
+  }
 
   const timer = new Date().getHours();
   const hilsen = timer < 10 ? "Godmorgen" : timer < 17 ? "Goddag" : "Godaften";
@@ -183,13 +200,14 @@ export default function Dashboard() {
                 );
               })}
             </div>
-            <Link
-              href="/projekt/1/aftale"
-              className="mt-3 flex items-center justify-center gap-2 bg-white border border-dashed border-[#1e3a2a]/30 rounded-2xl py-4 text-sm font-semibold text-[#1e3a2a] hover:border-[#1e3a2a]/60 hover:bg-[#1e3a2a]/5 transition-all"
+            <button
+              onClick={opretNyAftale}
+              disabled={opretter}
+              className="mt-3 w-full flex items-center justify-center gap-2 bg-white border border-dashed border-[#1e3a2a]/30 rounded-2xl py-4 text-sm font-semibold text-[#1e3a2a] hover:border-[#1e3a2a]/60 hover:bg-[#1e3a2a]/5 transition-all disabled:opacity-50"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Nyt aftalegrundlag
-            </Link>
+              {opretter ? "Opretter..." : "Nyt aftalegrundlag"}
+            </button>
           </div>
         )}
 
@@ -224,13 +242,22 @@ export default function Dashboard() {
               <p className="text-white/70 text-sm leading-relaxed mb-6">
                 Upload et tilbud eller en kontrakt. Vi gennemgår det mod AB-Forbruger og fortæller dig hvad du bør afklare inden du siger ja.
               </p>
-              <Link
-                href="/opret/upload"
-                className="inline-flex items-center gap-2 bg-white text-[#1e3a2a] font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity text-sm"
-              >
-                Upload tilbud
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={opretNyAftale}
+                  disabled={opretter}
+                  className="inline-flex items-center gap-2 bg-white text-[#1e3a2a] font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity text-sm disabled:opacity-50"
+                >
+                  {opretter ? "Opretter..." : "Start aftalegrundlag"}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+                <Link
+                  href="/opret/upload"
+                  className="inline-flex items-center gap-2 bg-white/20 text-white font-semibold px-6 py-3 rounded-xl hover:bg-white/30 transition-colors text-sm border border-white/30"
+                >
+                  Tjek et tilbud
+                </Link>
+              </div>
             </div>
 
             {/* Tre trin */}
