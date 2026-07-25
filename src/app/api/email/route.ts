@@ -33,11 +33,11 @@ export async function POST(req: NextRequest) {
           <span style="font-size: 16px; font-weight: 700; letter-spacing: 2px; color: #1e3a2a;">nembyggestyring</span>
         </div>
 
-        <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 8px; line-height: 1.3;">En kunde har valgt dig til et nyt byggeprojekt</h1>
+        <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 8px; line-height: 1.3;">En bygherre inviterer dig til at gennemse et aftalegrundlag</h1>
         <p style="color: #6b7280; margin-bottom: 24px; line-height: 1.6;">
           Hej ${modtagerNavn},<br><br>
-          Din kunde ønsker at gennemføre <strong>${titel}</strong> med et fælles digitalt projektgrundlag, hvor aftaler, dokumenter, tidsplan og kommunikation er samlet ét sted.<br><br>
-          For at komme i gang skal du blot gennemgå aftalegrundlaget via linket nedenfor. Det tager kun få minutter.
+          En bygherre har oprettet et aftalegrundlag for <strong>${titel}</strong> og ønsker at gennemgå det sammen med dig inden arbejdet går i gang.<br><br>
+          Du kan gennemse aftalegrundlaget, foreslå ændringer og godkende det direkte via linket nedenfor. Ingen konto kræves.
         </p>
 
         <a href="${link}" style="display: inline-block; background: #1e3a2a; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 700; font-size: 15px; margin-bottom: 32px;">
