@@ -28,17 +28,33 @@ Returner KUN et JSON-objekt (ingen markdown uden for JSON):
 {
   "titel": "Kort projekttitel fx 'Badeværelsesrenovering, Elmevej 12'",
   "resumé": "2-3 sætninger der opsummerer projektet klart",
-  "dokument": "Det fulde udbudsdokument som ren tekst med linjeskift. Inkludér: projektbeskrivelse, ønsker og krav, tidsramme, praktiske forhold og AB-Forbruger 2012 som grundlag. IKKE kontaktoplysninger.",
+  "dokument": "Det fulde udbudsdokument — se skabelon nedenfor",
   "tilbudsposter": [
     { "id": "1", "beskrivelse": "Konkret opgavebeskrivelse fx 'Nedtagning og bortskaffelse af eksisterende toilet'", "enhed": "stk" },
     { "id": "2", "beskrivelse": "Næste post", "enhed": "stk" }
   ]
 }
 
-Regler for dokumentet:
-- Skriv professionelt men forståeligt - ikke juridisk jargon
-- Struktureret med klare afsnit
-- Inkludér altid AB-Forbruger 2012 som kontraktgrundlag
+Dokumentet skal ALTID følge præcis denne skabelon med disse overskrifter i denne rækkefølge — ingen overskrifter må tilføjes, fjernes eller omdøbes:
+
+1. Projektbeskrivelse
+[Beskriv hvad projektet går ud på — 2-4 sætninger baseret på bygherrens input]
+
+2. Ønsker og krav
+[Beskriv bygherrens specifikke ønsker og krav til udførelsen]
+
+3. Praktiske forhold
+[Adgang, parkering, beboet under arbejdet, affaldsplads, særlige hensyn]
+
+4. Tidsramme
+[Ønsket opstartstidspunkt og seneste afleveringsdato]
+
+5. Kontraktgrundlag
+Entreprisen udføres i henhold til AB-Forbruger 2012. Tilbud bedes specificeret med faste priser ekskl. moms. Ekstraarbejder aftales skriftligt inden udførelse.
+
+Regler:
+- Brug præcis disse 5 overskrifter med nummering — aldrig flere, aldrig færre
+- Skriv professionelt men forståeligt — ikke juridisk jargon
 - Skriv IKKE bygherrens kontaktoplysninger ind i dokumentet
 - Skriv altid på dansk
 
@@ -46,7 +62,7 @@ Regler for tilbudsposter:
 - Lav 4-10 konkrete og realistiske opgaveposter baseret på projektbeskrivelsen
 - Beskriv hver post præcist og fagligt, så entreprenøren ved hvad der menes
 - Enhed er typisk "stk", "m²", "m", "time" eller "samlet"
-- Inkludér altid en post til "Afrydning og borskaffelse af byggeaffald"
+- Inkludér altid en post til "Afrydning og bortskaffelse af byggeaffald"
 - Den sidste post skal altid være "Uforudsete arbejder" med enhed "samlet"`;
 
 export async function POST(req: NextRequest) {

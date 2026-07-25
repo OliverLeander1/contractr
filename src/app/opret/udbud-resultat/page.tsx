@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FlowLayout from "@/components/FlowLayout";
+import { createClient } from "@/lib/supabase";
 
 interface TilbudsPost {
   id: string;
@@ -27,6 +28,7 @@ export default function UdbudResultat() {
   const [tekst, setTekst] = useState("");
   const [kopieret, setKopieret] = useState(false);
   const [linkKopieret, setLinkKopieret] = useState(false);
+  const [opretter, setOpretter] = useState(false);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("udbud_resultat");
@@ -48,6 +50,38 @@ export default function UdbudResultat() {
       setLinkKopieret(true);
       setTimeout(() => setLinkKopieret(false), 3000);
     });
+  }
+
+  async function opretAftalegrundlag() {
+    if (!data) return;
+    setOpretter(true);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.push("/login"); return; }
+
+      const projekt_id = crypto.randomUUID();
+
+      // Opret kontrakt
+      const r1 = await fetch(`/api/kontrakt?projekt_id=${projekt_id}&bygherre_id=${user.id}`);
+      const k = await r1.json();
+      if (k.error) return;
+
+      // Fyld med AI-genereret indhold
+      await fetch("/api/kontrakt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kontrakt_id: k.id,
+          titel: data.titel,
+          beskrivelse: tekst,
+        }),
+      });
+
+      router.push(`/projekt/${projekt_id}/aftale`);
+    } finally {
+      setOpretter(false);
+    }
   }
 
   function kopier() {
@@ -141,6 +175,26 @@ export default function UdbudResultat() {
 
       {/* Bund-knapper */}
       <div className="space-y-3">
+
+        {/* Primær CTA — opret aftalegrundlag */}
+        <button
+          onClick={opretAftalegrundlag}
+          disabled={opretter}
+          className="w-full py-4 rounded-xl text-base font-bold bg-[#1e3a2a] text-white hover:opacity-90 disabled:bg-gray-200 disabled:text-gray-400 transition-all flex items-center justify-center gap-2 shadow-md"
+        >
+          {opretter ? (
+            <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Opretter aftalegrundlag...</>
+          ) : (
+            <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg> Opret aftalegrundlag og inviter håndværker</>
+          )}
+        </button>
+
+        <div className="flex items-center gap-3 py-1">
+          <div className="flex-1 h-px bg-gray-100" />
+          <p className="text-xs text-gray-400">eller send dokumentet manuelt</p>
+          <div className="flex-1 h-px bg-gray-100" />
+        </div>
+
         <button
           onClick={genererLink}
           className={`w-full py-4 rounded-xl text-base font-bold transition-all flex items-center justify-center gap-2 ${
