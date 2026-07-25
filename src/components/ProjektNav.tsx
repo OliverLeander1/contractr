@@ -5,11 +5,12 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 const navLinks = [
-  { label: "Oversigt",  href: "" },
-  { label: "Kontrakt",  href: "/kontrakt" },
-  { label: "Økonomi",   href: "/betalinger" },
-  { label: "Mangler",   href: "/mangler" },
-  { label: "Chat",      href: "/chat" },
+  { label: "Oversigt",     href: "" },
+  { label: "Forhandling",  href: "/forhandling" },
+  { label: "Kontrakt",     href: "/kontrakt" },
+  { label: "Økonomi",      href: "/betalinger" },
+  { label: "Mangler",      href: "/mangler" },
+  { label: "Chat",         href: "/chat" },
 ];
 
 export default function ProjektNav({ id }: { id: string }) {
