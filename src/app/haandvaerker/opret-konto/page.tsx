@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 
 const FAGS = [
-  "Tømrer", "Murer", "VVS", "Elektriker", "Maler", "Gulvlægger",
-  "Blikkenslager", "Snedker", "Smed", "Kloakmester", "Facademontør", "Andet",
+  "Hovedentreprenør", "Totalentreprenør", "Tømrer", "Murer", "VVS", "Elektriker",
+  "Maler", "Gulvlægger", "Blikkenslager", "Snedker", "Smed", "Kloakmester", "Facademontør", "Andet",
 ];
 
 type Trin = "start" | "konto" | "bekraeftet";
