@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
         <div style="margin-bottom: 24px;">
-          <span style="font-size: 18px; font-weight: 700; letter-spacing: 2px; color: #1e3a2a;">contractr</span>
+          <span style="font-size: 18px; font-weight: 700; letter-spacing: 2px; color: #1e3a2a;">nembyggestyring</span>
         </div>
 
         <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Du er inviteret til at gennemse et aftalegrundlag</h1>
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 
         <hr style="border: none; border-top: 1px solid #f0f0f0; margin: 28px 0;">
         <p style="font-size: 12px; color: #d1d5db;">
-          Contractr · Digital tryghedsplatform for private bygherrer i Danmark
+          NemByggestyring · Digital tryghedsplatform for private bygherrer i Danmark
         </p>
       </div>
     `,
