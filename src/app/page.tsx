@@ -36,15 +36,14 @@ export default function Forside() {
               </Link>
               <Link href="/haandvaerker/sager" className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-white text-xs font-medium transition-all">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-                Håndværker
+                Entreprenør
               </Link>
             </div>
           </div>
 
           <div className="flex items-center gap-3 flex-shrink-0">
-            <Link href="/login" className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 transition-colors">Log ind</Link>
-            <Link href="/opret/upload" className="text-xs sm:text-sm font-semibold bg-[#1e3a2a] text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-lg hover:bg-[#162d20] transition-colors whitespace-nowrap">
-              Tjek tilbud gratis
+            <Link href="/login" className="text-sm font-semibold text-[#1e3a2a] border border-[#1e3a2a]/30 px-4 py-2 rounded-lg hover:bg-[#1e3a2a]/5 transition-colors whitespace-nowrap">
+              Log ind
             </Link>
           </div>
         </div>
@@ -365,7 +364,7 @@ export default function Forside() {
             <Link href="/tilkoeb" className="text-xs text-gray-400 hover:text-gray-600">Rådgivere</Link>
             <Link href="/vilkaar" className="text-xs text-gray-400 hover:text-gray-600">Vilkår</Link>
             <Link href="/privatliv" className="text-xs text-gray-400 hover:text-gray-600">Privatlivspolitik</Link>
-            <Link href="/haandvaerker/sager" className="text-xs text-gray-400 hover:text-gray-600">Håndværker</Link>
+            <Link href="/haandvaerker/sager" className="text-xs text-gray-400 hover:text-gray-600">Entreprenør</Link>
           </div>
         </div>
       </footer>
