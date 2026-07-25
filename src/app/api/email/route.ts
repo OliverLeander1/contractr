@@ -26,35 +26,42 @@ export async function POST(req: NextRequest) {
   const { error } = await resend.emails.send({
     from: "NemByggestyring <noreply@nembyggestyring.dk>",
     to: [to],
-    subject: `Du er inviteret til at gennemse et aftalegrundlag`,
+    subject: `En kunde har valgt dig til et nyt byggeprojekt`,
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
-        <div style="margin-bottom: 24px;">
-          <span style="font-size: 18px; font-weight: 700; letter-spacing: 2px; color: #1e3a2a;">nembyggestyring</span>
+        <div style="margin-bottom: 28px;">
+          <span style="font-size: 16px; font-weight: 700; letter-spacing: 2px; color: #1e3a2a;">nembyggestyring</span>
         </div>
 
-        <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Du er inviteret til at gennemse et aftalegrundlag</h1>
-        <p style="color: #6b7280; margin-bottom: 24px;">
-          Kære ${modtagerNavn},<br><br>
-          En bygherre har oprettet et aftalegrundlag for <strong>${titel}</strong> og inviterer dig til at gennemse det.
-          Du kan foreslå ændringer til vilkår, pris og tidsplan direkte i systemet — ingen konto kræves.
+        <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 8px; line-height: 1.3;">En kunde har valgt dig til et nyt byggeprojekt</h1>
+        <p style="color: #6b7280; margin-bottom: 24px; line-height: 1.6;">
+          Hej ${modtagerNavn},<br><br>
+          Din kunde ønsker at gennemføre <strong>${titel}</strong> med et fælles digitalt projektgrundlag, hvor aftaler, dokumenter, tidsplan og kommunikation er samlet ét sted.<br><br>
+          For at komme i gang skal du blot gennemgå aftalegrundlaget via linket nedenfor. Det tager kun få minutter.
         </p>
 
-        <a href="${link}" style="display: inline-block; background: #1e3a2a; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 700; font-size: 15px; margin-bottom: 28px;">
+        <a href="${link}" style="display: inline-block; background: #1e3a2a; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 700; font-size: 15px; margin-bottom: 32px;">
           Åbn aftalegrundlag →
         </a>
 
+        <div style="background: #f8f8f6; border-radius: 12px; padding: 20px 24px; margin-bottom: 28px;">
+          <p style="font-size: 13px; font-weight: 700; color: #1a1a1a; margin: 0 0 12px 0;">Som håndværker får du med det her projekt:</p>
+          <ul style="margin: 0; padding-left: 18px; color: #4b5563; font-size: 13px; line-height: 2;">
+            <li>Et klart aftalegrundlag uden misforståelser</li>
+            <li>Ét samlet sted til dokumenter, billeder og kommunikation</li>
+            <li>En fælles tidsplan som både du og kunden kan følge</li>
+            <li>Digital registrering af ændringsarbejder og ekstraarbejde</li>
+            <li>Dokumentation for aftaler og godkendelser</li>
+            <li>Mulighed for hurtigere betaling når arbejdet er godkendt</li>
+          </ul>
+        </div>
+
         <p style="font-size: 13px; color: #9ca3af; line-height: 1.6;">
-          Linket er personligt og gælder for dette projekt. Du kan dele det med dine kolleger. Har du spørgsmål, svar direkte til bygherren.
+          Linket er personligt og gælder for dette projekt. Har du spørgsmål, er du velkommen til at svare direkte til din kunde.
         </p>
 
         <hr style="border: none; border-top: 1px solid #f0f0f0; margin: 28px 0;">
-        <p style="font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px;">NemByggestyring skaber rammerne for den gode byggesag.</p>
-        <p style="font-size: 13px; color: #6b7280; line-height: 1.7; margin-bottom: 16px;">
-          Klare aftaler fra start. Skriftlig dokumentation undervejs. Ingen tvivl om hvad der er aftalt, hvornår betaling sker, eller hvem der har ansvaret for hvad.<br><br>
-          Det er godt for bygherren — og det er godt for dig som håndværker. Færre konflikter. Færre forgæves ture. Og et aftalegrundlag begge parter har godkendt, inden arbejdet går i gang.
-        </p>
-        <p style="font-size: 12px; color: #d1d5db;">nembyggestyring.dk</p>
+        <p style="font-size: 12px; color: #d1d5db;">nembyggestyring.dk · Færre misforståelser. Mere tid til at bygge.</p>
       </div>
     `,
   });
