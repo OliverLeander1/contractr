@@ -5,14 +5,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 
-type BrugerType = "bygherre" | "haandvaerker" | null;
-
 export default function Login() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextUrl = searchParams.get("next") || null;
-  const [brugerType, setBrugerType] = useState<BrugerType>(null);
-  const [mode, setMode] = useState<"login" | "opret">("login");
+  const [mode, setMode] = useState<"login" | "opret">("opret");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [navn, setNavn] = useState("");
@@ -36,10 +33,7 @@ export default function Login() {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            navn: navn.trim(),
-            brugerType,
-          },
+          data: { navn: navn.trim(), brugerType: "bygherre" },
         },
       });
 
@@ -53,37 +47,27 @@ export default function Login() {
         return;
       }
 
-      // Gem i localStorage
       localStorage.setItem("contractr_user", JSON.stringify({
         navn: navn.trim(),
         email: email.trim(),
-        brugerType,
+        brugerType: "bygherre",
         loginDato: new Date().toISOString(),
       }));
 
-      // Forsøg at logge direkte ind (virker når email-bekræftelse er slået fra)
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (signInError) {
-        // Email-bekræftelse er slået til — vis bekræftelsesskærm
         setBekraeftelse(true);
         setLoading(false);
         return;
       }
 
       setLoading(false);
-      router.push(nextUrl || (brugerType === "haandvaerker" ? "/haandvaerker/sager" : "/dashboard"));
+      router.push(nextUrl || "/dashboard");
       return;
     }
 
     // Login
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
 
     if (signInError) {
       setLoading(false);
@@ -97,17 +81,15 @@ export default function Login() {
       return;
     }
 
-    // Gem brugerdata i localStorage
     const meta = data.user?.user_metadata;
     const gemt = {
       navn: meta?.navn || email.split("@")[0],
       email: email.trim(),
-      brugerType: meta?.brugerType || brugerType,
+      brugerType: meta?.brugerType || "bygherre",
       loginDato: new Date().toISOString(),
     };
     localStorage.setItem("contractr_user", JSON.stringify(gemt));
 
-    // Opdater evt. eksisterende projektdata
     const raw = localStorage.getItem("contractr_projekt");
     if (raw) {
       try {
@@ -118,23 +100,21 @@ export default function Login() {
       } catch { /* ignore */ }
     }
 
-    const type = meta?.brugerType || brugerType;
+    const type = meta?.brugerType || "bygherre";
     router.push(nextUrl || (type === "haandvaerker" ? "/haandvaerker/sager" : "/dashboard"));
   };
 
   if (bekraeftelse) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-12">
-        <Link href="/" className="flex items-center gap-2.5 mb-10">
-          <span className="logo">nembyggestyring</span>
-        </Link>
+      <div className="min-h-screen bg-[#f5f3ee] flex flex-col items-center justify-center px-4 py-12">
+        <Link href="/" className="logo mb-10 block">nembyggestyring</Link>
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 w-full max-w-md text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Tjek din e-mail</h2>
           <p className="text-sm text-gray-500 leading-relaxed mb-6">
-            Vi har sendt en bekræftelseslink til <strong>{email}</strong>. Klik på linket for at aktivere din konto og logge ind.
+            Vi har sendt et bekræftelseslink til <strong>{email}</strong>. Klik på linket for at aktivere din konto og logge ind.
           </p>
           <p className="text-xs text-gray-400">Kan du ikke finde mailen? Tjek din spam-mappe.</p>
         </div>
@@ -143,81 +123,74 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-12">
-      <Link href="/" className="flex items-center gap-2.5 mb-10">
-        <span className="logo">nembyggestyring</span>
-      </Link>
+    <div className="min-h-screen bg-[#f5f3ee] flex flex-col lg:flex-row">
 
-      {!brugerType && (
-        <div className="w-full max-w-md">
-          <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">Hvem er du?</h1>
-          <p className="text-sm text-gray-400 text-center mb-8">Vælg din rolle for at fortsætte</p>
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              onClick={() => setBrugerType("bygherre")}
-              className="bg-white border-2 border-gray-100 rounded-2xl p-6 text-center hover:border-[#1e3a2a]/40 hover:shadow-md transition-all group"
-            >
-              <div className="w-14 h-14 bg-[#f0f7f3] rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#1e3a2a]/10 transition-colors">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                  <polyline points="9 22 9 12 15 12 15 22"/>
-                </svg>
+      {/* Venstre panel — value proposition */}
+      <div className="hidden lg:flex lg:w-1/2 bg-[#1e3a2a] flex-col justify-between px-16 py-14">
+        <Link href="/" style={{ fontFamily: "var(--font-logo)", fontWeight: 200, letterSpacing: "2px" }} className="text-white/80 text-lg">
+          nembyggestyring
+        </Link>
+
+        <div>
+          <h1 className="text-4xl font-bold text-white leading-snug mb-6">
+            Styr hele projektet.<br />Ikke bare papiret.
+          </h1>
+          <p className="text-white/60 text-base leading-relaxed mb-10 max-w-sm">
+            Fra det første udkast til 1-års eftersyn. Et sted for bygherre og håndværker, med alle aftaler samlet.
+          </p>
+
+          <div className="space-y-6">
+            {[
+              {
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
+                titel: "Opret projektet digitalt",
+                tekst: "Beskriv hvad du vil bygge, og vi laver et professionelt udbudsdokument klar til entreprenører.",
+              },
+              {
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+                titel: "Tjek tilbuddet inden du siger ja",
+                tekst: "Vi gennemgår aftalegrundlaget og viser hvad der mangler eller bør afklares.",
+              },
+              {
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>,
+                titel: "Alt samlet ét sted",
+                tekst: "Kontrakt, billeder, ekstraarbejde og tidsplan. Ingen jagt på mails og SMS'er.",
+              },
+            ].map((p, i) => (
+              <div key={i} className="flex gap-4">
+                <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 text-white/80">
+                  {p.icon}
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-sm mb-0.5">{p.titel}</p>
+                  <p className="text-white/50 text-sm leading-relaxed">{p.tekst}</p>
+                </div>
               </div>
-              <p className="font-bold text-gray-900 mb-1">Bygherre</p>
-              <p className="text-xs text-gray-400 leading-relaxed">Jeg skal renovere eller bygge</p>
-            </button>
-            <button
-              onClick={() => setBrugerType("haandvaerker")}
-              className="bg-white border-2 border-gray-100 rounded-2xl p-6 text-center hover:border-[#1e3a2a]/40 hover:shadow-md transition-all group"
-            >
-              <div className="w-14 h-14 bg-[#f0f7f3] rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#1e3a2a]/10 transition-colors">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
-                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-                </svg>
-              </div>
-              <p className="font-bold text-gray-900 mb-1">Håndværker</p>
-              <p className="text-xs text-gray-400 leading-relaxed">Jeg er inviteret til et projekt</p>
-            </button>
+            ))}
           </div>
         </div>
-      )}
 
-      {brugerType && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 w-full max-w-md">
-          <button
-            onClick={() => { setBrugerType(null); setError(""); }}
-            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors mb-6"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
-            Skift rolle
-          </button>
+        <p className="text-white/30 text-xs">Nembyggestyring skaber rammerne for det gode projekt</p>
+      </div>
 
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-[#f0f7f3] rounded-xl flex items-center justify-center">
-              {brugerType === "bygherre" ? (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-              )}
-            </div>
-            <div>
-              <p className="font-bold text-gray-900">{brugerType === "bygherre" ? "Log ind som bygherre" : "Log ind som håndværker"}</p>
-              <p className="text-xs text-gray-400">{brugerType === "bygherre" ? "Adgang til dine byggeprojekter" : "Adgang til dine sager"}</p>
-            </div>
-          </div>
+      {/* Højre panel — formular */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+        <Link href="/" className="logo mb-8 block lg:hidden">nembyggestyring</Link>
 
-          <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
-            <button
-              onClick={() => { setMode("login"); setError(""); }}
-              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${mode === "login" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}
-            >
-              Log ind
-            </button>
+        <div className="w-full max-w-sm">
+          {/* Tab-toggle */}
+          <div className="flex bg-white border border-gray-100 shadow-sm rounded-xl p-1 mb-8">
             <button
               onClick={() => { setMode("opret"); setError(""); }}
-              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${mode === "opret" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${mode === "opret" ? "bg-[#1e3a2a] text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
             >
               Opret konto
+            </button>
+            <button
+              onClick={() => { setMode("login"); setError(""); }}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${mode === "login" ? "bg-[#1e3a2a] text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            >
+              Log ind
             </button>
           </div>
 
@@ -227,10 +200,10 @@ export default function Login() {
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Dit navn</label>
                 <input
                   type="text"
-                  placeholder="Dit fulde navn"
+                  placeholder="F.eks. Mette Hansen"
                   value={navn}
                   onChange={e => setNavn(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+                  className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                 />
               </div>
             )}
@@ -242,7 +215,7 @@ export default function Login() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handleSubmit()}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+                className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
               />
             </div>
             <div>
@@ -268,10 +241,10 @@ export default function Login() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handleSubmit()}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+                className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
               />
               {mode === "opret" && (
-                <p className="text-xs text-gray-400 mt-1">Mindst 8 tegn.</p>
+                <p className="text-xs text-gray-400 mt-1.5">Mindst 8 tegn.</p>
               )}
             </div>
           </div>
@@ -285,9 +258,9 @@ export default function Login() {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className={`w-full font-bold py-3.5 rounded-xl mt-6 transition-all ${loading ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-[#1e3a2a] text-white hover:opacity-90"}`}
+            className={`w-full font-bold py-3.5 rounded-xl mt-6 transition-all ${loading ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-[#1e3a2a] text-white hover:opacity-90 shadow-md shadow-[#1e3a2a]/20"}`}
           >
-            {loading ? "Vent..." : mode === "login" ? "Log ind" : "Opret konto"}
+            {loading ? "Vent..." : mode === "login" ? "Log ind" : "Opret gratis konto"}
           </button>
 
           {mode === "opret" && (
@@ -297,8 +270,27 @@ export default function Login() {
               <Link href="/privatliv" className="text-[#1e3a2a] hover:underline">privatlivspolitik</Link>.
             </p>
           )}
+
+          {/* Mobilvisning: kompakt fordele */}
+          <div className="lg:hidden mt-8 pt-8 border-t border-gray-100">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 text-center">Hvad du får</p>
+            <div className="space-y-3">
+              {[
+                "Opret projektet og send det i udbud til entreprenører",
+                "Tjek tilbuddet inden du skriver under",
+                "Alle aftaler og ekstraarbejde samlet ét sted",
+              ].map((t, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed">{t}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
