@@ -180,6 +180,8 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   }
 
   const afventerForslag = kontrakt.kontraktaendringer.filter(a => a.status === "afventer");
+  const accepteredeAendringer = kontrakt.kontraktaendringer.filter(a => a.status === "accepteret").length;
+  const revision = accepteredeAendringer + 1;
   const erBeggeGodkendt = kontrakt.status === "begge_godkendt";
   const bygherreGodkendt = !!kontrakt.bygherre_godkendt_at;
   const haandvaerkerGodkendt = !!kontrakt.haandvaerker_godkendt_at;
@@ -223,7 +225,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Forhandlingsrum</h1>
             <p className="text-sm text-gray-500 mt-1">
-              {kontrakt.titel || "Kontraktudkast"} · Byg ind kontraktvilkår med håndværkeren her
+              {kontrakt.titel || "Kontraktudkast"} · <span className="font-medium text-gray-700">Rev. {revision}</span> · Byg kontraktvilkår med håndværkeren her
             </p>
           </div>
           <button
@@ -297,13 +299,22 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               );
               const erAktiv = redigererFelt === felt;
               const harForslag = afventendeFeltForslag.length > 0;
+              const erLaast = felt === "vilkaar";
 
               return (
                 <div key={felt} className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${harForslag ? "border-amber-200" : "border-gray-100"}`}>
                   <div className="px-5 py-4">
                     <div className="flex items-start justify-between gap-3 mb-2">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{feltLabels[felt]}</p>
-                      {!erBeggeGodkendt && !erAktiv && (
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{feltLabels[felt]}</p>
+                        {erLaast && (
+                          <span className="flex items-center gap-1 text-[10px] font-semibold text-[#1e3a2a] bg-[#1e3a2a]/8 px-1.5 py-0.5 rounded">
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            Låst · AB-Forbruger 2012
+                          </span>
+                        )}
+                      </div>
+                      {!erBeggeGodkendt && !erAktiv && !erLaast && (
                         <button
                           onClick={() => {
                             setRedigererFelt(felt);

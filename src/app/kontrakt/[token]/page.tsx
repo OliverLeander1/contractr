@@ -216,17 +216,26 @@ export default function HaandvaerkerKontraktView({ params }: { params: Promise<{
               a => a.felt === felt && a.status === "afventer"
             );
             const erAktiv = aktivtFelt === felt;
+            const erLaast = felt === "vilkaar";
 
             return (
               <div key={felt} className="bg-white rounded-2xl border border-[#e0ddd6] shadow-sm overflow-hidden">
                 <div className="px-5 py-4 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{feltLabels[felt]}</p>
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{feltLabels[felt]}</p>
+                      {erLaast && (
+                        <span className="flex items-center gap-1 text-[10px] font-semibold text-[#1e3a2a] bg-[#1e3a2a]/8 px-1.5 py-0.5 rounded">
+                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                          Låst · AB-Forbruger 2012
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
                       {vaerdi || <span className="text-gray-400 italic">Ikke udfyldt</span>}
                     </p>
                   </div>
-                  {!haandvaerkerGodkendt && !erAktiv && (
+                  {!haandvaerkerGodkendt && !erAktiv && !erLaast && (
                     <button
                       onClick={() => {
                         setAktivtFelt(felt);

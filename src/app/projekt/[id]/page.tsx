@@ -138,6 +138,17 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
               <h2 className="font-semibold text-gray-900 mb-4">Næste skridt</h2>
               <div className="space-y-3">
+                <Link href={`/projekt/${id}/forhandling`} className="flex items-start gap-3 p-4 bg-[#1e3a2a]/5 border border-[#1e3a2a]/20 rounded-xl hover:bg-[#1e3a2a]/10 transition-colors">
+                  <div className="w-7 h-7 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-[#1e3a2a]">Start kontraktforhandling →</p>
+                    <p className="text-xs text-[#1e3a2a]/70 leading-relaxed mt-0.5">
+                      Send kontraktudkastet til håndværkeren. Begge parter kan foreslå ændringer og godkende direkte på platformen.
+                    </p>
+                  </div>
+                </Link>
                 <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-100 rounded-xl">
                   <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
