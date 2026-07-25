@@ -47,7 +47,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-3">Intet aktivt projekt endnu</h1>
         <p className="text-gray-500 mb-8 leading-relaxed">
-          Projektet oprettes automatisk, naar du accepterer et tilbud fra en haandvaerker.
+          Projektet oprettes automatisk, når du accepterer et tilbud fra en håndværker.
           Start med at beskrive dit projekt og indhente tilbud.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -145,7 +145,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
                   <div>
                     <p className="text-sm font-semibold text-amber-800">Bed om skriftlig tidsplan</p>
                     <p className="text-xs text-amber-700 leading-relaxed mt-0.5">
-                      AB-Forbruger § 12 anbefaler at start- og slutdato er aftalt skriftligt. Kontakt haandvaerkeren og bed om en tidsplan.
+                      AB-Forbruger § 12 anbefaler at start- og slutdato er aftalt skriftligt. Kontakt håndværkeren og bed om en tidsplan.
                     </p>
                   </div>
                 </div>
@@ -167,7 +167,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
                   <div>
                     <p className="text-sm font-semibold text-gray-700">Betal kun mod dokumenteret fremdrift</p>
                     <p className="text-xs text-gray-500 leading-relaxed mt-0.5">
-                      Betaling bor kobles til milep&aelig;le og faktisk udfort arbejde jf. AB-Forbruger § 25 og § 37.
+                      Betaling bør kobles til milepæle og faktisk udført arbejde jf. AB-Forbruger § 25 og § 37.
                     </p>
                   </div>
                 </div>
@@ -207,7 +207,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
                   Se kontrakt →
                 </Link>
                 <Link href={`/projekt/${id}/betalinger`} className="flex items-center justify-between text-xs font-semibold text-primary hover:underline">
-                  Se okonomi →
+                  Se økonomi →
                 </Link>
               </div>
             </div>
@@ -221,18 +221,18 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
               <p className="text-xs text-gray-500 leading-relaxed mb-4">
                 Du kan tilbageholde betaling for mangelfuldt arbejde, mens den ubestridte del betales. AB-Forbruger § 25 stk. 3.
               </p>
-              <Link href="/abforbruger" className="text-xs text-primary font-semibold hover:underline">Laes mere om dine rettigheder →</Link>
+              <Link href="/abforbruger" className="text-xs text-primary font-semibold hover:underline">Læs mere om dine rettigheder →</Link>
             </div>
 
             {/* Book rådgiver */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <h3 className="font-semibold text-gray-900 text-sm mb-1">Har du brug for hjælp?</h3>
-              <p className="text-xs text-gray-400 mb-4 leading-relaxed">En byggesagkyndig kan gennemga projektet og hjaelpe dig undervejs.</p>
+              <p className="text-xs text-gray-400 mb-4 leading-relaxed">En byggesagkyndig kan gennemgå projektet og hjælpe dig undervejs.</p>
               <Link
                 href="/tilkoeb"
                 className="block w-full text-center bg-primary text-white text-sm font-semibold py-2.5 rounded-xl hover:opacity-90 transition-opacity"
               >
-                Book radgiver
+                Book rådgiver
               </Link>
             </div>
 

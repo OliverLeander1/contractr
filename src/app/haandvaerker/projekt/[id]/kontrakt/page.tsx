@@ -104,7 +104,7 @@ export default function HaandvaerkerKontrakt({ params }: { params: Promise<{ id:
             {projekt?.total ? [
               { navn: "Opstart (20%)", beløb: fmtKr(projekt.total * 0.20) },
               { navn: "Halvvejs (30%)", beløb: fmtKr(projekt.total * 0.30) },
-              { navn: "Naesten faerdig (30%)", beløb: fmtKr(projekt.total * 0.30) },
+              { navn: "Næsten færdig (30%)", beløb: fmtKr(projekt.total * 0.30) },
               { navn: "Aflevering (20%)", beløb: fmtKr(projekt.total * 0.20) },
             ].map((b) => (
               <div key={b.navn} className="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0">

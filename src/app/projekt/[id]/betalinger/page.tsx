@@ -18,7 +18,7 @@ const fmtKr = (n: number) => n.toLocaleString("da-DK", { minimumFractionDigits: 
 const FASER = [
   { label: "Opstart", andel: 0.20 },
   { label: "Halvvejs", andel: 0.30 },
-  { label: "Naesten faerdig", andel: 0.30 },
+  { label: "Næsten færdig", andel: 0.30 },
   { label: "Aflevering", andel: 0.20 },
 ];
 
@@ -78,7 +78,7 @@ export default function Betalinger({ params }: { params: Promise<{ id: string }>
       <div className="max-w-4xl mx-auto px-6 py-10">
 
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Okonomi</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Økonomi</h1>
           <p className="text-sm text-gray-400 mt-1">{projekt.titel}</p>
         </div>
 
@@ -86,7 +86,7 @@ export default function Betalinger({ params }: { params: Promise<{ id: string }>
           {[
             { label: "Samlet entreprisesum", value: fmtKr(total), sub: "inkl. moms", color: "text-gray-900" },
             { label: "Betalt", value: fmtKr(betalt), sub: `${Math.round((betalt / total) * 100)}% af total`, color: "text-green-700" },
-            { label: "Tilbagestaende", value: fmtKr(tilbage), sub: "inkl. moms", color: "text-gray-900" },
+            { label: "Resterende", value: fmtKr(tilbage), sub: "inkl. moms", color: "text-gray-900" },
           ].map((k) => (
             <div key={k.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <p className="text-xs text-gray-400 font-medium mb-2">{k.label}</p>
@@ -103,9 +103,9 @@ export default function Betalinger({ params }: { params: Promise<{ id: string }>
               <div>
                 <p className="text-sm font-semibold text-amber-900 mb-1">Afventer godkendelse</p>
                 <p className="text-sm text-amber-800">
-                  Milepael &ldquo;{afventer.navn}&rdquo; er naet. Godkend fremdriften og frigiv betaling pa {fmtKr(afventer.beløb)}.
+                  Milepæl &ldquo;{afventer.navn}&rdquo; er nået. Godkend fremdriften og frigiv betaling på {fmtKr(afventer.beløb)}.
                 </p>
-                <p className="text-xs text-amber-600 mt-1">Betal kun naar arbejdet er dokumenteret udfort jf. AB-Forbruger § 26</p>
+                <p className="text-xs text-amber-600 mt-1">Betal kun når arbejdet er dokumenteret udført jf. AB-Forbruger § 26</p>
               </div>
             </div>
             <button
@@ -166,7 +166,7 @@ export default function Betalinger({ params }: { params: Promise<{ id: string }>
           </div>
         </div>
 
-        <ABTip type="vigtig" paragraf="AB-Forbruger § 26" titel="Betal altid mod dokumenteret fremdrift" resumé="Betal kun naar en milaepael er opfyldt og arbejdet er godkendt af dig. Hav aldrig betalt mere end 50% inden halvdelen af arbejdet er udfort." detaljer="Jf. AB-Forbruger § 26 skal betaling kobles til dokumenteret fremdrift. Du kan tilbageholde betaling svarende til mangler jf. § 25, stk. 3." />
+        <ABTip type="vigtig" paragraf="AB-Forbruger § 26" titel="Betal altid mod dokumenteret fremdrift" resumé="Betal kun når en milepæl er opfyldt og arbejdet er godkendt af dig. Hav aldrig betalt mere end 50% inden halvdelen af arbejdet er udført." detaljer="Jf. AB-Forbruger § 26 skal betaling kobles til dokumenteret fremdrift. Du kan tilbageholde betaling svarende til mangler jf. § 25, stk. 3." />
       </div>
     </div>
   );

@@ -69,7 +69,7 @@ export default function Ekstraarbejde({ params }: { params: Promise<{ id: string
             <h1 className="text-2xl font-bold text-gray-900">Ekstraarbejde</h1>
             <p className="text-sm text-gray-400 mt-1">
               {afventer > 0 ? `${afventer} afventer godkendelse · ` : ""}
-              {godkendt > 0 ? `${fmtKr(godkendt)} godkendt ekstraarbejde` : "Ingen godkendte tillaegsaftaler endnu"}
+              {godkendt > 0 ? `${fmtKr(godkendt)} godkendt ekstraarbejde` : "Ingen godkendte tillægsaftaler endnu"}
             </p>
           </div>
           <button
@@ -90,7 +90,7 @@ export default function Ekstraarbejde({ params }: { params: Promise<{ id: string
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Beskrivelse af arbejdet</label>
                   <textarea rows={3} value={beskrivelse} onChange={e => setBeskrivelse(e.target.value)}
-                    placeholder="Beskriv praecist hvad der skal laves som ekstraarbejde..."
+                    placeholder="Beskriv præcist hvad der skal laves som ekstraarbejde..."
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 resize-none" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -101,7 +101,7 @@ export default function Ekstraarbejde({ params }: { params: Promise<{ id: string
                     {pris && <p className="text-xs text-gray-400 mt-1">Inkl. moms: {fmtKr(parseFloat(pris) * 1.25)}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Tidspaavirkning</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Tidspåvirkning</label>
                     <input type="text" value={tid} onChange={e => setTid(e.target.value)} placeholder="F.eks. +3 dage"
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10" />
                   </div>
@@ -113,7 +113,7 @@ export default function Ekstraarbejde({ params }: { params: Promise<{ id: string
                 </button>
                 <button onClick={opret} disabled={!beskrivelse.trim() || !pris}
                   className="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:opacity-90 disabled:bg-gray-100 disabled:text-gray-400 transition-all">
-                  Send til haandvaerker
+                  Send til håndværker
                 </button>
               </div>
             </div>
@@ -142,7 +142,7 @@ export default function Ekstraarbejde({ params }: { params: Promise<{ id: string
                       }`}>{s.status === "godkendt" ? "Godkendt" : s.status === "afvist" ? "Afvist" : "Afventer"}</span>
                     </div>
                     <p className="text-sm text-gray-800 leading-relaxed">{s.beskrivelse}</p>
-                    {s.tidspaavirkning && <p className="text-xs text-gray-400 mt-1">Tidspaavirkning: {s.tidspaavirkning}</p>}
+                    {s.tidspaavirkning && <p className="text-xs text-gray-400 mt-1">Tidspåvirkning: {s.tidspaavirkning}</p>}
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-base font-bold text-gray-900">{fmtKr(s.pris)}</p>
@@ -172,7 +172,7 @@ export default function Ekstraarbejde({ params }: { params: Promise<{ id: string
           </div>
         )}
 
-        <ABTip type="advarsel" paragraf="AB-Forbruger § 23" titel="Aftale altid ekstraarbejde skriftligt inden opstart" resumé="Mundtlige aftaler om ekstraarbejde er svaere at bevise. Alle aendringer skal aftales skriftligt og prissaettes paa forhaand." detaljer="Jf. AB-Forbruger § 23 skal ekstraarbejde aftales skriftligt inden opstart. Brug denne side til alle tillaegsaftaler saa du altid har dokumentation." />
+        <ABTip type="advarsel" paragraf="AB-Forbruger § 23" titel="Aftale altid ekstraarbejde skriftligt inden opstart" resumé="Mundtlige aftaler om ekstraarbejde er svære at bevise. Alle ændringer skal aftales skriftligt og prissættes på forhånd." detaljer="Jf. AB-Forbruger § 23 skal ekstraarbejde aftales skriftligt inden opstart. Brug denne side til alle tillægsaftaler, så du altid har dokumentation." />
       </div>
     </div>
   );

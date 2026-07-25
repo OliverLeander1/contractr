@@ -87,7 +87,7 @@ export default function Mangler({ params }: { params: Promise<{ id: string }> })
                     rows={3}
                     value={beskrivelse}
                     onChange={e => setBeskrivelse(e.target.value)}
-                    placeholder="Beskriv manglen praecist: hvad, hvor og hvornaar det blev opdaget..."
+                    placeholder="Beskriv manglen præcist: hvad, hvor og hvornår det blev opdaget..."
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 resize-none"
                   />
                 </div>
@@ -97,7 +97,7 @@ export default function Mangler({ params }: { params: Promise<{ id: string }> })
                     {[
                       { id: "lav", label: "Lav", sel: "border-green-300 bg-green-50 text-green-700", def: "border-gray-100 text-gray-500" },
                       { id: "middel", label: "Middel", sel: "border-amber-300 bg-amber-50 text-amber-700", def: "border-gray-100 text-gray-500" },
-                      { id: "hoj", label: "Hoj", sel: "border-red-300 bg-red-50 text-red-700", def: "border-gray-100 text-gray-500" },
+                      { id: "hoj", label: "Høj", sel: "border-red-300 bg-red-50 text-red-700", def: "border-gray-100 text-gray-500" },
                     ].map(a => (
                       <button key={a.id} onClick={() => setAlvorlighed(a.id as Mangel["alvorlighed"])}
                         className={`flex-1 py-2 rounded-xl border-2 text-sm font-semibold transition-all ${alvorlighed === a.id ? a.sel : a.def}`}>
@@ -146,7 +146,7 @@ export default function Mangler({ params }: { params: Promise<{ id: string }> })
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
             <p className="font-semibold text-gray-900 mb-1">Ingen registrerede mangler</p>
-            <p className="text-sm text-gray-400">Brug knappen ovenfor til at registrere mangler naar du opdager dem.</p>
+            <p className="text-sm text-gray-400">Brug knappen ovenfor til at registrere mangler, når du opdager dem.</p>
           </div>
         ) : (
           <div className="space-y-3 mb-6">
@@ -182,7 +182,7 @@ export default function Mangler({ params }: { params: Promise<{ id: string }> })
                   )}
                   {m.status === "lukket" && (
                     <button onClick={() => skiftStatus(m.id, "aaben")} className="text-xs font-semibold text-gray-500 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
-                      Genaaben
+                      Genåben
                     </button>
                   )}
                 </div>
@@ -191,7 +191,7 @@ export default function Mangler({ params }: { params: Promise<{ id: string }> })
           </div>
         )}
 
-        <ABTip type="info" paragraf="AB-Forbruger § 25" titel="Din ret til at tilbageholde betaling" resumé="Ved dokumenterede mangler kan du tilbageholde et beloeb svarende til manglernes udbedring. Tag altid billeder og dato-noter som dokumentation." detaljer="Jf. AB-Forbruger § 43 har entreprenøren pligt og ret til at afhjælpe mangler inden rimelig tid. Du har 5 ars reklamationsret fra afleveringsdatoen." />
+        <ABTip type="info" paragraf="AB-Forbruger § 25" titel="Din ret til at tilbageholde betaling" resumé="Ved dokumenterede mangler kan du tilbageholde et beløb svarende til manglernes udbedring. Tag altid billeder og dato-noter som dokumentation." detaljer="Jf. AB-Forbruger § 43 har entreprenøren pligt og ret til at afhjælpe mangler inden rimelig tid. Du har 5 års reklamationsret fra afleveringsdatoen." />
       </div>
     </div>
   );
