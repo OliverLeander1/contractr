@@ -14,6 +14,18 @@ interface Projekt {
   oprettet_at: string;
 }
 
+interface Aftale {
+  id: string;
+  projekt_id: string;
+  titel: string | null;
+  status: string;
+  haandvaerker_navn: string | null;
+  haandvaerker_email: string | null;
+  oprettet_at: string;
+  bygherre_godkendt_at: string | null;
+  haandvaerker_godkendt_at: string | null;
+}
+
 const projekttypeLabels: Record<string, string> = {
   badevarelse: "Badeværelse", kokken: "Køkken", tag: "Tag",
   tilbygning: "Tilbygning", totalrenovering: "Totalrenovering",
@@ -41,6 +53,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [navn, setNavn] = useState("");
   const [projekter, setProjekter] = useState<Projekt[]>([]);
+  const [aftaler, setAftaler] = useState<Aftale[]>([]);
   const [indlæser, setIndlæser] = useState(true);
 
   useEffect(() => {
@@ -63,6 +76,14 @@ export default function Dashboard() {
         .limit(10);
 
       if (projektData) setProjekter(projektData);
+
+      const { data: aftaleData } = await supabase
+        .from("kontrakter")
+        .select("id, projekt_id, titel, status, haandvaerker_navn, haandvaerker_email, oprettet_at, bygherre_godkendt_at, haandvaerker_godkendt_at")
+        .eq("bygherre_id", user.id)
+        .order("oprettet_at", { ascending: false });
+
+      if (aftaleData) setAftaler(aftaleData);
       setIndlæser(false);
     };
     hent();
@@ -116,6 +137,61 @@ export default function Dashboard() {
               : `Du har ${aktiveProjekter.length} aktive projekter`}
           </h1>
         </div>
+
+        {/* Aktive aftaler fra kontrakter-tabellen */}
+        {aftaler.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Dine aftalegrundlag</h2>
+            <div className="space-y-3">
+              {aftaler.map(a => {
+                const beggeGodkendt = a.status === "begge_godkendt";
+                const afventerHaandvaerker = a.bygherre_godkendt_at && !a.haandvaerker_godkendt_at;
+                const underForhandling = a.status === "forhandling";
+                const statusTekst = beggeGodkendt ? "Godkendt af begge" : afventerHaandvaerker ? "Afventer håndværker" : underForhandling ? "Under forhandling" : a.haandvaerker_email ? "Invitation sendt" : "Udkast";
+                const statusKlasse = beggeGodkendt ? "bg-green-100 text-green-700 border-green-200" : afventerHaandvaerker ? "bg-blue-100 text-blue-700 border-blue-200" : underForhandling ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-gray-100 text-gray-500 border-gray-200";
+                return (
+                  <Link
+                    key={a.id}
+                    href={`/projekt/${a.projekt_id}/aftale`}
+                    className="bg-white rounded-2xl border border-[#e0ddd6] px-5 py-4 flex items-center justify-between hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-11 h-11 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                          <polyline points="14 2 14 8 20 8"/>
+                          <line x1="16" y1="13" x2="8" y2="13"/>
+                          <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors text-sm">
+                          {a.titel || "Aftalegrundlag uden titel"}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {a.haandvaerker_navn || a.haandvaerker_email || "Ingen håndværker tilknyttet endnu"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${statusKlasse}`}>
+                        {statusTekst}
+                      </span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+            <Link
+              href="/projekt/1/aftale"
+              className="mt-3 flex items-center justify-center gap-2 bg-white border border-dashed border-[#1e3a2a]/30 rounded-2xl py-4 text-sm font-semibold text-[#1e3a2a] hover:border-[#1e3a2a]/60 hover:bg-[#1e3a2a]/5 transition-all"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nyt aftalegrundlag
+            </Link>
+          </div>
+        )}
 
         {/* Tvist-advarsel */}
         {harProblemer && (
