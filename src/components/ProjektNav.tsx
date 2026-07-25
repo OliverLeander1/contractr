@@ -6,7 +6,7 @@ import { useState } from "react";
 
 const navLinks = [
   { label: "Oversigt",     href: "" },
-  { label: "Forhandling",  href: "/forhandling" },
+  { label: "Aftale",       href: "/aftale" },
   { label: "Kontrakt",     href: "/kontrakt" },
   { label: "Økonomi",      href: "/betalinger" },
   { label: "Mangler",      href: "/mangler" },
@@ -23,6 +23,9 @@ export default function ProjektNav({ id }: { id: string }) {
     const fuld = `${base}${href}`;
     if (href === "/betalinger") {
       return pathname === fuld || pathname === `${base}/ekstraarbejde`;
+    }
+    if (href === "/aftale") {
+      return pathname === fuld;
     }
     if (href === "") return pathname === base;
     return pathname === fuld;

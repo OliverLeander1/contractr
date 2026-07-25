@@ -23,6 +23,8 @@ interface Kontrakt {
   total_pris: number | null;
   betalingsplan: { milepæl: string; andel: string }[] | null;
   vilkaar: string | null;
+  startdato: string | null;
+  slutdato: string | null;
   haandvaerker_token: string;
   haandvaerker_email: string | null;
   haandvaerker_navn: string | null;
@@ -41,6 +43,8 @@ const feltLabels: Record<string, string> = {
   beskrivelse: "Arbejdets omfang",
   total_pris: "Entreprisesum",
   vilkaar: "Vilkår",
+  startdato: "Startdato",
+  slutdato: "Slutdato",
 };
 
 export default function Forhandling({ params }: { params: Promise<{ id: string }> }) {
@@ -113,6 +117,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
         body: JSON.stringify({
           kontrakt_id: kontrakt.id,
           [felt]: felt === "total_pris" ? parseFloat(feltVaerdi) : feltVaerdi,
+          // startdato/slutdato sendes som ISO-streng direkte
         }),
       });
       const data = await r.json();
@@ -243,9 +248,9 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Forhandlingsrum</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Aftalegrundlag</h1>
             <p className="text-sm text-gray-500 mt-1">
-              {kontrakt.titel || "Kontraktudkast"} · <span className="font-medium text-gray-700">Rev. {revision}</span> · Byg kontraktvilkår med håndværkeren her
+              {kontrakt.titel || "Kontraktudkast"} · <span className="font-medium text-gray-700">Rev. {revision}</span> · Aftalen udarbejdes og godkendes af begge parter her
             </p>
           </div>
           <button
@@ -309,10 +314,12 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
           {/* Kontraktindhold */}
           <div className="lg:col-span-2 space-y-4">
 
-            {(["titel", "beskrivelse", "total_pris", "vilkaar"] as const).map((felt) => {
+            {(["titel", "beskrivelse", "total_pris", "startdato", "slutdato", "vilkaar"] as const).map((felt) => {
               const vaerdi = felt === "total_pris"
                 ? (kontrakt.total_pris ? fmtKr(kontrakt.total_pris) : null)
-                : kontrakt[felt];
+                : (felt === "startdato" || felt === "slutdato")
+                ? (kontrakt[felt] ? new Date(kontrakt[felt]!).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" }) : null)
+                : kontrakt[felt as keyof Kontrakt] as string | null;
 
               const afventendeFeltForslag = kontrakt.kontraktaendringer.filter(
                 a => a.felt === felt && a.status === "afventer"
@@ -351,6 +358,13 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         {felt === "total_pris" ? (
                           <input
                             type="number"
+                            value={feltVaerdi}
+                            onChange={e => setFeltVaerdi(e.target.value)}
+                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
+                          />
+                        ) : (felt === "startdato" || felt === "slutdato") ? (
+                          <input
+                            type="date"
                             value={feltVaerdi}
                             onChange={e => setFeltVaerdi(e.target.value)}
                             className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
@@ -442,7 +456,11 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Betalingsplan</p>
-                    <p className="text-xs text-gray-400 mt-0.5">Koblet til fremdrift jf. AB-Forbruger § 26</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0
+                        ? "Milepælsplan jf. AB-Forbruger § 26"
+                        : "Betaling ved aflevering jf. AB-Forbruger § 25"}
+                    </p>
                   </div>
                   {!erBeggeGodkendt && !redigererBetalingsplan && (
                     <button
@@ -456,7 +474,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       }}
                       className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors flex-shrink-0"
                     >
-                      {kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0 ? "Rediger" : "Tilføj"}
+                      {kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0 ? "Rediger" : "Aftal milepælsplan"}
                     </button>
                   )}
                 </div>
@@ -523,7 +541,15 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-400 italic">Ikke aftalt endnu — klik Tilføj for at oprette betalingsplan</p>
+                  <div className="flex items-center gap-3 py-2">
+                    <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">Betaling ved aflevering</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Standardvilkår jf. § 25 — klik &ldquo;Aftal milepælsplan&rdquo; for at oprette en alternativ betalingsplan</p>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>

@@ -138,7 +138,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
               <h2 className="font-semibold text-gray-900 mb-4">Næste skridt</h2>
               <div className="space-y-3">
-                <Link href={`/projekt/${id}/forhandling`} className="flex items-start gap-3 p-4 bg-[#1e3a2a]/5 border border-[#1e3a2a]/20 rounded-xl hover:bg-[#1e3a2a]/10 transition-colors">
+                <Link href={`/projekt/${id}/aftale`} className="flex items-start gap-3 p-4 bg-[#1e3a2a]/5 border border-[#1e3a2a]/20 rounded-xl hover:bg-[#1e3a2a]/10 transition-colors">
                   <div className="w-7 h-7 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                   </div>

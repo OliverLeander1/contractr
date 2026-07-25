@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
 // POST /api/kontrakt — opdater kontraktindhold
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { kontrakt_id, bygherre_id, titel, beskrivelse, total_pris, betalingsplan, vilkaar, haandvaerker_email } = body;
+  const { kontrakt_id, bygherre_id, titel, beskrivelse, total_pris, betalingsplan, vilkaar, startdato, slutdato, haandvaerker_email } = body;
 
   if (!kontrakt_id) {
     return NextResponse.json({ error: "kontrakt_id mangler" }, { status: 400 });
@@ -65,6 +65,8 @@ export async function POST(req: NextRequest) {
   if (total_pris !== undefined) opdatering.total_pris = total_pris;
   if (betalingsplan !== undefined) opdatering.betalingsplan = betalingsplan;
   if (vilkaar !== undefined) opdatering.vilkaar = vilkaar;
+  if (startdato !== undefined) opdatering.startdato = startdato;
+  if (slutdato !== undefined) opdatering.slutdato = slutdato;
   if (haandvaerker_email !== undefined) {
     opdatering.haandvaerker_email = haandvaerker_email;
     opdatering.status = "inviteret";
