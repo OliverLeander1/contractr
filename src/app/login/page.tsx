@@ -51,7 +51,7 @@ export default function Login() {
         return;
       }
 
-      // Gem i localStorage så resten af platformen kan bruge det
+      // Gem i localStorage
       localStorage.setItem("contractr_user", JSON.stringify({
         navn: navn.trim(),
         email: email.trim(),
@@ -59,8 +59,21 @@ export default function Login() {
         loginDato: new Date().toISOString(),
       }));
 
-      setBekraeftelse(true);
+      // Forsøg at logge direkte ind (virker når email-bekræftelse er slået fra)
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError) {
+        // Email-bekræftelse er slået til — vis bekræftelsesskærm
+        setBekraeftelse(true);
+        setLoading(false);
+        return;
+      }
+
       setLoading(false);
+      router.push(brugerType === "haandvaerker" ? "/haandvaerker/sager" : "/dashboard");
       return;
     }
 
