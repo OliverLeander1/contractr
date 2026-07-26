@@ -107,7 +107,7 @@ export default function Dashboard() {
   }
 
   const timer = new Date().getHours();
-  const hilsen = timer < 10 ? "Godmorgen" : timer < 12 ? "Goddag" : timer < 17 ? "Godeftermiddag" : "Godaften";
+  const hilsen = timer < 3 ? "Godaften" : timer < 10 ? "Godmorgen" : timer < 12 ? "Goddag" : timer < 17 ? "Godeftermiddag" : "Godaften";
   const fornavn = navn.split(" ")[0];
 
   const aktiveProjekter = projekter.filter(p => p.status !== "afsluttet");
