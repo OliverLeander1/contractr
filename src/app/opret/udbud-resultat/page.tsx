@@ -1,16 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FlowLayout from "@/components/FlowLayout";
 import { createClient } from "@/lib/supabase";
-
-interface TilbudsPost {
-  id: string;
-  beskrivelse: string;
-  enhed: string;
-  pris: string;
-}
 
 interface UdbudResultat {
   titel: string;
@@ -18,7 +11,6 @@ interface UdbudResultat {
   dokument: string;
   bygherreNavn: string;
   bygherreKontakt: string;
-  tilbudsposter?: TilbudsPost[];
   billeder?: { navn: string; data: string }[];
 }
 
@@ -27,8 +19,12 @@ export default function UdbudResultat() {
   const [data, setData] = useState<UdbudResultat | null>(null);
   const [tekst, setTekst] = useState("");
   const [kopieret, setKopieret] = useState(false);
-  const [linkKopieret, setLinkKopieret] = useState(false);
   const [opretter, setOpretter] = useState(false);
+
+  // Invite-step state
+  const [visInvite, setVisInvite] = useState(false);
+  const [haandvaerkerNavn, setHaandvaerkerNavn] = useState("");
+  const [haandvaerkerEmail, setHaandvaerkerEmail] = useState("");
 
   useEffect(() => {
     const raw = sessionStorage.getItem("udbud_resultat");
@@ -40,17 +36,6 @@ export default function UdbudResultat() {
       } catch { /* ignore */ }
     }
   }, []);
-
-  function genererLink() {
-    if (!data) return;
-    const payload = JSON.stringify({ titel: data.titel, resumé: data.resumé, dokument: tekst, bygherreNavn: data.bygherreNavn, bygherreKontakt: data.bygherreKontakt, tilbudsposter: data.tilbudsposter || [], billeder: data.billeder || [] });
-    const token = btoa(encodeURIComponent(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-    const url = `${window.location.origin}/udbud/se#${token}`;
-    navigator.clipboard.writeText(url).then(() => {
-      setLinkKopieret(true);
-      setTimeout(() => setLinkKopieret(false), 3000);
-    });
-  }
 
   async function opretAftalegrundlag() {
     if (!data) return;
@@ -67,7 +52,7 @@ export default function UdbudResultat() {
       const k = await r1.json();
       if (k.error) return;
 
-      // Fyld med AI-genereret indhold
+      // Fyld med AI-indhold og evt. håndværkeroplysninger
       await fetch("/api/kontrakt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -75,9 +60,12 @@ export default function UdbudResultat() {
           kontrakt_id: k.id,
           titel: data.titel,
           beskrivelse: tekst,
+          ...(haandvaerkerNavn ? { haandvaerker_navn: haandvaerkerNavn } : {}),
+          ...(haandvaerkerEmail ? { haandvaerker_email: haandvaerkerEmail } : {}),
         }),
       });
 
+      sessionStorage.removeItem("udbud_resultat");
       router.push(`/projekt/${projekt_id}/aftale`);
     } finally {
       setOpretter(false);
@@ -116,25 +104,6 @@ export default function UdbudResultat() {
         <p className="text-gray-500">{data.resumé}</p>
       </div>
 
-      {/* Næste skridt */}
-      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 mb-6">
-        <h3 className="font-semibold text-blue-900 text-sm mb-3">Sådan bruger du dokumentet</h3>
-        <ol className="space-y-2">
-          {[
-            "Kopier dokumentet og tilføj dine kontaktoplysninger",
-            "Send det til 2-3 håndværkere og bed om tilbud inden en bestemt dato",
-            "Når du modtager tilbud, uploader du dem her til screening mod AB-Forbruger",
-          ].map((step, i) => (
-            <li key={i} className="flex items-start gap-3 text-sm text-blue-800">
-              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center mt-0.5">
-                {i + 1}
-              </span>
-              {step}
-            </li>
-          ))}
-        </ol>
-      </div>
-
       {/* Selve dokumentet */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
@@ -145,21 +114,13 @@ export default function UdbudResultat() {
           <button
             onClick={kopier}
             className={`flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg transition-all ${
-              kopieret
-                ? "bg-green-100 text-green-700"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              kopieret ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
             {kopieret ? (
-              <>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                Kopieret!
-              </>
+              <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Kopieret!</>
             ) : (
-              <>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                Kopiér tekst
-              </>
+              <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Kopiér tekst</>
             )}
           </button>
         </div>
@@ -177,106 +138,107 @@ export default function UdbudResultat() {
           <textarea
             value={tekst}
             onChange={(e) => setTekst(e.target.value)}
-            rows={Math.max(20, tekst.split("\n").length + 2)}
-            className="w-full text-sm text-gray-700 leading-relaxed font-sans resize-none focus:outline-none border-0 bg-transparent"
+            rows={Math.max(30, tekst.split("\n").length + 2)}
+            className="w-full text-sm text-gray-700 leading-relaxed font-mono resize-none focus:outline-none border-0 bg-transparent"
+            style={{ fontFamily: "ui-monospace, 'Cascadia Code', 'Source Code Pro', monospace" }}
           />
         </div>
-
-        {/* Tilbudsposter */}
-        {data.tilbudsposter && data.tilbudsposter.length > 0 && (
-          <div className="px-6 pb-6 border-t border-gray-100 pt-5">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Opgaveoversigt</p>
-            <div className="space-y-2">
-              {data.tilbudsposter.map((post, i) => (
-                <div key={post.id} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#1e3a2a]/10 text-[#1e3a2a] text-[10px] font-bold flex items-center justify-center mt-0.5">
-                    {i + 1}
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-800">{post.beskrivelse}</p>
-                  </div>
-                  <span className="text-xs text-gray-400 flex-shrink-0 mt-0.5">{post.enhed}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Bund-knapper */}
-      <div className="space-y-3">
-
-        {/* Primær CTA — opret aftalegrundlag */}
-        <button
-          onClick={opretAftalegrundlag}
-          disabled={opretter}
-          className="w-full py-4 rounded-xl text-base font-bold bg-[#1e3a2a] text-white hover:opacity-90 disabled:bg-gray-200 disabled:text-gray-400 transition-all flex items-center justify-center gap-2 shadow-md"
-        >
-          {opretter ? (
-            <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Opretter aftalegrundlag...</>
-          ) : (
-            <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg> Opret aftalegrundlag og inviter håndværker</>
-          )}
-        </button>
-
-        <div className="flex items-center gap-3 py-1">
-          <div className="flex-1 h-px bg-gray-100" />
-          <p className="text-xs text-gray-400">eller send dokumentet manuelt</p>
-          <div className="flex-1 h-px bg-gray-100" />
-        </div>
-
-        <button
-          onClick={genererLink}
-          className={`w-full py-4 rounded-xl text-base font-bold transition-all flex items-center justify-center gap-2 ${
-            linkKopieret
-              ? "bg-green-600 text-white"
-              : "bg-primary text-white hover:opacity-90 shadow-md shadow-primary/20"
-          }`}
-        >
-          {linkKopieret ? (
-            <>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Link kopieret - send det til håndværkeren!
-            </>
-          ) : (
-            <>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-              Del via link
-            </>
-          )}
-        </button>
-
-        <button
-          onClick={kopier}
-          className="w-full py-4 rounded-xl text-base font-bold bg-primary text-white hover:opacity-90 shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2"
-        >
-          {kopieret ? (
-            <>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Kopieret til udklipsholder!
-            </>
-          ) : (
-            <>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              Kopiér dokument
-            </>
-          )}
-        </button>
-
-        <div className="flex gap-3">
+      {/* Invite-step */}
+      {!visInvite ? (
+        <div className="space-y-3 mb-4">
           <button
-            onClick={() => router.push("/opret/beskriv")}
-            className="flex-1 py-3.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+            onClick={() => setVisInvite(true)}
+            className="w-full py-4 rounded-xl text-base font-bold bg-[#1e3a2a] text-white hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-md"
           >
-            Start forfra med nye svar
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Opret aftalegrundlag og inviter håndværker
           </button>
+
+          <div className="flex items-center gap-3 py-1">
+            <div className="flex-1 h-px bg-gray-100" />
+            <p className="text-xs text-gray-400">eller</p>
+            <div className="flex-1 h-px bg-gray-100" />
+          </div>
+
           <button
-            onClick={() => router.push("/opret/upload")}
-            className="flex-1 py-3.5 rounded-xl border border-primary text-primary text-sm font-semibold hover:bg-accent transition-colors"
+            onClick={kopier}
+            className="w-full py-3.5 rounded-xl text-sm font-semibold bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
           >
-            Modtaget tilbud? Upload her →
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            {kopieret ? "Kopieret!" : "Kopiér dokument og send manuelt"}
           </button>
         </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-4">
+          <h3 className="font-semibold text-gray-900 mb-1">Hvem skal modtage aftalegrundlaget?</h3>
+          <p className="text-sm text-gray-400 mb-5">Håndværkeren får et link til at gennemgå og godkende dokumentet. Du kan også springe dette over og tilføje dem senere.</p>
+
+          <div className="space-y-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Navn på håndværker eller firma</label>
+              <input
+                type="text"
+                placeholder="F.eks. Hansen VVS A/S"
+                value={haandvaerkerNavn}
+                onChange={e => setHaandvaerkerNavn(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">E-mail</label>
+              <input
+                type="email"
+                placeholder="haandvaerker@email.dk"
+                value={haandvaerkerEmail}
+                onChange={e => setHaandvaerkerEmail(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => setVisInvite(false)}
+              className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+            >
+              Tilbage
+            </button>
+            <button
+              onClick={opretAftalegrundlag}
+              disabled={opretter}
+              className="flex-1 py-3 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+            >
+              {opretter ? (
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Opretter...</>
+              ) : haandvaerkerEmail ? (
+                "Opret og send invitation"
+              ) : (
+                "Opret uden invitation"
+              )}
+            </button>
+          </div>
+
+          {!haandvaerkerEmail && (
+            <p className="text-xs text-gray-400 text-center mt-3">Du kan tilføje håndværkeroplysninger inde i aftalen bagefter.</p>
+          )}
+        </div>
+      )}
+
+      <div className="flex gap-3">
+        <button
+          onClick={() => router.push("/opret/beskriv")}
+          className="flex-1 py-3.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+        >
+          Start forfra
+        </button>
+        <button
+          onClick={() => router.push("/opret/upload")}
+          className="flex-1 py-3.5 rounded-xl border border-[#1e3a2a] text-[#1e3a2a] text-sm font-semibold hover:bg-accent transition-colors"
+        >
+          Modtaget tilbud? Upload her →
+        </button>
       </div>
     </FlowLayout>
   );
