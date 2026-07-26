@@ -56,6 +56,7 @@ export default function Dashboard() {
   const [aftaler, setAftaler] = useState<Aftale[]>([]);
   const [indlæser, setIndlæser] = useState(true);
   const [opretter, setOpretter] = useState(false);
+  const [pendingUdkast, setPendingUdkast] = useState<{ titel: string } | null>(null);
 
   useEffect(() => {
     const hent = async () => {
@@ -63,6 +64,15 @@ export default function Dashboard() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) { router.push("/login"); return; }
+
+      // Tjek om der er et ufærdiggjort udkast i sessionStorage
+      try {
+        const raw = sessionStorage.getItem("udbud_resultat");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.titel) setPendingUdkast({ titel: parsed.titel });
+        }
+      } catch { /* ignore */ }
 
       const { data: profil } = await supabase
         .from("profiler").select("navn").eq("id", user.id).single();
@@ -135,13 +145,39 @@ export default function Dashboard() {
             {hilsen}{fornavn ? `, ${fornavn}` : ""}
           </p>
           <h1 className="text-3xl font-bold text-gray-900">
-            {ingenProjekter
+            {ingenProjekter && aftaler.length === 0
               ? "Hvad skal du bygge?"
+              : aftaler.length > 0 && ingenProjekter
+              ? aftaler.length === 1 ? "Du har ét aftalegrundlag" : `Du har ${aftaler.length} aftalegrundlag`
               : aktiveProjekter.length === 1
               ? "Du har ét aktivt projekt"
               : `Du har ${aktiveProjekter.length} aktive projekter`}
           </h1>
         </div>
+
+        {/* Ufærdiggjort udkast fra sessionStorage */}
+        {pendingUdkast && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 mb-6 flex items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" className="flex-shrink-0 mt-0.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+              <div>
+                <p className="text-sm font-semibold text-amber-900">Du har et udkast klar</p>
+                <p className="text-xs text-amber-700 mt-0.5">{pendingUdkast.titel}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push("/opret/udbud-resultat")}
+              className="flex-shrink-0 bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-amber-700 transition-colors"
+            >
+              Fortsæt her
+            </button>
+          </div>
+        )}
 
         {/* Aktive aftaler fra kontrakter-tabellen */}
         {aftaler.length > 0 && (
@@ -214,7 +250,7 @@ export default function Dashboard() {
         )}
 
         {/* Tom tilstand — ny bruger */}
-        {ingenProjekter && (
+        {ingenProjekter && aftaler.length === 0 && (
           <div className="space-y-4 mb-8">
             {/* Primær CTA */}
             <div className="bg-[#1e3a2a] rounded-2xl p-8 text-white">
@@ -226,9 +262,9 @@ export default function Dashboard() {
                   <line x1="16" y1="17" x2="8" y2="17"/>
                 </svg>
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">Tjek dit tilbud gratis</h2>
+              <h2 className="text-xl font-bold text-white mb-2">Kom i gang med dit projekt</h2>
               <p className="text-white/70 text-sm leading-relaxed mb-6">
-                Upload et tilbud eller en kontrakt. Vi gennemgår det mod AB-Forbruger og fortæller dig hvad du bør afklare inden du siger ja.
+                Beskriv dit projekt og vi laver et professionelt udbudsdokument klar til at sende til håndværkere. Eller upload et tilbud du allerede har modtaget.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
