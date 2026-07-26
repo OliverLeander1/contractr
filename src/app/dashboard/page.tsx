@@ -90,20 +90,8 @@ export default function Dashboard() {
     hent();
   }, [router]);
 
-  async function opretNyAftale() {
-    setOpretter(true);
-    try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const projekt_id = crypto.randomUUID();
-      const r = await fetch(`/api/kontrakt?projekt_id=${projekt_id}&bygherre_id=${user.id}`);
-      if (r.ok) {
-        router.push(`/projekt/${projekt_id}/aftale`);
-      }
-    } finally {
-      setOpretter(false);
-    }
+  function opretNyAftale() {
+    router.push("/opret");
   }
 
   const timer = new Date().getHours();
