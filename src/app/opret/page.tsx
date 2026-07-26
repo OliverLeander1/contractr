@@ -214,30 +214,54 @@ export default function OpretProjekt() {
         <h2 className="font-semibold text-gray-900 mb-1">Hvor er du i processen?</h2>
         <p className="text-sm text-gray-400 mb-4">Det hjælper os med at give den rigtige vejledning</p>
         <div className="space-y-2">
-          {[
-            { id: "dialog", label: "Jeg skal have lavet et projekt og vil gerne have hjælp til aftalegrundlaget", ikon: "📋" },
-            { id: "tilbud", label: "Jeg har modtaget et tilbud og vil have det tjekket", ikon: "📄" },
-            { id: "igang", label: "Arbejdet er allerede i gang", ikon: "🔨" },
-          ].map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setStatus(s.id)}
-              className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${
-                status === s.id
-                  ? "border-primary bg-accent"
-                  : "border-gray-100 hover:border-gray-200"
-              }`}
-            >
-              <span className="text-lg">{s.ikon}</span>
-              <span className={`text-sm font-medium ${status === s.id ? "text-primary" : "text-gray-700"}`}>
-                {s.label}
-              </span>
+          {([
+            {
+              id: "dialog",
+              label: "Jeg skal have lavet et projekt og vil gerne have hjælp til aftalegrundlaget",
+              ikon: "📋",
+              info: "Vi hjælper dig med at beskrive projektet og udarbejde et aftalegrundlag du kan sende til din entreprenør. Entreprenøren kan herefter gennemgå det og tilføje pris og bemærkninger.",
+            },
+            {
+              id: "tilbud",
+              label: "Jeg har modtaget et tilbud og vil have det tjekket",
+              ikon: "📄",
+              info: "Upload tilbuddet du har modtaget. Vi gennemgår det og viser dig hvad du bør afklare, hvad der mangler, og hvilke spørgsmål du bør stille inden du siger ja.",
+            },
+            {
+              id: "igang",
+              label: "Arbejdet er allerede i gang",
+              ikon: "🔨",
+              info: "Pris og omfang er aftalt — vi sender dig direkte ind i projektrummet. Her kan du registrere ekstraarbejde, følge betalinger, notere mangler og have al dokumentation samlet ét sted.",
+            },
+          ] as const).map((s) => (
+            <div key={s.id}>
+              <button
+                onClick={() => setStatus(s.id)}
+                className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${
+                  status === s.id
+                    ? "border-primary bg-accent"
+                    : "border-gray-100 hover:border-gray-200"
+                }`}
+              >
+                <span className="text-lg">{s.ikon}</span>
+                <span className={`text-sm font-medium ${status === s.id ? "text-primary" : "text-gray-700"}`}>
+                  {s.label}
+                </span>
+                {status === s.id && (
+                  <div className="ml-auto w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+                  </div>
+                )}
+              </button>
               {status === s.id && (
-                <div className="ml-auto w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+                <div className="mt-2 mx-1 px-4 py-3 bg-[#1e3a2a]/5 border border-[#1e3a2a]/10 rounded-xl flex items-start gap-3">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2" className="flex-shrink-0 mt-0.5">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  <p className="text-xs text-gray-600 leading-relaxed">{s.info}</p>
                 </div>
               )}
-            </button>
+            </div>
           ))}
         </div>
       </div>
