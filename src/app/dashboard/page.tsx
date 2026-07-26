@@ -107,7 +107,7 @@ export default function Dashboard() {
   }
 
   const timer = new Date().getHours();
-  const hilsen = timer < 10 ? "Godmorgen" : timer < 17 ? "Goddag" : "Godaften";
+  const hilsen = timer < 10 ? "Godmorgen" : timer < 12 ? "Goddag" : timer < 17 ? "Godeftermiddag" : "Godaften";
   const fornavn = navn.split(" ")[0];
 
   const aktiveProjekter = projekter.filter(p => p.status !== "afsluttet");
@@ -143,7 +143,7 @@ export default function Dashboard() {
 
         {/* Velkomst */}
         <div className="mb-8">
-          <p className="text-sm font-semibold text-[#1e3a2a] uppercase tracking-widest mb-2">
+          <p className="text-base text-gray-500 mb-1">
             {hilsen}{fornavn ? `, ${fornavn}` : ""}
           </p>
           <h1 className="text-3xl font-bold text-gray-900">
@@ -238,7 +238,7 @@ export default function Dashboard() {
                   <line x1="16" y1="17" x2="8" y2="17"/>
                 </svg>
               </div>
-              <h2 className="text-xl font-bold mb-2">Tjek dit tilbud gratis</h2>
+              <h2 className="text-xl font-bold text-white mb-2">Tjek dit tilbud gratis</h2>
               <p className="text-white/70 text-sm leading-relaxed mb-6">
                 Upload et tilbud eller en kontrakt. Vi gennemgår det mod AB-Forbruger og fortæller dig hvad du bør afklare inden du siger ja.
               </p>
