@@ -58,7 +58,7 @@ export default function UdbudResultat() {
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push("/login"); return; }
+      if (!user) { router.push("/login?next=/opret/udbud-resultat"); return; }
 
       const projekt_id = crypto.randomUUID();
 
@@ -140,7 +140,7 @@ export default function UdbudResultat() {
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
             <h2 className="font-semibold text-gray-900 text-sm">Udbudsdokument</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Klik i teksten for at redigere direkte</p>
+            <p className="text-xs text-gray-400 mt-0.5">Klik i teksten for at redigere</p>
           </div>
           <button
             onClick={kopier}
@@ -163,6 +163,16 @@ export default function UdbudResultat() {
             )}
           </button>
         </div>
+
+        {/* Bygherreoplysninger */}
+        {(data.bygherreNavn || data.bygherreKontakt) && (
+          <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Bygherre</p>
+            {data.bygherreNavn && <p className="text-sm font-semibold text-gray-800">{data.bygherreNavn}</p>}
+            {data.bygherreKontakt && <p className="text-sm text-gray-500">{data.bygherreKontakt}</p>}
+          </div>
+        )}
+
         <div className="px-6 py-5">
           <textarea
             value={tekst}
@@ -171,6 +181,26 @@ export default function UdbudResultat() {
             className="w-full text-sm text-gray-700 leading-relaxed font-sans resize-none focus:outline-none border-0 bg-transparent"
           />
         </div>
+
+        {/* Tilbudsposter */}
+        {data.tilbudsposter && data.tilbudsposter.length > 0 && (
+          <div className="px-6 pb-6 border-t border-gray-100 pt-5">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Opgaveoversigt</p>
+            <div className="space-y-2">
+              {data.tilbudsposter.map((post, i) => (
+                <div key={post.id} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#1e3a2a]/10 text-[#1e3a2a] text-[10px] font-bold flex items-center justify-center mt-0.5">
+                    {i + 1}
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-800">{post.beskrivelse}</p>
+                  </div>
+                  <span className="text-xs text-gray-400 flex-shrink-0 mt-0.5">{post.enhed}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bund-knapper */}
