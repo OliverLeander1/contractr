@@ -127,12 +127,12 @@ export default function RådgiverPortal() {
                       <p className="text-xs text-primary font-semibold mt-0.5">{b.tid} · {b.varighed}</p>
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
-                      <Link href="/projekt/1" className="text-xs font-semibold text-primary border border-primary/30 px-3 py-1.5 rounded-lg hover:bg-accent transition-colors">
+                      <Link href="/dashboard" className="text-xs font-semibold text-primary border border-primary/30 px-3 py-1.5 rounded-lg hover:bg-accent transition-colors">
                         Forbered
                       </Link>
-                      <button className="text-xs font-semibold bg-primary text-white px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity">
+                      <a href="https://meet.google.com/new" target="_blank" rel="noopener noreferrer" className="text-xs font-semibold bg-primary text-white px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity">
                         Start møde
-                      </button>
+                      </a>
                     </div>
                   </div>
                 ))}

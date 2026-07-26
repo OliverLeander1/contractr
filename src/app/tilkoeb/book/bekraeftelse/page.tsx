@@ -5,6 +5,8 @@ import Link from "next/link";
 
 export default function BookingBekraeftelse() {
   const [projektNavn, setProjektNavn] = useState("");
+  const [ydelse, setYdelse] = useState("Tal med en rådgiver");
+  const [pris, setPris] = useState("1.495 kr.");
 
   useEffect(() => {
     try {
@@ -14,7 +16,16 @@ export default function BookingBekraeftelse() {
         setProjektNavn([p.projekttype, p.adresse].filter(Boolean).join(", "));
       }
     } catch { /* ignore */ }
+
+    const params = new URLSearchParams(window.location.search);
+    const ydelsesParam = params.get("ydelse");
+    if (ydelsesParam === "ai-tilbud") { setYdelse("AI-gennemgang af tilbud"); setPris("995 kr."); }
+    else if (ydelsesParam === "tilsyn") { setYdelse("Tilsyn undervejs"); setPris("Fra 2.495 kr."); }
+    else if (ydelsesParam === "aflevering") { setYdelse("Afleveringstjek"); setPris("Fra 2.995 kr."); }
+    else if (ydelsesParam === "mangel") { setYdelse("Mangelliste og dokumentation"); setPris("Fra 1.995 kr."); }
   }, []);
+
+  const datoLabel = new Date().toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-6">
@@ -31,11 +42,10 @@ export default function BookingBekraeftelse() {
           <h2 className="font-semibold text-gray-900 mb-4">Din booking</h2>
           <div className="space-y-3">
             {[
-              { label: "Ydelse", value: "Tal med en rådgiver" },
-              { label: "Dato", value: "Onsdag d. 11. juni 2025" },
-              { label: "Tidspunkt", value: "kl. 11:00 (90 min.)" },
+              { label: "Ydelse", value: ydelse },
+              { label: "Bookingdato", value: datoLabel },
               { label: "Projekt", value: projektNavn || "Ikke angivet" },
-              { label: "Pris betalt", value: "1.495 kr." },
+              { label: "Pris", value: pris },
             ].map((r) => (
               <div key={r.label} className="flex justify-between">
                 <p className="text-sm text-gray-400">{r.label}</p>
@@ -61,8 +71,8 @@ export default function BookingBekraeftelse() {
           </div>
         </div>
 
-        <Link href="/projekt/1" className="block w-full bg-primary text-white font-bold py-4 rounded-xl hover:opacity-90 transition-opacity text-center">
-          Tilbage til projektet
+        <Link href="/dashboard" className="block w-full bg-primary text-white font-bold py-4 rounded-xl hover:opacity-90 transition-opacity text-center">
+          Gå til mine projekter
         </Link>
       </div>
     </div>

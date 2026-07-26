@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { use, useState, useEffect } from "react";
 import ProjektNav from "@/components/ProjektNav";
@@ -351,7 +351,7 @@ export default function Tidsplan({ params }: { params: Promise<{ id: string }> }
             <div className="flex items-start gap-3">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2" className="flex-shrink-0 mt-0.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               <div>
-                <p className="text-sm font-semibold text-[#1e3a2a] mb-1">AB-Forbruger § 38 — Husk afleveringsforretning</p>
+                <p className="text-sm font-semibold text-[#1e3a2a] mb-1">AB-Forbruger § 38: Husk afleveringsforretning</p>
                 <p className="text-xs text-[#1e3a2a]/70 leading-relaxed">
                   Inden du overtager det færdige arbejde, har du ret til en formel gennemgang med håndværkeren. Mangler noteres skriftligt, og 5-årsgarantien starter herfra.
                 </p>

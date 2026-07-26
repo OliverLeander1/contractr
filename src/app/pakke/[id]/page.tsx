@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -8,7 +8,7 @@ const pakkeData = {
   lille: {
     navn: "Projektrum",
     tagline: "Kontrakt, betalinger og overblik",
-    beskrivelse: "Alt du behøver til at have styr på aftalen. Kontrakt, betalingsplan og dokumentarkiv samlet ét sted — fra accept til aflevering.",
+    beskrivelse: "Alt du behøver til at have styr på aftalen. Kontrakt, betalingsplan og dokumentarkiv samlet ét sted, fra accept til aflevering.",
     pris: 499,
     budget: "Under 100.000 kr.",
     eksempler: "Badeværelse · Malerarbejde · Vinduer · Smaller renoveringer",

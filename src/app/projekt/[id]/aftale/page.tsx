@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { use, useEffect, useState, useCallback } from "react";
 import ProjektNav from "@/components/ProjektNav";
@@ -457,7 +457,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       </div>
                     ) : (
                       <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
-                        {vaerdi || <span className="text-gray-400 italic">Ikke udfyldt — klik Rediger for at tilføje</span>}
+                        {vaerdi || <span className="text-gray-400 italic">Ikke udfyldt. Klik Rediger for at tilføje</span>}
                       </p>
                     )}
                   </div>
@@ -618,7 +618,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-800">Betaling ved aflevering</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Standardvilkår jf. § 25 — klik &ldquo;Aftal milepælsplan&rdquo; for at oprette en alternativ betalingsplan</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Standardvilkår jf. § 25. Klik &ldquo;Aftal milepælsplan&rdquo; for at oprette en alternativ betalingsplan</p>
                     </div>
                   </div>
                 )}

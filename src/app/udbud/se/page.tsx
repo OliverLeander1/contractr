@@ -102,7 +102,7 @@ export default function UdbudDel() {
     };
     localStorage.setItem("contractr_projekt", JSON.stringify(projekt));
     setAcepteret(true);
-    setTimeout(() => router.push("/projekt/1"), 1800);
+    setTimeout(() => router.push("/dashboard"), 1800);
   }
 
   useEffect(() => {

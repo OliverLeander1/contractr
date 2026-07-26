@@ -231,7 +231,7 @@ export default function OpretProjekt() {
               id: "igang",
               label: "Arbejdet er allerede i gang",
               ikon: "🔨",
-              info: "Pris og omfang er aftalt — vi sender dig direkte ind i projektrummet. Her kan du registrere ekstraarbejde, følge betalinger, notere mangler og have al dokumentation samlet ét sted.",
+              info: "Pris og omfang er aftalt. Vi sender dig direkte ind i projektrummet, hvor du kan registrere ekstraarbejde, følge betalinger, notere mangler og have al dokumentation samlet ét sted.",
             },
           ] as const).map((s) => (
             <div key={s.id}>
@@ -288,6 +288,7 @@ export default function OpretProjekt() {
           sessionStorage.setItem("screening_kontakt", kontakt);
           sessionStorage.setItem("screening_abforbruger", inkluderABF ? "ja" : "nej");
           if (status === "dialog") router.push("/opret/beskriv");
+          else if (status === "igang") router.push("/opret/igang");
           else router.push("/opret/tips");
         }}
         className={`w-full py-4 rounded-xl text-base font-bold transition-all ${
@@ -296,7 +297,7 @@ export default function OpretProjekt() {
             : "bg-gray-100 text-gray-400 cursor-not-allowed"
         }`}
       >
-        {status === "dialog" ? "Beskriv projektet →" : "Fortsæt til upload →"}
+        {status === "dialog" ? "Beskriv projektet →" : status === "igang" ? "Opret projektrummet →" : "Fortsæt til upload →"}
       </button>
       {!kanFortsætte && (
         <p className="text-center text-xs text-gray-400 mt-3">Vælg projekttype, angiv navn og adresse for at fortsætte</p>

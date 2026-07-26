@@ -147,7 +147,7 @@ function Inner() {
                 <div className="space-y-3 mb-6">
                   {[
                     "Opret og send digitale tilbud direkte til kunder",
-                    "Bygherre accepterer via platformen — alt dokumenteret",
+                    "Bygherre accepterer via platformen. Alt er dokumenteret.",
                     "Se alle dine sager samlet ét sted",
                   ].map((t, i) => (
                     <div key={i} className="flex items-center gap-3">

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { UploadAnimation, ScanAnimation, AdvisorAnimation, ProjectAnimation } from "@/components/BenefitAnimation";
 
@@ -67,7 +67,7 @@ export default function Forside() {
                   <span className="text-[#1e3a2a]">Fra start til aflevering.</span>
                 </h1>
                 <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8 max-w-md">
-                  Opret dit projekt, beskriv hvad du vil bygge, og inviter entreprenøren direkte. Alt — kontrakt, aftaler, ekstraarbejde og betalinger — samlet ét sted.
+                  Opret dit projekt, beskriv hvad du vil bygge, og inviter entreprenøren direkte. Alt, kontrakt, aftaler, ekstraarbejde og betalinger, samlet ét sted.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 mb-8">
                   <Link href="/opret" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#1e3a2a] text-white font-bold rounded-xl hover:bg-[#162d20] transition-colors text-base shadow-sm">
@@ -186,7 +186,7 @@ export default function Forside() {
                 {
                   nr: "2",
                   titel: "Inviter entreprenøren",
-                  tekst: "Send et link direkte til din entreprenør. De kan gennemse aftalegrundlaget, foreslå ændringer og godkende — ingen konto kræves.",
+                  tekst: "Send et link direkte til din entreprenør. De kan gennemse aftalegrundlaget, foreslå ændringer og godkende. Ingen konto kræves.",
                   ikon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
                 },
                 {

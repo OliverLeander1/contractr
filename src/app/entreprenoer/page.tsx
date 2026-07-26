@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -17,7 +17,7 @@ const fordele = [
       </svg>
     ),
     titel: "Klart aftalegrundlag fra dag ét",
-    tekst: "Bygherre har beskrevet projektet og godkendt vilkårene inden du inviteres. Du ved præcist hvad du går ind til — ingen løse mundtlige aftaler.",
+    tekst: "Bygherre har beskrevet projektet og godkendt vilkårene inden du inviteres. Du ved præcist hvad du går ind til. Ingen løse mundtlige aftaler.",
   },
   {
     ikon: (
@@ -27,7 +27,7 @@ const fordele = [
       </svg>
     ),
     titel: "Ekstraarbejde aftales og godkendes digitalt",
-    tekst: "Tillægsaftaler oprettes i systemet og godkendes af bygherre inden du starter. Ingen diskussion bagefter om hvem der bestilte hvad — det hele er dokumenteret.",
+    tekst: "Tillægsaftaler oprettes i systemet og godkendes af bygherre inden du starter. Ingen diskussion bagefter om hvem der bestilte hvad. Det hele er dokumenteret.",
   },
   {
     ikon: (
@@ -56,7 +56,7 @@ const fordele = [
       </svg>
     ),
     titel: "Ét sted for al kommunikation",
-    tekst: "Dokumenter, billeder, beskeder og godkendelser samlet ét sted. Ingen jagt på mails og SMS'er — og bygherre slipper for at spille mellemmand.",
+    tekst: "Dokumenter, billeder, beskeder og godkendelser samlet ét sted. Ingen jagt på mails og SMS'er, og bygherre slipper for at spille mellemmand.",
   },
   {
     ikon: (
@@ -193,7 +193,7 @@ export default function EntreprenoerSide() {
                 {
                   nr: "1",
                   titel: "Du modtager en invitation",
-                  tekst: "Bygherre sender dig et link. Du åbner det — ingen konto kræves.",
+                  tekst: "Bygherre sender dig et link. Du åbner det uden at skulle oprette en konto.",
                 },
                 {
                   nr: "2",
@@ -229,10 +229,10 @@ export default function EntreprenoerSide() {
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">AB-Forbruger 2012 som standard</h2>
             <p className="text-base text-gray-500 leading-relaxed mb-4 max-w-xl mx-auto">
-              Alle projekter på platformen bruger AB-Forbruger 2012 som aftalegrundlag. Det er standardvilkårene der regulerer forholdet mellem bygherre og entreprenør, og det giver klarhed for begge parter — også for dig.
+              Alle projekter på platformen bruger AB-Forbruger 2012 som aftalegrundlag. Det er standardvilkårene der regulerer forholdet mellem bygherre og entreprenør, og det giver klarhed for begge parter, og det giver tryghed for dig.
             </p>
             <p className="text-base text-gray-500 leading-relaxed max-w-xl mx-auto">
-              Ekstraarbejde aftales skriftligt inden opstart. Betaling kobles til dokumenteret fremdrift. Aflevering sker ved en formel afleveringsforretning. Det er de samme vilkår som professionelle byggesager — nu tilgængeligt for private projekter.
+              Ekstraarbejde aftales skriftligt inden opstart. Betaling kobles til dokumenteret fremdrift. Aflevering sker ved en formel afleveringsforretning. Det er de samme vilkår som professionelle byggesager. Nu tilgængeligt for private projekter.
             </p>
           </div>
         </section>

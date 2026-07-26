@@ -27,10 +27,10 @@ const fmtKr = (n: number) =>
   new Intl.NumberFormat("da-DK", { style: "currency", currency: "DKK", maximumFractionDigits: 0 }).format(n);
 
 const STANDARD_FASER = [
-  { index: 0, beskrivelse: "Opstart — mobilisering og materialer", pct: 20 },
-  { index: 1, beskrivelse: "Halvvejs — første store fase afsluttet", pct: 30 },
-  { index: 2, beskrivelse: "Næsten færdig — 80% af arbejde udført", pct: 30 },
-  { index: 3, beskrivelse: "Aflevering — alt arbejde godkendt", pct: 20 },
+  { index: 0, beskrivelse: "Opstart: mobilisering og materialer", pct: 20 },
+  { index: 1, beskrivelse: "Halvvejs: første store fase afsluttet", pct: 30 },
+  { index: 2, beskrivelse: "Næsten færdig: 80% af arbejde udført", pct: 30 },
+  { index: 3, beskrivelse: "Aflevering: alt arbejde godkendt", pct: 20 },
 ];
 
 export default function Betalinger({ params }: { params: Promise<{ id: string }> }) {

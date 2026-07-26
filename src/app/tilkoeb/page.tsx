@@ -53,7 +53,7 @@ export default function Tilkoeb() {
           <Link href="/" className="flex items-center gap-2.5">
             <span className="logo">nembyggestyring</span>
           </Link>
-          <Link href="/projekt/1" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Tilbage til projekt</Link>
+          <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Mit overblik</Link>
         </div>
       </nav>
 

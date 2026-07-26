@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   keywords: ["byggeprojekt", "kommunikation på byggepladsen", "aftale med håndværker", "AB-Forbruger", "bygherre rettigheder", "godt samarbejde håndværker", "renovering aftale", "byggekontrakt"],
   openGraph: {
     title: "Det gode byggeprojekt: Kommunikation og aftaler der holder",
-    description: "Hvad adskiller det projekt der slutter med et håndtryk fra det der ender i konflikt? Svaret handler næsten aldrig om håndværket — det handler om aftalen.",
+    description: "Hvad adskiller det projekt der slutter med et håndtryk fra det der ender i konflikt? Svaret handler næsten aldrig om håndværket, det handler om aftalen.",
     type: "article",
   },
   alternates: { canonical: "https://Nembyggestyring.dk/det-gode-byggeprojekt" },

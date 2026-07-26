@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
@@ -46,7 +46,7 @@ const fordele = [
       </svg>
     ),
     titel: "Hurtigere betaling",
-    tekst: "Betaling kobles til dokumenteret fremdrift. Når arbejdet er godkendt, frigives betalingen — ingen unødige forsinkelser.",
+    tekst: "Betaling kobles til dokumenteret fremdrift. Når arbejdet er godkendt, frigives betalingen. Ingen unødige forsinkelser.",
   },
   {
     ikon: (

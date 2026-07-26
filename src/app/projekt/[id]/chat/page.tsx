@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
@@ -545,7 +545,7 @@ export default function ChatSide() {
                   </h2>
                   <p className="text-sm text-gray-400 max-w-xs leading-relaxed mb-6">
                     {samtaler.length === 0
-                      ? "Start en samtale med en del af projektet — f.eks. din VVS-mester eller tømrer."
+                      ? "Start en samtale med en del af projektet, f.eks. din VVS-mester eller tømrer."
                       : "Vælg en samtale i listen til venstre."}
                   </p>
                   {erBygherre && (

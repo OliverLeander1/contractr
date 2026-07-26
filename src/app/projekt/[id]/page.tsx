@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { use, useEffect, useState, Suspense } from "react";
 import Link from "next/link";
@@ -145,7 +145,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-green-800">Aftale indgået — begge parter har godkendt</p>
+                      <p className="text-sm font-semibold text-green-800">Aftale indgået. Begge parter har godkendt</p>
                       <p className="text-xs text-green-600 mt-0.5">Projektet er aktivt. Brug fanerne herover til at styre det videre forløb.</p>
                     </div>
                   </div>
@@ -182,7 +182,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-amber-800">Bed om skriftlig tidsplan</p>
-                        <p className="text-xs text-amber-700 leading-relaxed mt-0.5">AB-Forbruger § 12 — start- og slutdato bør være aftalt skriftligt.</p>
+                        <p className="text-xs text-amber-700 leading-relaxed mt-0.5">AB-Forbruger § 12: start- og slutdato bør være aftalt skriftligt.</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 p-4 bg-gray-50 border border-gray-100 rounded-xl">
@@ -191,7 +191,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-gray-700">Betal kun mod dokumenteret fremdrift</p>
-                        <p className="text-xs text-gray-500 leading-relaxed mt-0.5">AB-Forbruger § 25 og § 37 — betaling kobles til faktisk udført arbejde.</p>
+                        <p className="text-xs text-gray-500 leading-relaxed mt-0.5">AB-Forbruger § 25 og § 37: betaling kobles til faktisk udført arbejde.</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 p-4 bg-gray-50 border border-gray-100 rounded-xl">
@@ -200,7 +200,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-gray-700">Aftal ekstraarbejde skriftligt</p>
-                        <p className="text-xs text-gray-500 leading-relaxed mt-0.5">AB-Forbruger § 23 — ekstraarbejde godkendes skriftligt inden opstart.</p>
+                        <p className="text-xs text-gray-500 leading-relaxed mt-0.5">AB-Forbruger § 23: ekstraarbejde godkendes skriftligt inden opstart.</p>
                       </div>
                     </div>
                   </div>

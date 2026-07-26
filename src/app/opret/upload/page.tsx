@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -151,7 +151,7 @@ export default function UploadAftale() {
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none text-gray-700"
           />
           {tekst.length > 0 && (
-            <p className="text-xs text-gray-400 mt-2">{tekst.length} tegn {tekst.length < 80 ? "— tilføj mere tekst for et præcist resultat" : "— ser godt ud"}</p>
+            <p className="text-xs text-gray-400 mt-2">{tekst.length} tegn {tekst.length < 80 ? ". Tilføj mere tekst for et præcist resultat" : ". Ser godt ud"}</p>
           )}
         </div>
       )}
