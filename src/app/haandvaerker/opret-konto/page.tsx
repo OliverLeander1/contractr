@@ -1,49 +1,94 @@
-﻿"use client";
+"use client";
 
 import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase";
 
 const FAGS = [
   "Hovedentreprenør", "Totalentreprenør", "Tømrer", "Murer", "VVS", "Elektriker",
   "Maler", "Gulvlægger", "Blikkenslager", "Snedker", "Smed", "Kloakmester", "Facademontør", "Andet",
 ];
 
-type Trin = "start" | "konto" | "bekraeftet";
-
 function Inner() {
   const params = useSearchParams();
   const router = useRouter();
+  const supabase = createClient();
 
-  const projektId = params.get("projekt") ?? "";
+  const projektId      = params.get("projekt") ?? "";
   const inviteBygherre = params.get("bygherre") ?? "";
   const inviteProjektNavn = params.get("projektNavn") ?? "";
-  const inviteEmail = params.get("email") ?? "";
-  const inviteFirma = params.get("firma") ?? "";
-  const harInvitation = !!projektId;
+  const inviteEmail    = params.get("email") ?? "";
+  const inviteFirma    = params.get("firma") ?? "";
+  const harInvitation  = !!projektId;
 
-  const [trin, setTrin] = useState<Trin>("start");
-  const [navn, setNavn] = useState(harInvitation ? "" : "");
-  const [firma, setFirma] = useState(inviteFirma);
-  const [email, setEmail] = useState(inviteEmail);
-  const [fag, setFag] = useState("");
-  const [postnummer, setPostnummer] = useState("");
+  const [trin, setTrin]           = useState<"start" | "konto" | "bekraeftet">("start");
+  const [navn, setNavn]           = useState("");
+  const [firma, setFirma]         = useState(inviteFirma);
+  const [email, setEmail]         = useState(inviteEmail);
+  const [fag, setFag]             = useState("");
   const [adgangskode, setAdgangskode] = useState("");
-  const [bekræft, setBekræft] = useState("");
+  const [bekræft, setBekræft]     = useState("");
   const [visAdgangskode, setVisAdgangskode] = useState(false);
+  const [fejl, setFejl]           = useState("");
+  const [loading, setLoading]     = useState(false);
 
-  const stærk = adgangskode.length >= 8;
+  const stærk   = adgangskode.length >= 8;
   const matcher = adgangskode === bekræft && bekræft.length > 0;
   const kanOprette = stærk && matcher && navn.trim() && email.trim();
 
-  function fuldfør() {
-    if (!kanOprette) return;
-    try {
-      localStorage.setItem("contractr_haandvaerker_navn", navn);
-      localStorage.setItem("contractr_haandvaerker_firma", firma);
-      localStorage.setItem("contractr_haandvaerker_email", email);
-      localStorage.setItem("contractr_haandvaerker_fag", fag);
-    } catch { /* ignore */ }
+  async function fuldfør() {
+    if (!kanOprette || loading) return;
+    setFejl("");
+    setLoading(true);
+
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password: adgangskode,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: {
+          navn: navn.trim(),
+          firma: firma.trim() || null,
+          fag: fag || null,
+          brugerType: "haandvaerker",
+        },
+      },
+    });
+
+    if (error) {
+      setLoading(false);
+      if (error.message.includes("already registered")) {
+        setFejl("Der findes allerede en konto med denne e-mail. Prøv at logge ind i stedet.");
+      } else {
+        setFejl(error.message);
+      }
+      return;
+    }
+
+    // Log ind med det samme (hvis e-mail bekræftelse ikke er krævet)
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: adgangskode,
+    });
+
+    setLoading(false);
+
+    if (signInError) {
+      // E-mail bekræftelse påkrævet
+      setTrin("bekraeftet");
+      return;
+    }
+
+    // Opdater profil med firma og fag (triggeren opretter basisprofil)
+    if (data.user) {
+      await supabase.from("profiler").update({
+        rolle: "haandvaerker",
+        ...(firma.trim() ? { firma: firma.trim() } : {}),
+        ...(fag ? { fag } : {}),
+      }).eq("id", data.user.id);
+    }
+
     setTrin("bekraeftet");
   }
 
@@ -55,10 +100,10 @@ function Inner() {
           <Link href="/" className="inline-flex items-center gap-2.5">
             <span className="logo">nembyggestyring</span>
           </Link>
-          <p className="text-xs text-gray-400 mt-2 font-medium uppercase tracking-widest">Håndværker</p>
+          <p className="text-xs text-gray-400 mt-2 font-medium uppercase tracking-widest">Entreprenør</p>
         </div>
 
-        {/* START — invitation eller fri oprettelse */}
+        {/* START */}
         {trin === "start" && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
             {harInvitation ? (
@@ -70,7 +115,7 @@ function Inner() {
                   </svg>
                 </div>
                 <h1 className="text-xl font-bold text-gray-900 text-center mb-2">Du er inviteret til et projekt</h1>
-                <p className="text-sm text-gray-500 text-center mb-6">Opret din håndværkerkonto for at acceptere invitationen og få adgang til projektet.</p>
+                <p className="text-sm text-gray-500 text-center mb-6">Opret din konto for at acceptere invitationen og få adgang til projektet.</p>
                 <div className="bg-gray-50 rounded-xl p-4 mb-6 space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400">Bygherre</span>
@@ -95,19 +140,21 @@ function Inner() {
                     <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
                   </svg>
                 </div>
-                <h1 className="text-xl font-bold text-gray-900 text-center mb-2">Opret håndværkerprofil</h1>
+                <h1 className="text-xl font-bold text-gray-900 text-center mb-2">Opret entreprenørprofil</h1>
                 <p className="text-sm text-gray-500 text-center mb-6 leading-relaxed">
-                  Send digitale tilbud til bygherrer, hold styr på dine sager og modtag invitationer til projekter.
+                  Send digitale tilbud, hold styr på dine sager og modtag invitationer til projekter.
                 </p>
                 <div className="space-y-3 mb-6">
                   {[
-                    { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>, t: "Opret og send digitale tilbud direkte til kunder" },
-                    { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>, t: "Bygherre accepterer via platformen, alt dokumenteret" },
-                    { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>, t: "Se alle dine sager samlet ét sted" },
-                  ].map((item, i) => (
+                    "Opret og send digitale tilbud direkte til kunder",
+                    "Bygherre accepterer via platformen — alt dokumenteret",
+                    "Se alle dine sager samlet ét sted",
+                  ].map((t, i) => (
                     <div key={i} className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-lg bg-[#1e3a2a]/10 flex items-center justify-center flex-shrink-0">{item.icon}</div>
-                      <p className="text-sm text-gray-600">{item.t}</p>
+                      <div className="w-5 h-5 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center flex-shrink-0">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      </div>
+                      <p className="text-sm text-gray-600">{t}</p>
                     </div>
                   ))}
                 </div>
@@ -118,7 +165,7 @@ function Inner() {
               onClick={() => setTrin("konto")}
               className="w-full bg-[#1e3a2a] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity"
             >
-              {harInvitation ? "Opret konto og accepter invitation →" : "Opret gratis håndværkerprofil →"}
+              {harInvitation ? "Opret konto og accepter invitation" : "Opret gratis profil"}
             </button>
             <p className="text-xs text-gray-400 text-center mt-4">
               Har du allerede en konto?{" "}
@@ -146,7 +193,7 @@ function Inner() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Firma (valgfrit)</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Firma <span className="text-gray-400 font-normal">(valgfrit)</span></label>
                 <input
                   type="text"
                   value={firma}
@@ -168,19 +215,17 @@ function Inner() {
                 />
               </div>
 
-              {!harInvitation && (
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Fagområde</label>
-                  <select
-                    value={fag}
-                    onChange={e => setFag(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20 focus:border-[#1e3a2a] transition-colors bg-white"
-                  >
-                    <option value="">Vælg fagområde...</option>
-                    {FAGS.map(f => <option key={f} value={f}>{f}</option>)}
-                  </select>
-                </div>
-              )}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Fagområde <span className="text-gray-400 font-normal">(valgfrit)</span></label>
+                <select
+                  value={fag}
+                  onChange={e => setFag(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20 focus:border-[#1e3a2a] transition-colors bg-white"
+                >
+                  <option value="">Vælg fagområde...</option>
+                  {FAGS.map(f => <option key={f} value={f}>{f}</option>)}
+                </select>
+              </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1.5">Adgangskode <span className="text-red-400">*</span></label>
@@ -196,8 +241,7 @@ function Inner() {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       {visAdgangskode
                         ? <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></>
-                        : <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>
-                      }
+                        : <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>}
                     </svg>
                   </button>
                 </div>
@@ -217,17 +261,23 @@ function Inner() {
               </div>
             </div>
 
+            {fejl && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl">
+                <p className="text-xs text-red-700">{fejl}</p>
+              </div>
+            )}
+
             <div className="mt-6 space-y-3">
               <button
                 onClick={fuldfør}
-                className={`w-full font-bold py-3.5 rounded-xl transition-all ${kanOprette ? "bg-[#1e3a2a] text-white hover:opacity-90" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+                disabled={!kanOprette || loading}
+                className={`w-full font-bold py-3.5 rounded-xl transition-all ${kanOprette && !loading ? "bg-[#1e3a2a] text-white hover:opacity-90" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
               >
-                Opret konto →
+                {loading ? "Opretter konto..." : "Opret konto"}
               </button>
               <p className="text-xs text-gray-400 text-center leading-relaxed">
                 Ved at oprette en konto accepterer du vores{" "}
-                <Link href="/vilkaar" className="text-[#1e3a2a] hover:underline">vilkår</Link>{" "}
-                og{" "}
+                <Link href="/vilkaar" className="text-[#1e3a2a] hover:underline">vilkår</Link>{" "}og{" "}
                 <Link href="/privatliv" className="text-[#1e3a2a] hover:underline">privatlivspolitik</Link>
               </p>
             </div>
@@ -243,36 +293,27 @@ function Inner() {
               </svg>
             </div>
             <h1 className="text-xl font-bold text-gray-900 mb-2">
-              {harInvitation ? "Konto oprettet!" : "Velkommen til Nembyggestyring!"}
+              {harInvitation ? "Konto oprettet!" : `Velkommen, ${navn.split(" ")[0]}!`}
             </h1>
             <p className="text-sm text-gray-500 mb-6 leading-relaxed">
               {harInvitation
-                ? `Du er nu tilknyttet projektet "${inviteProjektNavn}" for ${inviteBygherre}. Du kan nu se projektet og koordinere med bygherren.`
-                : `Din profil er klar, ${navn.split(" ")[0]}. Du kan nu oprette og sende digitale tilbud til dine kunder.`
-              }
+                ? `Du er nu tilknyttet projektet "${inviteProjektNavn}". Du kan nu se projektet og kommunikere med bygherren.`
+                : "Din konto er klar. Tjek din e-mail for at bekræfte din adresse, log derefter ind for at komme i gang."}
             </p>
             {harInvitation ? (
               <Link
-                href={`/haandvaerker/projekt/${projektId}`}
+                href={`/haandvaerker/sager`}
                 className="block w-full bg-[#1e3a2a] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity"
               >
-                Gå til projektet →
+                Gå til mine sager
               </Link>
             ) : (
-              <div className="space-y-3">
-                <Link
-                  href="/haandvaerker/nyt-tilbud"
-                  className="block w-full bg-[#1e3a2a] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity"
-                >
-                  Opret dit første tilbud →
-                </Link>
-                <Link
-                  href="/haandvaerker/sager"
-                  className="block w-full border border-gray-200 text-gray-600 font-medium py-3.5 rounded-xl hover:bg-gray-50 transition-colors text-sm"
-                >
-                  Gå til min portal
-                </Link>
-              </div>
+              <Link
+                href="/login"
+                className="block w-full bg-[#1e3a2a] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity"
+              >
+                Log ind
+              </Link>
             )}
           </div>
         )}
@@ -281,7 +322,7 @@ function Inner() {
   );
 }
 
-export default function HåndværkerOpretKonto() {
+export default function EntreprenørOpretKonto() {
   return (
     <Suspense>
       <Inner />
