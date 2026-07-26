@@ -16,6 +16,7 @@ function LoginInner() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [bekraeftelse, setBekraeftelse] = useState(false);
+  const [visPassword, setVisPassword] = useState(false);
 
   const handleSubmit = async () => {
     setError("");
@@ -23,6 +24,8 @@ function LoginInner() {
     if (!password.trim()) { setError("Indtast din adgangskode."); return; }
     if (mode === "opret" && !navn.trim()) { setError("Indtast dit navn."); return; }
     if (password.length < 8) { setError("Adgangskoden skal være mindst 8 tegn."); return; }
+    if (mode === "opret" && !/[A-Z]/.test(password)) { setError("Adgangskoden skal indeholde mindst ét stort bogstav."); return; }
+    if (mode === "opret" && !/[0-9]/.test(password)) { setError("Adgangskoden skal indeholde mindst ét tal."); return; }
 
     setLoading(true);
     const supabase = createClient();
@@ -235,16 +238,37 @@ function LoginInner() {
                   </button>
                 )}
               </div>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleSubmit()}
-                className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
-              />
+              <div className="relative">
+                <input
+                  type={visPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleSubmit()}
+                  className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setVisPassword(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  tabIndex={-1}
+                >
+                  {visPassword ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
               {mode === "opret" && (
-                <p className="text-xs text-gray-400 mt-1.5">Mindst 8 tegn.</p>
+                <p className="text-xs text-gray-400 mt-1.5">Mindst 8 tegn, ét stort bogstav og ét tal.</p>
               )}
             </div>
           </div>
