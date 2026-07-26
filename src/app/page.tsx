@@ -88,41 +88,45 @@ export default function Forside() {
                 </div>
               </div>
 
-              {/* Højre: Projekt-mockup */}
+              {/* Højre: Tilbudstjek-mockup */}
               <div className="relative hidden md:block">
                 <div className="bg-white rounded-2xl border border-[#e0ddd6] shadow-xl overflow-hidden max-w-sm ml-auto">
-                  {/* Mockup header */}
+                  {/* Header */}
                   <div className="px-5 pt-5 pb-4 border-b border-[#f0ede8]">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Aktivt projekt</p>
-                        <p className="font-bold text-gray-900">Badeværelsesrenovering</p>
-                        <p className="text-xs text-gray-400 mt-0.5">Elmevej 12, 2500 Valby</p>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 bg-[#e5ede7] rounded-lg flex items-center justify-center">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">Tilbud_TM_Byg.pdf</p>
+                          <p className="text-[10px] text-gray-400">Badeværelse · 87.500 kr. inkl. moms</p>
+                        </div>
                       </div>
-                      <span className="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">I gang</span>
+                      <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full">3 punkter</span>
                     </div>
                   </div>
-                  {/* Status-punkter */}
+                  {/* Fundne punkter */}
                   <div className="px-5 py-4 space-y-2.5">
                     {[
-                      { tekst: "Kontrakt godkendt af begge parter", ok: true },
-                      { tekst: "Betalingsplan koblet til fremdrift", ok: true },
-                      { tekst: "Ekstraarbejde aftalt skriftligt", ok: true },
-                      { tekst: "Afleveringsforretning", ok: false, afventer: true },
+                      { tekst: "Pris er fast: 87.500 kr. inkl. moms", ok: true },
+                      { tekst: "Startdato aftalt: 4. august 2025", ok: true },
+                      { tekst: "Slutdato ikke angivet i tilbuddet", advarsel: true },
+                      { tekst: "AB-Forbruger er ikke nævnt", advarsel: true },
+                      { tekst: "Betalingsplan mangler kobling til fremdrift", advarsel: true },
                     ].map((p) => (
-                      <div key={p.tekst} className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl ${p.ok ? "bg-[#e5ede7]" : "bg-gray-50 border border-gray-100"}`}>
+                      <div key={p.tekst} className={`flex items-start gap-2.5 px-3 py-2.5 rounded-xl ${p.ok ? "bg-[#e5ede7]" : "bg-amber-50 border border-amber-100"}`}>
                         {p.ok
-                          ? <svg className="flex-shrink-0 text-[#1e3a2a]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                          : <svg className="flex-shrink-0 text-gray-300" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/></svg>
+                          ? <svg className="flex-shrink-0 text-[#1e3a2a] mt-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                          : <svg className="flex-shrink-0 text-amber-500 mt-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                         }
-                        <span className={`text-xs leading-snug ${p.ok ? "text-[#1e3a2a] font-medium" : "text-gray-400"}`}>{p.tekst}</span>
-                        {p.afventer && <span className="ml-auto text-[10px] text-gray-400 font-medium">Afventer</span>}
+                        <span className={`text-xs leading-snug ${p.ok ? "text-[#1e3a2a] font-medium" : "text-amber-800"}`}>{p.tekst}</span>
                       </div>
                     ))}
                   </div>
-                  {/* Næste handling */}
+                  {/* Anbefaling */}
                   <div className="mx-5 mb-5 bg-[#1e3a2a] rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-                    <p className="text-xs text-green-100 font-medium leading-snug">Næste: Book afleveringsforretning med entreprenøren</p>
+                    <p className="text-xs text-green-100 font-medium leading-snug">Få en skriftlig bekræftelse på disse 3 punkter inden du accepterer</p>
                     <svg className="flex-shrink-0 text-green-300" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                   </div>
                 </div>
@@ -145,11 +149,11 @@ export default function Forside() {
                 {
                   ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>,
                   titel: "Alt samlet i ét projektrum",
-                  tekst: "Kontrakt, betalingsplan, ekstraarbejde, billeder og kommunikation. Ingen jagt på mails og SMS'er.",
+                  tekst: "Kontrakt, betalingsplan, ekstraarbejde, billeder og kommunikation. Alt samlet, altid tilgængeligt.",
                 },
                 {
                   ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-                  titel: "Juridisk rygrad uden juridisk jargon",
+                  titel: "Juridisk rygrad, forklaret enkelt",
                   tekst: "AB-Forbruger 2012 er standard på alle projekter. Vi tjekker tilbuddene og viser præcist hvad du skal afklare.",
                 },
               ].map((s) => (
