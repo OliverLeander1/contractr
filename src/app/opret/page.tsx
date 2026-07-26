@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import FlowLayout from "@/components/FlowLayout";
+import { createClient } from "@/lib/supabase";
 
 const projekttyper = [
   { id: "badevarelse", label: "Badeværelse", ikon: "🚿" },
@@ -42,6 +43,26 @@ export default function OpretProjekt() {
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  // Pre-fill navn og kontakt fra brugerprofil hvis logget ind
+  useEffect(() => {
+    const hentProfil = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data: profil } = await supabase
+          .from("profiler")
+          .select("navn, telefon, email")
+          .eq("id", user.id)
+          .single();
+        if (profil?.navn) setNavn(profil.navn);
+        if (profil?.telefon) setKontakt(profil.telefon);
+        else if (user.email) setKontakt(user.email);
+      } catch { /* ikke logget ind — intet at hente */ }
+    };
+    hentProfil();
   }, []);
 
   useEffect(() => {

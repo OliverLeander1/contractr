@@ -258,10 +258,7 @@ export default function MinSide() {
             </div>
           ) : (
             <div className="p-8 text-center border border-dashed border-gray-200 rounded-xl">
-              <p className="text-sm text-gray-400 mb-3">Du har ingen projekter endnu.</p>
-              <Link href="/opret/upload" className="inline-block text-sm font-semibold text-[#1e3a2a] hover:underline">
-                Tjek dit første tilbud gratis
-              </Link>
+              <p className="text-sm text-gray-400">Du har ingen projekter endnu.</p>
             </div>
           )}
         </div>
@@ -277,8 +274,8 @@ export default function MinSide() {
                 </svg>
               </div>
               <div className="flex-1">
-                <span className="text-sm font-medium text-gray-700">AB-Forbruger notifikationer</span>
-                <p className="text-xs text-gray-400">Automatiske påmindelser baseret på din tidsplan</p>
+                <span className="text-sm font-medium text-gray-700">Notifikationer</span>
+                <p className="text-xs text-gray-400">Påmindelser om deadlines, ekstraarbejde og afleveringer</p>
               </div>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
             </Link>
