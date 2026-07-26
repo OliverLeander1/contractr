@@ -136,10 +136,10 @@ function LoginInner() {
 
         <div>
           <h1 className="text-4xl font-bold text-white leading-snug mb-6">
-            Styr hele projektet.<br />Ikke bare papiret.
+            Vi giver dig det fulde overblik over dit projekt.<br />Fra start til slut.
           </h1>
           <p className="text-white/60 text-base leading-relaxed mb-10 max-w-sm">
-            Fra det første udkast til 1-års eftersyn. Et sted for bygherre og håndværker, med alle aftaler samlet.
+            Den gode byggesag starter altid med et godt aftalegrundlag. Det hjælper vi med.
           </p>
 
           <div className="space-y-6">
@@ -157,7 +157,7 @@ function LoginInner() {
               {
                 icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>,
                 titel: "Alt samlet ét sted",
-                tekst: "Kontrakt, billeder, ekstraarbejde og tidsplan. Ingen jagt på mails og SMS'er.",
+                tekst: "Kontrakt, billeder, ekstraarbejde og tidsplan. Altid tilgængeligt for begge parter.",
               },
             ].map((p, i) => (
               <div key={i} className="flex gap-4">

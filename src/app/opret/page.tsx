@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import FlowLayout from "@/components/FlowLayout";
-import { createClient } from "@/lib/supabase";
 
 const projekttyper = [
   { id: "badevarelse", label: "Badeværelse", ikon: "🚿" },
@@ -25,12 +24,7 @@ export default function OpretProjekt() {
   const router = useRouter();
   const [valgtType, setValgtType] = useState("");
 
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) router.replace("/login?next=/opret");
-    });
-  }, [router]);
+  // Auth kræves ikke for at starte — kun ved gemning (igang/upload)
   const [adresse, setAdresse] = useState("");
   const [navn, setNavn] = useState("");
   const [kontakt, setKontakt] = useState("");
