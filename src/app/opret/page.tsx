@@ -215,12 +215,9 @@ export default function OpretProjekt() {
         <p className="text-sm text-gray-400 mb-4">Det hjælper os med at give den rigtige vejledning</p>
         <div className="space-y-2">
           {[
-            { id: "dialog", label: "Jeg leder efter håndværker og vil gerne sende projektet i udbud", ikon: "📢" },
-            { id: "ingen-tilbud", label: "Jeg er i dialog med en håndværker men har intet skriftligt endnu", ikon: "💬" },
-            { id: "tilbud", label: "Jeg har modtaget et tilbud og overvejer at sige ja", ikon: "📄" },
-            { id: "accepteret", label: "Jeg har accepteret, men arbejdet er ikke startet", ikon: "✅" },
-            { id: "igang", label: "Arbejdet er i gang", ikon: "🔨" },
-            { id: "problem", label: "Der er opstået et problem eller en tvist", ikon: "⚠️" },
+            { id: "dialog", label: "Jeg skal have lavet et projekt og vil gerne have hjælp til aftalegrundlaget", ikon: "📋" },
+            { id: "tilbud", label: "Jeg har modtaget et tilbud og vil have det tjekket", ikon: "📄" },
+            { id: "igang", label: "Arbejdet er allerede i gang", ikon: "🔨" },
           ].map((s) => (
             <button
               key={s.id}
@@ -267,7 +264,6 @@ export default function OpretProjekt() {
           sessionStorage.setItem("screening_kontakt", kontakt);
           sessionStorage.setItem("screening_abforbruger", inkluderABF ? "ja" : "nej");
           if (status === "dialog") router.push("/opret/beskriv");
-          else if (status === "ingen-tilbud") router.push("/opret/ingen-tilbud");
           else router.push("/opret/tips");
         }}
         className={`w-full py-4 rounded-xl text-base font-bold transition-all ${
@@ -276,7 +272,7 @@ export default function OpretProjekt() {
             : "bg-gray-100 text-gray-400 cursor-not-allowed"
         }`}
       >
-        {status === "dialog" ? "Beskriv projektet →" : status === "ingen-tilbud" ? "Forbered forhandlingen →" : "Fortsæt til upload →"}
+        {status === "dialog" ? "Beskriv projektet →" : "Fortsæt til upload →"}
       </button>
       {!kanFortsætte && (
         <p className="text-center text-xs text-gray-400 mt-3">Vælg projekttype, angiv navn og adresse for at fortsætte</p>
