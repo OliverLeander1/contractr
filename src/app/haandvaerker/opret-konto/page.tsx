@@ -140,7 +140,7 @@ function Inner() {
                     <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
                   </svg>
                 </div>
-                <h1 className="text-xl font-bold text-gray-900 text-center mb-2">Opret entreprenørprofil</h1>
+                <h1 className="text-xl font-bold text-gray-900 text-center mb-2 tracking-normal">Opret entreprenørprofil</h1>
                 <p className="text-sm text-gray-500 text-center mb-6 leading-relaxed">
                   Send digitale tilbud, hold styr på dine sager og modtag invitationer til projekter.
                 </p>
@@ -163,7 +163,7 @@ function Inner() {
 
             <button
               onClick={() => setTrin("konto")}
-              className="w-full bg-[#1e3a2a] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity"
+              className="w-full bg-[#1e3a2a] text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity tracking-normal"
             >
               {harInvitation ? "Opret konto og accepter invitation" : "Opret gratis profil"}
             </button>
