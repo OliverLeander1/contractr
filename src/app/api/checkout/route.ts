@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_URL ?? "https://www.nembyggestyring.dk";
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card", "mobilepay"],
+      payment_method_types: ["card"],
       line_items: [{
         price_data: {
           currency: "dkk",
