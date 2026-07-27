@@ -88,47 +88,87 @@ export default function Forside() {
                 </div>
               </div>
 
-              {/* Højre: Tilbudstjek-mockup */}
+              {/* Højre: Kontrakt-mockup */}
               <div className="relative hidden md:block">
                 <div className="bg-white rounded-2xl border border-[#e0ddd6] shadow-xl overflow-hidden max-w-sm ml-auto">
-                  {/* Header */}
-                  <div className="px-5 pt-5 pb-4 border-b border-[#f0ede8]">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 bg-[#e5ede7] rounded-lg flex items-center justify-center">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-gray-900">Tilbud_TM_Byg.pdf</p>
-                          <p className="text-[10px] text-gray-400">Badeværelse · 87.500 kr. inkl. moms</p>
-                        </div>
+
+                  {/* Dokument-header */}
+                  <div className="bg-[#1e3a2a] px-5 py-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] text-green-300/70 uppercase tracking-widest mb-0.5">Aftalegrundlag</p>
+                      <p className="text-sm font-bold text-white">Badeværelse · Valby</p>
+                    </div>
+                    <span className="bg-green-400/20 text-green-300 text-[10px] font-bold px-2.5 py-1 rounded-full">Klar til underskrift</span>
+                  </div>
+
+                  {/* Parter */}
+                  <div className="px-5 pt-4 pb-3 border-b border-[#f0ede8]">
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Parter</p>
+                    <div className="flex gap-3">
+                      <div className="flex-1 bg-[#f5f3ee] rounded-lg px-3 py-2">
+                        <p className="text-[9px] text-gray-400 mb-0.5">Bygherre</p>
+                        <p className="text-xs font-semibold text-gray-800">Mette Hansen</p>
+                        <p className="text-[10px] text-gray-400">Roskildevej 42, Valby</p>
                       </div>
-                      <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full">3 punkter</span>
+                      <div className="flex-1 bg-[#f5f3ee] rounded-lg px-3 py-2">
+                        <p className="text-[9px] text-gray-400 mb-0.5">Entreprenør</p>
+                        <p className="text-xs font-semibold text-gray-800">TM Byg ApS</p>
+                        <p className="text-[10px] text-gray-400">CVR 34 56 78 90</p>
+                      </div>
                     </div>
                   </div>
-                  {/* Fundne punkter */}
-                  <div className="px-5 py-4 space-y-2.5">
+
+                  {/* Nøglepunkter */}
+                  <div className="px-5 py-3 border-b border-[#f0ede8] space-y-2">
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Aftalepunkter</p>
                     {[
-                      { tekst: "Pris er fast: 87.500 kr. inkl. moms", ok: true },
-                      { tekst: "Startdato aftalt: 4. august 2025", ok: true },
-                      { tekst: "Slutdato ikke angivet i tilbuddet", advarsel: true },
-                      { tekst: "AB-Forbruger er ikke nævnt", advarsel: true },
-                      { tekst: "Betalingsplan mangler kobling til fremdrift", advarsel: true },
-                    ].map((p) => (
-                      <div key={p.tekst} className={`flex items-start gap-2.5 px-3 py-2.5 rounded-xl ${p.ok ? "bg-[#e5ede7]" : "bg-amber-50 border border-amber-100"}`}>
-                        {p.ok
-                          ? <svg className="flex-shrink-0 text-[#1e3a2a] mt-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                          : <svg className="flex-shrink-0 text-amber-500 mt-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                        }
-                        <span className={`text-xs leading-snug ${p.ok ? "text-[#1e3a2a] font-medium" : "text-amber-800"}`}>{p.tekst}</span>
+                      { label: "Fast pris", value: "87.500 kr. inkl. moms" },
+                      { label: "Opstart", value: "4. august 2025" },
+                      { label: "Aflevering", value: "29. august 2025" },
+                      { label: "Aftalegrundlag", value: "AB-Forbruger 2012" },
+                    ].map(p => (
+                      <div key={p.label} className="flex items-center justify-between">
+                        <span className="text-[10px] text-gray-500">{p.label}</span>
+                        <span className="text-[10px] font-semibold text-gray-800">{p.value}</span>
                       </div>
                     ))}
                   </div>
-                  {/* Anbefaling */}
-                  <div className="mx-5 mb-5 bg-[#1e3a2a] rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-                    <p className="text-xs text-green-100 font-medium leading-snug">Få en skriftlig bekræftelse på disse 3 punkter inden du accepterer</p>
-                    <svg className="flex-shrink-0 text-green-300" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+
+                  {/* Betalingsplan */}
+                  <div className="px-5 py-3 border-b border-[#f0ede8]">
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Betalingsplan</p>
+                    {[
+                      { milepæl: "Opstart", pct: "30%", beløb: "26.250 kr.", ok: true },
+                      { milepæl: "Halvvejs", pct: "40%", beløb: "35.000 kr.", ok: false },
+                      { milepæl: "Aflevering", pct: "30%", beløb: "26.250 kr.", ok: false },
+                    ].map(b => (
+                      <div key={b.milepæl} className="flex items-center gap-2 mb-1.5">
+                        <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 ${b.ok ? "bg-[#1e3a2a]" : "border border-gray-200"}`}>
+                          {b.ok && <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg>}
+                        </div>
+                        <span className="text-[10px] text-gray-600 flex-1">{b.milepæl}</span>
+                        <span className="text-[10px] text-gray-400">{b.pct}</span>
+                        <span className="text-[10px] font-semibold text-gray-700">{b.beløb}</span>
+                      </div>
+                    ))}
                   </div>
+
+                  {/* Underskrift */}
+                  <div className="px-5 py-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      </div>
+                      <p className="text-[10px] text-gray-500">Mette Hansen · underskrevet</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                      </div>
+                      <p className="text-[10px] text-gray-500">TM Byg · afventer</p>
+                    </div>
+                  </div>
+
                 </div>
                 <div className="absolute -z-10 -bottom-6 -right-6 w-full h-full bg-[#1e3a2a]/6 rounded-2xl" />
               </div>
