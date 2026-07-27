@@ -8,7 +8,7 @@ type Rolle = "bygherre" | "haandvaerker";
 const indhold = {
   bygherre: {
     badge: "Hele byggesagen samlet ét sted",
-    h1: <>Styr hele<br />byggeprojektet.<br /><span className="text-[#1e3a2a]">Fra start til aflevering.</span></>,
+    h1: <>Nem byggestyring.<br /><span className="text-[#1e3a2a]">Fra aftalegrundlag til aflevering.</span></>,
     tekst: "Opret dit projekt, inviter entreprenøren og styr alt fra kontrakt til aflevering ét sted. Du skriver under digitalt, godkender ekstraarbejde og holder styr på betalingsplanen.",
     fordele: [
       { ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>, titel: "Aftalegrundlag på 5 minutter", tekst: "Beskriv projektet og inviter entreprenøren. Vi laver kontrakten klar til underskrift." },
@@ -140,10 +140,6 @@ export default function ForsideHero() {
       <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
         {/* Venstre: Tekst */}
         <div>
-          <span className="inline-flex items-center gap-2 bg-[#1e3a2a]/8 text-[#1e3a2a] text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
-            <span className="w-1.5 h-1.5 bg-[#1e3a2a] rounded-full" />
-            {v.badge}
-          </span>
           <h1 className="text-4xl sm:text-5xl font-bold text-[#111816] leading-[1.08] tracking-tight mb-5">
             {v.h1}
           </h1>
