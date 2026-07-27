@@ -83,7 +83,7 @@ export default function EntreprenoerSide() {
             <Link href="/" className="text-sm text-gray-500 hover:text-gray-800 transition-colors hidden sm:block">
               For bygherren
             </Link>
-            <Link href="/login" className="text-sm font-semibold text-[#1e3a2a] border border-[#1e3a2a]/30 px-4 py-2 rounded-lg hover:bg-[#1e3a2a]/5 transition-colors">
+            <Link href="/login?rolle=haandvaerker" className="text-sm font-semibold text-[#1e3a2a] border border-[#1e3a2a]/30 px-4 py-2 rounded-lg hover:bg-[#1e3a2a]/5 transition-colors">
               Log ind
             </Link>
           </div>

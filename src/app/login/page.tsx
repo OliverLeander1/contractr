@@ -10,7 +10,9 @@ function LoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextUrl = searchParams.get("next") || null;
-  const [mode, setMode] = useState<"login" | "opret">("login");
+  const rolleFraUrl = searchParams.get("rolle");
+  const [mode, setMode] = useState<"login" | "opret">(rolleFraUrl ? "opret" : "login");
+  const [rolle, setRolle] = useState<"bygherre" | "haandvaerker">(rolleFraUrl === "haandvaerker" ? "haandvaerker" : "bygherre");
   const roterende = ["aftaler", "tidsplanen", "mangler", "betalinger", "ekstraarbejde"];
   const [rotIdx, setRotIdx] = useState(0);
   const [fade, setFade] = useState(true);
@@ -51,7 +53,7 @@ function LoginInner() {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: { navn: navn.trim(), brugerType: "bygherre" },
+          data: { navn: navn.trim(), brugerType: rolle },
         },
       });
 
@@ -248,16 +250,33 @@ function LoginInner() {
 
           <div className="space-y-4">
             {mode === "opret" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Dit navn</label>
-                <input
-                  type="text"
-                  placeholder="F.eks. Mette Hansen"
-                  value={navn}
-                  onChange={e => setNavn(e.target.value)}
-                  className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
-                />
-              </div>
+              <>
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Jeg er</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => setRolle("bygherre")}
+                      className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-sm font-semibold transition-all ${rolle === "bygherre" ? "border-[#1e3a2a] bg-[#1e3a2a]/5 text-[#1e3a2a]" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                      Bygherre
+                    </button>
+                    <button onClick={() => setRolle("haandvaerker")}
+                      className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-sm font-semibold transition-all ${rolle === "haandvaerker" ? "border-[#1e3a2a] bg-[#1e3a2a]/5 text-[#1e3a2a]" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                      Entreprenør
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Dit navn</label>
+                  <input
+                    type="text"
+                    placeholder={rolle === "haandvaerker" ? "F.eks. Thomas Madsen" : "F.eks. Mette Hansen"}
+                    value={navn}
+                    onChange={e => setNavn(e.target.value)}
+                    className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+                  />
+                </div>
+              </>
             )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">E-mail</label>
