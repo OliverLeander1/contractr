@@ -4,9 +4,9 @@ import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 const PAKKE_PRISER: Record<string, { beloeb: number; navn: string }> = {
-  lille:         { beloeb: 49900,  navn: "Lille opgave" },
-  renovering:    { beloeb: 99900,  navn: "Renovering" },
-  totalrenovering: { beloeb: 199900, navn: "Totalrenovering" },
+  lille:           { beloeb: 29900,  navn: "Mindre byggeprojekt" },
+  renovering:      { beloeb: 249900, navn: "Mellemstort byggeprojekt" },
+  totalrenovering: { beloeb: 499900, navn: "Stort byggeprojekt" },
 };
 
 export async function POST(req: NextRequest) {
