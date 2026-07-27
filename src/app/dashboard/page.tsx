@@ -362,20 +362,20 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Bund — AB-Forbruger og rådgiver */}
+        {/* Bund — genveje */}
         <div className="grid sm:grid-cols-2 gap-3 mt-2">
           <Link
-            href="/abforbruger"
+            href="/pakke"
             className="bg-white rounded-2xl border border-[#e0ddd6] p-5 hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group flex items-start gap-4"
           >
             <div className="w-10 h-10 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0 group-hover:bg-[#1e3a2a]/10 transition-colors">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-gray-900 text-sm mb-0.5">AB-Forbruger 2012</p>
-              <p className="text-xs text-gray-400 leading-relaxed">Dine rettigheder som bygherre på dansk</p>
+              <p className="font-semibold text-gray-900 text-sm mb-0.5">Opgrader din pakke</p>
+              <p className="text-xs text-gray-400 leading-relaxed">Se hvad der er inkluderet i de forskellige løsninger</p>
             </div>
           </Link>
           <Link

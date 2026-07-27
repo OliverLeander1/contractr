@@ -1,4 +1,9 @@
-﻿import Link from "next/link";
+﻿"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase";
 
 const bookinger = [
   { id: 1, tid: "I dag kl. 10:00", bygherre: "Camilla Jensen", type: "Aftaletjek", varighed: "45 min", projekt: "Indvendig renovering, Valby", status: "kommende" },
@@ -23,6 +28,43 @@ const ugeplan = [
 ];
 
 export default function RådgiverPortal() {
+  const router = useRouter();
+  const [tjekker, setTjekker] = useState(true);
+
+  useEffect(() => {
+    const tjek = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.replace("/login");
+        return;
+      }
+
+      const { data: profil } = await supabase
+        .from("profiler")
+        .select("rolle")
+        .eq("id", user.id)
+        .single();
+
+      if (!profil || profil.rolle !== "raadgiver") {
+        router.replace("/dashboard");
+        return;
+      }
+
+      setTjekker(false);
+    };
+    tjek();
+  }, [router]);
+
+  if (tjekker) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#1e3a2a] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50">

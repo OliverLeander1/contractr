@@ -207,6 +207,48 @@ export default function MinSide() {
           )}
         </div>
 
+        {/* Din pakke */}
+        {projekter.some(p => p.pakke_betalt) && (() => {
+          const betaltProjekt = projekter.find(p => p.pakke_betalt);
+          const pakkeNavne: Record<string, string> = {
+            lille: "Mindre byggeprojekt",
+            renovering: "Mellemstort byggeprojekt",
+            totalrenovering: "Stort byggeprojekt",
+          };
+          const pakkeFeatures: Record<string, string[]> = {
+            lille: ["Digitalt aftalegrundlag klar til underskrift", "Kopiérbar besked til håndværkeren", "Projektrum med dokumentarkiv", "Tjekliste over vigtige aftalepunkter", "Løbende rapporter"],
+            renovering: ["Alt fra Mindre byggeprojekt", "Ekstraarbejde-sedler med digital godkendelse", "Betalingsplan koblet til dokumenteret fremdrift", "Afleveringsflow med tjekliste", "Mangelregistrering med billeder og status", "Løbende rapporter"],
+            totalrenovering: ["Alt fra Mellemstort byggeprojekt", "Gratis online møde med byggesagkyndig (30 min.)", "Koordination på tværs af håndværkere", "Prioriteret support", "Ubegrænset dokumentopload"],
+          };
+          const pakkeId = betaltProjekt?.pakke ?? "renovering";
+          const pakkePriser: Record<string, string> = { lille: "299", renovering: "2.499", totalrenovering: "4.999" };
+          return (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-gray-900">Din pakke</h2>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700">Aktiv</span>
+              </div>
+              <div className="flex items-start gap-4 p-4 bg-[#1e3a2a]/5 rounded-xl border border-[#1e3a2a]/10 mb-4">
+                <div className="w-10 h-10 bg-[#1e3a2a] rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900">{pakkeNavne[pakkeId] ?? pakkeId}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{pakkePriser[pakkeId] ?? "—"} kr. · Engangsbetaling</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {(pakkeFeatures[pakkeId] ?? []).map(f => (
+                  <div key={f} className="flex items-start gap-2">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="3" className="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span className="text-xs text-gray-600">{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Mine projekter */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between mb-5">
