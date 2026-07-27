@@ -16,6 +16,20 @@ interface Aendring {
   oprettet_at: string;
 }
 
+interface TidsplanFase {
+  navn: string;
+  startdato: string;
+  slutdato: string;
+}
+
+interface Tidsplan {
+  type: "faser" | "ingen_tidsplan";
+  faser?: TidsplanFase[];
+  godkendt_af_bygherre: boolean;
+  godkendt_at?: string | null;
+  indsendt_at?: string;
+}
+
 interface Kontrakt {
   id: string;
   titel: string | null;
@@ -33,6 +47,7 @@ interface Kontrakt {
   bygherre_godkendt_at: string | null;
   haandvaerker_godkendt_at: string | null;
   kontraktaendringer: Aendring[];
+  tidsplan: Tidsplan | null;
 }
 
 const fmtKr = (n: number) =>
@@ -66,6 +81,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const [redigererBetalingsplan, setRedigererBetalingsplan] = useState(false);
   const [betalingsplanRækker, setBetalingsplanRækker] = useState<{milepæl: string; andel: string}[]>([]);
   const [brugerNavn, setBrugerNavn] = useState("");
+  const [godkenderTidsplan, setGodkenderTidsplan] = useState(false);
 
   const hentKontrakt = useCallback(async () => {
     const supabase = createClient();
@@ -189,6 +205,22 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
       setCvrData(null);
     } finally {
       setSender(false);
+    }
+  }
+
+  async function godkendTidsplan() {
+    if (!kontrakt || typeof kontrakt !== "object" || godkenderTidsplan) return;
+    setGodkenderTidsplan(true);
+    try {
+      const r = await fetch("/api/kontrakt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kontrakt_id: kontrakt.id, godkend_tidsplan: true }),
+      });
+      const data = await r.json();
+      if (!data.error) setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, tidsplan: data.tidsplan } : prev);
+    } finally {
+      setGodkenderTidsplan(false);
     }
   }
 
@@ -634,6 +666,116 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 )}
               </div>
             </div>
+            {/* Tidsplan */}
+            {(() => {
+              const tp = kontrakt.tidsplan;
+              const fmtDatoKort = (iso: string) =>
+                new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "short" });
+
+              if (!tp) {
+                return (
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tidsplan</p>
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">AB-Forbruger § 12</span>
+                    </div>
+                    <div className="flex items-center gap-3 py-2">
+                      <div className="w-8 h-8 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center flex-shrink-0">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2">
+                          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Afventer tidsplan fra entreprenøren</p>
+                        <p className="text-xs text-gray-400 mt-0.5">Entreprenøren skal indsende en faseopdelt tidsplan inden underskrift</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              const godkendt = tp.godkendt_af_bygherre;
+
+              return (
+                <div className={`rounded-2xl overflow-hidden border shadow-sm ${godkendt ? "border-green-100" : "border-amber-200"}`}>
+                  {/* Mørk header */}
+                  <div className="bg-[#111c17] px-5 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">AB-Forbruger § 12</p>
+                        <p className="text-sm font-bold text-white">
+                          {tp.type === "ingen_tidsplan" ? "Ingen fast tidsplan" : "Tidsplan fra entreprenøren"}
+                        </p>
+                      </div>
+                    </div>
+                    {godkendt ? (
+                      <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/20">
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        Godkendt
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/20">
+                        Afventer din godkendelse
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="bg-white px-5 py-4">
+                    {tp.type === "ingen_tidsplan" ? (
+                      <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-4">
+                        <p className="text-xs font-semibold text-amber-800 mb-1">Fravigelse af § 12</p>
+                        <p className="text-xs text-amber-700 leading-relaxed">
+                          Entreprenøren ønsker at arbejde uden en faseopdelt tidsplan. Dette er en eksplicit fravigelse af AB-Forbruger § 12. Godkend kun hvis I har aftalt dette.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 mb-4">
+                        {(tp.faser ?? []).map((fase, i) => (
+                          <div key={i} className="flex gap-3 items-center">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${godkendt ? "bg-green-100 text-green-700" : "bg-[#1e3a2a]/10 text-[#1e3a2a]"}`}>
+                              {godkendt
+                                ? <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                : i + 1}
+                            </div>
+                            <div className="flex-1 flex items-center justify-between gap-3 py-1.5 border-b border-gray-50 last:border-0">
+                              <p className="text-sm text-gray-800 font-medium">{fase.navn}</p>
+                              <p className="text-xs text-gray-400 whitespace-nowrap">
+                                {fase.startdato ? fmtDatoKort(fase.startdato) : "?"} → {fase.slutdato ? fmtDatoKort(fase.slutdato) : "?"}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {!godkendt && !erBeggeGodkendt && (
+                      <button
+                        onClick={godkendTidsplan}
+                        disabled={godkenderTidsplan}
+                        className="w-full py-2.5 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                      >
+                        {godkenderTidsplan ? (
+                          <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Godkender...</>
+                        ) : (
+                          <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Godkend tidsplan</>
+                        )}
+                      </button>
+                    )}
+
+                    {godkendt && tp.godkendt_at && (
+                      <p className="text-xs text-green-600 text-center">
+                        Godkendt {new Date(tp.godkendt_at).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Sidebar */}
