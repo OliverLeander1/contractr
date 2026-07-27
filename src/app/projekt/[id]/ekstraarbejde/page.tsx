@@ -76,18 +76,17 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
     });
   }, []);
 
-  const GODKENDTE_STATUSSER = ["godkendt", "accepteret", "aktiv", "begge_godkendt", "haandvaerker_godkendt", "bygherre_godkendt"];
-
   const hentData = useCallback(async () => {
     setIndlæser(true);
+    const godkendteStatusser = ["godkendt", "accepteret", "aktiv", "begge_godkendt", "haandvaerker_godkendt", "bygherre_godkendt"];
     const [{ data: k }, { data: e }] = await Promise.all([
       supabase.from("kontrakter")
         .select("id, haandvaerker_email, haandvaerker_navn, fag, status")
         .eq("projekt_id", id)
-        .in("status", GODKENDTE_STATUSSER),
+        .order("oprettet_at", { ascending: false }),
       supabase.from("ekstraarbejde").select("*").eq("projekt_id", id).order("oprettet_at", { ascending: false }),
     ]);
-    const godkendteKontrakter = (k || []) as Kontrakt[];
+    const godkendteKontrakter = ((k || []) as Kontrakt[]).filter(k => godkendteStatusser.includes(k.status));
     setKontrakter(godkendteKontrakter);
     if (godkendteKontrakter.length === 1) setValgteHaandvaerker(godkendteKontrakter[0]);
     setSedler((e || []) as Sedel[]);
