@@ -1,35 +1,117 @@
 "use client";
 
-import Link from "next/link";
 import SimpleNav from "@/components/SimpleNav";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase";
 
-export default function Notifikationer() {
+interface Notifikation {
+  id: string;
+  type: string;
+  titel: string;
+  besked: string | null;
+  ab_paragraf: string | null;
+  laest: boolean;
+  oprettet_at: string;
+  projekt_id: string | null;
+}
+
+const TYPE_IKON: Record<string, { ikon: string; cls: string }> = {
+  ekstraarbejde_anmodning: { ikon: "📋", cls: "bg-amber-50 border-amber-200" },
+  ekstraarbejde_godkendt:  { ikon: "✅", cls: "bg-green-50 border-green-200" },
+  eftersyn_paamoind:       { ikon: "📅", cls: "bg-blue-50 border-blue-200" },
+  betaling_markeret:       { ikon: "💰", cls: "bg-purple-50 border-purple-200" },
+  mangel_opdateret:        { ikon: "🔧", cls: "bg-orange-50 border-orange-200" },
+  ab_forbruger:            { ikon: "⚖️", cls: "bg-[#1e3a2a]/5 border-[#1e3a2a]/20" },
+};
+
+const fmtDato = (iso: string) => {
+  const d = new Date(iso);
+  const nu = new Date();
+  const diff = Math.floor((nu.getTime() - d.getTime()) / 1000);
+  if (diff < 60) return "Lige nu";
+  if (diff < 3600) return `${Math.floor(diff / 60)} min. siden`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} timer siden`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)} dage siden`;
+  return d.toLocaleDateString("da-DK", { day: "numeric", month: "short" });
+};
+
+export default function NotifikationerSide() {
+  const supabase = createClient();
+  const [notifikationer, setNotifikationer] = useState<Notifikation[]>([]);
+  const [indlæser, setIndlæser] = useState(true);
+
+  useEffect(() => {
+    const hent = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("notifikationer")
+        .select("*")
+        .eq("bruger_id", user.id)
+        .order("oprettet_at", { ascending: false })
+        .limit(50);
+      setNotifikationer(data || []);
+      setIndlæser(false);
+      await supabase
+        .from("notifikationer")
+        .update({ laest: true })
+        .eq("bruger_id", user.id)
+        .eq("laest", false);
+    };
+    hent();
+  }, []);
+
+  const ulæste = notifikationer.filter(n => !n.laest).length;
+
   return (
-    <div className="min-h-screen bg-[#f5f3ee]">
+    <div className="min-h-screen bg-gray-50">
       <SimpleNav tilbage="/dashboard" tilbageLabel="Mit overblik" />
-
-      <div className="max-w-3xl mx-auto px-6 py-10">
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">Notifikationer</h1>
-
-        <div className="bg-white rounded-2xl border border-[#e0ddd6] p-10 text-center">
-          <div className="w-14 h-14 bg-[#1e3a2a]/5 rounded-2xl flex items-center justify-center mx-auto mb-5">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-          </div>
-          <p className="font-semibold text-gray-900 mb-2">Ingen notifikationer endnu</p>
-          <p className="text-sm text-gray-400 leading-relaxed max-w-xs mx-auto">
-            Når du har et aktivt projekt sender vi dig påmindelser baseret på AB-Forbruger 2012.
+      <div className="max-w-2xl mx-auto px-6 py-10">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Notifikationer</h1>
+          <p className="text-sm text-gray-400 mt-1">
+            {ulæste > 0 ? `${ulæste} ulæste` : "Alle er markeret som læst"}
           </p>
-          <Link
-            href="/opret/upload"
-            className="inline-block mt-6 bg-[#1e3a2a] text-white font-bold px-6 py-3 rounded-xl text-sm hover:opacity-90 transition-opacity"
-          >
-            Tjek dit første tilbud
-          </Link>
         </div>
+
+        {indlæser ? (
+          <div className="flex justify-center py-16">
+            <div className="w-6 h-6 border-2 border-gray-200 border-t-[#1e3a2a] rounded-full animate-spin" />
+          </div>
+        ) : notifikationer.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+            <div className="text-3xl mb-4">🔔</div>
+            <p className="font-semibold text-gray-900 mb-1">Ingen notifikationer endnu</p>
+            <p className="text-sm text-gray-400 max-w-sm mx-auto">
+              Du får besked her når der er nyt på dine projekter — ekstraarbejde, betalinger, mangler og AB-Forbruger påmindelser.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {notifikationer.map(n => {
+              const style = TYPE_IKON[n.type] || { ikon: "🔔", cls: "bg-gray-50 border-gray-100" };
+              return (
+                <div key={n.id} className={`rounded-2xl border p-4 flex gap-4 ${style.cls} ${!n.laest ? "ring-1 ring-[#1e3a2a]/20" : ""}`}>
+                  <div className="text-xl flex-shrink-0 mt-0.5">{style.ikon}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-semibold text-gray-900">{n.titel}</p>
+                      <span className="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">{fmtDato(n.oprettet_at)}</span>
+                    </div>
+                    {n.besked && <p className="text-sm text-gray-600 mt-0.5 leading-relaxed">{n.besked}</p>}
+                    {n.ab_paragraf && (
+                      <span className="inline-block mt-2 text-[10px] font-bold uppercase tracking-wide bg-[#1e3a2a]/10 text-[#1e3a2a] px-2 py-0.5 rounded-full">
+                        AB-Forbruger {n.ab_paragraf}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
 }
+

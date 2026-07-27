@@ -129,6 +129,12 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
     ? [{ id: "tilbud", label: "Tilbud" }, { id: "faser", label: `Faser & fakturering${faser.length > 0 ? ` (${faser.length})` : ""}` }]
     : [{ id: "tilbud", label: "Tilbud" }];
 
+  const genveje = sag.status === "accepteret" ? [
+    { href: `/haandvaerker/projekt/${id}/ekstraarbejde`, label: "Ekstraarbejde", ikon: "📋" },
+    { href: `/haandvaerker/projekt/${id}/kontrakt`, label: "Kontrakt", ikon: "📄" },
+    { href: `/haandvaerker/projekt/${id}/tidsplan`, label: "Tidsplan", ikon: "📅" },
+  ] : [];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -203,6 +209,18 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
             </button>
           </div>
         </div>
+
+        {/* Genveje til tilknyttede sider */}
+        {genveje.length > 0 && (
+          <div className="flex gap-2 mb-4 flex-wrap">
+            {genveje.map(g => (
+              <Link key={g.href} href={g.href}
+                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 bg-white border border-[#e0ddd6] rounded-xl text-gray-700 hover:border-[#1e3a2a]/40 hover:text-[#1e3a2a] transition-colors">
+                <span>{g.ikon}</span> {g.label}
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* Tabs */}
         {tabs.length > 1 && (
