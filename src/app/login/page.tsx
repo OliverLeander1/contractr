@@ -154,7 +154,7 @@ function LoginInner() {
 
         <div>
           <h1 className="text-4xl font-bold text-white leading-snug mb-6">
-            Hold øje med{" "}
+            Hold styr på{" "}
             <span
               style={{
                 display: "inline-block",
@@ -213,7 +213,7 @@ function LoginInner() {
         {/* Mobil headline med roterende ord */}
         <div className="block lg:hidden mb-8">
           <p className="text-xl font-bold text-[#111816] leading-snug">
-            Hold øje med{" "}
+            Hold styr på{" "}
             <span
               style={{
                 display: "inline-block",
