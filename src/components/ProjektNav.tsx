@@ -34,15 +34,8 @@ export default function ProjektNav({ id }: { id: string }) {
     hent();
   }, []);
 
-  // Bestem aktiv link — /betalinger og /ekstraarbejde begge markerer "Økonomi"
   function erAktiv(href: string) {
     const fuld = `${base}${href}`;
-    if (href === "/betalinger") {
-      return pathname === fuld || pathname === `${base}/ekstraarbejde`;
-    }
-    if (href === "/aftale") {
-      return pathname === fuld;
-    }
     if (href === "") return pathname === base;
     return pathname === fuld;
   }
