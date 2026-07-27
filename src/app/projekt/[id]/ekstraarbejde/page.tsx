@@ -22,6 +22,7 @@ interface Sedel {
   bygherre_godkendt_navn: string | null;
   bygherre_godkendt_at: string | null;
   billeder: string[] | null;
+  haandvaerker_email: string | null;
   oprettet_at: string;
 }
 
@@ -38,20 +39,29 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
   const { id } = use(params);
   const supabase = createClient();
 
-  const [userId, setUserId]       = useState<string | null>(null);
+  interface Kontrakt {
+    id: string;
+    haandvaerker_email: string;
+    haandvaerker_navn: string | null;
+    fag: string | null;
+    status: string;
+  }
+
+  const [userId, setUserId]         = useState<string | null>(null);
   const [brugerNavn, setBrugerNavn] = useState("");
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [sedler, setSedler]       = useState<Sedel[]>([]);
-  const [haandvaerkerEmail, setHaandvaerkerEmail] = useState<string | null>(null);
-  const [indlæser, setIndlæser]   = useState(true);
-  const [visOpret, setVisOpret]   = useState(false);
-  const [gemmer, setGemmer]       = useState(false);
-  const [godkender, setGodkender] = useState<string | null>(null);
+  const [userEmail, setUserEmail]   = useState<string | null>(null);
+  const [sedler, setSedler]         = useState<Sedel[]>([]);
+  const [kontrakter, setKontrakter] = useState<Kontrakt[]>([]);
+  const [indlæser, setIndlæser]     = useState(true);
+  const [visOpret, setVisOpret]     = useState(false);
+  const [gemmer, setGemmer]         = useState(false);
+  const [godkender, setGodkender]   = useState<string | null>(null);
 
   // Opret-formular
-  const [beskrivelse, setBeskrivelse] = useState("");
+  const [beskrivelse, setBeskrivelse]               = useState("");
+  const [valgteHaandvaerker, setValgteHaandvaerker] = useState<Kontrakt | null>(null);
   const [annoteredesBilleder, setAnnoteredesBilleder] = useState<string[]>([]);
-  const [visAnnotering, setVisAnnotering] = useState(false);
+  const [visAnnotering, setVisAnnotering]           = useState(false);
 
   // Godkend-modal
   const [godkendSedel, setGodkendSedel] = useState<Sedel | null>(null);
@@ -69,21 +79,33 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
   const hentData = useCallback(async () => {
     setIndlæser(true);
     const [{ data: k }, { data: e }] = await Promise.all([
-      supabase.from("kontrakter").select("haandvaerker_email").eq("projekt_id", id).maybeSingle(),
+      supabase.from("kontrakter")
+        .select("id, haandvaerker_email, haandvaerker_navn, fag, status")
+        .eq("projekt_id", id)
+        .in("status", ["godkendt", "accepteret", "aktiv"]),
       supabase.from("ekstraarbejde").select("*").eq("projekt_id", id).order("oprettet_at", { ascending: false }),
     ]);
-    setHaandvaerkerEmail(k?.haandvaerker_email ?? null);
+    const godkendteKontrakter = (k || []) as Kontrakt[];
+    setKontrakter(godkendteKontrakter);
+    // Én kontrakt: forvælg den automatisk
+    if (godkendteKontrakter.length === 1) setValgteHaandvaerker(godkendteKontrakter[0]);
     setSedler((e || []) as Sedel[]);
     setIndlæser(false);
   }, [id]);
 
   useEffect(() => { hentData(); }, [hentData]);
 
-  const erHaandvaerker = !!(userEmail && haandvaerkerEmail &&
-    userEmail.toLowerCase() === haandvaerkerEmail.toLowerCase());
+  const erHaandvaerker = !!(userEmail && kontrakter.some(
+    k => k.haandvaerker_email.toLowerCase() === userEmail.toLowerCase()
+  ));
+
+  // Den kontrakt som den indloggede håndværker er tilknyttet
+  const minKontrakt = erHaandvaerker
+    ? kontrakter.find(k => k.haandvaerker_email.toLowerCase() === userEmail!.toLowerCase()) ?? null
+    : null;
 
   async function opretSedel() {
-    if (!beskrivelse.trim() || !userId || gemmer) return;
+    if (!beskrivelse.trim() || !userId || gemmer || !valgteHaandvaerker) return;
     setGemmer(true);
     await supabase.from("ekstraarbejde").insert({
       projekt_id: id,
@@ -94,18 +116,16 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
       pris_type: "fast",
       pris: 0,
       billeder: annoteredesBilleder.length > 0 ? annoteredesBilleder : null,
+      haandvaerker_email: valgteHaandvaerker.haandvaerker_email,
     });
-    // Notifikation til håndværker
-    if (haandvaerkerEmail) {
-      await supabase.from("notifikationer").insert({
-        bruger_id: userId,
-        projekt_id: id,
-        type: "ekstraarbejde_anmodning",
-        titel: "Ny aftaleseddel til udfyldelse",
-        besked: `Bygherre har sendt en anmodning om ekstraarbejde: "${beskrivelse.trim().slice(0, 80)}..."`,
-        ab_paragraf: "§ 23",
-      });
-    }
+    await supabase.from("notifikationer").insert({
+      bruger_id: userId,
+      projekt_id: id,
+      type: "ekstraarbejde_anmodning",
+      titel: "Ny aftaleseddel til udfyldelse",
+      besked: `Bygherre har sendt en anmodning om ekstraarbejde til ${valgteHaandvaerker.haandvaerker_navn ?? valgteHaandvaerker.haandvaerker_email}: "${beskrivelse.trim().slice(0, 80)}"`,
+      ab_paragraf: "§ 23",
+    });
     setBeskrivelse("");
     setAnnoteredesBilleder([]);
     setVisOpret(false);
@@ -151,7 +171,7 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
               {godkendtTotal > 0 ? `${fmtKr(godkendtTotal)} godkendt i alt` : "Ingen godkendte tillægsaftaler endnu"}
             </p>
           </div>
-          {!erHaandvaerker && (
+          {!erHaandvaerker && kontrakter.length > 0 && (
             <button onClick={() => setVisOpret(true)}
               className="flex items-center gap-2 px-4 py-2.5 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -170,6 +190,47 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
               <p className="text-xs text-gray-400 mb-5">
                 Beskriv arbejdet. Entreprenøren udfylder herefter pris og tidspåvirkning, og du godkender.
               </p>
+
+              {/* Vælg modtager hvis flere entreprenører */}
+              {kontrakter.length > 1 && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Send til</label>
+                  <div className="space-y-2">
+                    {kontrakter.map(k => (
+                      <button key={k.id} onClick={() => setValgteHaandvaerker(k)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${
+                          valgteHaandvaerker?.id === k.id
+                            ? "border-[#1e3a2a] bg-[#1e3a2a]/5 ring-1 ring-[#1e3a2a]/20"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                          valgteHaandvaerker?.id === k.id ? "bg-[#1e3a2a] text-white" : "bg-gray-100 text-gray-500"
+                        }`}>
+                          {(k.haandvaerker_navn || k.haandvaerker_email)[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">{k.haandvaerker_navn ?? k.haandvaerker_email}</p>
+                          {k.fag && <p className="text-xs text-gray-400">{k.fag}</p>}
+                        </div>
+                        {valgteHaandvaerker?.id === k.id && (
+                          <svg className="ml-auto flex-shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Vis modtager hvis kun én */}
+              {kontrakter.length === 1 && valgteHaandvaerker && (
+                <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-2.5 mb-4">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <span className="text-xs text-gray-500">Sendes til</span>
+                  <span className="text-xs font-semibold text-gray-800">{valgteHaandvaerker.haandvaerker_navn ?? valgteHaandvaerker.haandvaerker_email}</span>
+                  {valgteHaandvaerker.fag && <span className="text-xs text-gray-400">· {valgteHaandvaerker.fag}</span>}
+                </div>
+              )}
+
               {visAnnotering ? (
                 <BilledAnnotering
                   onGem={dataUrl => {
@@ -221,9 +282,9 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                   className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50">
                   Annuller
                 </button>
-                <button onClick={opretSedel} disabled={!beskrivelse.trim() || gemmer}
+                <button onClick={opretSedel} disabled={!beskrivelse.trim() || gemmer || !valgteHaandvaerker}
                   className="flex-1 py-3 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 disabled:opacity-40 transition-all">
-                  {gemmer ? "Sender..." : "Send til entreprenøren"}
+                  {gemmer ? "Sender..." : valgteHaandvaerker ? `Send til ${valgteHaandvaerker.haandvaerker_navn ?? "entreprenøren"}` : "Vælg modtager først"}
                 </button>
               </div>
             </div>
@@ -296,6 +357,19 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
           <div className="flex justify-center py-16">
             <div className="w-6 h-6 border-2 border-gray-200 border-t-[#1e3a2a] rounded-full animate-spin" />
           </div>
+        ) : kontrakter.length === 0 && !erHaandvaerker ? (
+          <div className="bg-white rounded-2xl border border-amber-200 p-10 text-center mb-6">
+            <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="1.8">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <p className="font-semibold text-gray-900 mb-2">Ingen godkendt kontrakt på projektet</p>
+            <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+              Aftalesedler til ekstraarbejde kan kun oprettes, når der er et godkendt aftalegrundlag med en entreprenør på projektet. Invitér en entreprenør og få kontrakten godkendt af begge parter først.
+            </p>
+          </div>
         ) : sedler.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center mb-6">
             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -322,9 +396,18 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                         <span className="text-xs text-gray-300 ml-auto">{fmtDato(s.oprettet_at)}</span>
                       </div>
                       <p className="text-sm text-gray-800 leading-relaxed">{s.beskrivelse}</p>
-                      {s.oprettet_af_navn && (
-                        <p className="text-xs text-gray-400 mt-1">Oprettet af {s.oprettet_af_navn}</p>
-                      )}
+                      <div className="flex flex-wrap items-center gap-3 mt-1">
+                        {s.oprettet_af_navn && (
+                          <p className="text-xs text-gray-400">Oprettet af {s.oprettet_af_navn}</p>
+                        )}
+                        {s.haandvaerker_email && (
+                          <p className="text-xs text-gray-400">
+                            · Til: <span className="font-medium text-gray-600">
+                              {kontrakter.find(k => k.haandvaerker_email === s.haandvaerker_email)?.haandvaerker_navn ?? s.haandvaerker_email}
+                            </span>
+                          </p>
+                        )}
+                      </div>
                       {s.billeder && s.billeder.length > 0 && (
                         <div className="flex gap-2 flex-wrap mt-3">
                           {s.billeder.map((b, bi) => (
