@@ -367,14 +367,92 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
             </p>
           </div>
         ) : sedler.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center mb-6">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-400">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-              </svg>
+          <div className="space-y-4 mb-6">
+            {/* Hvad er en aftaleseddel */}
+            <div className="bg-[#111c17] rounded-2xl overflow-hidden">
+              <div className="px-6 pt-6 pb-5">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="12" y1="18" x2="12" y2="12"/>
+                      <line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">AB-Forbruger § 23</p>
+                    <h2 className="text-base font-bold text-white leading-snug">Hvad er en aftaleseddel?</h2>
+                  </div>
+                </div>
+                <p className="text-sm text-white/70 leading-relaxed mb-5">
+                  Undervejs i et byggeprojekt opstår der næsten altid arbejde der ikke var med i den oprindelige kontrakt. Det kan være et ekstra stik, en ændret flisetype eller et hul i væggen der ikke stod på tegningen.
+                </p>
+                <p className="text-sm text-white/70 leading-relaxed">
+                  En aftaleseddel er den skriftlige aftale der sikrer at I er enige om hvad ekstraarbejdet indeholder, hvad det koster og om det påvirker tidsplanen — inden arbejdet går i gang. Det beskytter begge parter og forebygger uenigheder om regningen bagefter.
+                </p>
+              </div>
+
+              {/* Tre trin */}
+              <div className="grid grid-cols-3 border-t border-white/10">
+                {[
+                  {
+                    num: "1",
+                    titel: "Du beskriver",
+                    tekst: "Skriv hvad du ønsker lavet. Vær præcis — jo mere detaljeret, jo bedre grundlag for prissætning.",
+                    ikon: (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    ),
+                  },
+                  {
+                    num: "2",
+                    titel: "Entreprenøren prissætter",
+                    tekst: "Håndværkeren modtager anmodningen, udfylder pris og eventuel tidspåvirkning.",
+                    ikon: (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                      </svg>
+                    ),
+                  },
+                  {
+                    num: "3",
+                    titel: "I underskriver digitalt",
+                    tekst: "Du godkender prisen. Begge parter er bundet af aftalen og underskriften logges med tidsstempel.",
+                    ikon: (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    ),
+                  },
+                ].map((trin, i) => (
+                  <div key={i} className={`px-4 py-4 ${i < 2 ? "border-r border-white/10" : ""}`}>
+                    <div className="w-7 h-7 rounded-lg bg-[#1a5c38] flex items-center justify-center mb-3 text-white">
+                      {trin.ikon}
+                    </div>
+                    <p className="text-xs font-bold text-white mb-1">{trin.titel}</p>
+                    <p className="text-xs text-white/50 leading-relaxed">{trin.tekst}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <p className="font-semibold text-gray-900 mb-1">Ingen aftalesedler endnu</p>
-            <p className="text-sm text-gray-400 max-w-sm mx-auto">Alt ekstraarbejde ud over den oprindelige kontrakt skal aftales skriftligt her — inden arbejdet påbegyndes.</p>
+
+            {/* Opfordring */}
+            <div className="bg-[#f0f7f3] rounded-2xl border border-[#1a5c38]/10 px-5 py-4 flex items-center gap-4">
+              <div className="w-9 h-9 rounded-xl bg-[#1a5c38]/10 flex items-center justify-center flex-shrink-0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <p className="text-sm text-[#1a5c38] leading-relaxed">
+                <strong>Ingen aftalesedler endnu.</strong> Brug knappen øverst til højre hvis der opstår ekstraarbejde undervejs i projektet.
+              </p>
+            </div>
           </div>
         ) : (
           <div className="space-y-4 mb-6">
