@@ -2,6 +2,7 @@
 import { Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
 import "./globals.css";
 import CookieBanner from "@/components/CookieBanner";
+import PostHogProvider from "@/components/PostHogProvider";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -58,8 +59,10 @@ export default function RootLayout({
   return (
     <html lang="da" className={`${jakarta.variable} ${dmSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        {children}
-        <CookieBanner />
+        <PostHogProvider>
+          {children}
+          <CookieBanner />
+        </PostHogProvider>
       </body>
     </html>
   );

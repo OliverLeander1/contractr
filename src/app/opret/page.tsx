@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import FlowLayout from "@/components/FlowLayout";
 import { createClient } from "@/lib/supabase";
+import { track } from "@/lib/analytics";
 
 const projekttyper = [
   { id: "badevarelse", label: "Badeværelse", ikon: "🚿" },
@@ -302,6 +303,7 @@ export default function OpretProjekt() {
           sessionStorage.setItem("screening_navn", navn);
           sessionStorage.setItem("screening_kontakt", kontakt);
           sessionStorage.setItem("screening_abforbruger", inkluderABF ? "ja" : "nej");
+          track("project_started", { projekttype: valgtType, status });
           if (status === "dialog") router.push("/opret/beskriv");
           else if (status === "igang") router.push("/opret/igang");
           else router.push("/opret/tips");

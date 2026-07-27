@@ -13,6 +13,7 @@ export default function CookieBanner() {
 
   const accepter = (alle: boolean) => {
     localStorage.setItem("cookie-samtykke", alle ? "alle" : "nødvendige");
+    if (alle) window.dispatchEvent(new Event("cookie-samtykke-accepteret"));
     setSynlig(false);
   };
 

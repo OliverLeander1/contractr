@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { track } from "@/lib/analytics";
 
 export default function BookingBekraeftelse() {
   const [projektNavn, setProjektNavn] = useState("");
@@ -9,6 +10,7 @@ export default function BookingBekraeftelse() {
   const [pris, setPris] = useState("1.495 kr.");
 
   useEffect(() => {
+    track("raadgiver_booked");
     try {
       const raw = localStorage.getItem("contractr_projekt");
       if (raw) {

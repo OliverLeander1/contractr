@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import { track, identifyUser } from "@/lib/analytics";
 
 function LoginInner() {
   const router = useRouter();
@@ -64,6 +65,7 @@ function LoginInner() {
         return;
       }
 
+      track("signup_completed", { brugerType: "bygherre" });
       setLoading(false);
       router.push(nextUrl || "/dashboard");
       return;
@@ -104,6 +106,8 @@ function LoginInner() {
     }
 
     const type = meta?.brugerType || "bygherre";
+    identifyUser(data.user.id, { email: gemt.email, navn: gemt.navn, brugerType: type });
+    track("login_completed", { brugerType: type });
     router.push(nextUrl || (type === "haandvaerker" ? "/haandvaerker/sager" : "/dashboard"));
   };
 

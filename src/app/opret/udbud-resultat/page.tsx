@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FlowLayout from "@/components/FlowLayout";
 import { createClient } from "@/lib/supabase";
+import { track } from "@/lib/analytics";
 
 interface UdbudResultat {
   titel: string;
@@ -33,6 +34,7 @@ export default function UdbudResultat() {
         const parsed = JSON.parse(raw);
         setData(parsed);
         setTekst(parsed.dokument);
+        track("document_generated", { titel: parsed.titel });
       } catch { /* ignore */ }
     }
   }, []);
@@ -65,6 +67,8 @@ export default function UdbudResultat() {
         }),
       });
 
+      track("aftale_created", { med_invitation: !!haandvaerkerEmail });
+      if (haandvaerkerEmail) track("haandvaerker_invited");
       sessionStorage.removeItem("udbud_resultat");
       router.push(`/projekt/${projekt_id}/aftale`);
     } finally {
