@@ -58,6 +58,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   const [firma, setFirma] = useState("");
 
   // Tidsplan state
+  const [loggetInd, setLoggetInd] = useState(false);
   const [visTidsplanEditor, setVisTidsplanEditor] = useState(false);
   const [tidsplanType, setTidsplanType] = useState<"faser" | "ingen_tidsplan">("faser");
   const [faser, setFaser] = useState<TidsplanFase[]>([
@@ -68,7 +69,13 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
 
   useEffect(() => {
     const hent = async () => {
-      const res = await fetch(`/api/kontrakt/${token}`);
+      const { createClient } = await import("@/lib/supabase");
+      const supabase = createClient();
+      const [res, { data: { user } }] = await Promise.all([
+        fetch(`/api/kontrakt/${token}`),
+        supabase.auth.getUser(),
+      ]);
+      if (user) setLoggetInd(true);
       if (!res.ok) { setFejl("Aftalegrundlaget blev ikke fundet. Tjek at linket er korrekt."); setIndlæser(false); return; }
       const data = await res.json();
       setKontrakt(data);
@@ -558,14 +565,29 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
         {godkendt && (
           <div className="mt-6 bg-[#1e3a2a] rounded-2xl p-6 text-center">
             <p className="text-green-200/60 text-xs uppercase tracking-widest mb-2">Næste skridt</p>
-            <h3 className="text-white font-bold text-lg mb-2">Opret en gratis konto som entreprenør</h3>
-            <p className="text-green-200/70 text-sm mb-5 max-w-sm mx-auto leading-relaxed">
-              Med en konto kan du modtage aftalesedler, følge betalingsplan og tidsplan og koordinere direkte med bygherren.
-            </p>
-            <a href={`/haandvaerker/opret-konto?email=${encodeURIComponent(kontrakt.haandvaerker_email ?? "")}&navn=${encodeURIComponent(kontrakt.haandvaerker_navn ?? "")}`}
-              className="inline-flex items-center gap-2 bg-white text-[#1e3a2a] text-sm font-bold px-6 py-3 rounded-xl hover:bg-[#f5f3ee] transition-colors">
-              Opret gratis konto →
-            </a>
+            {loggetInd ? (
+              <>
+                <h3 className="text-white font-bold text-lg mb-2">Gå til dit projektrum</h3>
+                <p className="text-green-200/70 text-sm mb-5 max-w-sm mx-auto leading-relaxed">
+                  Følg tidsplan, aftalesedler og mangler direkte fra dit projektrum.
+                </p>
+                <a href="/haandvaerker/sager"
+                  className="inline-flex items-center gap-2 bg-white text-[#1e3a2a] text-sm font-bold px-6 py-3 rounded-xl hover:bg-[#f5f3ee] transition-colors">
+                  Mine sager →
+                </a>
+              </>
+            ) : (
+              <>
+                <h3 className="text-white font-bold text-lg mb-2">Opret en gratis konto som entreprenør</h3>
+                <p className="text-green-200/70 text-sm mb-5 max-w-sm mx-auto leading-relaxed">
+                  Med en konto kan du modtage aftalesedler, følge betalingsplan og tidsplan og koordinere direkte med bygherren.
+                </p>
+                <a href={`/haandvaerker/opret-konto?email=${encodeURIComponent(kontrakt?.haandvaerker_email ?? "")}&navn=${encodeURIComponent(kontrakt?.haandvaerker_navn ?? "")}`}
+                  className="inline-flex items-center gap-2 bg-white text-[#1e3a2a] text-sm font-bold px-6 py-3 rounded-xl hover:bg-[#f5f3ee] transition-colors">
+                  Opret gratis konto →
+                </a>
+              </>
+            )}
           </div>
         )}
 
