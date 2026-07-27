@@ -463,7 +463,11 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       </div>
                     ) : (
                       <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
-                        {vaerdi || <span className="text-gray-400 italic">Ikke udfyldt. Klik Rediger for at tilføje</span>}
+                        {vaerdi || (
+                          erBeggeGodkendt
+                            ? <span className="text-gray-400">Ikke udfyldt</span>
+                            : <span className="text-gray-400 italic">Ikke udfyldt. Klik Rediger for at tilføje</span>
+                        )}
                       </p>
                     )}
                   </div>
