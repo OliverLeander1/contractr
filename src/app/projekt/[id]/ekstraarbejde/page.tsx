@@ -3,6 +3,7 @@
 import { use, useEffect, useState, useCallback } from "react";
 import ProjektNav from "@/components/ProjektNav";
 import ABTip from "@/components/ABTip";
+import BilledAnnotering from "@/components/BilledAnnotering";
 import { createClient } from "@/lib/supabase";
 
 interface Sedel {
@@ -20,6 +21,7 @@ interface Sedel {
   haandvaerker_udfyldt_at: string | null;
   bygherre_godkendt_navn: string | null;
   bygherre_godkendt_at: string | null;
+  billeder: string[] | null;
   oprettet_at: string;
 }
 
@@ -48,6 +50,8 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
 
   // Opret-formular
   const [beskrivelse, setBeskrivelse] = useState("");
+  const [annoteredesBilleder, setAnnoteredesBilleder] = useState<string[]>([]);
+  const [visAnnotering, setVisAnnotering] = useState(false);
 
   // Godkend-modal
   const [godkendSedel, setGodkendSedel] = useState<Sedel | null>(null);
@@ -89,6 +93,7 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
       status: "sendt",
       pris_type: "fast",
       pris: 0,
+      billeder: annoteredesBilleder.length > 0 ? annoteredesBilleder : null,
     });
     // Notifikation til håndværker
     if (haandvaerkerEmail) {
@@ -102,6 +107,7 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
       });
     }
     setBeskrivelse("");
+    setAnnoteredesBilleder([]);
     setVisOpret(false);
     setGemmer(false);
     hentData();
@@ -164,15 +170,52 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
               <p className="text-xs text-gray-400 mb-5">
                 Beskriv arbejdet. Entreprenøren udfylder herefter pris og tidspåvirkning, og du godkender.
               </p>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Beskrivelse af ekstraarbejdet</label>
-                <textarea rows={4} value={beskrivelse} onChange={e => setBeskrivelse(e.target.value)}
-                  placeholder="Beskriv præcist hvad der ønskes lavet som ekstraarbejde — jo mere detaljeret, jo bedre grundlag for prissætning..."
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none" />
-              </div>
-              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mt-4">
-                Jf. AB-Forbruger § 23 skal ekstraarbejde aftales skriftligt inden opstart. Entreprenøren modtager denne anmodning og skal bekræfte pris og tidspåvirkning, inden arbejdet kan gå i gang.
-              </p>
+              {visAnnotering ? (
+                <BilledAnnotering
+                  onGem={dataUrl => {
+                    setAnnoteredesBilleder(prev => [...prev, dataUrl]);
+                    setVisAnnotering(false);
+                  }}
+                  onAnnuller={() => setVisAnnotering(false)}
+                />
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Beskrivelse af ekstraarbejdet</label>
+                    <textarea rows={3} value={beskrivelse} onChange={e => setBeskrivelse(e.target.value)}
+                      placeholder="Beskriv præcist hvad der ønskes lavet som ekstraarbejde — jo mere detaljeret, jo bedre grundlag for prissætning..."
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none" />
+                  </div>
+
+                  {/* Annoterede billeder */}
+                  {annoteredesBilleder.length > 0 && (
+                    <div className="flex gap-2 flex-wrap">
+                      {annoteredesBilleder.map((b, i) => (
+                        <div key={i} className="relative group">
+                          <img src={b} alt={`Markering ${i + 1}`} className="w-20 h-20 object-cover rounded-xl border border-gray-200" />
+                          <button
+                            onClick={() => setAnnoteredesBilleder(prev => prev.filter((_, j) => j !== i))}
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs hidden group-hover:flex items-center justify-center">
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <button onClick={() => setVisAnnotering(true)}
+                    className="flex items-center gap-2 text-xs font-semibold text-[#1e3a2a] hover:underline w-fit">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    {annoteredesBilleder.length > 0 ? "Tilføj endnu et billede med markering" : "Tilføj billede med markering (valgfrit)"}
+                  </button>
+
+                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+                    Jf. AB-Forbruger § 23 skal ekstraarbejde aftales skriftligt inden opstart. Entreprenøren modtager denne anmodning og skal bekræfte pris og tidspåvirkning, inden arbejdet kan gå i gang.
+                  </p>
+                </>
+              )}
               <div className="flex gap-3 mt-5">
                 <button onClick={() => { setVisOpret(false); setBeskrivelse(""); }}
                   className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50">
@@ -281,6 +324,16 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                       <p className="text-sm text-gray-800 leading-relaxed">{s.beskrivelse}</p>
                       {s.oprettet_af_navn && (
                         <p className="text-xs text-gray-400 mt-1">Oprettet af {s.oprettet_af_navn}</p>
+                      )}
+                      {s.billeder && s.billeder.length > 0 && (
+                        <div className="flex gap-2 flex-wrap mt-3">
+                          {s.billeder.map((b, bi) => (
+                            <a key={bi} href={b} target="_blank" rel="noopener noreferrer">
+                              <img src={b} alt={`Markering ${bi + 1}`}
+                                className="w-24 h-24 object-cover rounded-xl border border-gray-200 hover:opacity-90 transition-opacity cursor-zoom-in" />
+                            </a>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
