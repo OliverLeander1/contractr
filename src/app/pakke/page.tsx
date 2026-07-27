@@ -114,7 +114,7 @@ export default function VaelgPakke() {
           <Link href="/" className="flex-shrink-0">
             <span className="logo">nembyggestyring</span>
           </Link>
-          <Link href="/opret/upload" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Tjek tilbud gratis</Link>
+          <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Tilbage</Link>
         </div>
       </nav>
 
