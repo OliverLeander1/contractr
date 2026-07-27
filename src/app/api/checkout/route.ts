@@ -4,7 +4,10 @@ import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 const PAKKE_PRISER: Record<string, { beloeb: number; navn: string }> = {
-  lille:           { beloeb: 29900,  navn: "Mindre byggeprojekt" },
+  lille:  { beloeb: 29900,  navn: "Mindre byggeprojekt" },
+  mellem: { beloeb: 249900, navn: "Mellemstort byggeprojekt" },
+  stor:   { beloeb: 499900, navn: "Stort byggeprojekt" },
+  // bagudkompatibilitet
   renovering:      { beloeb: 249900, navn: "Mellemstort byggeprojekt" },
   totalrenovering: { beloeb: 499900, navn: "Stort byggeprojekt" },
 };

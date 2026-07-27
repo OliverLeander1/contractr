@@ -25,7 +25,7 @@ const PAKKER = [
     ],
   },
   {
-    id: "renovering",
+    id: "mellem",
     navn: "Mellemstort byggeprojekt",
     eksempler: "Badeværelse, køkken, tilbygning",
     pris: 2499,
@@ -42,7 +42,7 @@ const PAKKER = [
     ],
   },
   {
-    id: "totalrenovering",
+    id: "stor",
     navn: "Stort byggeprojekt",
     eksempler: "Totalrenovering, større tilbygning",
     pris: 4999,
@@ -58,7 +58,7 @@ const PAKKER = [
 ];
 
 export default function VaelgPakke() {
-  const [valgt, setValgt] = useState<string>("renovering");
+  const [valgt, setValgt] = useState<string>("mellem");
   const [navn, setNavn] = useState("");
   const [email, setEmail] = useState("");
   const [projekId, setProjektId] = useState<string | null>(null);
@@ -132,14 +132,14 @@ export default function VaelgPakke() {
         <div className="grid sm:grid-cols-3 gap-5 mb-10 items-stretch">
           {PAKKER.map((pakke) => {
             const erValgt = valgt === pakke.id;
-            const erMork = erValgt && pakke.id === "renovering";
+            const erMork = erValgt && pakke.id === "mellem";
             return (
               <button
                 key={pakke.id}
                 onClick={() => setValgt(pakke.id)}
                 className={`text-left rounded-2xl border-2 p-6 transition-all flex flex-col ${
                   erValgt
-                    ? pakke.id === "renovering"
+                    ? pakke.id === "mellem"
                       ? "border-[#1e3a2a] bg-[#1e3a2a] text-white"
                       : "border-[#1e3a2a] bg-white"
                     : "border-[#e0ddd6] bg-white hover:border-[#1e3a2a]/30"

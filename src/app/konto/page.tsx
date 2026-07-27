@@ -212,16 +212,18 @@ export default function MinSide() {
           const betaltProjekt = projekter.find(p => p.pakke_betalt);
           const pakkeNavne: Record<string, string> = {
             lille: "Mindre byggeprojekt",
-            renovering: "Mellemstort byggeprojekt",
-            totalrenovering: "Stort byggeprojekt",
+            mellem: "Mellemstort byggeprojekt", renovering: "Mellemstort byggeprojekt",
+            stor: "Stort byggeprojekt", totalrenovering: "Stort byggeprojekt",
           };
           const pakkeFeatures: Record<string, string[]> = {
             lille: ["Digitalt aftalegrundlag klar til underskrift", "Kopiérbar besked til håndværkeren", "Projektrum med dokumentarkiv", "Tjekliste over vigtige aftalepunkter", "Løbende rapporter"],
-            renovering: ["Alt fra Mindre byggeprojekt", "Ekstraarbejde-sedler med digital godkendelse", "Betalingsplan koblet til dokumenteret fremdrift", "Afleveringsflow med tjekliste", "Mangelregistrering med billeder og status", "Løbende rapporter"],
-            totalrenovering: ["Alt fra Mellemstort byggeprojekt", "Gratis online møde med byggesagkyndig (30 min.)", "Koordination på tværs af håndværkere", "Prioriteret support", "Ubegrænset dokumentopload"],
+            mellem: ["Alt fra Mindre byggeprojekt", "Ekstraarbejde-sedler med digital godkendelse", "Betalingsplan koblet til dokumenteret fremdrift", "Afleveringsflow med tjekliste", "Mangelregistrering med billeder og status", "Løbende rapporter"],
+            stor: ["Alt fra Mellemstort byggeprojekt", "Gratis online møde med byggesagkyndig (30 min.)", "Koordination på tværs af håndværkere", "Prioriteret support", "Ubegrænset dokumentopload"],
           };
-          const pakkeId = betaltProjekt?.pakke ?? "renovering";
-          const pakkePriser: Record<string, string> = { lille: "299", renovering: "2.499", totalrenovering: "4.999" };
+          pakkeFeatures["renovering"] = pakkeFeatures["mellem"];
+          pakkeFeatures["totalrenovering"] = pakkeFeatures["stor"];
+          const pakkeId = betaltProjekt?.pakke ?? "mellem";
+          const pakkePriser: Record<string, string> = { lille: "299", mellem: "2.499", stor: "4.999", renovering: "2.499", totalrenovering: "4.999" };
           return (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
               <div className="flex items-center justify-between mb-4">
