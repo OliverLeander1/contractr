@@ -10,7 +10,7 @@ function LoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextUrl = searchParams.get("next") || null;
-  const [mode, setMode] = useState<"login" | "opret">("opret");
+  const [mode, setMode] = useState<"login" | "opret">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [navn, setNavn] = useState("");
