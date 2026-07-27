@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase";
 
 const SCENARIER = [
   {
@@ -46,6 +48,17 @@ const RAADGIVER = {
 };
 
 export default function Tilkoeb() {
+  const [loggetInd, setLoggetInd] = useState(false);
+
+  useEffect(() => {
+    const tjek = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setLoggetInd(!!user);
+    };
+    tjek();
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#f5f3ee]">
       <nav className="bg-[#f5f3ee] border-b border-[#e0ddd6] px-6 py-4 sticky top-0 z-50">
@@ -142,8 +155,8 @@ export default function Tilkoeb() {
           </div>
         </div>
 
-        {/* Er du rådgiver? */}
-        <div className="bg-[#1e3a2a] rounded-2xl p-6 text-center">
+        {/* Er du rådgiver? — kun synlig for ikke-loggede */}
+        {!loggetInd && <div className="bg-[#1e3a2a] rounded-2xl p-6 text-center">
           <p className="text-green-200/60 text-xs uppercase tracking-widest mb-2">For rådgivere og byggesagkyndige</p>
           <h3 className="text-white font-bold text-lg mb-2">Er du byggesagkyndig eller rådgiver?</h3>
           <p className="text-green-200/70 text-sm mb-5 max-w-sm mx-auto leading-relaxed">
@@ -155,7 +168,7 @@ export default function Tilkoeb() {
           >
             Læs om rådgiverportalen →
           </Link>
-        </div>
+        </div>}
 
         {/* Tillidsmarkører */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
