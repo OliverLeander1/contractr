@@ -237,9 +237,36 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
           </button>
         )}
 
-        <p className="text-xs text-center text-gray-400 mt-4 leading-relaxed">
-          Har du spørgsmål til aftalegrundlaget? Kontakt bygherren direkte inden du godkender.
-        </p>
+        {!godkendt && (
+          <p className="text-xs text-center text-gray-400 mt-4 leading-relaxed">
+            Har du spørgsmål til aftalegrundlaget? Kontakt bygherren direkte inden du godkender.
+          </p>
+        )}
+
+        {/* CTA efter godkendelse */}
+        {godkendt && (
+          <div className="mt-6 bg-[#1e3a2a] rounded-2xl p-6 text-center">
+            <p className="text-green-200/60 text-xs uppercase tracking-widest mb-2">Næste skridt</p>
+            <h3 className="text-white font-bold text-lg mb-2">Opret en gratis konto som entreprenør</h3>
+            <p className="text-green-200/70 text-sm mb-5 max-w-sm mx-auto leading-relaxed">
+              Med en konto kan du modtage aftalesedler om ekstraarbejde, følge betalingsplan og tidsplan — og koordinere direkte med bygherren.
+            </p>
+            <a href={`/haandvaerker/opret-konto?email=${encodeURIComponent(kontrakt.haandvaerker_email ?? "")}&navn=${encodeURIComponent(kontrakt.haandvaerker_navn ?? "")}`}
+              className="inline-flex items-center gap-2 bg-white text-[#1e3a2a] text-sm font-bold px-6 py-3 rounded-xl hover:bg-[#f5f3ee] transition-colors">
+              Opret gratis konto →
+            </a>
+            <p className="text-green-200/40 text-xs mt-4">Tager under 2 minutter. Ingen betalingskort kræves.</p>
+          </div>
+        )}
+
+        {beggeGodkendt && (
+          <div className="mt-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
+            <p className="text-sm font-semibold text-gray-900 mb-1">Aftalen er bindende for begge parter</p>
+            <p className="text-xs text-gray-400 leading-relaxed max-w-sm mx-auto">
+              Begge parter har underskrevet digitalt. Dokumentationen er gemt og kan fremvises ved eventuel tvist.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Navn-modal */}
