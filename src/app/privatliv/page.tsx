@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 const sektioner = [
   {
     titel: "1. Dataansvarlig",
-    indhold: `Nembyggestyring er dataansvarlig for behandlingen af de personoplysninger, vi modtager om dig. Du kan kontakte os på hej@nembyggestyring.dk.`,
+    indhold: `Nembyggestyring er dataansvarlig for behandlingen af de personoplysninger, vi modtager om dig. Du kan kontakte os på team@nembyggestyring.dk.`,
   },
   {
     titel: "2. Hvilke oplysninger indsamler vi?",
@@ -41,7 +41,7 @@ const sektioner = [
   },
   {
     titel: "9. Ændringer til denne politik",
-    indhold: `Vi opdaterer løbende denne privatlivspolitik. Ved væsentlige ændringer giver vi dig besked via e-mail eller en synlig besked på platformen. Senest opdateret: juni 2025.`,
+    indhold: `Vi opdaterer løbende denne privatlivspolitik. Ved væsentlige ændringer giver vi dig besked via e-mail eller en synlig besked på platformen. Senest opdateret: juli 2026.`,
   },
 ];
 
@@ -60,7 +60,7 @@ export default function Privatliv() {
       <div className="max-w-3xl mx-auto px-6 py-16">
         <div className="mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-3">Privatlivspolitik</h1>
-          <p className="text-gray-500">Senest opdateret: juni 2025 · Vi respekterer dit privatliv og behandler dine data ansvarligt.</p>
+          <p className="text-gray-500">Senest opdateret: juli 2026 · Vi respekterer dit privatliv og behandler dine data ansvarligt.</p>
         </div>
 
         <div className="space-y-8">
@@ -74,7 +74,7 @@ export default function Privatliv() {
 
         <div className="mt-10 bg-primary/5 border border-primary/20 rounded-2xl p-6">
           <h2 className="text-sm font-bold text-gray-900 mb-2">Spørgsmål om dine data?</h2>
-          <p className="text-sm text-gray-600 mb-4">Kontakt os på <a href="mailto:hej@nembyggestyring.dk" className="text-primary font-medium hover:underline">hej@nembyggestyring.dk</a> - vi svarer inden for 2 arbejdsdage.</p>
+          <p className="text-sm text-gray-600 mb-4">Kontakt os på <a href="mailto:team@nembyggestyring.dk" className="text-primary font-medium hover:underline">team@nembyggestyring.dk</a> - vi svarer inden for 2 arbejdsdage.</p>
           <Link href="/kontakt" className="inline-block text-sm font-semibold text-primary hover:underline">Gå til kontaktside →</Link>
         </div>
       </div>
