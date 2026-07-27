@@ -211,7 +211,7 @@ function LoginInner() {
         <Link href="/" className="logo mb-8 block lg:hidden">nembyggestyring</Link>
 
         {/* Mobil headline med roterende ord */}
-        <div className="block lg:hidden text-center mb-8">
+        <div className="block lg:hidden mb-8">
           <p className="text-xl font-bold text-[#111816] leading-snug">
             Hold øje med{" "}
             <span
