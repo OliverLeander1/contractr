@@ -1,5 +1,6 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
+import SimpleNav from "@/components/SimpleNav";
 
 export const metadata: Metadata = {
   title: "Det gode byggeprojekt: Kommunikation og aftaler der holder | Nembyggestyring",
@@ -17,17 +18,7 @@ export default function DetGodeByggeprojekt() {
   return (
     <div className="min-h-screen bg-white">
 
-      {/* Header */}
-      <header className="px-6 py-4 border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-50">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="logo">nembyggestyring</span>
-          </Link>
-          <Link href="/opret/upload" className="text-sm font-semibold bg-[#1e3a2a] text-white px-5 py-2.5 rounded-lg hover:bg-[#163f28] transition-colors">
-            Tjek dit tilbud gratis →
-          </Link>
-        </div>
-      </header>
+      <SimpleNav tilbage="/" tilbageLabel="Forsiden" />
 
       {/* Hero */}
       <div className="bg-[#f8faf9] border-b border-gray-100">

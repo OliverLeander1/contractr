@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import SimpleNav from "@/components/SimpleNav";
 
 const ydelser = [
   { id: "ai-tilbud", label: "Er tilbuddet fair?", pris: "995 kr.", varighed: "AI-analyse, svar inden 24 timer" },
@@ -41,14 +42,7 @@ export default function BookRådgiver() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="logo">nembyggestyring</span>
-          </Link>
-          <Link href="/tilkoeb" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Alle ydelser</Link>
-        </div>
-      </nav>
+      <SimpleNav tilbage="/tilkoeb" tilbageLabel="Alle ydelser" />
 
       <div className="max-w-5xl mx-auto px-6 py-10">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Book rådgiver</h1>

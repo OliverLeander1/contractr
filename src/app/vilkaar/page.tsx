@@ -1,4 +1,5 @@
 ﻿import Link from "next/link";
+import SimpleNav from "@/components/SimpleNav";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -48,14 +49,7 @@ const sektioner = [
 export default function Vilkaar() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="logo">nembyggestyring</span>
-          </Link>
-          <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Tilbage til forsiden</Link>
-        </div>
-      </nav>
+      <SimpleNav tilbage="/" tilbageLabel="Forsiden" />
 
       <div className="max-w-3xl mx-auto px-6 py-16">
         <div className="mb-12">

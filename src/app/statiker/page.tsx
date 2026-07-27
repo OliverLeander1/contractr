@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import SimpleNav from "@/components/SimpleNav";
 
 const eksempler = [
   { spørgsmål: "Jeg vil fjerne en væg mellem stue og køkken", svar: "høj", tekst: "Bærende vægge kræver altid statiker og ingeniørberegninger inden nedrivning." },
@@ -28,14 +29,7 @@ export default function StatikerVurdering() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="logo">nembyggestyring</span>
-          </Link>
-          <Link href="/tilkoeb" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Alle ydelser</Link>
-        </div>
-      </nav>
+      <SimpleNav tilbage="/" tilbageLabel="Forsiden" />
 
       {/* Hero */}
       <div className="bg-[#111c17] text-white">

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import SimpleNav from "@/components/SimpleNav";
 
 export default function IgangFlow() {
   const router = useRouter();
@@ -70,14 +71,7 @@ export default function IgangFlow() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-100 px-6 py-4">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link href="/" className="logo">nembyggestyring</Link>
-          <button onClick={() => router.back()} className="text-sm text-gray-400 hover:text-gray-600">
-            ← Tilbage
-          </button>
-        </div>
-      </nav>
+      <SimpleNav tilbage="/opret" tilbageLabel="Opret projekt" />
 
       <main className="max-w-2xl mx-auto px-6 py-12">
 

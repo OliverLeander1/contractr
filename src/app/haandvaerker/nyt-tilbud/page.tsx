@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import SimpleNav from "@/components/SimpleNav";
 
 interface Post {
   id: string;
@@ -120,20 +121,7 @@ export default function NytTilbud() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <nav className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Link href="/" className="flex items-center gap-2.5">
-              <span className="logo">nembyggestyring</span>
-            </Link>
-            <span className="text-xs bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded ml-1">Håndværker</span>
-          </div>
-          <Link href="/haandvaerker/sager" className="text-sm text-gray-400 hover:text-gray-700 transition-colors">
-            ← Mine sager
-          </Link>
-        </div>
-      </nav>
+      <SimpleNav tilbage="/haandvaerker/sager" tilbageLabel="Mine sager" />
 
       <div className="max-w-2xl mx-auto px-6 py-10">
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import SimpleNav from "@/components/SimpleNav";
 import { createClient } from "@/lib/supabase";
 
 const PAKKER = [
@@ -109,14 +110,7 @@ export default function VaelgPakke() {
 
   return (
     <div className="min-h-screen bg-[#f5f3ee]">
-      <nav className="bg-[#f5f3ee] border-b border-[#e0ddd6] px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex-shrink-0">
-            <span className="logo">nembyggestyring</span>
-          </Link>
-          <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Tilbage</Link>
-        </div>
-      </nav>
+      <SimpleNav tilbage="/dashboard" tilbageLabel="Mit overblik" />
 
       <div className="max-w-5xl mx-auto px-6 py-12">
 

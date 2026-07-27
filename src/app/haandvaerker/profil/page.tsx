@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import SimpleNav from "@/components/SimpleNav";
 
 interface Haandvaerker {
   navn?: string;
@@ -70,17 +71,7 @@ export default function HaandvaerkerProfil() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link href="/haandvaerker/sager" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
-            Mine sager
-          </Link>
-          <div className="flex items-center gap-2.5">
-            <span className="logo">nembyggestyring</span>
-          </div>
-        </div>
-      </nav>
+      <SimpleNav tilbage="/haandvaerker/sager" tilbageLabel="Mine sager" />
 
       <div className="max-w-3xl mx-auto px-6 py-10">
 
