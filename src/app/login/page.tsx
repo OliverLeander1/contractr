@@ -166,7 +166,7 @@ function LoginInner() {
             >
               {roterende[rotIdx]}
             </span>
-            <br />så du altid er et skridt foran.
+            <br />og undgå dyre overraskelser.
           </h1>
           <p className="text-white/60 text-base leading-relaxed mb-10 max-w-sm">
             Den gode byggesag starter altid med et godt aftalegrundlag. Det hjælper vi med.
