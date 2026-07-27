@@ -18,7 +18,7 @@ export async function GET(
 
   const { data, error } = await db
     .from("kontrakter")
-    .select("id, haandvaerker_email, haandvaerker_navn, fag, status")
+    .select("id, haandvaerker_email, haandvaerker_navn, status")
     .eq("projekt_id", id)
     .in("status", GODKENDTE_STATUSSER);
 

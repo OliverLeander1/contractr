@@ -43,7 +43,6 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
     id: string;
     haandvaerker_email: string;
     haandvaerker_navn: string | null;
-    fag: string | null;
     status: string;
   }
 
@@ -209,7 +208,6 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-gray-900">{k.haandvaerker_navn ?? k.haandvaerker_email}</p>
-                          {k.fag && <p className="text-xs text-gray-400">{k.fag}</p>}
                         </div>
                         {valgteHaandvaerker?.id === k.id && (
                           <svg className="ml-auto flex-shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -226,7 +224,6 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                   <span className="text-xs text-gray-500">Sendes til</span>
                   <span className="text-xs font-semibold text-gray-800">{valgteHaandvaerker.haandvaerker_navn ?? valgteHaandvaerker.haandvaerker_email}</span>
-                  {valgteHaandvaerker.fag && <span className="text-xs text-gray-400">· {valgteHaandvaerker.fag}</span>}
                 </div>
               )}
 
