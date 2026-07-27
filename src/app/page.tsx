@@ -89,7 +89,7 @@ export default function Forside() {
               </div>
 
               {/* Højre: Kontrakt-mockup */}
-              <div className="relative hidden md:block">
+              <div className="relative">
                 <div className="bg-white rounded-2xl border border-[#e0ddd6] shadow-xl overflow-hidden max-w-sm ml-auto">
 
                   {/* Dokument-header */}

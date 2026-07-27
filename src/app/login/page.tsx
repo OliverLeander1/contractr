@@ -210,6 +210,25 @@ function LoginInner() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <Link href="/" className="logo mb-8 block lg:hidden">nembyggestyring</Link>
 
+        {/* Mobil headline med roterende ord */}
+        <div className="block lg:hidden text-center mb-8">
+          <p className="text-xl font-bold text-[#111816] leading-snug">
+            Hold øje med{" "}
+            <span
+              style={{
+                display: "inline-block",
+                opacity: fade ? 1 : 0,
+                transform: fade ? "translateY(0)" : "translateY(6px)",
+                transition: "opacity 0.3s ease, transform 0.3s ease",
+                color: "#1e3a2a",
+              }}
+            >
+              {roterende[rotIdx]}
+            </span>
+            <br />og undgå dyre overraskelser.
+          </p>
+        </div>
+
         <div className="w-full max-w-sm">
           {/* Tab-toggle */}
           <div className="flex bg-white border border-gray-100 shadow-sm rounded-xl p-1 mb-8">
