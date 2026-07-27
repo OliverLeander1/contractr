@@ -24,8 +24,8 @@ export async function POST(req: NextRequest) {
         price_data: {
           currency: "dkk",
           product_data: {
-            name: `Contractr — ${valgtPakke.navn}`,
-            description: "Livstidsadgang til projektrum med AB-Forbruger 2012 som grundlag",
+            name: `Nembyggestyring — ${valgtPakke.navn}`,
+            description: "Digitalt projektrum med aftalegrundlag og løbende rapporter",
           },
           unit_amount: valgtPakke.beloeb,
         },
