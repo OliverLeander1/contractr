@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { UploadAnimation, ScanAnimation, AdvisorAnimation, ProjectAnimation } from "@/components/BenefitAnimation";
+import ForsideHero from "@/components/ForsideHero";
 
 export const metadata: Metadata = {
   title: "Nembyggestyring - Hele byggeprojektet samlet ét sted",
@@ -28,18 +29,7 @@ export default function Forside() {
             <span className="logo">nembyggestyring</span>
           </Link>
 
-          <div className="hidden sm:flex flex-1 justify-center">
-            <div className="inline-flex items-center bg-white/70 rounded-xl p-1 gap-1 border border-[#e0ddd6]">
-              <Link href="/" className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#1e3a2a] text-white text-xs font-semibold shadow-sm">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                Bygherre
-              </Link>
-              <Link href="/entreprenoer" className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-white text-xs font-medium transition-all">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-                Entreprenør
-              </Link>
-            </div>
-          </div>
+          <div className="hidden sm:flex flex-1" />
 
           <div className="flex items-center gap-3 flex-shrink-0">
             <Link href="/login" className="text-sm font-semibold text-[#1e3a2a] border border-[#1e3a2a]/30 px-4 py-2 rounded-lg hover:bg-[#1e3a2a]/5 transition-colors whitespace-nowrap">
@@ -52,128 +42,9 @@ export default function Forside() {
       <main className="flex-1">
 
         {/* Hero */}
-        <section className="px-4 sm:px-6 py-16 sm:py-24 md:py-32">
+        <section className="px-4 sm:px-6 py-16 sm:py-24">
           <div className="max-w-5xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
-
-              {/* Venstre: Tekst */}
-              <div>
-                <span className="inline-flex items-center gap-2 bg-[#1e3a2a]/8 text-[#1e3a2a] text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
-                  <span className="w-1.5 h-1.5 bg-[#1e3a2a] rounded-full animate-pulse" />
-                  Hele byggesagen samlet ét sted
-                </span>
-                <h1 className="text-4xl sm:text-5xl font-bold text-[#111816] leading-[1.08] tracking-tight mb-5">
-                  Styr hele<br />byggeprojektet.<br />
-                  <span className="text-[#1e3a2a]">Fra start til aflevering.</span>
-                </h1>
-                <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8 max-w-md">
-                  Opret dit projekt, beskriv hvad du vil bygge, og inviter entreprenøren direkte. Alt, kontrakt, aftaler, ekstraarbejde og betalinger, samlet ét sted.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 mb-8">
-                  <Link href="/opret" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#1e3a2a] text-white font-bold rounded-xl hover:bg-[#162d20] transition-colors text-base shadow-sm">
-                    Opret dit projekt gratis
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                  </Link>
-                  <Link href="/opret/upload" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-base border border-[#e0ddd6]">
-                    Tjek dit tilbud
-                  </Link>
-                </div>
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500">
-                  {["Ingen konto krævet for at starte", "Gratis tilbudstjek", "AB-Forbruger 2012 som standard"].map((s) => (
-                    <span key={s} className="flex items-center gap-1.5">
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Højre: Kontrakt-mockup */}
-              <div className="relative">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest text-center mb-3">Eksempel på aftalegrundlag</p>
-                <div className="bg-white rounded-2xl border border-[#e0ddd6] shadow-xl overflow-hidden max-w-sm ml-auto">
-
-                  {/* Dokument-header */}
-                  <div className="bg-[#1e3a2a] px-5 py-4 flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] text-green-300/70 uppercase tracking-widest mb-0.5">Aftalegrundlag</p>
-                      <p className="text-sm font-bold text-white">Badeværelse · Valby</p>
-                    </div>
-                    <span className="bg-green-400/20 text-green-300 text-[10px] font-bold px-2.5 py-1 rounded-full">Klar til underskrift</span>
-                  </div>
-
-                  {/* Parter */}
-                  <div className="px-5 pt-4 pb-3 border-b border-[#f0ede8]">
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Parter</p>
-                    <div className="flex gap-3">
-                      <div className="flex-1 bg-[#f5f3ee] rounded-lg px-3 py-2">
-                        <p className="text-[9px] text-gray-400 mb-0.5">Bygherre</p>
-                        <p className="text-xs font-semibold text-gray-800">Mette Hansen</p>
-                        <p className="text-[10px] text-gray-400">Roskildevej 42, Valby</p>
-                      </div>
-                      <div className="flex-1 bg-[#f5f3ee] rounded-lg px-3 py-2">
-                        <p className="text-[9px] text-gray-400 mb-0.5">Entreprenør</p>
-                        <p className="text-xs font-semibold text-gray-800">TM Byg ApS</p>
-                        <p className="text-[10px] text-gray-400">CVR 34 56 78 90</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Nøglepunkter */}
-                  <div className="px-5 py-3 border-b border-[#f0ede8] space-y-2">
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Aftalepunkter</p>
-                    {[
-                      { label: "Fast pris", value: "87.500 kr. inkl. moms" },
-                      { label: "Opstart", value: "4. august 2025" },
-                      { label: "Aflevering", value: "29. august 2025" },
-                      { label: "Aftalegrundlag", value: "AB-Forbruger 2012" },
-                    ].map(p => (
-                      <div key={p.label} className="flex items-center justify-between">
-                        <span className="text-[10px] text-gray-500">{p.label}</span>
-                        <span className="text-[10px] font-semibold text-gray-800">{p.value}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Betalingsplan */}
-                  <div className="px-5 py-3 border-b border-[#f0ede8]">
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Betalingsplan</p>
-                    {[
-                      { milepæl: "Opstart", pct: "30%", beløb: "26.250 kr.", ok: true },
-                      { milepæl: "Halvvejs", pct: "40%", beløb: "35.000 kr.", ok: false },
-                      { milepæl: "Aflevering", pct: "30%", beløb: "26.250 kr.", ok: false },
-                    ].map(b => (
-                      <div key={b.milepæl} className="flex items-center gap-2 mb-1.5">
-                        <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 ${b.ok ? "bg-[#1e3a2a]" : "border border-gray-200"}`}>
-                          {b.ok && <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg>}
-                        </div>
-                        <span className="text-[10px] text-gray-600 flex-1">{b.milepæl}</span>
-                        <span className="text-[10px] text-gray-400">{b.pct}</span>
-                        <span className="text-[10px] font-semibold text-gray-700">{b.beløb}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Underskrift */}
-                  <div className="px-5 py-3 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                      </div>
-                      <p className="text-[10px] text-gray-500">Mette Hansen · underskrevet</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                      </div>
-                      <p className="text-[10px] text-gray-500">TM Byg · afventer</p>
-                    </div>
-                  </div>
-
-                </div>
-                <div className="absolute -z-10 -bottom-6 -right-6 w-full h-full bg-[#1e3a2a]/6 rounded-2xl" />
-              </div>
-            </div>
+            <ForsideHero />
           </div>
         </section>
 
