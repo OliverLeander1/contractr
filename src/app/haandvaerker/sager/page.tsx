@@ -7,12 +7,12 @@ import { createClient } from "@/lib/supabase";
 interface Kontrakt {
   id: string;
   projekt_id: string;
-  projekt_titel: string;
-  bygherre_navn: string | null;
+  titel: string | null;
+  haandvaerker_navn: string | null;
   total_pris: number | null;
   status: string;
   oprettet_at: string;
-  accepteret_at: string | null;
+  haandvaerker_godkendt_at: string | null;
 }
 
 const fmtKr = (n: number) =>
@@ -34,11 +34,9 @@ export default function HaandvaerkerSager() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setIndlæser(false); return; }
 
-    const [{ data: profil }, { data: k }] = await Promise.all([
+    const [{ data: profil }, sagerRes] = await Promise.all([
       supabase.from("profiler").select("navn,firma").eq("id", user.id).maybeSingle(),
-      supabase.from("kontrakter").select("id,projekt_id,projekt_titel,bygherre_navn,total_pris,status,oprettet_at,accepteret_at")
-        .ilike("haandvaerker_email", user.email ?? "")
-        .order("oprettet_at", { ascending: false }),
+      fetch(`/api/haandvaerker/sager?email=${encodeURIComponent(user.email ?? "")}`).then(r => r.json()),
     ]);
 
     if (profil) {
@@ -47,7 +45,7 @@ export default function HaandvaerkerSager() {
       setFirma(profil.firma || "");
       setInitials(n ? n.split(" ").map((x: string) => x[0]).join("").toUpperCase().slice(0, 2) : "E");
     }
-    setKontrakter(k || []);
+    setKontrakter(Array.isArray(sagerRes) ? sagerRes : []);
     setIndlæser(false);
   }, []);
 
@@ -140,7 +138,7 @@ export default function HaandvaerkerSager() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <h3 className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors truncate">
-                              {k.projekt_titel || "Projekt"}
+                              {k.titel || "Projekt"}
                             </h3>
                             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                               k.status === "accepteret" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
@@ -148,7 +146,7 @@ export default function HaandvaerkerSager() {
                               {k.status === "accepteret" ? "Accepteret" : "Afventer"}
                             </span>
                           </div>
-                          {k.bygherre_navn && <p className="text-sm text-gray-500 mb-2">{k.bygherre_navn}</p>}
+                          {k.haandvaerker_navn && <p className="text-sm text-gray-500 mb-2">{k.haandvaerker_navn}</p>}
                           <p className="text-xs text-gray-400">Sendt {fmtDato(k.oprettet_at)}</p>
                         </div>
                         <div className="text-right flex-shrink-0">
@@ -171,10 +169,10 @@ export default function HaandvaerkerSager() {
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-gray-900">{k.projekt_titel || "Projekt"}</h3>
+                            <h3 className="font-semibold text-gray-900">{k.titel || "Projekt"}</h3>
                             <span className="bg-gray-100 text-gray-500 text-xs font-semibold px-2 py-0.5 rounded-full">Afsluttet</span>
                           </div>
-                          {k.bygherre_navn && <p className="text-sm text-gray-400">{k.bygherre_navn}</p>}
+                          {k.haandvaerker_navn && <p className="text-sm text-gray-400">{k.haandvaerker_navn}</p>}
                         </div>
                         <p className="text-sm font-bold text-gray-900">{k.total_pris ? fmtKr(k.total_pris) : "—"}</p>
                       </div>
