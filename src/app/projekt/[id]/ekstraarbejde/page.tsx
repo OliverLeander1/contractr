@@ -78,16 +78,12 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
 
   const hentData = useCallback(async () => {
     setIndlæser(true);
-    const [{ data: k }, { data: e }] = await Promise.all([
-      supabase.from("kontrakter")
-        .select("id, haandvaerker_email, haandvaerker_navn, fag, status")
-        .eq("projekt_id", id)
-        .in("status", ["godkendt", "accepteret", "aktiv", "begge_godkendt", "haandvaerker_godkendt", "bygherre_godkendt"]),
+    const [kRes, { data: e }] = await Promise.all([
+      fetch(`/api/projekter/${id}/kontrakter`).then(r => r.json()),
       supabase.from("ekstraarbejde").select("*").eq("projekt_id", id).order("oprettet_at", { ascending: false }),
     ]);
-    const godkendteKontrakter = (k || []) as Kontrakt[];
+    const godkendteKontrakter = (Array.isArray(kRes) ? kRes : []) as Kontrakt[];
     setKontrakter(godkendteKontrakter);
-    // Én kontrakt: forvælg den automatisk
     if (godkendteKontrakter.length === 1) setValgteHaandvaerker(godkendteKontrakter[0]);
     setSedler((e || []) as Sedel[]);
     setIndlæser(false);
@@ -165,10 +161,10 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
 
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Ekstraarbejde</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Aftalesedler</h1>
             <p className="text-sm text-gray-400 mt-1">
               {afventerAntal > 0 ? `${afventerAntal} afventer din godkendelse · ` : ""}
-              {godkendtTotal > 0 ? `${fmtKr(godkendtTotal)} godkendt i alt` : "Ingen godkendte tillægsaftaler endnu"}
+              {godkendtTotal > 0 ? `${fmtKr(godkendtTotal)} godkendt i alt` : "Ingen aftalesedler endnu"}
             </p>
           </div>
           {!erHaandvaerker && kontrakter.length > 0 && (
