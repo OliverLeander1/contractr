@@ -22,6 +22,6 @@ export async function GET(
     .eq("projekt_id", id)
     .in("status", GODKENDTE_STATUSSER);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ debug_error: error.message, debug_code: error.code }, { status: 500 });
   return NextResponse.json(data ?? []);
 }

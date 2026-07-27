@@ -82,6 +82,9 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
       fetch(`/api/projekter/${id}/kontrakter`).then(r => r.json()),
       supabase.from("ekstraarbejde").select("*").eq("projekt_id", id).order("oprettet_at", { ascending: false }),
     ]);
+    if (!Array.isArray(kontraktRes)) {
+      console.error("API fejl fra /kontrakter:", JSON.stringify(kontraktRes));
+    }
     const godkendteKontrakter = (Array.isArray(kontraktRes) ? kontraktRes : []) as Kontrakt[];
     setKontrakter(godkendteKontrakter);
     if (godkendteKontrakter.length === 1) setValgteHaandvaerker(godkendteKontrakter[0]);
