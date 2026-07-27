@@ -2,559 +2,425 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase";
 
-interface TilbudsPost {
+type Fane = "aftale" | "tidsplan" | "sedler" | "mangler";
+
+interface Kontrakt {
   id: string;
-  beskrivelse: string;
-  enhed: string;
-  pris: string;
+  projekt_id: string;
+  titel: string | null;
+  beskrivelse: string | null;
+  total_pris: number | null;
+  status: string;
+  haandvaerker_navn: string | null;
+  haandvaerker_email: string;
+  haandvaerker_token: string | null;
+  startdato: string | null;
+  slutdato: string | null;
+  betalingsplan: { milepæl: string; andel: string }[] | null;
+  tidsplan: Record<string, unknown> | null;
+  oprettet_at: string;
+  haandvaerker_godkendt_at: string | null;
+  bygherre_godkendt_at: string | null;
 }
 
-interface Fase {
+interface Sedel {
   id: string;
-  navn: string;
   beskrivelse: string;
-  posterIds: string[];
-  status: "ikke-startet" | "igang" | "done" | "godkendt";
+  status: string;
+  haandvaerker_pris: number | null;
+  haandvaerker_pris_type: string | null;
+  haandvaerker_tidsdage: number | null;
+  haandvaerker_besked: string | null;
+  haandvaerker_udfyldt_at: string | null;
+  bygherre_godkendt_at: string | null;
+  oprettet_at: string;
 }
 
-interface Sag {
+interface Mangel {
   id: string;
-  titel: string;
-  resumé: string;
-  bygherreNavn?: string;
-  bygherreKontakt?: string;
-  total: number;
-  tilbudsposter: TilbudsPost[];
-  sendtDato: string;
-  status: "afventer" | "accepteret" | "afsluttet";
-  tilbudsLink: string;
-  faser?: Fase[];
+  beskrivelse: string;
+  alvorlighed: string | null;
+  status: string;
+  oprettet_at: string;
+  billeder: string[] | null;
 }
 
 const fmtKr = (n: number) =>
-  n.toLocaleString("da-DK", { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + " kr.";
+  new Intl.NumberFormat("da-DK", { style: "currency", currency: "DKK", maximumFractionDigits: 0 }).format(n);
 const fmtDato = (iso: string) =>
   new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" });
 
+const statusLabel: Record<string, { label: string; klasse: string }> = {
+  sendt:               { label: "Afventer dit svar",    klasse: "bg-amber-100 text-amber-700" },
+  haandvaerker_udfyldt:{ label: "Afventer bygherre",    klasse: "bg-blue-100 text-blue-700" },
+  godkendt:            { label: "Godkendt",             klasse: "bg-green-100 text-green-700" },
+  afvist:              { label: "Afvist",               klasse: "bg-red-100 text-red-700" },
+};
+
+const mangelStatus: Record<string, { label: string; klasse: string }> = {
+  registreret: { label: "Registreret",  klasse: "bg-amber-100 text-amber-700" },
+  sendt:       { label: "Sendt",        klasse: "bg-blue-100 text-blue-700" },
+  udbedret:    { label: "Udbedret",     klasse: "bg-green-100 text-green-700" },
+  afvist:      { label: "Afvist",       klasse: "bg-red-100 text-red-700" },
+};
+
 export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [sag, setSag] = useState<Sag | null>(null);
+  const [fane, setFane] = useState<Fane>("aftale");
+  const [kontrakt, setKontrakt] = useState<Kontrakt | null>(null);
+  const [sedler, setSedler] = useState<Sedel[]>([]);
+  const [mangler, setMangler] = useState<Mangel[]>([]);
+  const [indlæser, setIndlæser] = useState(true);
+  const [fejl, setFejl] = useState("");
   const [navn, setNavn] = useState("");
-  const [firma, setFirma] = useState("");
-  const [aktivTab, setAktivTab] = useState("tilbud");
-  const [linkKopieret, setLinkKopieret] = useState(false);
+  const [initials, setInitials] = useState("H");
 
-  // Fase-oprettelse
-  const [visFaseForm, setVisFaseForm] = useState(false);
-  const [faseNavn, setFaseNavn] = useState("");
-  const [faseBeskrivelse, setFaseBeskrivelse] = useState("");
-  const [fasePosterIds, setFasePosterIds] = useState<string[]>([]);
+  // Svar på aftaleseddel
+  const [åbnSedel, setÅbnSedel] = useState<Sedel | null>(null);
+  const [svarPris, setSvarPris] = useState("");
+  const [svarPrisType, setSvarPrisType] = useState<"fast" | "overslag">("fast");
+  const [svarDage, setSvarDage] = useState("");
+  const [svarBesked, setSvarBesked] = useState("");
+  const [gemmer, setGemmer] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("contractr_haandvaerker_sager");
-      if (raw) {
-        const sager: Sag[] = JSON.parse(raw);
-        const fundet = sager.find(s => s.id === id);
-        if (fundet) setSag(fundet);
-      }
-      setNavn(localStorage.getItem("contractr_haandvaerker_navn") || "");
-      setFirma(localStorage.getItem("contractr_haandvaerker_firma") || "");
-    } catch { /* ignore */ }
+    const supabase = createClient();
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user?.email) { setFejl("Du er ikke logget ind."); setIndlæser(false); return; }
+
+      const { data: profil } = await supabase.from("profiler").select("navn").eq("id", user.id).maybeSingle();
+      const n = profil?.navn || user.email.split("@")[0];
+      setNavn(n);
+      setInitials(n.split(" ").map((x: string) => x[0]).join("").toUpperCase().slice(0, 2) || "H");
+
+      const res = await fetch(`/api/haandvaerker/projekt/${id}?email=${encodeURIComponent(user.email)}`);
+      const data = await res.json();
+      if (data.error) { setFejl(data.error); setIndlæser(false); return; }
+      setKontrakt(data.kontrakt);
+      setSedler(data.sedler);
+      setMangler(data.mangler);
+      setIndlæser(false);
+    });
   }, [id]);
 
-  function gemSag(opdateret: Sag) {
-    try {
-      const raw = localStorage.getItem("contractr_haandvaerker_sager");
-      const sager: Sag[] = raw ? JSON.parse(raw) : [];
-      const opdateret_sager = sager.map(s => s.id === opdateret.id ? opdateret : s);
-      localStorage.setItem("contractr_haandvaerker_sager", JSON.stringify(opdateret_sager));
-      setSag(opdateret);
-    } catch { /* ignore */ }
+  async function svarPåSeddel() {
+    if (!åbnSedel || gemmer) return;
+    setGemmer(true);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    await fetch(`/api/ekstraarbejde/${åbnSedel.id}/svar`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        haandvaerker_pris: svarPris ? parseFloat(svarPris) : null,
+        haandvaerker_pris_type: svarPrisType,
+        haandvaerker_tidsdage: svarDage ? parseInt(svarDage) : null,
+        haandvaerker_besked: svarBesked,
+        haandvaerker_navn: navn,
+        haandvaerker_email: user?.email,
+      }),
+    });
+    const res = await fetch(`/api/haandvaerker/projekt/${id}?email=${encodeURIComponent(user?.email ?? "")}`);
+    const data = await res.json();
+    setSedler(data.sedler);
+    setÅbnSedel(null);
+    setGemmer(false);
   }
 
-  function opretFase() {
-    if (!sag || !faseNavn.trim()) return;
-    const nyFase: Fase = {
-      id: String(Date.now()),
-      navn: faseNavn.trim(),
-      beskrivelse: faseBeskrivelse.trim(),
-      posterIds: fasePosterIds,
-      status: "ikke-startet",
-    };
-    const opdateret = { ...sag, faser: [...(sag.faser || []), nyFase] };
-    gemSag(opdateret);
-    setFaseNavn(""); setFaseBeskrivelse(""); setFasePosterIds([]);
-    setVisFaseForm(false);
-  }
-
-  function opdaterFaseStatus(faseId: string, status: Fase["status"]) {
-    if (!sag) return;
-    const opdateret = {
-      ...sag,
-      faser: (sag.faser || []).map(f => f.id === faseId ? { ...f, status } : f),
-    };
-    gemSag(opdateret);
-  }
-
-  function sletFase(faseId: string) {
-    if (!sag) return;
-    gemSag({ ...sag, faser: (sag.faser || []).filter(f => f.id !== faseId) });
-  }
-
-  function togglePosterId(pid: string) {
-    setFasePosterIds(prev =>
-      prev.includes(pid) ? prev.filter(p => p !== pid) : [...prev, pid]
-    );
-  }
-
-  const initials = navn
-    ? navn.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
-    : "H";
-
-  if (!sag) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-      <div className="text-center">
-        <p className="text-gray-500 text-sm mb-4">Sag ikke fundet.</p>
-        <Link href="/haandvaerker/sager" className="text-[#1e3a2a] font-semibold text-sm hover:underline">
-          ← Tilbage til mine sager
-        </Link>
-      </div>
+  if (indlæser) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-gray-300 border-t-[#1e3a2a] rounded-full animate-spin" />
     </div>
   );
 
-  const faser = sag.faser || [];
-  const tabs = sag.status === "accepteret"
-    ? [{ id: "tilbud", label: "Tilbud" }, { id: "faser", label: `Faser & fakturering${faser.length > 0 ? ` (${faser.length})` : ""}` }]
-    : [{ id: "tilbud", label: "Tilbud" }];
+  if (fejl || !kontrakt) return (
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 text-center px-6">
+      <p className="text-gray-500">{fejl || "Projekt ikke fundet."}</p>
+      <Link href="/haandvaerker/sager" className="text-sm text-[#1e3a2a] font-semibold underline">Tilbage til mine sager</Link>
+    </div>
+  );
 
-  const genveje = sag.status === "accepteret" ? [
-    { href: `/haandvaerker/projekt/${id}/ekstraarbejde`, label: "Ekstraarbejde", ikon: "📋" },
-    { href: `/haandvaerker/projekt/${id}/kontrakt`, label: "Kontrakt", ikon: "📄" },
-    { href: `/haandvaerker/projekt/${id}/tidsplan`, label: "Tidsplan", ikon: "📅" },
-  ] : [];
+  const tidsplan = kontrakt.tidsplan as { type?: string; faser?: { navn: string; startdato: string; slutdato: string }[]; godkendt_af_bygherre?: boolean } | null;
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <nav className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#1e3a2a] rounded-lg flex items-center justify-center">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                  <polyline points="9 22 9 12 15 12 15 22"/>
-                </svg>
-              </div>
-              <span style={{fontFamily:"var(--font-logo)",fontWeight:200,letterSpacing:"2px"}} className="text-gray-900">contractr</span>
-            </Link>
-            <span className="ml-1 text-xs bg-gray-100 text-gray-500 font-medium px-2 py-0.5 rounded">Håndværker</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/haandvaerker/sager" className="text-sm text-gray-400 hover:text-gray-700 transition-colors">
-              ← Mine sager
-            </Link>
-            <div className="w-8 h-8 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center text-[#1e3a2a] font-semibold text-sm">
-              {initials}
-            </div>
+      <header className="bg-white border-b border-gray-100 px-6 py-3.5 sticky top-0 z-50">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
+          <Link href="/haandvaerker/sager" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Mine sager
+          </Link>
+          <div className="w-8 h-8 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center text-[#1e3a2a] font-semibold text-sm flex-shrink-0">
+            {initials}
           </div>
         </div>
-      </nav>
+      </header>
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        {/* Projekt-titel */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">{kontrakt.titel || "Projekt"}</h1>
+          <div className="flex items-center gap-3 mt-1 flex-wrap">
+            {kontrakt.total_pris && <span className="text-sm text-gray-500">{fmtKr(kontrakt.total_pris)}</span>}
+            {kontrakt.startdato && <span className="text-sm text-gray-400">· Opstart {fmtDato(kontrakt.startdato)}</span>}
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+              kontrakt.status === "begge_godkendt" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+            }`}>
+              {kontrakt.status === "begge_godkendt" ? "Aftale indgået" : "Afventer"}
+            </span>
+          </div>
+        </div>
 
-        {/* Projektheader */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <h1 className="text-xl font-bold text-gray-900">{sag.titel}</h1>
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                  sag.status === "accepteret" ? "bg-green-100 text-green-700" :
-                  sag.status === "afsluttet" ? "bg-gray-100 text-gray-500" :
-                  "bg-amber-100 text-amber-700"
-                }`}>
-                  {sag.status === "accepteret" ? "Accepteret" : sag.status === "afsluttet" ? "Afsluttet" : "Afventer svar"}
-                </span>
-              </div>
-              {sag.bygherreNavn && (
-                <p className="text-sm text-gray-500">
-                  Bygherre: {sag.bygherreNavn}{sag.bygherreKontakt ? ` · ${sag.bygherreKontakt}` : ""}
-                </p>
-              )}
-              <p className="text-sm text-gray-400 mt-0.5">
-                Tilbud sendt: {fmtDato(sag.sendtDato)} · Tilbudssum:{" "}
-                <span className="font-semibold text-gray-700">{fmtKr(sag.total)}</span> inkl. moms
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(sag.tilbudsLink);
-                setLinkKopieret(true);
-                setTimeout(() => setLinkKopieret(false), 2500);
-              }}
-              className={`flex items-center gap-2 text-sm font-semibold border px-4 py-2 rounded-xl flex-shrink-0 transition-all ${
-                linkKopieret
-                  ? "border-green-300 bg-green-50 text-green-700"
-                  : "border-[#1e3a2a]/30 bg-[#f0f7f3] text-[#1e3a2a] hover:bg-[#1e3a2a] hover:text-white"
-              }`}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-              </svg>
-              {linkKopieret ? "Kopieret!" : "Kopiér tilbudslink"}
+        {/* Faner */}
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 overflow-x-auto">
+          {([
+            { id: "aftale",   label: "Aftalegrundlag" },
+            { id: "tidsplan", label: "Tidsplan" },
+            { id: "sedler",   label: `Aftalesedler${sedler.length > 0 ? ` (${sedler.length})` : ""}` },
+            { id: "mangler",  label: `Mangler${mangler.length > 0 ? ` (${mangler.length})` : ""}` },
+          ] as { id: Fane; label: string }[]).map(f => (
+            <button key={f.id} onClick={() => setFane(f.id)}
+              className={`flex-1 text-sm font-semibold py-2 px-3 rounded-lg whitespace-nowrap transition-all ${
+                fane === f.id ? "bg-white text-[#1e3a2a] shadow-sm" : "text-gray-500 hover:text-gray-700"
+              }`}>
+              {f.label}
             </button>
-          </div>
+          ))}
         </div>
 
-        {/* Genveje til tilknyttede sider */}
-        {genveje.length > 0 && (
-          <div className="flex gap-2 mb-4 flex-wrap">
-            {genveje.map(g => (
-              <Link key={g.href} href={g.href}
-                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 bg-white border border-[#e0ddd6] rounded-xl text-gray-700 hover:border-[#1e3a2a]/40 hover:text-[#1e3a2a] transition-colors">
-                <span>{g.ikon}</span> {g.label}
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {/* Tabs */}
-        {tabs.length > 1 && (
-          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
-            {tabs.map(t => (
-              <button
-                key={t.id}
-                onClick={() => setAktivTab(t.id)}
-                className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  aktivTab === t.id ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* TILBUD-TAB */}
-        {aktivTab === "tilbud" && (
+        {/* Aftalegrundlag */}
+        {fane === "aftale" && (
           <div className="space-y-4">
-
-            {/* Status-banner */}
-            {sag.status === "afventer" && (
-              <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5">
-                <div className="flex items-start gap-3">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-600 flex-shrink-0 mt-0.5">
-                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
+            {kontrakt.haandvaerker_token && (
+              <div className="bg-[#111c17] rounded-2xl p-5 text-white mb-4">
+                <p className="text-xs text-white/60 mb-1">Du har underskrevet denne aftale</p>
+                <p className="text-sm font-semibold">{fmtDato(kontrakt.haandvaerker_godkendt_at || kontrakt.oprettet_at)}</p>
+                <Link href={`/kontrakt/${kontrakt.haandvaerker_token}/aftale`}
+                  className="mt-3 inline-flex items-center gap-2 text-sm font-semibold bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors">
+                  Se og opdater aftalen
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </Link>
+              </div>
+            )}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50">
+              {kontrakt.beskrivelse && (
+                <div className="p-5">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Beskrivelse</p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{kontrakt.beskrivelse}</p>
+                </div>
+              )}
+              <div className="p-5 grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Pris</p>
+                  <p className="text-sm font-semibold text-gray-900">{kontrakt.total_pris ? fmtKr(kontrakt.total_pris) : "Ikke angivet"}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Status</p>
+                  <p className="text-sm font-semibold text-gray-900">{kontrakt.status === "begge_godkendt" ? "Begge godkendt" : kontrakt.status}</p>
+                </div>
+                {kontrakt.startdato && (
                   <div>
-                    <p className="text-sm font-semibold text-amber-900 mb-1">Afventer svar fra bygherre</p>
-                    <p className="text-sm text-amber-800 leading-relaxed">
-                      Bygherren har ikke accepteret tilbuddet endnu. Send linket igen via knappen øverst, eller afvent deres svar.
-                      Når de accepterer, kan du oprette faser og faktureringsmilestones herinde.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {sag.status === "accepteret" && (
-              <div className="bg-green-50 border border-green-100 rounded-2xl p-5">
-                <div className="flex items-center gap-3">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" className="flex-shrink-0">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                  <p className="text-sm font-semibold text-green-800">
-                    Tilbud accepteret. Gå til &quot;Faser &amp; fakturering&quot; for at opdele arbejdet og fakturere etapevis.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Tilbudsliste — fuldt ud */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
-                <div>
-                  <h2 className="font-semibold text-gray-900">Tilbudsposter</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">Priser ekskl. moms · Total inkl. moms: {fmtKr(sag.total)}</p>
-                </div>
-              </div>
-              <div className="divide-y divide-gray-50">
-                {sag.tilbudsposter.map((p, i) => {
-                  const prisInkl = (parseFloat(p.pris) || 0) * 1.25;
-                  return (
-                    <div key={p.id} className="px-6 py-4 flex items-start gap-3">
-                      <span className="text-xs font-bold text-gray-400 mt-0.5 w-5 shrink-0">{i + 1}</span>
-                      <p className="text-sm text-gray-800 flex-1 leading-relaxed">{p.beskrivelse}</p>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-semibold text-gray-900">
-                          {prisInkl > 0 ? fmtKr(prisInkl) : "—"}
-                        </p>
-                        {prisInkl > 0 && <p className="text-xs text-gray-400">inkl. moms</p>}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="border-t border-gray-100 px-6 py-4 flex justify-between bg-gray-50">
-                <span className="text-sm font-bold text-gray-900">Samlet inkl. moms</span>
-                <span className="text-sm font-bold text-[#1e3a2a]">{fmtKr(sag.total)}</span>
-              </div>
-            </div>
-
-            {/* Projektbeskrivelse */}
-            {sag.resumé && (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Projektbeskrivelse</p>
-                <p className="text-sm text-gray-700 leading-relaxed">{sag.resumé}</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* FASER-TAB */}
-        {aktivTab === "faser" && (
-          <div className="space-y-4">
-            <div className="bg-[#f0f7f3] border border-[#1e3a2a]/15 rounded-2xl p-5">
-              <div className="flex items-start gap-3">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2" className="flex-shrink-0 mt-0.5">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
-                <div>
-                  <p className="text-sm font-semibold text-[#1e3a2a] mb-1">Fakturering koblet til fremdrift (AB-Forbruger §25)</p>
-                  <p className="text-sm text-[#1e3a2a]/80 leading-relaxed">
-                    Opdel arbejdet i faser. Når en fase er færdig og godkendt af bygherren, kan du fakturere for den del.
-                    Bygherren kan tilbageholde betaling ved dokumenterede mangler.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Eksisterende faser */}
-            {faser.length > 0 && (
-              <div className="space-y-3">
-                {faser.map(fase => {
-                  const fasePoster = sag.tilbudsposter.filter(p => fase.posterIds.includes(p.id));
-                  const faseTotal = fasePoster.reduce((s, p) => s + (parseFloat(p.pris) || 0), 0) * 1.25;
-
-                  const statusConfig = {
-                    "ikke-startet": { label: "Ikke startet", bg: "bg-gray-100", text: "text-gray-600" },
-                    "igang": { label: "I gang", bg: "bg-blue-100", text: "text-blue-700" },
-                    "done": { label: "Klar til godkendelse", bg: "bg-amber-100", text: "text-amber-700" },
-                    "godkendt": { label: "Godkendt, klar til fakturering", bg: "bg-green-100", text: "text-green-700" },
-                  }[fase.status];
-
-                  return (
-                    <div key={fase.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                      <div className="px-5 py-4 flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h3 className="font-semibold text-gray-900">{fase.navn}</h3>
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusConfig.bg} ${statusConfig.text}`}>
-                              {statusConfig.label}
-                            </span>
-                          </div>
-                          {fase.beskrivelse && (
-                            <p className="text-xs text-gray-500 leading-relaxed mb-2">{fase.beskrivelse}</p>
-                          )}
-                          {fasePoster.length > 0 && (
-                            <div className="text-xs text-gray-400 space-y-0.5">
-                              {fasePoster.map((p, i) => (
-                                <div key={p.id} className="flex justify-between">
-                                  <span className="truncate pr-3">{i + 1}. {p.beskrivelse}</span>
-                                  <span className="flex-shrink-0">{fmtKr((parseFloat(p.pris) || 0) * 1.25)}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          {faseTotal > 0 && (
-                            <>
-                              <p className="text-sm font-bold text-gray-900">{fmtKr(faseTotal)}</p>
-                              <p className="text-xs text-gray-400">inkl. moms</p>
-                            </>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Status-actions */}
-                      <div className="border-t border-gray-50 px-5 py-3 flex items-center justify-between gap-3 bg-gray-50">
-                        <div className="flex gap-2 flex-wrap">
-                          {fase.status === "ikke-startet" && (
-                            <button
-                              onClick={() => opdaterFaseStatus(fase.id, "igang")}
-                              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#1e3a2a] text-white hover:opacity-90 transition-opacity"
-                            >
-                              Marker som i gang
-                            </button>
-                          )}
-                          {fase.status === "igang" && (
-                            <button
-                              onClick={() => opdaterFaseStatus(fase.id, "done")}
-                              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-500 text-white hover:opacity-90 transition-opacity"
-                            >
-                              Meld klar til bygherre-gennemgang
-                            </button>
-                          )}
-                          {fase.status === "done" && (
-                            <span className="text-xs text-amber-700 font-medium">
-                              Afventer bygherrens godkendelse...
-                            </span>
-                          )}
-                          {fase.status === "godkendt" && (
-                            <span className="text-xs text-green-700 font-semibold flex items-center gap-1.5">
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                              Klar til fakturering {faseTotal > 0 ? `: ${fmtKr(faseTotal)}` : ""}
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => sletFase(fase.id)}
-                          className="text-xs text-gray-300 hover:text-red-400 transition-colors"
-                        >
-                          Slet
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Opret ny fase */}
-            {!visFaseForm ? (
-              <button
-                onClick={() => setVisFaseForm(true)}
-                className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-2xl py-5 text-sm font-semibold text-gray-400 hover:border-[#1e3a2a] hover:text-[#1e3a2a] transition-all"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                Tilføj fase
-              </button>
-            ) : (
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
-                <h3 className="font-semibold text-gray-900">Ny fase</h3>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Fasenavn</label>
-                  <input
-                    type="text"
-                    value={faseNavn}
-                    onChange={e => setFaseNavn(e.target.value)}
-                    placeholder="F.eks. Badeværelse, Køkken, Stue..."
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Beskrivelse (valgfrit)</label>
-                  <textarea
-                    value={faseBeskrivelse}
-                    onChange={e => setFaseBeskrivelse(e.target.value)}
-                    placeholder="Kort beskrivelse af hvad der indgår i denne fase"
-                    rows={2}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all resize-none"
-                  />
-                </div>
-
-                {sag.tilbudsposter.length > 0 && (
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-2">Tilknyt tilbudsposter til denne fase</label>
-                    <div className="space-y-2">
-                      {sag.tilbudsposter.map((p, i) => {
-                        const alleredeIFase = (sag.faser || []).some(
-                          f => f.posterIds.includes(p.id) && !fasePosterIds.includes(p.id)
-                        );
-                        return (
-                          <label
-                            key={p.id}
-                            className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                              fasePosterIds.includes(p.id)
-                                ? "border-[#1e3a2a] bg-[#f0f7f3]"
-                                : alleredeIFase
-                                ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
-                                : "border-gray-100 hover:border-gray-200"
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={fasePosterIds.includes(p.id)}
-                              onChange={() => !alleredeIFase && togglePosterId(p.id)}
-                              disabled={alleredeIFase}
-                              className="mt-0.5 accent-[#1e3a2a]"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <span className="text-xs text-gray-400 mr-2">{i + 1}.</span>
-                              <span className="text-sm text-gray-800">{p.beskrivelse || "Post uden beskrivelse"}</span>
-                            </div>
-                            <span className="text-xs font-medium text-gray-500 flex-shrink-0">
-                              {p.pris ? fmtKr((parseFloat(p.pris) || 0) * 1.25) : "—"}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                    {fasePosterIds.length > 0 && (
-                      <p className="text-xs text-[#1e3a2a] font-semibold mt-2">
-                        Fasebeløb: {fmtKr(
-                          sag.tilbudsposter
-                            .filter(p => fasePosterIds.includes(p.id))
-                            .reduce((s, p) => s + (parseFloat(p.pris) || 0), 0) * 1.25
-                        )} inkl. moms
-                      </p>
-                    )}
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Opstart</p>
+                    <p className="text-sm font-semibold text-gray-900">{fmtDato(kontrakt.startdato)}</p>
                   </div>
                 )}
-
-                <div className="flex gap-3 pt-1">
-                  <button
-                    onClick={() => { setVisFaseForm(false); setFaseNavn(""); setFaseBeskrivelse(""); setFasePosterIds([]); }}
-                    className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
-                  >
-                    Annuller
-                  </button>
-                  <button
-                    onClick={opretFase}
-                    disabled={!faseNavn.trim()}
-                    className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${faseNavn.trim() ? "bg-[#1e3a2a] text-white hover:opacity-90" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
-                  >
-                    Opret fase
-                  </button>
-                </div>
+                {kontrakt.slutdato && (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Aflevering</p>
+                    <p className="text-sm font-semibold text-gray-900">{fmtDato(kontrakt.slutdato)}</p>
+                  </div>
+                )}
               </div>
-            )}
-
-            {/* Opsummering */}
-            {faser.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Oversigt</p>
-                <div className="space-y-2">
-                  {faser.map(fase => {
-                    const faseTotal = sag.tilbudsposter
-                      .filter(p => fase.posterIds.includes(p.id))
-                      .reduce((s, p) => s + (parseFloat(p.pris) || 0), 0) * 1.25;
-                    return (
-                      <div key={fase.id} className="flex justify-between text-sm">
-                        <span className="text-gray-700">{fase.navn}</span>
-                        <span className="font-medium text-gray-900">{faseTotal > 0 ? fmtKr(faseTotal) : "—"}</span>
+              {kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0 && (
+                <div className="p-5">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Betalingsplan</p>
+                  <div className="space-y-2">
+                    {kontrakt.betalingsplan.map((b, i) => (
+                      <div key={i} className="flex justify-between text-sm">
+                        <span className="text-gray-700">{b.milepæl}</span>
+                        <span className="font-semibold text-gray-900">{b.andel}</span>
                       </div>
-                    );
-                  })}
-                  <div className="border-t border-gray-100 pt-2 flex justify-between text-sm font-bold">
-                    <span className="text-gray-900">Total tilbudssum</span>
-                    <span className="text-[#1e3a2a]">{fmtKr(sag.total)}</span>
+                    ))}
                   </div>
                 </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tidsplan */}
+        {fane === "tidsplan" && (
+          <div className="space-y-4">
+            {!tidsplan ? (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <p className="text-sm font-semibold text-gray-800 mb-1">Ingen tidsplan indsendt endnu</p>
+                <p className="text-xs text-gray-500 mb-4">Indsend en faseopdelt tidsplan via aftalesiden</p>
+                {kontrakt.haandvaerker_token && (
+                  <Link href={`/kontrakt/${kontrakt.haandvaerker_token}/aftale`}
+                    className="inline-flex items-center gap-2 text-sm font-semibold bg-[#1e3a2a] text-white px-5 py-2.5 rounded-xl hover:opacity-90 transition-opacity">
+                    Indsend tidsplan
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="bg-[#111c17] px-5 py-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-white/60 mb-0.5">AB-Forbruger § 12</p>
+                    <p className="text-sm font-semibold text-white">
+                      {tidsplan.type === "ingen_tidsplan" ? "Ingen fast tidsplan aftalt" : "Faseopdelt tidsplan"}
+                    </p>
+                  </div>
+                  {tidsplan.godkendt_af_bygherre ? (
+                    <span className="text-xs font-semibold bg-green-500 text-white px-2.5 py-1 rounded-full">Godkendt</span>
+                  ) : (
+                    <span className="text-xs font-semibold bg-amber-400 text-white px-2.5 py-1 rounded-full">Afventer bygherre</span>
+                  )}
+                </div>
+                {tidsplan.faser && (tidsplan.faser as { navn: string; startdato: string; slutdato: string }[]).length > 0 && (
+                  <div className="divide-y divide-gray-50">
+                    {(tidsplan.faser as { navn: string; startdato: string; slutdato: string }[]).map((f, i) => (
+                      <div key={i} className="px-5 py-4 flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">{f.navn}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">{fmtDato(f.startdato)} – {fmtDato(f.slutdato)}</p>
+                        </div>
+                        <div className="w-6 h-6 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center text-xs font-bold text-[#1e3a2a]">{i + 1}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {kontrakt.haandvaerker_token && (
+                  <div className="px-5 py-4 border-t border-gray-50">
+                    <Link href={`/kontrakt/${kontrakt.haandvaerker_token}/aftale`}
+                      className="text-sm font-semibold text-[#1e3a2a] hover:underline">
+                      Opdater tidsplan
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Aftalesedler */}
+        {fane === "sedler" && (
+          <div className="space-y-3">
+            {sedler.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+                <p className="text-sm text-gray-500">Ingen aftalesedler på dette projekt endnu.</p>
+              </div>
+            ) : sedler.map(s => (
+              <div key={s.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <p className="text-sm font-semibold text-gray-900 flex-1">{s.beskrivelse}</p>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${(statusLabel[s.status] ?? { klasse: "bg-gray-100 text-gray-600" }).klasse}`}>
+                    {(statusLabel[s.status] ?? { label: s.status }).label}
+                  </span>
+                </div>
+                {s.haandvaerker_pris != null && (
+                  <p className="text-sm text-gray-600 mb-1">Pris: <span className="font-semibold">{fmtKr(s.haandvaerker_pris)}</span> ({s.haandvaerker_pris_type})</p>
+                )}
+                {s.haandvaerker_tidsdage != null && (
+                  <p className="text-sm text-gray-600 mb-1">Tidsforbrug: <span className="font-semibold">{s.haandvaerker_tidsdage} dage</span></p>
+                )}
+                {s.haandvaerker_besked && (
+                  <p className="text-sm text-gray-500 italic mb-2">"{s.haandvaerker_besked}"</p>
+                )}
+                <p className="text-xs text-gray-400">Oprettet {fmtDato(s.oprettet_at)}</p>
+                {s.status === "sendt" && (
+                  <button onClick={() => {
+                    setÅbnSedel(s);
+                    setSvarPris(s.haandvaerker_pris?.toString() ?? "");
+                    setSvarPrisType((s.haandvaerker_pris_type as "fast" | "overslag") ?? "fast");
+                    setSvarDage(s.haandvaerker_tidsdage?.toString() ?? "");
+                    setSvarBesked(s.haandvaerker_besked ?? "");
+                  }} className="mt-3 text-sm font-semibold bg-[#1e3a2a] text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+                    Svar på aftaleseddel
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Mangler */}
+        {fane === "mangler" && (
+          <div className="space-y-3">
+            {mangler.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+                <p className="text-sm text-gray-500">Ingen mangler registreret på dette projekt.</p>
+              </div>
+            ) : mangler.map(m => (
+              <div key={m.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <p className="text-sm font-semibold text-gray-900 flex-1">{m.beskrivelse}</p>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${(mangelStatus[m.status] ?? { klasse: "bg-gray-100 text-gray-600" }).klasse}`}>
+                    {(mangelStatus[m.status] ?? { label: m.status }).label}
+                  </span>
+                </div>
+                {m.alvorlighed && <p className="text-xs text-gray-400 mb-1">Alvorlighed: {m.alvorlighed}</p>}
+                <p className="text-xs text-gray-400">Registreret {fmtDato(m.oprettet_at)}</p>
+                {m.billeder && m.billeder.length > 0 && (
+                  <div className="flex gap-2 mt-3 flex-wrap">
+                    {m.billeder.slice(0, 3).map((b, i) => (
+                      <img key={i} src={b} alt="" className="w-16 h-16 object-cover rounded-lg border border-gray-100" />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>
+
+      {/* Svar-modal */}
+      {åbnSedel && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h3 className="font-bold text-gray-900 mb-1">Svar på aftaleseddel</h3>
+            <p className="text-sm text-gray-500 mb-5 leading-relaxed">{åbnSedel.beskrivelse}</p>
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Pris (kr. ekskl. moms)</label>
+                <input type="number" value={svarPris} onChange={e => setSvarPris(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 12500" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {(["fast", "overslag"] as const).map(t => (
+                  <button key={t} onClick={() => setSvarPrisType(t)}
+                    className={`py-2.5 text-sm font-semibold rounded-xl border transition-all ${svarPrisType === t ? "bg-[#1e3a2a] text-white border-[#1e3a2a]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
+                    {t === "fast" ? "Fast pris" : "Overslag"}
+                  </button>
+                ))}
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Antal arbejdsdage</label>
+                <input type="number" value={svarDage} onChange={e => setSvarDage(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 3" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Besked (valgfri)</label>
+                <textarea value={svarBesked} onChange={e => setSvarBesked(e.target.value)} rows={3}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20 resize-none" placeholder="Eventuelle kommentarer" />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setÅbnSedel(null)} className="flex-1 py-3 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50">Annuller</button>
+              <button onClick={svarPåSeddel} disabled={gemmer}
+                className="flex-1 py-3 text-sm font-semibold bg-[#1e3a2a] text-white rounded-xl hover:opacity-90 disabled:opacity-50">
+                {gemmer ? "Sender..." : "Send svar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
