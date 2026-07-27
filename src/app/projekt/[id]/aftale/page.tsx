@@ -61,6 +61,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const [kopieret, setKopieret] = useState(false);
   const [sender, setSender] = useState(false);
   const [godkender, setGodkender] = useState(false);
+  const [godkendFejl, setGodkendFejl] = useState("");
   const [gemmer, setGemmer] = useState(false);
   const [redigererBetalingsplan, setRedigererBetalingsplan] = useState(false);
   const [betalingsplanRækker, setBetalingsplanRækker] = useState<{milepæl: string; andel: string}[]>([]);
@@ -206,6 +207,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
 
   async function godkendKontrakt() {
     if (!kontrakt || typeof kontrakt !== "object") return;
+    setGodkendFejl("");
     setGodkender(true);
     try {
       const r = await fetch(`/api/kontrakt/${kontrakt.haandvaerker_token}/godkend`, {
@@ -214,7 +216,9 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
         body: JSON.stringify({ forfatter: "bygherre" }),
       });
       const data = await r.json();
-      if (!data.error) {
+      if (data.error) {
+        setGodkendFejl(data.error);
+      } else {
         setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, ...data } : prev);
       }
     } finally {
@@ -293,13 +297,15 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               {kontrakt.titel || "Kontraktudkast"} · <span className="font-medium text-gray-700">Rev. {revision}</span> · Aftalen udarbejdes og godkendes af begge parter her
             </p>
           </div>
-          <button
-            onClick={() => setVisInviter(true)}
-            className="flex-shrink-0 flex items-center gap-2 bg-[#1e3a2a] text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            Inviter håndværker
-          </button>
+          {!erBeggeGodkendt && (
+            <button
+              onClick={() => setVisInviter(true)}
+              className="flex-shrink-0 flex items-center gap-2 bg-[#1e3a2a] text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Inviter håndværker
+            </button>
+          )}
         </div>
 
         {/* Invitation-modal */}
@@ -674,17 +680,22 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                   <p className="text-xs text-gray-400 mt-1">Begge parter har godkendt</p>
                 </div>
               ) : (
-                <button
-                  onClick={godkendKontrakt}
-                  disabled={godkender || bygherreGodkendt}
-                  className={`w-full mt-4 py-3 rounded-xl text-sm font-bold transition-all ${
-                    bygherreGodkendt
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-[#1e3a2a] text-white hover:opacity-90"
-                  }`}
-                >
-                  {godkender ? "Godkender..." : bygherreGodkendt ? "Du har godkendt" : "Godkend kontrakten"}
-                </button>
+                <>
+                  <button
+                    onClick={godkendKontrakt}
+                    disabled={godkender || bygherreGodkendt}
+                    className={`w-full mt-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                      bygherreGodkendt
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-[#1e3a2a] text-white hover:opacity-90"
+                    }`}
+                  >
+                    {godkender ? "Godkender..." : bygherreGodkendt ? "Du har godkendt" : "Godkend kontrakten"}
+                  </button>
+                  {godkendFejl && (
+                    <p className="mt-2 text-xs text-red-600 text-center leading-snug">{godkendFejl}</p>
+                  )}
+                </>
               )}
             </div>
 

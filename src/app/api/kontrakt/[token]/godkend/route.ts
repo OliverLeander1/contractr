@@ -17,12 +17,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
 
   const { data: kontrakt, error: hentFejl } = await db
     .from("kontrakter")
-    .select("id, bygherre_godkendt_at, haandvaerker_godkendt_at, status")
+    .select("id, bygherre_godkendt_at, haandvaerker_godkendt_at, status, total_pris")
     .eq("haandvaerker_token", token)
     .single();
 
   if (hentFejl || !kontrakt) {
     return NextResponse.json({ error: "Kontrakt ikke fundet" }, { status: 404 });
+  }
+
+  if (!kontrakt.total_pris || kontrakt.total_pris <= 0) {
+    return NextResponse.json({ error: "Entreprisesum skal være udfyldt inden godkendelse" }, { status: 422 });
   }
 
   const nu = new Date().toISOString();
