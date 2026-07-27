@@ -90,6 +90,7 @@ export default function Forside() {
 
               {/* Højre: Kontrakt-mockup */}
               <div className="relative">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest text-center mb-3">Eksempel på aftalegrundlag</p>
                 <div className="bg-white rounded-2xl border border-[#e0ddd6] shadow-xl overflow-hidden max-w-sm ml-auto">
 
                   {/* Dokument-header */}
