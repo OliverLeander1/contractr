@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
@@ -11,6 +11,20 @@ function LoginInner() {
   const searchParams = useSearchParams();
   const nextUrl = searchParams.get("next") || null;
   const [mode, setMode] = useState<"login" | "opret">("login");
+  const roterende = ["aftaler", "tidsplanen", "mangler", "betalinger", "ekstraarbejde"];
+  const [rotIdx, setRotIdx] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setRotIdx(i => (i + 1) % roterende.length);
+        setFade(true);
+      }, 300);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [navn, setNavn] = useState("");
@@ -140,7 +154,19 @@ function LoginInner() {
 
         <div>
           <h1 className="text-4xl font-bold text-white leading-snug mb-6">
-            Vi giver dig det fulde overblik over dit projekt.<br />Fra start til slut.
+            Hold øje med{" "}
+            <span
+              style={{
+                display: "inline-block",
+                opacity: fade ? 1 : 0,
+                transform: fade ? "translateY(0)" : "translateY(8px)",
+                transition: "opacity 0.3s ease, transform 0.3s ease",
+                color: "#86efac",
+              }}
+            >
+              {roterende[rotIdx]}
+            </span>
+            <br />— og alt andet der betyder noget.
           </h1>
           <p className="text-white/60 text-base leading-relaxed mb-10 max-w-sm">
             Den gode byggesag starter altid med et godt aftalegrundlag. Det hjælper vi med.
