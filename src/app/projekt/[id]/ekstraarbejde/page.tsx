@@ -82,7 +82,7 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
       supabase.from("kontrakter")
         .select("id, haandvaerker_email, haandvaerker_navn, fag, status")
         .eq("projekt_id", id)
-        .in("status", ["godkendt", "accepteret", "aktiv"]),
+        .in("status", ["godkendt", "accepteret", "aktiv", "begge_godkendt", "haandvaerker_godkendt", "bygherre_godkendt"]),
       supabase.from("ekstraarbejde").select("*").eq("projekt_id", id).order("oprettet_at", { ascending: false }),
     ]);
     const godkendteKontrakter = (k || []) as Kontrakt[];

@@ -41,7 +41,7 @@ export default function AcceptTjek({ params }: { params: Promise<{ id: string }>
     const hent = async () => {
       const [{ data: p }, { data: k }] = await Promise.all([
         supabase.from("projekter").select("titel, projekttype").eq("id", id).maybeSingle(),
-        supabase.from("kontrakter").select("haandvaerker_email, haandvaerker_navn, total_pris, startdato, slutdato, ab_forbruger").eq("projekt_id", id).maybeSingle(),
+        supabase.from("kontrakter").select("haandvaerker_email, haandvaerker_navn, total_pris, startdato, slutdato, ab_forbruger").eq("projekt_id", id).order("oprettet_at", { ascending: false }).limit(1).maybeSingle(),
       ]);
       setProjekt(p);
       setKontrakt(k);
