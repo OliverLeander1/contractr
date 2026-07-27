@@ -64,6 +64,7 @@ export default function VaelgPakke() {
   const [projekId, setProjektId] = useState<string | null>(null);
   const [brugerId, setBrugerId] = useState<string | null>(null);
   const [betaler, setBetaler] = useState(false);
+  const [fejl, setFejl] = useState("");
 
   const valgtPakke = PAKKER.find(p => p.id === valgt)!;
 
@@ -85,6 +86,7 @@ export default function VaelgPakke() {
 
   const startBetaling = async () => {
     if (!email) return;
+    setFejl("");
     setBetaler(true);
     try {
       const res = await fetch("/api/checkout", {
@@ -92,10 +94,15 @@ export default function VaelgPakke() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, navn, pakke: valgt, projekt_id: projekId, bruger_id: brugerId }),
       });
-      const { url, error } = await res.json();
-      if (error) { setBetaler(false); return; }
-      window.location.href = url;
-    } catch {
+      const data = await res.json();
+      if (data.error) {
+        setFejl(data.error);
+        setBetaler(false);
+        return;
+      }
+      window.location.href = data.url;
+    } catch (e) {
+      setFejl(e instanceof Error ? e.message : "Netværksfejl");
       setBetaler(false);
     }
   };
@@ -238,6 +245,12 @@ export default function VaelgPakke() {
               >
                 {betaler ? "Sender til betaling..." : `Betal ${valgtPakke.pris.toLocaleString("da-DK")} kr. og opret projektrum`}
               </button>
+
+              {fejl && (
+                <div className="p-3 bg-red-50 border border-red-100 rounded-xl">
+                  <p className="text-xs text-red-700">{fejl}</p>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-2 pt-1">
                 {[
