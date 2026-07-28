@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-// Ruter der kræver login
-const BESKYTTEDE = ["/dashboard", "/projekt", "/konto", "/notifikationer", "/haandvaerker/sager", "/haandvaerker/nyt-tilbud", "/haandvaerker/profil", "/haandvaerker/projekt", "/tilkoeb/book"];
+// Ruter der kræver login OG specifik rolle
+const KUN_BYGHERRE = ["/dashboard", "/projekt", "/konto", "/notifikationer", "/tilkoeb/book"];
+const KUN_HAANDVAERKER = ["/haandvaerker/sager", "/haandvaerker/nyt-tilbud", "/haandvaerker/profil", "/haandvaerker/projekt"];
+const BESKYTTEDE = [...KUN_BYGHERRE, ...KUN_HAANDVAERKER];
 
 // Ruter der altid er tilgængelige selv under vedligeholdelse
 const VEDLIGEHOLDELSE_UNDTAGET = ["/under-vedligeholdelse", "/api/maintenance"];
@@ -80,6 +82,27 @@ export async function middleware(request: NextRequest) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Tjek rolle hvis ruten er rolle-specifik
+  const erKunBygherre = KUN_BYGHERRE.some(p => pathname.startsWith(p));
+  const erKunHaandvaerker = KUN_HAANDVAERKER.some(p => pathname.startsWith(p));
+
+  if (erKunBygherre || erKunHaandvaerker) {
+    const { data: profil } = await supabase
+      .from("profiler")
+      .select("rolle")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const rolle = profil?.rolle;
+
+    if (erKunBygherre && rolle === "haandvaerker") {
+      return NextResponse.redirect(new URL("/haandvaerker/sager", request.url));
+    }
+    if (erKunHaandvaerker && rolle !== "haandvaerker") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
   }
 
   return response;
