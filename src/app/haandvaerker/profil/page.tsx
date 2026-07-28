@@ -39,6 +39,10 @@ export default function HaandvaerkerProfil() {
   const [standby, setStandby]         = useState(false);
   const [gemmer, setGemmer]           = useState(false);
   const [gemtBesked, setGemtBesked]   = useState(false);
+  const [visSlet, setVisSlet]         = useState(false);
+  const [sletNavn, setSletNavn]       = useState("");
+  const [sletBekræft, setSletBekræft] = useState("");
+  const [sletter, setSletter]         = useState(false);
 
   useEffect(() => {
     const hent = async () => {
@@ -290,13 +294,59 @@ export default function HaandvaerkerProfil() {
         </div>
 
         {/* Link til markedspladsen */}
-        <Link href="/haandvaerkere" className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-[#1e3a2a]/30 transition-colors">
+        <Link href="/haandvaerkere" className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6 hover:border-[#1e3a2a]/30 transition-colors">
           <div>
             <p className="font-semibold text-gray-900 text-sm">Se din profil på markedspladsen</p>
             <p className="text-xs text-gray-400 mt-0.5">Sådan ser bygherrer din profil</p>
           </div>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </Link>
+
+        {/* Slet konto */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h2 className="font-semibold text-gray-900 mb-1">Slet konto</h2>
+          <p className="text-sm text-gray-400 mb-4">Din profil, dine sager og alle tilknyttede data slettes permanent.</p>
+          {!visSlet ? (
+            <button onClick={() => setVisSlet(true)} className="text-sm font-semibold text-red-600 border border-red-200 px-4 py-2 rounded-xl hover:bg-red-50 transition-colors">
+              Slet min konto
+            </button>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-xs text-red-600">Dette kan ikke fortrydes. Bekræft ved at skrive dit navn og derefter "slet bruger".</p>
+              <input
+                type="text"
+                placeholder={profil?.navn || "Dit navn"}
+                value={sletNavn}
+                onChange={e => setSletNavn(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-300"
+              />
+              <input
+                type="text"
+                placeholder='slet bruger'
+                value={sletBekræft}
+                onChange={e => setSletBekræft(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-300"
+              />
+              <div className="flex gap-2">
+                <button onClick={() => { setVisSlet(false); setSletNavn(""); setSletBekræft(""); }} className="flex-1 text-sm font-medium border border-gray-200 text-gray-600 py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
+                  Annuller
+                </button>
+                <button
+                  disabled={sletter || sletNavn.trim().toLowerCase() !== (profil?.navn || "").trim().toLowerCase() || sletBekræft.trim().toLowerCase() !== "slet bruger"}
+                  onClick={async () => {
+                    setSletter(true);
+                    const res = await fetch("/api/bruger/slet", { method: "DELETE" });
+                    if (res.ok) { window.location.href = "/"; }
+                    else { setSletter(false); }
+                  }}
+                  className="flex-1 text-sm font-bold bg-red-600 text-white py-2.5 rounded-xl hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {sletter ? "Sletter..." : "Slet min konto"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

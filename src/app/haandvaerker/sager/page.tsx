@@ -72,9 +72,9 @@ export default function HaandvaerkerSager() {
               </svg>
               Nyt tilbud
             </Link>
-            <div className="w-8 h-8 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center text-[#1e3a2a] font-semibold text-sm">
+            <Link href="/haandvaerker/profil" className="w-8 h-8 rounded-full bg-[#1e3a2a] flex items-center justify-center text-white font-semibold text-sm hover:opacity-90 transition-opacity" title="Min profil">
               {initials}
-            </div>
+            </Link>
           </div>
         </div>
       </header>
