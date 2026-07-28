@@ -2,39 +2,31 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { UploadAnimation, ScanAnimation, AdvisorAnimation, ProjectAnimation } from "@/components/BenefitAnimation";
 
 type Rolle = "bygherre" | "haandvaerker";
 
-const indhold = {
-  bygherre: {
-    badge: "Hele byggesagen samlet ét sted",
-    h1: <>Nem byggestyring.<br /><span className="text-[#1e3a2a]">Fra aftalegrundlag til aflevering.</span></>,
-    tekst: "Opret dit projekt, inviter entreprenøren og styr alt fra kontrakt til aflevering ét sted. Du skriver under digitalt, godkender ekstraarbejde og holder styr på betalingsplanen.",
-    fordele: [
-      { ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>, titel: "Aftalegrundlag på 5 minutter", tekst: "Beskriv projektet og inviter entreprenøren. Vi laver kontrakten klar til underskrift." },
-      { ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, titel: "AB-Forbruger 2012 som standard", tekst: "Du ved altid hvilke rettigheder du har. Intet er gemt i småprint." },
-      { ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>, titel: "Ekstraarbejde godkendes digitalt", tekst: "Ingen mundtlige aftaler. Alt ekstraarbejde beskrives, prissættes og godkendes inden opstart." },
-    ],
-    cta1: { href: "/opret", label: "Opret dit projekt gratis" },
-    cta2: { href: "/opret/upload", label: "Tjek dit tilbud" },
-    checks: ["Ingen konto krævet for at starte", "Gratis tilbudstjek", "AB-Forbruger 2012 som standard"],
-  },
-  haandvaerker: {
-    badge: "Klarere aftaler. Færre tvister.",
-    h1: <>Undgå tvister.<br />Dokumentér alt.<br /><span className="text-[#1e3a2a]">Fokus på arbejdet.</span></>,
-    tekst: "Bygherre opretter projektet og inviterer dig. Du ser præcis hvad der er aftalt, godkender vilkårene digitalt og sender en tidsplan. Alt er dokumenteret fra dag 1.",
-    fordele: [
-      { ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>, titel: "Klare aftaler fra dag 1", tekst: "Pris, tidsplan og betalingsbetingelser er aftalt og underskrevet digitalt inden du starter." },
-      { ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>, titel: "Ekstraarbejde dokumenteres", tekst: "Send en aftaleseddel direkte i platformen. Bygherre godkender digitalt — ingen diskussioner bagefter." },
-      { ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>, titel: "Betalingsplan koblet til fremdrift", tekst: "Betalinger frigives når milepæle er nået og godkendt. Færre forsinkelser og misforståelser." },
-    ],
-    cta1: { href: "/login?rolle=haandvaerker", label: "Opret profil som entreprenør" },
-    cta2: null,
-    checks: ["Gratis profil", "Modtag aftalesedler digitalt", "Dokumentation ved eventuel tvist"],
-  },
-};
+function Toggle({ rolle, setRolle }: { rolle: Rolle; setRolle: (r: Rolle) => void }) {
+  return (
+    <div className="flex justify-center mb-12">
+      <div className="inline-flex items-center bg-white rounded-xl p-1 gap-1 border border-[#e0ddd6] shadow-sm">
+        <button
+          onClick={() => setRolle("bygherre")}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${rolle === "bygherre" ? "bg-[#1e3a2a] text-white shadow-sm" : "text-gray-500 hover:text-gray-800"}`}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Bygherre
+        </button>
+        <button
+          onClick={() => setRolle("haandvaerker")}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${rolle === "haandvaerker" ? "bg-[#1e3a2a] text-white shadow-sm" : "text-gray-500 hover:text-gray-800"}`}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          Entreprenør
+        </button>
+      </div>
+    </div>
+  );
+}
 
-// Samme kontrakt-mockup til begge roller
 function KontraktMockup() {
   return (
     <div className="relative">
@@ -113,81 +105,400 @@ function KontraktMockup() {
   );
 }
 
-export default function ForsideHero() {
-  const [rolle, setRolle] = useState<Rolle>("bygherre");
-  const v = indhold[rolle];
-
+/* ─── BYGHERRE ─────────────────────────────────────────────── */
+function Bygherre() {
   return (
     <>
-      {/* Toggle i header — vises her som sticky element */}
-      <div className="flex justify-center mb-12">
-        <div className="inline-flex items-center bg-white rounded-xl p-1 gap-1 border border-[#e0ddd6] shadow-sm">
-          <button
-            onClick={() => setRolle("bygherre")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${rolle === "bygherre" ? "bg-[#1e3a2a] text-white shadow-sm" : "text-gray-500 hover:text-gray-800"}`}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            Bygherre
-          </button>
-          <button
-            onClick={() => setRolle("haandvaerker")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${rolle === "haandvaerker" ? "bg-[#1e3a2a] text-white shadow-sm" : "text-gray-500 hover:text-gray-800"}`}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-            Entreprenør
-          </button>
+      {/* Hero */}
+      <section className="px-4 sm:px-6 py-16 sm:py-24">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+            <div>
+              <h1 className="text-4xl sm:text-5xl font-bold text-[#111816] leading-[1.08] tracking-tight mb-5">
+                Nem byggestyring.<br /><span className="text-[#1e3a2a]">Fra aftalegrundlag til aflevering.</span>
+              </h1>
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8 max-w-md">
+                Opret dit projekt, inviter entreprenøren og styr alt fra kontrakt til aflevering ét sted. Du skriver under digitalt, godkender ekstraarbejde og holder styr på betalingsplanen.
+              </p>
+              <div className="space-y-4 mb-8">
+                {[
+                  { ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>, titel: "Aftalegrundlag på 5 minutter", tekst: "Beskriv projektet og inviter entreprenøren. Vi laver kontrakten klar til underskrift." },
+                  { ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, titel: "AB-Forbruger 2012 som standard", tekst: "Du ved altid hvilke rettigheder du har. Intet er gemt i småprint." },
+                  { ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>, titel: "Ekstraarbejde godkendes digitalt", tekst: "Ingen mundtlige aftaler. Alt ekstraarbejde beskrives, prissættes og godkendes inden opstart." },
+                ].map((f, i) => (
+                  <div key={i} className="flex gap-3 items-start">
+                    <div className="w-8 h-8 rounded-lg bg-[#1e3a2a]/8 flex items-center justify-center flex-shrink-0 text-[#1e3a2a]">{f.ikon}</div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{f.titel}</p>
+                      <p className="text-sm text-gray-500 leading-relaxed">{f.tekst}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                <Link href="/opret" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#1e3a2a] text-white font-bold rounded-xl hover:bg-[#162d20] transition-colors text-base shadow-sm">
+                  Opret dit projekt gratis
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </Link>
+                <Link href="/opret/upload" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-base border border-[#e0ddd6]">
+                  Tjek dit tilbud
+                </Link>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500">
+                {["Ingen konto krævet for at starte", "Gratis tilbudstjek", "AB-Forbruger 2012 som standard"].map(s => (
+                  <span key={s} className="flex items-center gap-1.5">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <KontraktMockup />
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
-        {/* Venstre: Tekst */}
-        <div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-[#111816] leading-[1.08] tracking-tight mb-5">
-            {v.h1}
-          </h1>
-          <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8 max-w-md">
-            {v.tekst}
-          </p>
-
-          {/* Fordele */}
-          <div className="space-y-4 mb-8">
-            {v.fordele.map((f, i) => (
-              <div key={i} className="flex gap-3 items-start">
-                <div className="w-8 h-8 rounded-lg bg-[#1e3a2a]/8 flex items-center justify-center flex-shrink-0 text-[#1e3a2a]">
-                  {f.ikon}
-                </div>
+      {/* Fordele-strip */}
+      <section className="bg-[#1e3a2a] py-12 sm:py-16">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12">
+            {[
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>, titel: "Opret projektet med det samme", tekst: "Beskriv dit projekt, og vi genererer et professionelt udbudsdokument. Send det til entreprenøren og kom i gang." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>, titel: "Alt samlet i ét projektrum", tekst: "Kontrakt, betalingsplan, ekstraarbejde, billeder og kommunikation. Alt samlet, altid tilgængeligt." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, titel: "Juridisk rygrad, forklaret enkelt", tekst: "AB-Forbruger 2012 er standard på alle projekter. Vi tjekker tilbuddene og viser præcist hvad du skal afklare." },
+            ].map((s) => (
+              <div key={s.titel} className="flex gap-4">
+                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-green-200 flex-shrink-0 mt-0.5">{s.ikon}</div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{f.titel}</p>
+                  <p className="font-bold text-white text-base mb-1">{s.titel}</p>
+                  <p className="text-sm text-green-200/70 leading-relaxed">{s.tekst}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Sådan virker det */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-12 sm:mb-16">
+            <span className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest">Sådan virker det</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">Fra idé til igangsat projekt på få minutter.</h2>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-6 sm:gap-8">
+            {[
+              { nr: "1", titel: "Beskriv dit projekt", tekst: "Fortæl hvad du vil bygge. Vi stiller de rigtige spørgsmål og laver et professionelt udbudsdokument klar til at sende.", ikon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
+              { nr: "2", titel: "Inviter entreprenøren", tekst: "Send et link direkte til din entreprenør. De kan gennemse aftalegrundlaget, foreslå ændringer og godkende. Ingen konto kræves.", ikon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> },
+              { nr: "3", titel: "Styr projektet sammen", tekst: "Ekstraarbejde aftales digitalt, betalinger kobles til fremdrift, og alt dokumenteres undervejs. Færre konflikter, mere overblik.", ikon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg> },
+            ].map((s) => (
+              <div key={s.nr}>
+                <div className="flex items-start gap-5">
+                  <span className="text-6xl sm:text-7xl font-bold text-[#1e3a2a]/10 leading-none select-none -mt-2">{s.nr}</span>
+                  <div className="pt-2">
+                    <div className="w-10 h-10 bg-[#e5ede7] rounded-xl flex items-center justify-center text-[#1e3a2a] mb-4">{s.ikon}</div>
+                    <h3 className="font-bold text-gray-900 text-lg mb-2">{s.titel}</h3>
+                    <p className="text-sm text-gray-500 leading-relaxed">{s.tekst}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-12 flex flex-col sm:flex-row gap-3">
+            <Link href="/opret" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#1e3a2a] text-white font-bold rounded-xl hover:bg-[#162d20] transition-colors text-base shadow-sm">
+              Opret dit projekt nu
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </Link>
+            <Link href="/opret/upload" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-base border border-[#e0ddd6]">
+              Eller tjek et tilbud gratis
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Fordele med animerede ikoner */}
+      <section className="bg-[#f5f3ee] py-16 sm:py-24">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <span className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest">Platformen</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">Fra første udkast til 1-års eftersyn</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-6">
+            {[
+              { anim: <UploadAnimation />, titel: "Udbudsdokument på få minutter", tekst: "Beskriv projektet og få et professionelt dokument klar til at sende." },
+              { anim: <ScanAnimation />, titel: "Tilbudstjek mod AB-Forbruger", tekst: "Vi gennemgår aftalen og viser præcist hvad du skal afklare." },
+              { anim: <AdvisorAnimation />, titel: "Rådgiver ved behov", tekst: "Book en byggesagkyndig direkte når sagen kræver professionel hjælp." },
+              { anim: <ProjectAnimation />, titel: "Projektet samlet ét sted", tekst: "Kontrakt, betalinger, ekstraarbejde og kommunikation fra dag ét." },
+            ].map((f) => (
+              <div key={f.titel} className="bg-white rounded-2xl pt-6 pb-7 px-5 hover:shadow-md transition-shadow border border-[#e0ddd6] flex flex-col items-center text-center">
+                {f.anim}
+                <h3 className="font-bold text-gray-900 mb-2 text-sm leading-snug mt-3">{f.titel}</h3>
+                <p className="text-xs text-gray-500 leading-relaxed">{f.tekst}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* AB-Forbruger */}
+      <section className="py-16 sm:py-24 bg-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="grid sm:grid-cols-2 gap-10 sm:gap-20 items-center">
+            <div>
+              <span className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest">AB-Forbruger 2012</span>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2 mb-5">Det du ikke vidste du skulle spørge om</h2>
+              <p className="text-base text-gray-600 leading-relaxed mb-4">
+                AB-Forbruger er standardvilkårene der beskytter private bygherrer i Danmark. De træder kun i kraft hvis begge parter eksplicit aftaler det, og de fleste husejere opdager det for sent.
+              </p>
+              <p className="text-base text-gray-600 leading-relaxed mb-7">
+                Nembyggestyring tjekker automatisk om din aftale dækker de kritiske paragraffer, og fortæller dig hvad du skal kræve af håndværkeren inden du skriver under.
+              </p>
+              <Link href="/abforbruger" className="inline-flex items-center gap-2 text-sm font-semibold text-[#1e3a2a] hover:underline">
+                Læs om AB-Forbruger 2012
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </Link>
+            </div>
+            <div className="space-y-2.5">
+              {[
+                { paragraf: "§ 12", tekst: "Er start- og slutdato aftalt skriftligt?", ok: true },
+                { paragraf: "§ 23", tekst: "Er procedure for ekstraarbejde beskrevet?", ok: false },
+                { paragraf: "§ 25", tekst: "Er betalingsplanen koblet til dokumenteret fremdrift?", ok: true },
+                { paragraf: "§ 38", tekst: "Er afleverings- og mangelprocedure beskrevet?", ok: false },
+                { paragraf: "§ 58", tekst: "Er 1-års eftersyn nævnt i aftalen?", ok: false },
+              ].map((p) => (
+                <div key={p.paragraf} className={`flex items-center gap-3 rounded-xl px-4 py-3.5 border ${p.ok ? "bg-[#e5ede7] border-[#1e3a2a]/10" : "bg-amber-50 border-amber-100"}`}>
+                  <span className={`text-xs font-bold px-2 py-1 rounded-lg w-12 text-center flex-shrink-0 ${p.ok ? "bg-white text-[#1e3a2a] shadow-sm" : "bg-amber-100 text-amber-700"}`}>{p.paragraf}</span>
+                  <span className="text-gray-700 text-sm flex-1">{p.tekst}</span>
+                  {p.ok
+                    ? <svg className="flex-shrink-0 text-[#1e3a2a]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    : <svg className="flex-shrink-0 text-amber-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+                  }
+                </div>
+              ))}
+              <p className="text-xs text-gray-400 text-center pt-1">Eksempel på screening-output</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Funktioner */}
+      <section className="bg-[#f5f3ee] py-16 sm:py-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="mb-10">
+            <span className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest">Hele projektet samlet</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2 mb-2">Fra første tilbud til 1-års eftersyn</h2>
+            <p className="text-base text-gray-500 max-w-lg">Nembyggestyring er ikke bare en screener. Det er et digitalt projektrum hvor kontrakt, betalinger, dokumenter og kommunikation samles ét sted.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>, titel: "Tilbudstjek", tekst: "Screenet mod AB-Forbruger på 2 minutter. Gratis at starte." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>, titel: "Digitalt projektrum", tekst: "Kontrakt, betalinger og kommunikation samlet ét sted." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, titel: "Ekstraarbejde-sedler", tekst: "Digital tillægsaftale med godkendelse fra bygherre inden opstart." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>, titel: "Betalingsplan", tekst: "Koblet til dokumenteret fremdrift, ikke bare datoer." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8" strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, titel: "Mangelregistrering", tekst: "Billeder og status sendt direkte til håndværkeren." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, titel: "Rådgiverbooking", tekst: "Book en byggesagkyndig ved middel eller høj risiko." },
+            ].map((f) => (
+              <div key={f.titel} className="bg-white rounded-2xl p-6 border border-[#e0ddd6] hover:shadow-md transition-shadow flex gap-4 items-start">
+                <div className="w-10 h-10 bg-[#e5ede7] rounded-xl flex items-center justify-center flex-shrink-0">{f.ikon}</div>
+                <div>
+                  <p className="font-bold text-gray-900 mb-1">{f.titel}</p>
                   <p className="text-sm text-gray-500 leading-relaxed">{f.tekst}</p>
                 </div>
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <Link href={v.cta1.href}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#1e3a2a] text-white font-bold rounded-xl hover:bg-[#162d20] transition-colors text-base shadow-sm">
-              {v.cta1.label}
+      {/* CTA */}
+      <section className="bg-[#1e3a2a] px-4 sm:px-6 py-16 sm:py-24">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-2xl sm:text-4xl font-bold text-white mb-4 leading-tight">Klar til at komme i gang?</h2>
+          <p className="text-green-200/70 mb-8 text-base leading-relaxed">Opret projektet gratis. Inviter entreprenøren. Styr det hele ét sted.</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/opret" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-[#1e3a2a] font-bold rounded-xl hover:bg-[#f5f3ee] transition-colors text-base shadow-lg">
+              Opret dit projekt
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </Link>
-            {v.cta2 && (
-              <Link href={v.cta2.href}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-base border border-[#e0ddd6]">
-                {v.cta2.label}
-              </Link>
-            )}
+            <Link href="/opret/upload" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors text-base">
+              Tjek et tilbud gratis
+            </Link>
           </div>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500">
-            {v.checks.map(s => (
-              <span key={s} className="flex items-center gap-1.5">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                {s}
-              </span>
+        </div>
+      </section>
+    </>
+  );
+}
+
+/* ─── ENTREPRENØR ───────────────────────────────────────────── */
+function Haandvaerker() {
+  return (
+    <>
+      {/* Hero */}
+      <section className="px-4 sm:px-6 py-16 sm:py-24">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+            <div>
+              <h1 className="text-4xl sm:text-5xl font-bold text-[#111816] leading-[1.08] tracking-tight mb-5">
+                Undgå tvister.<br />Dokumentér alt.<br /><span className="text-[#1e3a2a]">Fokus på arbejdet.</span>
+              </h1>
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8 max-w-md">
+                Bygherre opretter projektet og inviterer dig. Du ser præcis hvad der er aftalt, godkender vilkårene digitalt og sender en tidsplan. Alt er dokumenteret fra dag 1.
+              </p>
+              <div className="space-y-4 mb-8">
+                {[
+                  { ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>, titel: "Klare aftaler fra dag 1", tekst: "Pris, tidsplan og betalingsbetingelser er aftalt og underskrevet digitalt inden du starter." },
+                  { ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>, titel: "Ekstraarbejde dokumenteres", tekst: "Send en aftaleseddel direkte i platformen. Bygherre godkender digitalt — ingen diskussioner bagefter." },
+                  { ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>, titel: "Betalingsplan koblet til fremdrift", tekst: "Betalinger frigives når milepæle er nået og godkendt. Færre forsinkelser og misforståelser." },
+                ].map((f, i) => (
+                  <div key={i} className="flex gap-3 items-start">
+                    <div className="w-8 h-8 rounded-lg bg-[#1e3a2a]/8 flex items-center justify-center flex-shrink-0 text-[#1e3a2a]">{f.ikon}</div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{f.titel}</p>
+                      <p className="text-sm text-gray-500 leading-relaxed">{f.tekst}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                <Link href="/login?rolle=haandvaerker" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#1e3a2a] text-white font-bold rounded-xl hover:bg-[#162d20] transition-colors text-base shadow-sm">
+                  Opret profil som entreprenør
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </Link>
+                <Link href="/haandvaerkere" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-base border border-[#e0ddd6]">
+                  Se markedspladsen
+                </Link>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500">
+                {["Gratis profil", "Modtag aftalesedler digitalt", "Dokumentation ved eventuel tvist"].map(s => (
+                  <span key={s} className="flex items-center gap-1.5">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <KontraktMockup />
+          </div>
+        </div>
+      </section>
+
+      {/* Fordele-strip */}
+      <section className="bg-[#1e3a2a] py-12 sm:py-16">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12">
+            {[
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>, titel: "Ét aftalegrundlag fra start", tekst: "Bygherre har allerede beskrevet projektet og godkendt vilkårene. Du ved præcist hvad du går ind til." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>, titel: "Ekstraarbejde uden diskussion", tekst: "Tillægsaftaler godkendes skriftligt inden opstart. Ingen tvister bagefter om hvem der bestilte hvad." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>, titel: "Hurtigere betaling", tekst: "Du markerer milepæle som udført, bygherre godkender, og betalingen frigives. Ingen unødige forsinkelser." },
+            ].map((s) => (
+              <div key={s.titel} className="flex gap-4">
+                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-green-200 flex-shrink-0 mt-0.5">{s.ikon}</div>
+                <div>
+                  <p className="font-bold text-white text-base mb-1">{s.titel}</p>
+                  <p className="text-sm text-green-200/70 leading-relaxed">{s.tekst}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
+      </section>
 
-        {/* Højre: Mockup */}
-        <KontraktMockup />
+      {/* Sådan virker det */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-12 sm:mb-16">
+            <span className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest">Sådan virker det</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">Fra invitation til afsluttet sag.</h2>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-6 sm:gap-8">
+            {[
+              { nr: "1", titel: "Modtag invitation", tekst: "Bygherre sender dig et link. Du åbner aftalegrundlaget, ser pris, tidsplan og vilkår og godkender med ét klik. Ingen konto kræves for at komme i gang.", ikon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> },
+              { nr: "2", titel: "Send tilbud og tidsplan", tekst: "Upload dit tilbud direkte i projektrummet. Bygherre godkender og aftalen er i orden. Ekstraarbejde dokumenteres digitalt inden du starter.", ikon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
+              { nr: "3", titel: "Markér fremdrift og få betalt", tekst: "Marker milepæle som udført. Bygherre godkender og betalingen frigives. Alt dokumenteret, ingen rykkere, ingen ventetid.", ikon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> },
+            ].map((s) => (
+              <div key={s.nr}>
+                <div className="flex items-start gap-5">
+                  <span className="text-6xl sm:text-7xl font-bold text-[#1e3a2a]/10 leading-none select-none -mt-2">{s.nr}</span>
+                  <div className="pt-2">
+                    <div className="w-10 h-10 bg-[#e5ede7] rounded-xl flex items-center justify-center text-[#1e3a2a] mb-4">{s.ikon}</div>
+                    <h3 className="font-bold text-gray-900 text-lg mb-2">{s.titel}</h3>
+                    <p className="text-sm text-gray-500 leading-relaxed">{s.tekst}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-12">
+            <Link href="/login?rolle=haandvaerker" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#1e3a2a] text-white font-bold rounded-xl hover:bg-[#162d20] transition-colors text-base shadow-sm">
+              Opret gratis profil nu
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Hvad får du */}
+      <section className="bg-[#f5f3ee] py-16 sm:py-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="mb-10">
+            <span className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest">Platformen for dig</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2 mb-2">Færre misforståelser. Hurtigere betaling.</h2>
+            <p className="text-base text-gray-500 max-w-lg">Når bygherre inviterer dig ind på platformen er alt det grundlæggende på plads fra start.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>, titel: "Klart aftalegrundlag", tekst: "Du ved præcist hvad der er aftalt, inden du starter. Ingen mundtlige aftaler." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>, titel: "Ekstraarbejde-sedler", tekst: "Send tillægsaftalen digitalt. Bygherre godkender inden du starter — ingen diskussion bagefter." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>, titel: "Betalingsmilepæle", tekst: "Marker fremdrift, bygherre godkender, og betalingen frigives. Ingen unødige forsinkelser." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>, titel: "Ingen forgæves kørsel", tekst: "Du kan se om forudsætningerne er opfyldt inden du møder op." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>, titel: "Chat med bygherre", tekst: "Direkte kommunikation i projektrummet. Alt dokumenteret og tidsstemplet." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, titel: "Synlig på markedspladsen", tekst: "Bygherrer kan finde dig og invitere dig direkte. Slå fra, når du ikke har kapacitet." },
+            ].map((f) => (
+              <div key={f.titel} className="bg-white rounded-2xl p-6 border border-[#e0ddd6] hover:shadow-md transition-shadow flex gap-4 items-start">
+                <div className="w-10 h-10 bg-[#e5ede7] rounded-xl flex items-center justify-center flex-shrink-0">{f.ikon}</div>
+                <div>
+                  <p className="font-bold text-gray-900 mb-1">{f.titel}</p>
+                  <p className="text-sm text-gray-500 leading-relaxed">{f.tekst}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="bg-[#1e3a2a] px-4 sm:px-6 py-16 sm:py-24">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-2xl sm:text-4xl font-bold text-white mb-4 leading-tight">Klar til at komme i gang?</h2>
+          <p className="text-green-200/70 mb-8 text-base leading-relaxed">Opret en gratis profil og bliv synlig for bygherrer i dit område.</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/login?rolle=haandvaerker" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-[#1e3a2a] font-bold rounded-xl hover:bg-[#f5f3ee] transition-colors text-base shadow-lg">
+              Opret gratis profil
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </Link>
+            <Link href="/haandvaerkere" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors text-base">
+              Se markedspladsen
+            </Link>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+/* ─── MAIN EXPORT ───────────────────────────────────────────── */
+export default function ForsideHero() {
+  const [rolle, setRolle] = useState<Rolle>("bygherre");
+
+  return (
+    <>
+      <div className="px-4 sm:px-6 pt-12">
+        <div className="max-w-5xl mx-auto">
+          <Toggle rolle={rolle} setRolle={setRolle} />
+        </div>
       </div>
+      {rolle === "bygherre" ? <Bygherre /> : <Haandvaerker />}
     </>
   );
 }
