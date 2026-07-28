@@ -160,7 +160,10 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
             </div>
             <span style={{ fontFamily: "var(--font-logo)", fontWeight: 200, letterSpacing: "2px" }} className="text-gray-900">contractr</span>
           </Link>
-          <span className="text-xs bg-[#1e3a2a]/10 text-[#1e3a2a] font-semibold px-3 py-1 rounded-full">Aftalegrundlag til gennemsyn</span>
+          <div className="flex items-center gap-3">
+            <Link href="/haandvaerker/sager" className="text-sm text-gray-500 hover:text-[#1e3a2a] transition-colors">← Mine sager</Link>
+            <span className="text-xs bg-[#1e3a2a]/10 text-[#1e3a2a] font-semibold px-3 py-1 rounded-full">Aftalegrundlag til gennemsyn</span>
+          </div>
         </div>
       </nav>
 

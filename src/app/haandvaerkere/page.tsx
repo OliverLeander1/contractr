@@ -115,7 +115,7 @@ export default function HaandvaererDirectory() {
             </p>
             <p className="text-sm text-gray-400">
               {profiler.length === 0
-                ? "Bliv den første — opret en gratis entreprenørprofil."
+                ? "Bliv den første: opret en gratis entreprenørprofil."
                 : "Prøv at ændre dit søgekriterium."}
             </p>
             {profiler.length === 0 && (

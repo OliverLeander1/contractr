@@ -183,7 +183,7 @@ export default function BilledAnnotering({ onGem, onAnnuller }: Props) {
             </svg>
           </div>
           <p className="text-sm font-semibold text-gray-700 mb-1">Vælg et billede</p>
-          <p className="text-xs text-gray-400">Foto af væg, rum, tegning — du kan derefter markere præcist hvad du ønsker</p>
+          <p className="text-xs text-gray-400">Foto af væg, rum, tegning. Du kan derefter markere præcist hvad du ønsker</p>
           <input ref={filInputRef} type="file" accept="image/*" className="hidden"
             onChange={e => e.target.files?.[0] && indlæsBillede(e.target.files[0])} />
         </div>

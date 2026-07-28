@@ -83,7 +83,7 @@ export default function NotifikationerSide() {
             <div className="text-3xl mb-4">🔔</div>
             <p className="font-semibold text-gray-900 mb-1">Ingen notifikationer endnu</p>
             <p className="text-sm text-gray-400 max-w-sm mx-auto">
-              Du får besked her når der er nyt på dine projekter — ekstraarbejde, betalinger, mangler og AB-Forbruger påmindelser.
+              Du får besked her når der er nyt på dine projekter: ekstraarbejde, betalinger, mangler og AB-Forbruger påmindelser.
             </p>
           </div>
         ) : (

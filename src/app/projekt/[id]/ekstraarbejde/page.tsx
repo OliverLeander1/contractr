@@ -240,7 +240,7 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Beskrivelse af ekstraarbejdet</label>
                     <textarea rows={3} value={beskrivelse} onChange={e => setBeskrivelse(e.target.value)}
-                      placeholder="Beskriv præcist hvad der ønskes lavet som ekstraarbejde — jo mere detaljeret, jo bedre grundlag for prissætning..."
+                      placeholder="Beskriv præcist hvad der ønskes lavet som ekstraarbejde. Jo mere detaljeret, jo bedre grundlag for prissætning..."
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none" />
                   </div>
 
@@ -389,7 +389,7 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                   Undervejs i et byggeprojekt opstår der næsten altid arbejde der ikke var med i den oprindelige kontrakt. Det kan være et ekstra stik, en ændret flisetype eller et hul i væggen der ikke stod på tegningen.
                 </p>
                 <p className="text-sm text-white/70 leading-relaxed">
-                  En aftaleseddel er den skriftlige aftale der sikrer at I er enige om hvad ekstraarbejdet indeholder, hvad det koster og om det påvirker tidsplanen — inden arbejdet går i gang. Det beskytter begge parter og forebygger uenigheder om regningen bagefter.
+                  En aftaleseddel er den skriftlige aftale der sikrer at I er enige om hvad ekstraarbejdet indeholder, hvad det koster og om det påvirker tidsplanen, inden arbejdet går i gang. Det beskytter begge parter og forebygger uenigheder om regningen bagefter.
                 </p>
               </div>
 
@@ -399,7 +399,7 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                   {
                     num: "1",
                     titel: "Du beskriver",
-                    tekst: "Skriv hvad du ønsker lavet. Vær præcis — jo mere detaljeret, jo bedre grundlag for prissætning.",
+                    tekst: "Skriv hvad du ønsker lavet. Vær præcis, jo mere detaljeret, jo bedre grundlag for prissætning.",
                     ikon: (
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -581,7 +581,7 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
         <ABTip type="advarsel" paragraf="AB-Forbruger § 23"
           titel="Ekstraarbejde skal aftales skriftligt inden opstart"
           resumé="Mundtlige aftaler om ekstraarbejde er svære at bevise og anerkendes sjældent ved tvist."
-          detaljer="Jf. AB-Forbruger § 23 skal ekstraarbejde aftales skriftligt og prissættes på forhånd. Brug aftalesedlerne her — de udgør din juridiske dokumentation." />
+          detaljer="Jf. AB-Forbruger § 23 skal ekstraarbejde aftales skriftligt og prissættes på forhånd. Brug aftalesedlerne her, de udgør din juridiske dokumentation." />
       </div>
     </div>
   );

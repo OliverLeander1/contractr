@@ -74,7 +74,7 @@ Venlig hilsen
 ${projekt?.titel ?? "Bygherre"}
 
 ---
-Genereret via Nembyggestyring — digital tryghed for bygherren`;
+Genereret via Nembyggestyring, digital tryghed for bygherren`;
   }
 
   async function kopier() {
@@ -96,28 +96,28 @@ Genereret via Nembyggestyring — digital tryghed for bygherren`;
       ok: !!(kontrakt?.total_pris),
       label: "Fast pris aftalt",
       ok_tekst: kontrakt?.total_pris ? fmtKr(kontrakt.total_pris) : "",
-      mangler_tekst: "Ingen pris er registreret i kontrakten — afklar om prisen er fast eller overslag",
+      mangler_tekst: "Ingen pris er registreret i kontrakten. Afklar om prisen er fast eller overslag",
       paragraf: "§ 12",
     },
     {
       ok: !!(kontrakt?.startdato),
       label: "Startdato aftalt",
       ok_tekst: fmtDato(kontrakt?.startdato ?? null) ?? "",
-      mangler_tekst: "Ingen startdato — AB-Forbruger § 12 anbefaler at start- og slutdato fremgår",
+      mangler_tekst: "Ingen startdato. AB-Forbruger § 12 anbefaler at start- og slutdato fremgår",
       paragraf: "§ 12",
     },
     {
       ok: !!(kontrakt?.slutdato),
       label: "Slutdato / afleveringsdato aftalt",
       ok_tekst: fmtDato(kontrakt?.slutdato ?? null) ?? "",
-      mangler_tekst: "Ingen slutdato — afklar hvornår arbejdet forventes afleveret",
+      mangler_tekst: "Ingen slutdato. Afklar hvornår arbejdet forventes afleveret",
       paragraf: "§ 12",
     },
     {
       ok: kontrakt?.ab_forbruger === true,
       label: "AB-Forbruger 2012 er gældende",
-      ok_tekst: "Ja — aftalt som gældende vilkår",
-      mangler_tekst: "AB-Forbruger er ikke bekræftet — bed om at det indgår skriftligt i aftalen",
+      ok_tekst: "Ja, aftalt som gældende vilkår",
+      mangler_tekst: "AB-Forbruger er ikke bekræftet. Bed om at det indgår skriftligt i aftalen",
       paragraf: "§ 1",
     },
   ];
@@ -134,7 +134,7 @@ Genereret via Nembyggestyring — digital tryghed for bygherren`;
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Accept-tjek</h1>
           <p className="text-sm text-gray-400 mt-1">
-            Vi gennemgår de vigtigste punkter inden du accepterer. Accepter aldrig mundtligt — brug beskedforslagen herunder.
+            Vi gennemgår de vigtigste punkter inden du accepterer. Accepter aldrig mundtligt. Brug beskedforslagen herunder.
           </p>
         </div>
 
@@ -236,7 +236,7 @@ Genereret via Nembyggestyring — digital tryghed for bygherren`;
 
             <ABTip type="info" paragraf="AB-Forbruger § 1" titel="AB-Forbruger gælder kun ved skriftlig aftale"
               resumé="AB-Forbruger træder kun i kraft, hvis begge parter skriftligt aftaler at den er gældende."
-              detaljer="Det er ikke nok at du som bygherre ønsker AB-Forbruger — håndværkeren skal eksplicit acceptere det skriftligt. Brug acceptbeskeden herover til at gøre dette klart fra start." />
+              detaljer="Det er ikke nok at du som bygherre ønsker AB-Forbruger. Håndværkeren skal eksplicit acceptere det skriftligt. Brug acceptbeskeden herover til at gøre dette klart fra start." />
           </>
         )}
       </div>

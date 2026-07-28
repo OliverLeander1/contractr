@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import ForsideHero from "@/components/ForsideHero";
+import ForsideHeader from "@/components/ForsideHeader";
 
 export const metadata: Metadata = {
   title: "Nembyggestyring - Hele byggeprojektet samlet ét sted",
@@ -26,14 +27,7 @@ export default function Forside() {
           <Link href="/" className="flex-shrink-0">
             <span className="logo">nembyggestyring</span>
           </Link>
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <Link href="/haandvaerkere" className="text-sm font-medium text-gray-500 hover:text-[#1e3a2a] transition-colors whitespace-nowrap hidden sm:block">
-              Find entreprenør
-            </Link>
-            <Link href="/login" className="text-sm font-semibold text-[#1e3a2a] border border-[#1e3a2a]/30 px-4 py-2 rounded-lg hover:bg-[#1e3a2a]/5 transition-colors whitespace-nowrap">
-              Log ind
-            </Link>
-          </div>
+          <ForsideHeader />
         </div>
       </header>
 
