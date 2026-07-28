@@ -71,7 +71,7 @@ export default function HaandvaererDirectory() {
       <div className="max-w-4xl mx-auto px-6 py-12">
 
         <div className="mb-10">
-          <span className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest">Entrepreneurer</span>
+          <span className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest">Entreprenører</span>
           <h1 className="text-3xl font-bold text-gray-900 mt-2 mb-3">Find en entreprenør i dit område</h1>
           <p className="text-gray-500 max-w-lg leading-relaxed">
             Alle entreprenører herunder er registreret på platformen og kan inviteres direkte ind på dit projekt.
