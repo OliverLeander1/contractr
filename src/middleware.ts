@@ -5,8 +5,22 @@ import { createServerClient } from "@supabase/ssr";
 // Ruter der kræver login
 const BESKYTTEDE = ["/dashboard", "/projekt", "/konto", "/notifikationer", "/haandvaerker/sager", "/haandvaerker/nyt-tilbud", "/haandvaerker/profil", "/haandvaerker/projekt", "/tilkoeb/book"];
 
+// Ruter der altid er tilgængelige selv under vedligeholdelse
+const VEDLIGEHOLDELSE_UNDTAGET = ["/under-vedligeholdelse", "/api/maintenance"];
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Vedligeholdelsestilstand
+  if (process.env.MAINTENANCE_MODE === "true") {
+    const erUndtaget = VEDLIGEHOLDELSE_UNDTAGET.some(p => pathname.startsWith(p));
+    if (!erUndtaget) {
+      const bypass = request.cookies.get("maintenance_bypass")?.value;
+      if (bypass !== process.env.MAINTENANCE_PASSWORD) {
+        return NextResponse.redirect(new URL("/under-vedligeholdelse", request.url));
+      }
+    }
+  }
 
   // Logged-in users hitting "/" get sent to their dashboard
   if (pathname === "/") {
