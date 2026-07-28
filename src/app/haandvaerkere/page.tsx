@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase";
 interface HaandvaerkerProfil {
   id: string;
   navn: string | null;
-  firma: string | null;
+  virksomhed: string | null;
   fag: string | null;
   email: string | null;
   postnummer: string | null;
@@ -35,8 +35,9 @@ export default function HaandvaererDirectory() {
     const hent = async () => {
       const { data } = await supabase
         .from("profiler")
-        .select("id, navn, firma, fag, email, postnummer, by, oprettet_at")
+        .select("id, navn, virksomhed, fag, email, postnummer, by, oprettet_at")
         .eq("rolle", "haandvaerker")
+        .eq("tilgaengelig", true)
         .order("oprettet_at", { ascending: false });
       setProfiler(data || []);
       setFiltreret(data || []);
@@ -54,7 +55,7 @@ export default function HaandvaererDirectory() {
       const s = søgning.toLowerCase();
       res = res.filter(p =>
         p.navn?.toLowerCase().includes(s) ||
-        p.firma?.toLowerCase().includes(s) ||
+        p.virksomhed?.toLowerCase().includes(s) ||
         p.fag?.toLowerCase().includes(s) ||
         p.by?.toLowerCase().includes(s) ||
         p.postnummer?.includes(s)
@@ -130,11 +131,11 @@ export default function HaandvaererDirectory() {
                 <div key={p.id} className="bg-white rounded-2xl border border-[#e0ddd6] p-5 hover:border-[#1e3a2a]/30 transition-colors">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-[#1e3a2a]/10 rounded-2xl flex items-center justify-center flex-shrink-0 text-[#1e3a2a] font-bold text-lg">
-                      {(p.navn || p.firma || "?")[0].toUpperCase()}
+                      {(p.navn || p.virksomhed || "?")[0].toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-gray-900 truncate">{p.navn || "Ikke angivet"}</p>
-                      {p.firma && <p className="text-sm text-gray-500 truncate">{p.firma}</p>}
+                      {p.virksomhed && <p className="text-sm text-gray-500 truncate">{p.virksomhed}</p>}
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         {p.fag && (
                           <span className="text-xs bg-[#1e3a2a]/8 text-[#1e3a2a] px-2 py-0.5 rounded-full font-medium">

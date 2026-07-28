@@ -5,37 +5,38 @@ import Link from "next/link";
 import SimpleNav from "@/components/SimpleNav";
 import { createClient } from "@/lib/supabase";
 
+const FAGS = [
+  "Hovedentreprenør", "Totalentreprenør", "Tømrer", "Murer", "VVS", "Elektriker",
+  "Maler", "Gulvlægger", "Blikkenslager", "Snedker", "Smed", "Kloakmester", "Facademontør", "Andet",
+];
+
 interface Profil {
   navn: string | null;
   virksomhed: string | null;
   cvr: string | null;
   telefon: string | null;
   email: string | null;
+  fag: string | null;
+  postnummer: string | null;
+  by: string | null;
+  tilgaengelig: boolean;
   oprettet_at: string | null;
 }
 
-function Stjerner({ antal }: { antal: number }) {
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill={i <= antal ? "#1e3a2a" : "none"} stroke="#1e3a2a" strokeWidth="2">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-      ))}
-    </div>
-  );
-}
-
 export default function HaandvaerkerProfil() {
-  const [profil, setProfil] = useState<Profil | null>(null);
-  const [indlæser, setIndlæser] = useState(true);
-  const [redigerer, setRedigerer] = useState(false);
-  const [nytNavn, setNytNavn] = useState("");
+  const [profil, setProfil]           = useState<Profil | null>(null);
+  const [indlæser, setIndlæser]       = useState(true);
+  const [redigerer, setRedigerer]     = useState(false);
+  const [nytNavn, setNytNavn]         = useState("");
   const [nyVirksomhed, setNyVirksomhed] = useState("");
-  const [nytCvr, setNytCvr] = useState("");
-  const [nytTelefon, setNytTelefon] = useState("");
-  const [gemmer, setGemmer] = useState(false);
-  const [gemtBesked, setGemtBesked] = useState(false);
+  const [nytCvr, setNytCvr]           = useState("");
+  const [nytTelefon, setNytTelefon]   = useState("");
+  const [nytFag, setNytFag]           = useState("");
+  const [nytPostnummer, setNytPostnummer] = useState("");
+  const [nytBy, setNytBy]             = useState("");
+  const [tilgaengelig, setTilgaengelig] = useState(true);
+  const [gemmer, setGemmer]           = useState(false);
+  const [gemtBesked, setGemtBesked]   = useState(false);
 
   useEffect(() => {
     const hent = async () => {
@@ -45,7 +46,7 @@ export default function HaandvaerkerProfil() {
 
       const { data } = await supabase
         .from("profiler")
-        .select("navn, virksomhed, cvr, telefon, email, oprettet_at")
+        .select("navn, virksomhed, cvr, telefon, email, fag, postnummer, by, tilgaengelig, oprettet_at")
         .eq("id", user.id)
         .single();
 
@@ -55,8 +56,12 @@ export default function HaandvaerkerProfil() {
         setNyVirksomhed(data.virksomhed || "");
         setNytCvr(data.cvr || "");
         setNytTelefon(data.telefon || "");
+        setNytFag(data.fag || "");
+        setNytPostnummer(data.postnummer || "");
+        setNytBy(data.by || "");
+        setTilgaengelig(data.tilgaengelig ?? true);
       } else {
-        setProfil({ navn: null, virksomhed: null, cvr: null, telefon: null, email: user.email || null, oprettet_at: null });
+        setProfil({ navn: null, virksomhed: null, cvr: null, telefon: null, email: user.email || null, fag: null, postnummer: null, by: null, tilgaengelig: true, oprettet_at: null });
       }
       setIndlæser(false);
     };
@@ -77,6 +82,10 @@ export default function HaandvaerkerProfil() {
         virksomhed: nyVirksomhed.trim() || null,
         cvr: nytCvr.trim() || null,
         telefon: nytTelefon.trim() || null,
+        fag: nytFag || null,
+        postnummer: nytPostnummer.trim() || null,
+        by: nytBy.trim() || null,
+        tilgaengelig,
       }, { onConflict: "id" })
       .select()
       .single();
@@ -86,6 +95,17 @@ export default function HaandvaerkerProfil() {
     setRedigerer(false);
     setGemtBesked(true);
     setTimeout(() => setGemtBesked(false), 3000);
+  };
+
+  // Hurtig tilgaengelig-toggle uden at åbne redigeringsformular
+  const togglTilgaengelig = async () => {
+    const nyVærdi = !tilgaengelig;
+    setTilgaengelig(nyVærdi);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("profiler").update({ tilgaengelig: nyVærdi }).eq("id", user.id);
+    setProfil(prev => prev ? { ...prev, tilgaengelig: nyVærdi } : prev);
   };
 
   if (indlæser) return (
@@ -105,6 +125,26 @@ export default function HaandvaerkerProfil() {
 
       <div className="max-w-3xl mx-auto px-6 py-10">
 
+        {/* Markedsplads-toggle — øverst og fremtrædende */}
+        <div className={`rounded-2xl border p-5 mb-5 flex items-center justify-between gap-4 transition-colors ${tilgaengelig ? "bg-[#f0f7f3] border-green-200" : "bg-gray-50 border-gray-200"}`}>
+          <div>
+            <p className={`font-semibold text-sm ${tilgaengelig ? "text-[#1e3a2a]" : "text-gray-600"}`}>
+              {tilgaengelig ? "Du er synlig på markedspladsen" : "Du er skjult fra markedspladsen"}
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {tilgaengelig
+                ? "Bygherrer kan finde dig og invitere dig til projekter."
+                : "Slå til igen, når du har kapacitet til nye opgaver."}
+            </p>
+          </div>
+          <button
+            onClick={togglTilgaengelig}
+            className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${tilgaengelig ? "bg-[#1e3a2a]" : "bg-gray-300"}`}
+          >
+            <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${tilgaengelig ? "translate-x-6" : "translate-x-0.5"}`} />
+          </button>
+        </div>
+
         {/* Profilkort */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
           <div className="flex items-start gap-5">
@@ -114,26 +154,36 @@ export default function HaandvaerkerProfil() {
             <div className="flex-1">
               <h1 className="text-xl font-bold text-gray-900">{profil?.navn || "Navn ikke angivet"}</h1>
               {(profil?.virksomhed || profil?.cvr) && (
-                <p className="text-gray-500 mb-3">
+                <p className="text-gray-500 text-sm">
                   {profil.virksomhed || ""}
                   {profil.cvr ? ` · CVR ${profil.cvr}` : ""}
                 </p>
               )}
-              <div className="flex items-center gap-4 flex-wrap text-sm text-gray-500">
+              <div className="flex flex-wrap gap-2 mt-2">
+                {profil?.fag && (
+                  <span className="text-xs bg-[#1e3a2a]/10 text-[#1e3a2a] px-2.5 py-1 rounded-full font-medium">{profil.fag}</span>
+                )}
+                {(profil?.postnummer || profil?.by) && (
+                  <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-1 rounded-full">
+                    {profil.postnummer ? `${profil.postnummer} ` : ""}{profil.by}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-4 flex-wrap text-sm text-gray-500 mt-3">
                 {profil?.telefon && (
                   <span className="flex items-center gap-1.5">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                     {profil.telefon}
                   </span>
                 )}
                 {profil?.email && (
                   <span className="flex items-center gap-1.5">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                     {profil.email}
                   </span>
                 )}
                 <span className="flex items-center gap-1.5">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                   Medlem siden {oprettetAar}
                 </span>
               </div>
@@ -148,15 +198,17 @@ export default function HaandvaerkerProfil() {
 
           {redigerer && (
             <div className="border-t border-gray-100 pt-5 mt-5 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Navn</label>
-                <input type="text" value={nytNavn} onChange={e => setNytNavn(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Virksomhed</label>
-                <input type="text" value={nyVirksomhed} onChange={e => setNyVirksomhed(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Navn</label>
+                  <input type="text" value={nytNavn} onChange={e => setNytNavn(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Virksomhed</label>
+                  <input type="text" value={nyVirksomhed} onChange={e => setNyVirksomhed(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -167,6 +219,26 @@ export default function HaandvaerkerProfil() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Telefon</label>
                   <input type="tel" value={nytTelefon} onChange={e => setNytTelefon(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Fagområde</label>
+                <select value={nytFag} onChange={e => setNytFag(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all bg-white">
+                  <option value="">Vælg fagområde...</option>
+                  {FAGS.map(f => <option key={f} value={f}>{f}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Postnummer</label>
+                  <input type="text" placeholder="F.eks. 2100" value={nytPostnummer} onChange={e => setNytPostnummer(e.target.value)} maxLength={4}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">By</label>
+                  <input type="text" placeholder="F.eks. København Ø" value={nytBy} onChange={e => setNytBy(e.target.value)}
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
                 </div>
               </div>
@@ -197,11 +269,14 @@ export default function HaandvaerkerProfil() {
           </div>
         </div>
 
-        {/* Specialer */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Dit fagområde</h2>
-          <p className="text-sm text-gray-400">Specialer tilføjes når du opretter tilbud på projekter.</p>
-        </div>
+        {/* Link til markedspladsen */}
+        <Link href="/haandvaerkere" className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-[#1e3a2a]/30 transition-colors">
+          <div>
+            <p className="font-semibold text-gray-900 text-sm">Se din profil på markedspladsen</p>
+            <p className="text-xs text-gray-400 mt-0.5">Sådan ser bygherrer din profil</p>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </Link>
       </div>
     </div>
   );
