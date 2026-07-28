@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import FlowLayout from "@/components/FlowLayout";
+import SimpleNav from "@/components/SimpleNav";
 
 export default function UploadAftale() {
   const router = useRouter();
@@ -55,7 +55,9 @@ export default function UploadAftale() {
   };
 
   return (
-    <FlowLayout aktivTrin={3}>
+    <div className="min-h-screen bg-gray-50">
+      <SimpleNav tilbage="/" tilbageLabel="Forsiden" />
+      <main className="max-w-3xl mx-auto px-6 py-12">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload dit tilbud</h1>
         <p className="text-gray-500 leading-relaxed">
@@ -176,6 +178,7 @@ export default function UploadAftale() {
       {!kanFortsætte && (
         <p className="text-center text-xs text-gray-400 mt-3">Upload en fil eller indsæt tekst fra tilbuddet for at fortsætte</p>
       )}
-    </FlowLayout>
+      </main>
+    </div>
   );
 }
