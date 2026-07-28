@@ -282,7 +282,7 @@ export default function Rapport() {
             },
             {
               titel: "Projektrum",
-              pris: "499 kr.",
+              pris: "Fra 299 kr.",
               prisfarge: "text-[#1e3a2a] font-bold",
               highlight: true,
               items: [
@@ -342,7 +342,7 @@ export default function Rapport() {
           </div>
           <div className="flex-shrink-0 text-right">
             <p className="text-white/40 text-xs mb-0.5">Engangspris</p>
-            <p className="text-white text-3xl font-bold">499 <span className="text-lg font-medium opacity-60">kr.</span></p>
+            <p className="text-white text-3xl font-bold">Fra 299 <span className="text-lg font-medium opacity-60">kr.</span></p>
           </div>
         </div>
         <div className="px-6 py-4 flex items-center justify-between gap-4">

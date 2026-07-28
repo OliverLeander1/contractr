@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Vilkår og betingelser",
-  description: "Læs Contractrs vilkår og betingelser for brug af platformen.",
+  description: "Læs Nembyggestyrings vilkår og betingelser for brug af platformen.",
 };
 
 const sektioner = [
@@ -26,7 +26,7 @@ const sektioner = [
   },
   {
     titel: "5. Betaling",
-    indhold: `Grundscreeningen er gratis. Adgang til projektrum koster 499 kr. som en engangsbetaling. Alle priser er inklusive moms. Der er ingen løbende abonnement. Tilbagebetaling behandles inden for 30 dage efter køb ved henvendelse til support.`,
+    indhold: `Grundscreeningen er gratis. Adgang til projektrum er en engangsbetaling der afhænger af projektets størrelse: 299 kr. for mindre byggeprojekter, 2.499 kr. for mellemstore projekter og 4.999 kr. for større projekter. Alle priser er inklusive moms. Der er ingen løbende abonnement. Tilbagebetaling behandles inden for 30 dage efter køb ved henvendelse til support.`,
   },
   {
     titel: "6. Intellektuel ejendomsret",
