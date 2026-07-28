@@ -3,8 +3,9 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import BesigtigelseKort from "@/components/BesigtigelseKort";
 
-type Fane = "aftale" | "tidsplan" | "sedler" | "mangler";
+type Fane = "aftale" | "tidsplan" | "sedler" | "mangler" | "besigtigelse";
 
 interface Kontrakt {
   id: string;
@@ -177,10 +178,11 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
         {/* Faner */}
         <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 overflow-x-auto">
           {([
-            { id: "aftale",   label: "Aftalegrundlag" },
-            { id: "tidsplan", label: "Tidsplan" },
-            { id: "sedler",   label: `Aftalesedler${sedler.length > 0 ? ` (${sedler.length})` : ""}` },
-            { id: "mangler",  label: `Mangler${mangler.length > 0 ? ` (${mangler.length})` : ""}` },
+            { id: "aftale",        label: "Aftalegrundlag" },
+            { id: "besigtigelse",  label: "Besigtigelse" },
+            { id: "tidsplan",      label: "Tidsplan" },
+            { id: "sedler",        label: `Aftalesedler${sedler.length > 0 ? ` (${sedler.length})` : ""}` },
+            { id: "mangler",       label: `Mangler${mangler.length > 0 ? ` (${mangler.length})` : ""}` },
           ] as { id: Fane; label: string }[]).map(f => (
             <button key={f.id} onClick={() => setFane(f.id)}
               className={`flex-1 text-sm font-semibold py-2 px-3 rounded-lg whitespace-nowrap transition-all ${
@@ -377,6 +379,15 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
               </div>
             ))}
           </div>
+        )}
+
+        {/* Besigtigelse */}
+        {fane === "besigtigelse" && kontrakt && (
+          <BesigtigelseKort
+            kontraktId={kontrakt.id}
+            projektId={kontrakt.projekt_id}
+            rolle="haandvaerker"
+          />
         )}
       </div>
 

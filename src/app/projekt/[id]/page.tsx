@@ -4,6 +4,7 @@ import { use, useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import ProjektNav from "@/components/ProjektNav";
 import Chat from "@/components/Chat";
+import BesigtigelseKort from "@/components/BesigtigelseKort";
 import { createClient } from "@/lib/supabase";
 
 interface Kontrakt {
@@ -268,6 +269,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
               </div>
             </div>
           </div>
+          <BesigtigelseKort kontraktId={kontrakt.id} projektId={id} rolle="bygherre" />
           <Suspense><Chat bruger="bygherre" /></Suspense>
         </div>
       );
@@ -291,6 +293,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
 
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-4">
+              <BesigtigelseKort kontraktId={kontrakt.id} projektId={id} rolle="bygherre" />
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <h2 className="font-semibold text-gray-900 mb-4">Aftalestatus</h2>
                 <div className="flex items-start gap-3 p-4 bg-[#1e3a2a]/5 border border-[#1e3a2a]/15 rounded-xl hover:bg-[#1e3a2a]/10 transition-colors">

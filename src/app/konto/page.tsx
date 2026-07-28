@@ -55,6 +55,8 @@ export default function MinSide() {
   const [gemmerProfil, setGemmerProfil] = useState(false);
   const [sletterKonto, setSletterKonto] = useState(false);
   const [bekræftSlet, setBekræftSlet] = useState(false);
+  const [sletNavn, setSletNavn] = useState("");
+  const [sletBekræft, setSletBekræft] = useState("");
 
   useEffect(() => {
     const hent = async () => {
@@ -371,9 +373,35 @@ export default function MinSide() {
                 <div className="p-4 bg-red-50 rounded-xl border border-red-100">
                   <p className="text-sm font-semibold text-red-800 mb-1">Er du sikker?</p>
                   <p className="text-xs text-red-600 mb-4">Din konto, dine projekter og alle tilknyttede data slettes permanent. Dette kan ikke fortrydes.</p>
+                  <div className="space-y-3 mb-4">
+                    <div>
+                      <label className="block text-xs font-medium text-red-700 mb-1.5">
+                        Bekræft ved at skrive dit navn: <span className="font-bold">{profil?.navn}</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={sletNavn}
+                        onChange={e => setSletNavn(e.target.value)}
+                        placeholder={profil?.navn || ""}
+                        className="w-full border border-red-200 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-400 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-red-700 mb-1.5">
+                        Skriv derefter: <span className="font-bold">slet bruger</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={sletBekræft}
+                        onChange={e => setSletBekræft(e.target.value)}
+                        placeholder="slet bruger"
+                        className="w-full border border-red-200 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-400 transition-all"
+                      />
+                    </div>
+                  </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => setBekræftSlet(false)}
+                      onClick={() => { setBekræftSlet(false); setSletNavn(""); setSletBekræft(""); }}
                       className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-white transition-colors"
                     >
                       Annuller
@@ -395,10 +423,14 @@ export default function MinSide() {
                           setBekræftSlet(false);
                         }
                       }}
-                      disabled={sletterKonto}
-                      className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-50"
+                      disabled={
+                        sletterKonto ||
+                        sletNavn.trim().toLowerCase() !== (profil?.navn || "").trim().toLowerCase() ||
+                        sletBekræft.trim().toLowerCase() !== "slet bruger"
+                      }
+                      className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      {sletterKonto ? "Sletter..." : "Ja, slet alt"}
+                      {sletterKonto ? "Sletter..." : "Slet min konto"}
                     </button>
                   </div>
                 </div>
