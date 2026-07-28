@@ -74,7 +74,7 @@ Venlig hilsen
 ${projekt?.titel ?? "Bygherre"}
 
 ---
-Genereret via Contractr — digital tryghed for bygherren`;
+Genereret via Nembyggestyring — digital tryghed for bygherren`;
   }
 
   async function kopier() {
