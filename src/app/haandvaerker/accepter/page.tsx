@@ -29,6 +29,25 @@ function AccepterInvitationInner() {
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState("");
   const [alleredeLoggetInd, setAlleredeLoggetInd] = useState(false);
+  const [cvrSoeger, setCvrSoeger] = useState(false);
+  const [cvrVerificeret, setCvrVerificeret] = useState(false);
+
+  // CVR-opslag via cvrapi.dk (gratis, ingen nøgle)
+  useEffect(() => {
+    const digits = cvr.replace(/\D/g, "");
+    if (digits.length !== 8) { setCvrVerificeret(false); return; }
+    setCvrSoeger(true);
+    fetch(`https://cvrapi.dk/api?search=${digits}&country=dk`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.name) {
+          setVirksomhed(data.name);
+          setCvrVerificeret(true);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setCvrSoeger(false));
+  }, [cvr]);
 
   // Tjek om allerede logget ind
   useEffect(() => {
@@ -195,8 +214,19 @@ function AccepterInvitationInner() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">CVR</label>
-                    <input type="text" placeholder="8 cifre" value={cvr} onChange={e => setCvr(e.target.value)}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
+                    <div className="relative">
+                      <input type="text" placeholder="8 cifre" value={cvr}
+                        onChange={e => { setCvr(e.target.value); setCvrVerificeret(false); }}
+                        maxLength={8}
+                        className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 transition-all pr-8 ${cvrVerificeret ? "border-green-400 focus:border-green-500 focus:ring-green-500/10" : "border-gray-200 focus:border-[#1e3a2a] focus:ring-[#1e3a2a]/10"}`} />
+                      {cvrSoeger && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-gray-300 border-t-[#1e3a2a] rounded-full animate-spin" />
+                      )}
+                      {cvrVerificeret && !cvrSoeger && (
+                        <svg className="absolute right-3 top-1/2 -translate-y-1/2" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                      )}
+                    </div>
+                    {cvrVerificeret && <p className="text-xs text-green-600 mt-1">CVR verificeret</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Telefon</label>
