@@ -16,6 +16,8 @@ export default function BeskrivProjekt() {
   const [krav, setKrav] = useState("");
   const [beboet, setBeboet] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingPct, setLoadingPct] = useState(0);
+  const [loadingTipIdx, setLoadingTipIdx] = useState(0);
   const [fejl, setFejl] = useState("");
   const [billeder, setBilleder] = useState<{ navn: string; data: string }[]>([]);
 
@@ -28,10 +30,30 @@ export default function BeskrivProjekt() {
 
   const kanGenerere = beskrivelse.trim().length >= 20;
 
+  const loadingTips = [
+    { titel: "Aftalegrundlag", tekst: "Platformen genererer et struktureret udbudsdokument med alle væsentlige punkter, klar til at sende til håndværkeren." },
+    { titel: "Ekstraarbejde som aftaleseddel", tekst: "Ekstraarbejde der ikke er beskrevet i aftalegrundlaget skal altid aftales skriftligt som en aftaleseddel inden arbejdet starter." },
+    { titel: "Mangelregistrering", tekst: "Opdager du en fejl eller mangel? Du kan fotografere og registrere den direkte i platformen med beskrivelse og status." },
+    { titel: "Digital underskrift", tekst: "Begge parter godkender aftalegrundlaget digitalt. Intet er bindende før begge har skrevet under." },
+    { titel: "Betalingsplan", tekst: "Betalinger kobles til dokumenteret fremdrift. Du godkender hver milepæl inden betaling frigives." },
+  ];
+
   async function genererUdbud() {
     if (!kanGenerere) return;
     setLoading(true);
+    setLoadingPct(0);
+    setLoadingTipIdx(0);
     setFejl("");
+
+    // Animér loading bar og skift tips mens AI'en arbejder
+    const startTime = Date.now();
+    const duration = 12000; // 12 sek forventet ventetid
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const pct = Math.min(92, Math.round((elapsed / duration) * 92));
+      setLoadingPct(pct);
+      setLoadingTipIdx(i => (i + 1) % loadingTips.length);
+    }, 4000);
     try {
       const res = await fetch("/api/udbud", {
         method: "POST",
@@ -44,9 +66,13 @@ export default function BeskrivProjekt() {
         setLoading(false);
         return;
       }
+      clearInterval(interval);
+      setLoadingPct(100);
+      await new Promise(r => setTimeout(r, 400));
       sessionStorage.setItem("udbud_resultat", JSON.stringify({ ...data, billeder }));
       router.push("/opret/udbud-resultat");
     } catch {
+      clearInterval(interval);
       setFejl("Netværksfejl. Tjek din forbindelse og prøv igen.");
       setLoading(false);
     }
@@ -221,6 +247,50 @@ export default function BeskrivProjekt() {
       </div>
       {!kanGenerere && (
         <p className="text-center text-xs text-gray-400 mt-3">Beskriv projektet (min. 20 tegn) for at fortsætte</p>
+      )}
+
+      {/* Loading overlay */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl px-8 py-10 max-w-md w-full mx-4">
+            {/* Ikon + titel */}
+            <div className="flex flex-col items-center text-center mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-[#1e3a2a]/8 flex items-center justify-center mb-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              </div>
+              <h2 className="text-lg font-bold text-gray-900">Genererer dit udbudsdokument</h2>
+              <p className="text-sm text-gray-400 mt-1">Det tager typisk 10–20 sekunder</p>
+            </div>
+
+            {/* Loading bar */}
+            <div className="mb-8">
+              <div className="flex justify-between text-xs text-gray-400 mb-2">
+                <span>Behandler beskrivelse…</span>
+                <span>{loadingPct}%</span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[#1e3a2a] rounded-full transition-all duration-700 ease-out"
+                  style={{ width: `${loadingPct}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Roterende tip */}
+            <div className="bg-[#f4f9f6] border border-[#dceae2] rounded-2xl p-5">
+              <div>
+                <p className="text-xs font-bold text-[#1e3a2a] uppercase tracking-widest mb-1">{loadingTips[loadingTipIdx].titel}</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{loadingTips[loadingTipIdx].tekst}</p>
+              </div>
+              {/* Tip-indikatorer */}
+              <div className="flex gap-1.5 justify-center mt-4">
+                {loadingTips.map((_, i) => (
+                  <div key={i} className={`h-1.5 rounded-full transition-all duration-500 ${i === loadingTipIdx ? "w-5 bg-[#1e3a2a]" : "w-1.5 bg-gray-300"}`} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </FlowLayout>
   );

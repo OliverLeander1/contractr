@@ -143,8 +143,8 @@ export default function UdbudResultat() {
             value={tekst}
             onChange={(e) => setTekst(e.target.value)}
             rows={Math.max(30, tekst.split("\n").length + 2)}
-            className="w-full text-sm text-gray-700 leading-relaxed font-mono resize-none focus:outline-none border-0 bg-transparent"
-            style={{ fontFamily: "ui-monospace, 'Cascadia Code', 'Source Code Pro', monospace" }}
+            className="w-full text-sm text-gray-700 leading-relaxed resize-none focus:outline-none border-0 bg-transparent"
+            style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", lineHeight: "1.75" }}
           />
         </div>
       </div>
