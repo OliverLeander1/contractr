@@ -30,6 +30,9 @@ function LoginInner() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [navn, setNavn] = useState("");
+  const [adresse, setAdresse] = useState("");
+  const [adresseForslag, setAdresseForslag] = useState<{ tekst: string; data?: { id: string } }[]>([]);
+  const [visAdresseForslag, setVisAdresseForslag] = useState(false);
   const [virksomhed, setVirksomhed] = useState("");
   const [cvr, setCvr] = useState("");
   const [fag, setFag] = useState("");
@@ -44,6 +47,19 @@ function LoginInner() {
     "Hovedentreprenør", "Totalentreprenør", "Tømrer", "Murer", "VVS", "Elektriker",
     "Maler", "Gulvlægger", "Blikkenslager", "Snedker", "Smed", "Kloakmester", "Facademontør", "Andet",
   ];
+
+  useEffect(() => {
+    if (adresse.length < 3) { setAdresseForslag([]); return; }
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://api.dataforsyningen.dk/autocomplete?q=${encodeURIComponent(adresse)}&type=adresse&per_side=6`);
+        const data = await res.json();
+        setAdresseForslag(data);
+        setVisAdresseForslag(true);
+      } catch { setAdresseForslag([]); }
+    }, 200);
+    return () => clearTimeout(timeout);
+  }, [adresse]);
 
   useEffect(() => {
     const digits = cvr.replace(/\D/g, "");
@@ -95,15 +111,23 @@ function LoginInner() {
         return;
       }
 
-      // Gem ekstra profil-data for håndværkere
-      if (signInData?.user && rolle === "haandvaerker") {
-        await supabase.from("profiler").upsert({
-          id: signInData.user.id,
-          virksomhed: virksomhed.trim() || null,
-          cvr: cvr.trim() || null,
-          fag: fag || null,
-          rolle: "haandvaerker",
-        }, { onConflict: "id" });
+      // Gem ekstra profil-data
+      if (signInData?.user) {
+        if (rolle === "haandvaerker") {
+          await supabase.from("profiler").upsert({
+            id: signInData.user.id,
+            virksomhed: virksomhed.trim() || null,
+            cvr: cvr.trim() || null,
+            fag: fag || null,
+            rolle: "haandvaerker",
+          }, { onConflict: "id" });
+        } else if (adresse.trim()) {
+          await supabase.from("profiler").upsert({
+            id: signInData.user.id,
+            adresse: adresse.trim(),
+            rolle: "bygherre",
+          }, { onConflict: "id" });
+        }
       }
 
       track("signup_completed", { brugerType: rolle });
@@ -283,6 +307,34 @@ function LoginInner() {
                     className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                   />
                 </div>
+                {rolle === "bygherre" && (
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Adresse på projektet</label>
+                    <input
+                      type="text"
+                      placeholder="F.eks. Valby Langgade 85, 2500 Valby"
+                      value={adresse}
+                      onChange={e => { setAdresse(e.target.value); setVisAdresseForslag(true); }}
+                      onBlur={() => setTimeout(() => setVisAdresseForslag(false), 150)}
+                      autoComplete="off"
+                      className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+                    />
+                    {visAdresseForslag && adresseForslag.length > 0 && (
+                      <ul className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                        {adresseForslag.map((f, i) => (
+                          <li
+                            key={f.data?.id ?? i}
+                            onMouseDown={() => { setAdresse(f.tekst); setVisAdresseForslag(false); setAdresseForslag([]); }}
+                            className="px-4 py-3 text-sm text-gray-800 hover:bg-[#f5f3ee] cursor-pointer border-b border-gray-50 last:border-0"
+                          >
+                            {f.tekst}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <p className="text-xs text-gray-400 mt-1.5">Gemmes til dit profil og udfyldes automatisk næste gang.</p>
+                  </div>
+                )}
                 {rolle === "haandvaerker" && (
                   <>
                     <div className="grid grid-cols-2 gap-3">

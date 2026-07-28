@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import SimpleNav from "@/components/SimpleNav";
 import { useRouter } from "next/navigation";
@@ -51,12 +51,38 @@ export default function MinSide() {
   const [nytNavn, setNytNavn] = useState("");
   const [nyTelefon, setNyTelefon] = useState("");
   const [nyAdresse, setNyAdresse] = useState("");
+  const [adresseForslag, setAdresseForslag] = useState<{ tekst: string; data?: { id: string } }[]>([]);
+  const [visAdresseForslag, setVisAdresseForslag] = useState(false);
+  const adresseRef = useRef<HTMLDivElement>(null);
   const [gemtBesked, setGemtBesked] = useState(false);
   const [gemmerProfil, setGemmerProfil] = useState(false);
   const [sletterKonto, setSletterKonto] = useState(false);
   const [bekræftSlet, setBekræftSlet] = useState(false);
   const [sletNavn, setSletNavn] = useState("");
   const [sletBekræft, setSletBekræft] = useState("");
+
+  useEffect(() => {
+    if (nyAdresse.length < 3) { setAdresseForslag([]); return; }
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://api.dataforsyningen.dk/autocomplete?q=${encodeURIComponent(nyAdresse)}&type=adresse&per_side=6`);
+        const data = await res.json();
+        setAdresseForslag(data);
+        setVisAdresseForslag(true);
+      } catch { setAdresseForslag([]); }
+    }, 200);
+    return () => clearTimeout(timeout);
+  }, [nyAdresse]);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (adresseRef.current && !adresseRef.current.contains(e.target as Node)) {
+        setVisAdresseForslag(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   useEffect(() => {
     const hent = async () => {
@@ -196,15 +222,29 @@ export default function MinSide() {
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Din adresse (valgfrit)</label>
+              <div ref={adresseRef} className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Din adresse</label>
                 <input
                   type="text"
                   value={nyAdresse}
-                  onChange={e => setNyAdresse(e.target.value)}
+                  onChange={e => { setNyAdresse(e.target.value); setVisAdresseForslag(true); }}
                   placeholder="f.eks. Kirkevej 23, 2920 Charlottenlund"
+                  autoComplete="off"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                 />
+                {visAdresseForslag && adresseForslag.length > 0 && (
+                  <ul className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                    {adresseForslag.map((f, i) => (
+                      <li
+                        key={f.data?.id ?? i}
+                        onMouseDown={() => { setNyAdresse(f.tekst); setVisAdresseForslag(false); setAdresseForslag([]); }}
+                        className="px-4 py-3 text-sm text-gray-800 hover:bg-[#f5f3ee] cursor-pointer border-b border-gray-50 last:border-0"
+                      >
+                        {f.tekst}
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 <p className="text-xs text-gray-400 mt-1.5">Udfyldes automatisk i nye projekter</p>
               </div>
               <button

@@ -46,7 +46,7 @@ export default function OpretProjekt() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  // Pre-fill navn og kontakt fra brugerprofil hvis logget ind
+  // Pre-fill navn, kontakt og adresse fra brugerprofil hvis logget ind
   useEffect(() => {
     const hentProfil = async () => {
       try {
@@ -55,12 +55,13 @@ export default function OpretProjekt() {
         if (!user) return;
         const { data: profil } = await supabase
           .from("profiler")
-          .select("navn, telefon, email")
+          .select("navn, telefon, email, adresse")
           .eq("id", user.id)
           .single();
         if (profil?.navn) setNavn(profil.navn);
         if (profil?.telefon) setKontakt(profil.telefon);
         else if (user.email) setKontakt(user.email);
+        if (profil?.adresse) setAdresse(profil.adresse);
       } catch { /* ikke logget ind — intet at hente */ }
     };
     hentProfil();

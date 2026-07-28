@@ -8,6 +8,37 @@ const BESKYTTEDE = ["/dashboard", "/projekt", "/konto", "/notifikationer", "/haa
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Logged-in users hitting "/" get sent to their dashboard
+  if (pathname === "/") {
+    const response = NextResponse.next();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return request.cookies.getAll(); },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            );
+          },
+        },
+      }
+    );
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      // Fetch role to determine destination
+      const { data: profil } = await supabase
+        .from("profiler")
+        .select("rolle")
+        .eq("id", user.id)
+        .maybeSingle();
+      const dest = profil?.rolle === "haandvaerker" ? "/haandvaerker/sager" : "/dashboard";
+      return NextResponse.redirect(new URL(dest, request.url));
+    }
+    return response;
+  }
+
   // Tjek om ruten er beskyttet
   const erBeskyttet = BESKYTTEDE.some((prefix) => pathname.startsWith(prefix));
   if (!erBeskyttet) return NextResponse.next();
