@@ -27,6 +27,9 @@ export default function Forside() {
             <span className="logo">nembyggestyring</span>
           </Link>
           <div className="flex items-center gap-3 flex-shrink-0">
+            <Link href="/haandvaerkere" className="text-sm font-medium text-gray-500 hover:text-[#1e3a2a] transition-colors whitespace-nowrap hidden sm:block">
+              Find entreprenør
+            </Link>
             <Link href="/login" className="text-sm font-semibold text-[#1e3a2a] border border-[#1e3a2a]/30 px-4 py-2 rounded-lg hover:bg-[#1e3a2a]/5 transition-colors whitespace-nowrap">
               Log ind
             </Link>

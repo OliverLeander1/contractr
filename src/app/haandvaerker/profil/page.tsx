@@ -20,6 +20,7 @@ interface Profil {
   postnummer: string | null;
   by: string | null;
   tilgaengelig: boolean;
+  standby: boolean;
   oprettet_at: string | null;
 }
 
@@ -35,6 +36,7 @@ export default function HaandvaerkerProfil() {
   const [nytPostnummer, setNytPostnummer] = useState("");
   const [nytBy, setNytBy]             = useState("");
   const [tilgaengelig, setTilgaengelig] = useState(true);
+  const [standby, setStandby]         = useState(false);
   const [gemmer, setGemmer]           = useState(false);
   const [gemtBesked, setGemtBesked]   = useState(false);
 
@@ -46,7 +48,7 @@ export default function HaandvaerkerProfil() {
 
       const { data } = await supabase
         .from("profiler")
-        .select("navn, virksomhed, cvr, telefon, email, fag, postnummer, by, tilgaengelig, oprettet_at")
+        .select("navn, virksomhed, cvr, telefon, email, fag, postnummer, by, tilgaengelig, standby, oprettet_at")
         .eq("id", user.id)
         .single();
 
@@ -60,8 +62,9 @@ export default function HaandvaerkerProfil() {
         setNytPostnummer(data.postnummer || "");
         setNytBy(data.by || "");
         setTilgaengelig(data.tilgaengelig ?? true);
+        setStandby(data.standby ?? false);
       } else {
-        setProfil({ navn: null, virksomhed: null, cvr: null, telefon: null, email: user.email || null, fag: null, postnummer: null, by: null, tilgaengelig: true, oprettet_at: null });
+        setProfil({ navn: null, virksomhed: null, cvr: null, telefon: null, email: user.email || null, fag: null, postnummer: null, by: null, tilgaengelig: true, standby: false, oprettet_at: null });
       }
       setIndlæser(false);
     };
@@ -86,6 +89,7 @@ export default function HaandvaerkerProfil() {
         postnummer: nytPostnummer.trim() || null,
         by: nytBy.trim() || null,
         tilgaengelig,
+        standby,
       }, { onConflict: "id" })
       .select()
       .single();
@@ -97,16 +101,21 @@ export default function HaandvaerkerProfil() {
     setTimeout(() => setGemtBesked(false), 3000);
   };
 
-  // Hurtig tilgaengelig-toggle uden at åbne redigeringsformular
-  const togglTilgaengelig = async () => {
-    const nyVærdi = !tilgaengelig;
-    setTilgaengelig(nyVærdi);
+  type Synlighed = "synlig" | "travlt" | "skjult";
+
+  const sætSynlighed = async (valg: Synlighed) => {
+    const nyTilgaengelig = valg !== "skjult";
+    const nyStandby      = valg === "travlt";
+    setTilgaengelig(nyTilgaengelig);
+    setStandby(nyStandby);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from("profiler").update({ tilgaengelig: nyVærdi }).eq("id", user.id);
-    setProfil(prev => prev ? { ...prev, tilgaengelig: nyVærdi } : prev);
+    await supabase.from("profiler").update({ tilgaengelig: nyTilgaengelig, standby: nyStandby }).eq("id", user.id);
+    setProfil(prev => prev ? { ...prev, tilgaengelig: nyTilgaengelig, standby: nyStandby } : prev);
   };
+
+  const aktivSynlighed: Synlighed = !tilgaengelig ? "skjult" : standby ? "travlt" : "synlig";
 
   if (indlæser) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -125,24 +134,35 @@ export default function HaandvaerkerProfil() {
 
       <div className="max-w-3xl mx-auto px-6 py-10">
 
-        {/* Markedsplads-toggle — øverst og fremtrædende */}
-        <div className={`rounded-2xl border p-5 mb-5 flex items-center justify-between gap-4 transition-colors ${tilgaengelig ? "bg-[#f0f7f3] border-green-200" : "bg-gray-50 border-gray-200"}`}>
-          <div>
-            <p className={`font-semibold text-sm ${tilgaengelig ? "text-[#1e3a2a]" : "text-gray-600"}`}>
-              {tilgaengelig ? "Du er synlig på markedspladsen" : "Du er skjult fra markedspladsen"}
-            </p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {tilgaengelig
-                ? "Bygherrer kan finde dig og invitere dig til projekter."
-                : "Slå til igen, når du har kapacitet til nye opgaver."}
-            </p>
+        {/* Markedsplads-synlighed */}
+        <div className={`rounded-2xl border p-5 mb-5 transition-colors ${aktivSynlighed === "synlig" ? "bg-[#f0f7f3] border-green-200" : aktivSynlighed === "travlt" ? "bg-amber-50 border-amber-200" : "bg-gray-50 border-gray-200"}`}>
+          <p className={`font-semibold text-sm mb-0.5 ${aktivSynlighed === "synlig" ? "text-[#1e3a2a]" : aktivSynlighed === "travlt" ? "text-amber-700" : "text-gray-600"}`}>
+            {aktivSynlighed === "synlig" && "Du er synlig på markedspladsen"}
+            {aktivSynlighed === "travlt" && "Du er synlig, men markeret som travlt"}
+            {aktivSynlighed === "skjult" && "Du er skjult fra markedspladsen"}
+          </p>
+          <p className="text-xs text-gray-400 mb-4">
+            {aktivSynlighed === "synlig" && "Bygherrer kan finde dig og invitere dig direkte til projekter."}
+            {aktivSynlighed === "travlt" && "Du vises stadig i oversigten, men med et 'Travlt'-mærke. Bygherrer ved at du har begrænset kapacitet."}
+            {aktivSynlighed === "skjult" && "Du er ikke synlig for bygherrer. Slå synlighed til igen, når du har kapacitet."}
+          </p>
+          <div className="flex gap-2">
+            {(["synlig", "travlt", "skjult"] as const).map(valg => (
+              <button
+                key={valg}
+                onClick={() => sætSynlighed(valg)}
+                className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all border ${
+                  aktivSynlighed === valg
+                    ? valg === "synlig" ? "bg-[#1e3a2a] text-white border-[#1e3a2a]"
+                    : valg === "travlt" ? "bg-amber-500 text-white border-amber-500"
+                    : "bg-gray-500 text-white border-gray-500"
+                    : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                {valg === "synlig" ? "Synlig" : valg === "travlt" ? "Travlt" : "Skjult"}
+              </button>
+            ))}
           </div>
-          <button
-            onClick={togglTilgaengelig}
-            className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${tilgaengelig ? "bg-[#1e3a2a]" : "bg-gray-300"}`}
-          >
-            <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${tilgaengelig ? "translate-x-6" : "translate-x-0.5"}`} />
-          </button>
         </div>
 
         {/* Profilkort */}

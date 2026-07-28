@@ -30,6 +30,7 @@ function Inner() {
   const [adgangskode, setAdgangskode] = useState("");
   const [bekræft, setBekræft]     = useState("");
   const [visAdgangskode, setVisAdgangskode] = useState(false);
+  const [tilgaengeligIMarked, setTilgaengeligIMarked] = useState(true);
   const [fejl, setFejl]           = useState("");
   const [loading, setLoading]     = useState(false);
 
@@ -84,6 +85,7 @@ function Inner() {
     if (data.user) {
       await supabase.from("profiler").update({
         rolle: "haandvaerker",
+        tilgaengelig: tilgaengeligIMarked,
         ...(firma.trim() ? { firma: firma.trim() } : {}),
         ...(fag ? { fag } : {}),
       }).eq("id", data.user.id);
@@ -260,6 +262,40 @@ function Inner() {
                 {bekræft && !matcher && <p className="text-xs text-red-500 mt-1">Adgangskoderne matcher ikke</p>}
               </div>
             </div>
+
+            {/* Markedsplads opt-in */}
+            {!harInvitation && (
+              <div
+                onClick={() => setTilgaengeligIMarked(!tilgaengeligIMarked)}
+                className={`mt-2 rounded-xl border p-4 cursor-pointer transition-all select-none ${tilgaengeligIMarked ? "bg-[#f0f7f3] border-green-200" : "bg-gray-50 border-gray-200"}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`mt-0.5 w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-colors ${tilgaengeligIMarked ? "bg-[#1e3a2a]" : "bg-white border-2 border-gray-300"}`}>
+                    {tilgaengeligIMarked && (
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 mb-1">Vis mig på markedspladsen</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Bygherrer kan finde din profil og invitere dig direkte ind på deres projekt. Du kan til enhver tid slå det fra under din konto.
+                    </p>
+                    <div className="flex flex-wrap gap-3 mt-2.5">
+                      {[
+                        "Gratis synlighed",
+                        "Direkte projektinvitationer",
+                        "Nem kontakt uden forgæves kørsel",
+                      ].map(t => (
+                        <span key={t} className="flex items-center gap-1 text-xs text-[#1e3a2a]">
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {fejl && (
               <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl">

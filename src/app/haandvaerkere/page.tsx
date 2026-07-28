@@ -13,6 +13,7 @@ interface HaandvaerkerProfil {
   email: string | null;
   postnummer: string | null;
   by: string | null;
+  standby: boolean;
   oprettet_at: string;
 }
 
@@ -35,9 +36,10 @@ export default function HaandvaererDirectory() {
     const hent = async () => {
       const { data } = await supabase
         .from("profiler")
-        .select("id, navn, virksomhed, fag, email, postnummer, by, oprettet_at")
+        .select("id, navn, virksomhed, fag, email, postnummer, by, standby, oprettet_at")
         .eq("rolle", "haandvaerker")
         .eq("tilgaengelig", true)
+        .order("standby", { ascending: true })
         .order("oprettet_at", { ascending: false });
       setProfiler(data || []);
       setFiltreret(data || []);
@@ -134,7 +136,12 @@ export default function HaandvaererDirectory() {
                       {(p.navn || p.virksomhed || "?")[0].toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-900 truncate">{p.navn || "Ikke angivet"}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-bold text-gray-900 truncate">{p.navn || "Ikke angivet"}</p>
+                        {p.standby && (
+                          <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full flex-shrink-0">Travlt</span>
+                        )}
+                      </div>
                       {p.virksomhed && <p className="text-sm text-gray-500 truncate">{p.virksomhed}</p>}
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         {p.fag && (
