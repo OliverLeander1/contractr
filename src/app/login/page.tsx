@@ -67,13 +67,6 @@ function LoginInner() {
         return;
       }
 
-      localStorage.setItem("contractr_user", JSON.stringify({
-        navn: navn.trim(),
-        email: email.trim(),
-        brugerType: "bygherre",
-        loginDato: new Date().toISOString(),
-      }));
-
       const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (signInError) {
         setBekraeftelse(true);
@@ -103,26 +96,8 @@ function LoginInner() {
     }
 
     const meta = data.user?.user_metadata;
-    const gemt = {
-      navn: meta?.navn || email.split("@")[0],
-      email: email.trim(),
-      brugerType: meta?.brugerType || "bygherre",
-      loginDato: new Date().toISOString(),
-    };
-    localStorage.setItem("contractr_user", JSON.stringify(gemt));
-
-    const raw = localStorage.getItem("contractr_projekt");
-    if (raw) {
-      try {
-        const p = JSON.parse(raw);
-        if (!p.navn && gemt.navn) p.navn = gemt.navn;
-        if (!p.kontakt && gemt.email) p.kontakt = gemt.email;
-        localStorage.setItem("contractr_projekt", JSON.stringify(p));
-      } catch { /* ignore */ }
-    }
-
     const type = meta?.brugerType || "bygherre";
-    identifyUser(data.user.id, { email: gemt.email, navn: gemt.navn, brugerType: type });
+    identifyUser(data.user.id, { email: email.trim(), navn: meta?.navn || email.split("@")[0], brugerType: type });
     track("login_completed", { brugerType: type });
     router.push(nextUrl || (type === "haandvaerker" ? "/haandvaerker/sager" : "/dashboard"));
   };

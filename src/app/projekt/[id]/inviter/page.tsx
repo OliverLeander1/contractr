@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect } from "react";
 import ProjektNav from "@/components/ProjektNav";
+import { createClient } from "@/lib/supabase";
 
 export default function InviterEntreprenoer({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -12,15 +13,23 @@ export default function InviterEntreprenoer({ params }: { params: Promise<{ id: 
   const [bygherreNavn, setBygherreNavn] = useState("Bygherre");
 
   useEffect(() => {
-    const gemt = localStorage.getItem("contractr_projekt");
-    if (gemt) {
-      try {
-        const d = JSON.parse(gemt);
-        if (d.adresse) setProjektNavn(d.adresse);
-        if (d.navn) setBygherreNavn(d.navn);
-      } catch { /* ignore */ }
-    }
-  }, []);
+    const hent = async () => {
+      const supabase = createClient();
+      const [{ data: { user } }, { data: projekt }] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase.from("projekter").select("adresse, projekttype").eq("id", id).single(),
+      ]);
+      if (user) {
+        const { data: profil } = await supabase.from("profiler").select("navn").eq("id", user.id).single();
+        if (profil?.navn) setBygherreNavn(profil.navn);
+      }
+      if (projekt) {
+        if (projekt.adresse) setProjektNavn(projekt.adresse);
+        else if (projekt.projekttype) setProjektNavn(projekt.projekttype);
+      }
+    };
+    hent();
+  }, [id]);
 
   const tilfoejEmail = () => setEmails([...emails, ""]);
   const opdaterEmail = (i: number, val: string) => {
@@ -30,7 +39,7 @@ export default function InviterEntreprenoer({ params }: { params: Promise<{ id: 
   };
 
   const genererInvitationsLink = (email: string) => {
-    const base = typeof window !== "undefined" ? window.location.origin : "https://contractr.dk";
+    const base = typeof window !== "undefined" ? window.location.origin : "https://nembyggestyring.dk";
     const params = new URLSearchParams({
       projekt: id,
       projektNavn,

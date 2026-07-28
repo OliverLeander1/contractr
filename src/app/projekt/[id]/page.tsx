@@ -25,17 +25,6 @@ interface Kontrakt {
   oprettet_at: string;
 }
 
-interface LocalProjekt {
-  titel: string;
-  resumé: string;
-  bygherreNavn?: string;
-  haandvaerkerNavn?: string;
-  haandvaerkerFirma?: string;
-  accepteretDato: string;
-  total: number;
-  tilbudsposter: { id: string; beskrivelse: string; enhed: string; pris: string }[];
-}
-
 const fmtKr = (n: number) =>
   n.toLocaleString("da-DK", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + " kr.";
 
@@ -59,7 +48,6 @@ const aftaleStatus: Record<string, { label: string; klasse: string }> = {
 export default function ProjektOversigt({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [kontrakt, setKontrakt] = useState<Kontrakt | null | "loading">("loading");
-  const [lokalProjekt, setLokalProjekt] = useState<LocalProjekt | null>(null);
   const [bygherreNavn, setBygherreNavn] = useState("");
 
   useEffect(() => {
@@ -75,16 +63,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
         setBygherreNavn(profil?.navn || user.email?.split("@")[0] || "Bygherre");
       }
 
-      if (data) {
-        setKontrakt(data);
-        return;
-      }
-
-      try {
-        const raw = localStorage.getItem("contractr_projekt");
-        if (raw) setLokalProjekt(JSON.parse(raw));
-      } catch { /* ignorer */ }
-      setKontrakt(null);
+      setKontrakt(data ?? null);
     };
     hent();
   }, [id]);
@@ -95,7 +74,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
     </div>
   );
 
-  if (!kontrakt && !lokalProjekt) return (
+  if (!kontrakt) return (
     <div className="min-h-screen bg-gray-50">
       <ProjektNav id={id} />
       <div className="max-w-2xl mx-auto px-6 py-20 text-center">
@@ -363,68 +342,4 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
     );
   }
 
-  // Legacy: localStorage-baseret projekt
-  const lp = lokalProjekt!;
-  const acceptDato = new Date(lp.accepteretDato).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <ProjektNav id={id} />
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-1 rounded-full">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-              Tilbud accepteret {acceptDato}
-            </span>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">{lp.titel}</h1>
-          <p className="text-gray-500 text-sm mt-1">{lp.resumé}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-900">Accepteret tilbud</h2>
-            <Link href={`/projekt/${id}/aftale`} className="text-xs text-[#1e3a2a] font-semibold hover:underline">Opret aftalegrundlag →</Link>
-          </div>
-          {lp.haandvaerkerNavn && (
-            <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-xl">
-              <div className="w-9 h-9 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center text-[#1e3a2a] font-bold text-sm">
-                {lp.haandvaerkerNavn.charAt(0)}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">{lp.haandvaerkerNavn}</p>
-                {lp.haandvaerkerFirma && <p className="text-xs text-gray-400">{lp.haandvaerkerFirma}</p>}
-              </div>
-            </div>
-          )}
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left border-b border-gray-100">
-                <th className="pb-2 text-xs font-semibold text-gray-400">Opgave</th>
-                <th className="pb-2 text-xs font-semibold text-gray-400 text-right">Pris inkl. moms</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {lp.tilbudsposter.map(p => {
-                const pris = (parseFloat(p.pris) || 0) * 1.25;
-                return (
-                  <tr key={p.id}>
-                    <td className="py-2.5 pr-3 text-gray-800">{p.beskrivelse}</td>
-                    <td className="py-2.5 text-right font-medium text-gray-800">{pris > 0 ? fmtKr(pris) : "—"}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-            <tfoot>
-              <tr className="border-t border-gray-200">
-                <td className="pt-3 font-bold text-gray-900">Total inkl. moms</td>
-                <td className="pt-3 text-right font-bold text-[#1e3a2a]">{fmtKr(lp.total)}</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-      <Suspense><Chat bruger="bygherre" /></Suspense>
-    </div>
-  );
 }

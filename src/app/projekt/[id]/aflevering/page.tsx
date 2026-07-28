@@ -4,6 +4,7 @@ import { use, useState, useEffect } from "react";
 import ProjektNav from "@/components/ProjektNav";
 import ABTip from "@/components/ABTip";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase";
 
 const mangelListe = [
   { id: 1, punkt: "Gipsvægge og overflader", status: "ok" },
@@ -26,29 +27,24 @@ export default function Aflevering({ params }: { params: Promise<{ id: string }>
   const [projekttitel, setProjekttitel] = useState("Byggeprojekt");
 
   useEffect(() => {
-    try {
-      const rawBruger = localStorage.getItem("contractr_user");
-      if (rawBruger) {
-        const b = JSON.parse(rawBruger);
-        if (b.navn) setBygherreNavn(b.navn);
+    const hent = async () => {
+      const supabase = createClient();
+      const [{ data: { user } }, { data: kontrakt }] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase.from("kontrakter").select("titel, haandvaerker_navn, haandvaerker_firma").eq("projekt_id", id).order("oprettet_at", { ascending: false }).limit(1).single(),
+      ]);
+      if (user) {
+        const { data: profil } = await supabase.from("profiler").select("navn").eq("id", user.id).single();
+        if (profil?.navn) setBygherreNavn(profil.navn);
       }
-      const rawProjekt = localStorage.getItem("contractr_projekt");
-      if (rawProjekt) {
-        const p = JSON.parse(rawProjekt);
-        if (p.bygherreNavn) setBygherreNavn(p.bygherreNavn);
-        if (p.haandvaerkerNavn) setHaandvaerkerNavn(p.haandvaerkerNavn);
-        if (p.haandvaerkerFirma) setHaandvaerkerFirma(p.haandvaerkerFirma);
-        if (p.titel) setProjekttitel(p.titel);
-        else if (p.projekttype) setProjekttitel(p.projekttype);
+      if (kontrakt) {
+        if (kontrakt.titel) setProjekttitel(kontrakt.titel);
+        if (kontrakt.haandvaerker_navn) setHaandvaerkerNavn(kontrakt.haandvaerker_navn);
+        if (kontrakt.haandvaerker_firma) setHaandvaerkerFirma(kontrakt.haandvaerker_firma);
       }
-      const rawHv = localStorage.getItem("contractr_haandvaerker");
-      if (rawHv) {
-        const h = JSON.parse(rawHv);
-        if (h.navn) setHaandvaerkerNavn(h.navn);
-        if (h.virksomhed) setHaandvaerkerFirma(h.virksomhed);
-      }
-    } catch { /* ignore */ }
-  }, []);
+    };
+    hent();
+  }, [id]);
 
   const åbneMangler = mangler.filter(m => m.status === "mangel" || m.status === "advarsel");
 

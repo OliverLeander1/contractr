@@ -3,52 +3,56 @@
 import { use, useEffect, useState } from "react";
 import ProjektNav from "@/components/ProjektNav";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase";
 
-interface TilbudsPost { id: string; beskrivelse: string; enhed: string; pris: string; }
-interface GemtProjekt {
-  titel: string;
-  resumé: string;
-  dokument: string;
-  bygherreNavn?: string;
-  bygherreKontakt?: string;
-  haandvaerkerNavn?: string;
-  haandvaerkerFirma?: string;
-  accepteretDato: string;
-  total: number;
-  tilbudsposter: TilbudsPost[];
+interface Kontrakt {
+  id: string;
+  titel: string | null;
+  beskrivelse: string | null;
+  haandvaerker_navn: string | null;
+  haandvaerker_firma: string | null;
+  total_pris: number | null;
+  status: string;
+  oprettet_at: string;
+  betalingsplan: { milepæl: string; andel: string }[] | null;
 }
 
 const fmtKr = (n: number) => n.toLocaleString("da-DK", { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + " kr.";
 
-export default function Kontrakt({ params }: { params: Promise<{ id: string }> }) {
+export default function KontraktSide({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [projekt, setProjekt] = useState<GemtProjekt | null | "loading">("loading");
+  const [kontrakt, setKontrakt] = useState<Kontrakt | null | "loading">("loading");
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("contractr_projekt");
-      setProjekt(raw ? JSON.parse(raw) : null);
-    } catch { setProjekt(null); }
-  }, []);
+    const supabase = createClient();
+    supabase
+      .from("kontrakter")
+      .select("*")
+      .eq("projekt_id", id)
+      .order("oprettet_at", { ascending: false })
+      .limit(1)
+      .single()
+      .then(({ data }) => setKontrakt(data ?? null));
+  }, [id]);
 
-  if (projekt === "loading") return (
+  if (kontrakt === "loading") return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="w-6 h-6 border-2 border-gray-300 border-t-green-600 rounded-full animate-spin" />
     </div>
   );
 
-  if (!projekt) return (
+  if (!kontrakt) return (
     <div className="min-h-screen bg-gray-50">
       <ProjektNav id={id} />
       <div className="max-w-2xl mx-auto px-6 py-20 text-center">
-        <p className="text-gray-500">Ingen kontrakt fundet. Accepter et tilbud for at se kontrakten her.</p>
-        <Link href="/opret" className="mt-4 inline-block text-primary text-sm underline">Gå til opret</Link>
+        <p className="text-gray-500">Ingen kontrakt fundet. Send et udbudsdokument og inviter en håndværker for at komme i gang.</p>
+        <Link href={`/projekt/${id}/aftale`} className="mt-4 inline-block text-primary text-sm underline">Opret aftalegrundlag</Link>
       </div>
     </div>
   );
 
-  const acceptDato = new Date(projekt.accepteretDato).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
-  const total = projekt.total;
+  const acceptDato = new Date(kontrakt.oprettet_at).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
+  const total = kontrakt.total_pris ?? 0;
 
   // Auto-generer betalingsplan fra total
   const betalingsplan = [
@@ -89,7 +93,7 @@ export default function Kontrakt({ params }: { params: Promise<{ id: string }> }
 
           <div className="text-center mb-8">
             <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Entreprisekontrakt</p>
-            <h2 className="text-xl font-bold text-gray-900">{projekt.titel}</h2>
+            <h2 className="text-xl font-bold text-gray-900">{kontrakt.titel || "Projekt"}</h2>
             <p className="text-sm text-gray-500 mt-1">Baseret på AB-Forbruger (Almindelige betingelser for aftaler om byggearbejder for forbrugere, 2012)</p>
           </div>
 
@@ -100,15 +104,14 @@ export default function Kontrakt({ params }: { params: Promise<{ id: string }> }
               <div className="grid grid-cols-2 gap-6">
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Bygherre (forbruger)</p>
-                  <p className="font-semibold text-gray-900">{projekt.bygherreNavn || "Bygherre"}</p>
-                  {projekt.bygherreKontakt && <p className="text-gray-500">{projekt.bygherreKontakt}</p>}
+                  <p className="font-semibold text-gray-900">Bygherre</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Entreprenør</p>
-                  {projekt.haandvaerkerNavn ? (
+                  {kontrakt.haandvaerker_navn ? (
                     <>
-                      <p className="font-semibold text-gray-900">{projekt.haandvaerkerNavn}</p>
-                      {projekt.haandvaerkerFirma && <p className="text-gray-500 text-sm">{projekt.haandvaerkerFirma}</p>}
+                      <p className="font-semibold text-gray-900">{kontrakt.haandvaerker_navn}</p>
+                      {kontrakt.haandvaerker_firma && <p className="text-gray-500 text-sm">{kontrakt.haandvaerker_firma}</p>}
                     </>
                   ) : (
                     <p className="text-gray-400 text-xs mt-1">Udfyldes af håndværker inden underskrift</p>
@@ -119,7 +122,7 @@ export default function Kontrakt({ params }: { params: Promise<{ id: string }> }
 
             <div className="border-t border-gray-100 pt-6">
               <h3 className="font-bold text-gray-900 mb-3 text-xs uppercase tracking-widest text-primary">§ 2 - Arbejdets omfang</h3>
-              <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700 leading-relaxed">{projekt.dokument}</pre>
+              <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700 leading-relaxed">{kontrakt.beskrivelse || "Beskrivelse ikke angivet."}</pre>
             </div>
 
             <div className="border-t border-gray-100 pt-6">
@@ -175,7 +178,7 @@ export default function Kontrakt({ params }: { params: Promise<{ id: string }> }
           <div className="grid grid-cols-2 gap-4">
             <div className="border border-green-100 bg-green-50 rounded-xl p-4">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Bygherre</p>
-              <p className="text-sm font-semibold text-gray-900 mb-2">{projekt.bygherreNavn || "Bygherre"}</p>
+              <p className="text-sm font-semibold text-gray-900 mb-2">Bygherre</p>
               <div className="flex items-center gap-2">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 <p className="text-xs text-green-700">Accepteret {acceptDato}</p>

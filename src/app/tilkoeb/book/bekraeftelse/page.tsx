@@ -11,14 +11,6 @@ export default function BookingBekraeftelse() {
 
   useEffect(() => {
     track("raadgiver_booked");
-    try {
-      const raw = localStorage.getItem("contractr_projekt");
-      if (raw) {
-        const p = JSON.parse(raw);
-        setProjektNavn([p.projekttype, p.adresse].filter(Boolean).join(", "));
-      }
-    } catch { /* ignore */ }
-
     const params = new URLSearchParams(window.location.search);
     const ydelsesParam = params.get("ydelse");
     if (ydelsesParam === "ai-tilbud") { setYdelse("AI-gennemgang af tilbud"); setPris("995 kr."); }

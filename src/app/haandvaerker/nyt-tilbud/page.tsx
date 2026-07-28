@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import SimpleNav from "@/components/SimpleNav";
+import { createClient } from "@/lib/supabase";
 
 interface Post {
   id: string;
@@ -35,10 +36,17 @@ export default function NytTilbud() {
   const [kopieret, setKopieret] = useState(false);
 
   useEffect(() => {
-    try {
-      setNavn(localStorage.getItem("contractr_haandvaerker_navn") || "");
-      setFirma(localStorage.getItem("contractr_haandvaerker_firma") || "");
-    } catch { /* ignore */ }
+    const hent = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from("profiler").select("navn, virksomhed").eq("id", user.id).single();
+      if (data) {
+        if (data.navn) setNavn(data.navn);
+        if (data.virksomhed) setFirma(data.virksomhed);
+      }
+    };
+    hent();
   }, []);
 
   function tilfoejPost() {
@@ -81,24 +89,6 @@ export default function NytTilbud() {
       .replace(/\//g, "_")
       .replace(/=+$/, "");
     const url = `${window.location.origin}/udbud/se#${token}`;
-
-    // Gem sagen i håndværkerens portal
-    const sag = {
-      id: String(Date.now()),
-      titel: projektTitel,
-      resumé: projektBeskrivelse,
-      bygherreNavn: kundeNavn,
-      bygherreKontakt: kundeEmail,
-      total,
-      tilbudsposter: poster,
-      sendtDato: new Date().toISOString(),
-      status: "afventer",
-      tilbudsLink: url,
-    };
-    try {
-      const existing = JSON.parse(localStorage.getItem("contractr_haandvaerker_sager") || "[]");
-      localStorage.setItem("contractr_haandvaerker_sager", JSON.stringify([sag, ...existing]));
-    } catch { /* ignore */ }
 
     setGeneretLink(url);
     setTrin("sendt");

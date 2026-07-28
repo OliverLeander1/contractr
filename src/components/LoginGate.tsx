@@ -59,13 +59,6 @@ export default function LoginGate({ trigger, onLuk, besked }: Props) {
         return;
       }
 
-      localStorage.setItem("contractr_user", JSON.stringify({
-        navn: navn.trim(),
-        email: email.trim(),
-        brugerType: "bygherre",
-        loginDato: new Date().toISOString(),
-      }));
-
       setBekraeftelse(true);
       setLoading(false);
       return;
@@ -81,14 +74,6 @@ export default function LoginGate({ trigger, onLuk, besked }: Props) {
       setError("Forkert e-mail eller adgangskode.");
       return;
     }
-
-    const meta = data.user?.user_metadata;
-    localStorage.setItem("contractr_user", JSON.stringify({
-      navn: meta?.navn || email.split("@")[0],
-      email: email.trim(),
-      brugerType: "bygherre",
-      loginDato: new Date().toISOString(),
-    }));
 
     onLuk();
   };

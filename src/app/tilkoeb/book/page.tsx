@@ -29,15 +29,13 @@ export default function BookRådgiver() {
   const [projektNavn, setProjektNavn] = useState("");
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("contractr_projekt");
-      if (raw) {
-        const p = JSON.parse(raw);
-        if (p.projekttype || p.adresse) {
-          setProjektNavn([p.projekttype, p.adresse].filter(Boolean).join(", "));
-        }
-      }
-    } catch { /* ignore */ }
+    import("@/lib/supabase").then(async ({ createClient }) => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from("projekter").select("projekttype, adresse").eq("bygherre_id", user.id).order("oprettet_at", { ascending: false }).limit(1).single();
+      if (data) setProjektNavn([data.projekttype, data.adresse].filter(Boolean).join(", "));
+    });
   }, []);
 
   return (

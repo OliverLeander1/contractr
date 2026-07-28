@@ -1,7 +1,8 @@
 ﻿"use client";
 
-import { use, useState, useEffect } from "react";
+import { use, useState, useEffect, useCallback } from "react";
 import ProjektNav from "@/components/ProjektNav";
+import { createClient } from "@/lib/supabase";
 
 interface Fase {
   id: string;
@@ -54,16 +55,24 @@ export default function Tidsplan({ params }: { params: Promise<{ id: string }> }
   const [nyFase, setNyFase] = useState({ label: "", ansvarlig: "", startDato: iDag, slutDato: "", note: "" });
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(`contractr_tidsplan_${id}`);
-      if (raw) setFaser(JSON.parse(raw));
-    } catch { /* ignore */ }
+    const supabase = createClient();
+    supabase
+      .from("projekter")
+      .select("tidsplan_faser")
+      .eq("id", id)
+      .single()
+      .then(({ data }) => {
+        if (data?.tidsplan_faser && Array.isArray(data.tidsplan_faser)) {
+          setFaser(data.tidsplan_faser as Fase[]);
+        }
+      });
   }, [id]);
 
-  const gemFaser = (opdateret: Fase[]) => {
+  const gemFaser = useCallback(async (opdateret: Fase[]) => {
     setFaser(opdateret);
-    localStorage.setItem(`contractr_tidsplan_${id}`, JSON.stringify(opdateret));
-  };
+    const supabase = createClient();
+    await supabase.from("projekter").update({ tidsplan_faser: opdateret }).eq("id", id);
+  }, [id]);
 
   const tilføjFase = () => {
     if (!nyFase.label || !nyFase.slutDato) return;

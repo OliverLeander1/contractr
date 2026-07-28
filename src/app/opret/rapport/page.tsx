@@ -55,8 +55,9 @@ export default function Rapport() {
   const [erLoggetInd, setErLoggetInd] = useState(false);
 
   useEffect(() => {
-    const user = localStorage.getItem("contractr_user");
-    setErLoggetInd(!!user);
+    import("@/lib/supabase").then(({ createClient }) => {
+      createClient().auth.getUser().then(({ data: { user } }) => setErLoggetInd(!!user));
+    });
   }, []);
 
   useEffect(() => {
