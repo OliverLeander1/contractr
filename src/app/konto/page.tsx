@@ -10,6 +10,7 @@ interface Profil {
   navn: string;
   email: string;
   telefon?: string;
+  adresse?: string;
 }
 
 interface Projekt {
@@ -49,8 +50,11 @@ export default function MinSide() {
   const [redigerer, setRedigerer] = useState(false);
   const [nytNavn, setNytNavn] = useState("");
   const [nyTelefon, setNyTelefon] = useState("");
+  const [nyAdresse, setNyAdresse] = useState("");
   const [gemtBesked, setGemtBesked] = useState(false);
   const [gemmerProfil, setGemmerProfil] = useState(false);
+  const [sletterKonto, setSletterKonto] = useState(false);
+  const [bekræftSlet, setBekræftSlet] = useState(false);
 
   useEffect(() => {
     const hent = async () => {
@@ -65,7 +69,7 @@ export default function MinSide() {
       // Hent profil
       const { data: profilData } = await supabase
         .from("profiler")
-        .select("navn, email, telefon")
+        .select("navn, email, telefon, adresse")
         .eq("id", user.id)
         .single();
 
@@ -73,6 +77,7 @@ export default function MinSide() {
         setProfil(profilData);
         setNytNavn(profilData.navn || "");
         setNyTelefon(profilData.telefon || "");
+        setNyAdresse(profilData.adresse || "");
       } else {
         // Fallback til auth metadata
         const navn = user.user_metadata?.navn || user.email?.split("@")[0] || "";
@@ -105,9 +110,10 @@ export default function MinSide() {
       navn: nytNavn.trim(),
       email: user.email,
       telefon: nyTelefon.trim() || null,
+      adresse: nyAdresse.trim() || null,
     });
 
-    setProfil(prev => prev ? { ...prev, navn: nytNavn.trim(), telefon: nyTelefon.trim() } : null);
+    setProfil(prev => prev ? { ...prev, navn: nytNavn.trim(), telefon: nyTelefon.trim(), adresse: nyAdresse.trim() } : null);
     setRedigerer(false);
     setGemmerProfil(false);
     setGemtBesked(true);
@@ -187,6 +193,17 @@ export default function MinSide() {
                   placeholder="f.eks. 12 34 56 78"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Din adresse (valgfrit)</label>
+                <input
+                  type="text"
+                  value={nyAdresse}
+                  onChange={e => setNyAdresse(e.target.value)}
+                  placeholder="f.eks. Kirkevej 23, 2920 Charlottenlund"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+                />
+                <p className="text-xs text-gray-400 mt-1.5">Udfyldes automatisk i nye projekter</p>
               </div>
               <button
                 onClick={gemProfil}
@@ -333,6 +350,60 @@ export default function MinSide() {
               </div>
               <span className="text-sm font-medium text-gray-700">Log ud</span>
             </button>
+
+            <div className="pt-2 mt-2 border-t border-gray-100">
+              {!bekræftSlet ? (
+                <button
+                  onClick={() => setBekræftSlet(true)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl text-left hover:bg-red-50 transition-colors group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-red-50 group-hover:bg-red-100 flex items-center justify-center flex-shrink-0 transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-red-600">Slet min konto og data</span>
+                    <p className="text-xs text-gray-400">Alle dine data slettes permanent</p>
+                  </div>
+                </button>
+              ) : (
+                <div className="p-4 bg-red-50 rounded-xl border border-red-100">
+                  <p className="text-sm font-semibold text-red-800 mb-1">Er du sikker?</p>
+                  <p className="text-xs text-red-600 mb-4">Din konto, dine projekter og alle tilknyttede data slettes permanent. Dette kan ikke fortrydes.</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setBekræftSlet(false)}
+                      className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-white transition-colors"
+                    >
+                      Annuller
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setSletterKonto(true);
+                        const supabase = createClient();
+                        const { data: { session } } = await supabase.auth.getSession();
+                        const res = await fetch("/api/bruger/slet", {
+                          method: "DELETE",
+                          headers: { "Authorization": `Bearer ${session?.access_token}` },
+                        });
+                        if (res.ok) {
+                          await supabase.auth.signOut();
+                          router.push("/");
+                        } else {
+                          setSletterKonto(false);
+                          setBekræftSlet(false);
+                        }
+                      }}
+                      disabled={sletterKonto}
+                      className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-50"
+                    >
+                      {sletterKonto ? "Sletter..." : "Ja, slet alt"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

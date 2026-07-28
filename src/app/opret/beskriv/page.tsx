@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import FlowLayout from "@/components/FlowLayout";
+import { createClient } from "@/lib/supabase";
 
 export default function BeskrivProjekt() {
   const router = useRouter();
@@ -22,10 +23,29 @@ export default function BeskrivProjekt() {
   const [billeder, setBilleder] = useState<{ navn: string; data: string }[]>([]);
 
   useEffect(() => {
+    const sessionAdresse = sessionStorage.getItem("screening_adresse") || "";
+    const sessionNavn = sessionStorage.getItem("screening_navn") || "";
+    const sessionKontakt = sessionStorage.getItem("screening_kontakt") || "";
+
     setProjekttype(sessionStorage.getItem("screening_projekttype") || "");
-    setAdresse(sessionStorage.getItem("screening_adresse") || "");
-    setNavn(sessionStorage.getItem("screening_navn") || "");
-    setKontakt(sessionStorage.getItem("screening_kontakt") || "");
+    setAdresse(sessionAdresse);
+    setNavn(sessionNavn);
+    setKontakt(sessionKontakt);
+
+    // Hent profil og udfyld felter hvis de ikke allerede er sat fra sessionStorage
+    const supabase = createClient();
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return;
+      const { data: profil } = await supabase
+        .from("profiler")
+        .select("navn, telefon, adresse")
+        .eq("id", user.id)
+        .single();
+      if (!profil) return;
+      if (!sessionNavn && profil.navn) setNavn(profil.navn);
+      if (!sessionKontakt && profil.telefon) setKontakt(profil.telefon);
+      if (!sessionAdresse && profil.adresse) setAdresse(profil.adresse);
+    });
   }, []);
 
   const kanGenerere = beskrivelse.trim().length >= 20;
