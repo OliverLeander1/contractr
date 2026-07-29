@@ -97,8 +97,11 @@ export default function Dashboard() {
         // og ikke allerede har lukket pop'en denne session
         const harBetalt = projektData.some(p => p.pakke_betalt);
         const harDismisset = sessionStorage.getItem("pakke_pop_vist");
-        if (!harBetalt && projektData.length > 0 && !harDismisset) {
-          setTimeout(() => setVisPakkePop(true), 800);
+        // Vis kun pakke-pop hvis brugeren har projekter med en tilknyttet håndværker
+        // (dvs. de har sendt invitationen og er klar til projektrum-fasen)
+        const harAktivtProjekt = projektData.some(p => p.status === "igang" || p.status === "accepteret" || p.status === "tilbud");
+        if (!harBetalt && harAktivtProjekt && !harDismisset) {
+          setTimeout(() => setVisPakkePop(true), 1200);
         }
       }
 

@@ -110,59 +110,48 @@ export default function UdbudResultat() {
         <p className="text-gray-500">{data.resumé}</p>
       </div>
 
-      {/* Selve dokumentet */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div>
-            <h2 className="font-semibold text-gray-900 text-sm">Udbudsdokument</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{redigerer ? "Redigér teksten herunder" : "Klik på Redigér for at ændre indholdet"}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setRedigerer(r => !r)}
-              className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              {redigerer ? "Luk redigering" : "Redigér"}
-            </button>
-            <button
-              onClick={kopier}
-              className={`flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg transition-all ${
-                kopieret ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              {kopieret ? (
-                <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Kopieret!</>
-              ) : (
-                <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Kopiér</>
-              )}
-            </button>
-          </div>
+      {/* Toolbar */}
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs text-gray-400">{redigerer ? "Redigerer råtekst" : "Forhåndsvisning"}</p>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setRedigerer(r => !r)}
+            className="flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all"
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            {redigerer ? "Luk redigering" : "Redigér tekst"}
+          </button>
+          <button
+            onClick={kopier}
+            className={`flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg border transition-all ${
+              kopieret ? "bg-green-50 border-green-200 text-green-700" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            {kopieret ? "Kopieret!" : "Kopiér"}
+          </button>
         </div>
+      </div>
 
-        {/* Bygherreoplysninger */}
-        {(data.bygherreNavn || data.bygherreKontakt) && (
-          <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Bygherre</p>
-            {data.bygherreNavn && <p className="text-sm font-semibold text-gray-800">{data.bygherreNavn}</p>}
-            {data.bygherreKontakt && <p className="text-sm text-gray-500">{data.bygherreKontakt}</p>}
-          </div>
-        )}
-
-        <div className="px-6 py-6">
-          {redigerer ? (
+      {/* Selve dokumentet */}
+      <div className="mb-6">
+        {redigerer ? (
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
             <textarea
               value={tekst}
               onChange={(e) => setTekst(e.target.value)}
               rows={Math.max(30, tekst.split("\n").length + 2)}
-              className="w-full text-sm text-gray-700 leading-relaxed resize-none focus:outline-none border-0 bg-transparent"
-              style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", lineHeight: "1.75" }}
+              className="w-full text-sm text-gray-700 leading-relaxed resize-none focus:outline-none border-0 bg-transparent font-mono"
               autoFocus
             />
-          ) : (
-            <DokumentRenderer tekst={tekst} />
-          )}
-        </div>
+          </div>
+        ) : (
+          <DokumentRenderer
+            tekst={tekst}
+            titel={data.titel}
+            bygherreNavn={data.bygherreNavn}
+            bygherreKontakt={data.bygherreKontakt}
+          />
+        )}
       </div>
 
       {/* Invite-step */}
