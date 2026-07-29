@@ -310,6 +310,66 @@ function Bygherre() {
         </div>
       </section>
 
+      {/* Priser */}
+      <section className="py-16 sm:py-20 bg-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10">
+            <span className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest">Pakker</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">Engangsbetaling. Ingen abonnement.</h2>
+            <p className="text-gray-500 mt-2 max-w-md mx-auto">Du betaler én gang og beholder adgangen så længe projektet løber.</p>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-5 mb-8">
+            {[
+              { navn: "Digital", pris: "299", undertitel: "Alle digitale værktøjer", features: ["Ubegrænset screening", "Projektrum og dokumentarkiv", "AB-Forbruger notifikationer", "Ekstraarbejde og betalingsplan"] },
+              { navn: "Tryg", pris: "1.499", undertitel: "Digitale værktøjer og rådgiverhjælp", features: ["Alt i Digital", "1 times rådgivergennemgang (video/tlf.)", "Skriftlig anbefaling fra rådgiver"], highlight: true },
+              { navn: "Komplet", pris: "3.999", undertitel: "Fuld støtte fra start til aflevering", features: ["Alt i Tryg", "Mangelgennemgang ved aflevering", "Vejledning til 1-årseftersyn"] },
+            ].map(p => (
+              <div key={p.navn} className={`rounded-2xl border-2 p-6 flex flex-col ${p.highlight ? "border-[#1e3a2a] bg-[#1e3a2a] text-white" : "border-[#e0ddd6] bg-[#f5f3ee]"}`}>
+                <p className={`font-bold text-xl mb-0.5 ${p.highlight ? "text-white" : "text-gray-900"}`}>{p.navn}</p>
+                <p className={`text-xs mb-4 ${p.highlight ? "text-white/60" : "text-gray-400"}`}>{p.undertitel}</p>
+                <p className={`text-4xl font-bold mb-4 ${p.highlight ? "text-white" : "text-gray-900"}`}>{p.pris} <span className={`text-sm font-normal ${p.highlight ? "text-white/50" : "text-gray-400"}`}>kr.</span></p>
+                <div className="space-y-2 flex-1">
+                  {p.features.map(f => (
+                    <div key={f} className="flex items-start gap-2">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={p.highlight ? "white" : "#1e3a2a"} strokeWidth="3" className="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      <span className={`text-xs leading-relaxed ${p.highlight ? "text-white/80" : "text-gray-600"}`}>{f}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="text-center">
+            <Link href="/pakke" className="inline-flex items-center gap-2 text-sm font-semibold text-[#1e3a2a] hover:underline">
+              Se alle detaljer og vælg pakke
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Tillids-signaler */}
+      <section className="border-t border-[#e0ddd6] bg-[#f5f3ee] py-10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            {[
+              { ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>, titel: "Sikker betaling", tekst: "Stripe håndterer alle betalinger. Dine kortoplysninger gemmes aldrig hos os." },
+              { ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, titel: "AB-Forbruger 2012", tekst: "Alle projekter følger de officielle standardvilkår for forbrugere i Danmark." },
+              { ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, titel: "Dansk platform", tekst: "Bygget til danske regler, danske håndværkere og det danske marked." },
+              { ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>, titel: "GDPR-compliant", tekst: "Dine data behandles fortroligt og opbevares sikkert i overensstemmelse med GDPR." },
+            ].map(s => (
+              <div key={s.titel} className="flex gap-3 items-start">
+                <div className="w-9 h-9 bg-white rounded-xl border border-[#e0ddd6] flex items-center justify-center flex-shrink-0">{s.ikon}</div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 mb-0.5">{s.titel}</p>
+                  <p className="text-xs text-gray-500 leading-relaxed">{s.tekst}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="bg-[#1e3a2a] px-4 sm:px-6 py-16 sm:py-24">
         <div className="max-w-2xl mx-auto text-center">
