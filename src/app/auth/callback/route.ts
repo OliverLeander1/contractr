@@ -60,12 +60,11 @@ export async function GET(req: NextRequest) {
     .single();
 
   if (!profil) {
-    await db.from("profiler").insert({
+    await db.from("profiler").upsert({
       id: authedUser.id,
       email: authedUser.email ?? null,
-      rolle: "haandvaerker",
       email_notifikationer: true,
-    });
+    }, { onConflict: "id" });
   }
 
   return NextResponse.redirect(new URL(next, baseUrl));
