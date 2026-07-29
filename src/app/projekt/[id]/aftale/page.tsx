@@ -53,6 +53,9 @@ interface Kontrakt {
   tilbud_dokument_navn: string | null;
   besigtigelse_dato: string | null;
   besigtigelse_bekraeftet: boolean | null;
+  forudsaetninger: string | null;
+  forudsaetninger_sendt_at: string | null;
+  forudsaetninger_godkendt: boolean | null;
 }
 
 const fmtKr = (n: number) =>
@@ -87,6 +90,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const [betalingsplanRækker, setBetalingsplanRækker] = useState<{milepæl: string; andel: string}[]>([]);
   const [brugerNavn, setBrugerNavn] = useState("");
   const [godkenderTidsplan, setGodkenderTidsplan] = useState(false);
+  const [godkenderForudsaetninger, setGodkenderForudsaetninger] = useState(false);
 
   const hentKontrakt = useCallback(async () => {
     const supabase = createClient();
@@ -226,6 +230,22 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
       if (!data.error) setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, tidsplan: data.tidsplan } : prev);
     } finally {
       setGodkenderTidsplan(false);
+    }
+  }
+
+  async function godkendForudsaetninger() {
+    if (!kontrakt || typeof kontrakt !== "object" || godkenderForudsaetninger) return;
+    setGodkenderForudsaetninger(true);
+    try {
+      const r = await fetch("/api/kontrakt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kontrakt_id: kontrakt.id, godkend_forudsaetninger: true }),
+      });
+      const data = await r.json();
+      if (!data.error) setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, forudsaetninger_godkendt: true } : prev);
+    } finally {
+      setGodkenderForudsaetninger(false);
     }
   }
 
@@ -917,6 +937,33 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 </>
               )}
             </div>
+
+            {/* Forudsætninger fra entreprenøren */}
+            {kontrakt.forudsaetninger_sendt_at && (
+              <div className={`rounded-2xl border shadow-sm p-5 ${kontrakt.forudsaetninger_godkendt ? "bg-white border-gray-100" : "bg-amber-50 border-amber-200"}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="font-semibold text-gray-900 text-sm">Forudsætninger fra entreprenøren</h3>
+                  {kontrakt.forudsaetninger_godkendt
+                    ? <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Godkendt</span>
+                    : <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">Afventer din godkendelse</span>
+                  }
+                </div>
+                <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap mb-4">{kontrakt.forudsaetninger}</p>
+                {!kontrakt.forudsaetninger_godkendt && !erBeggeGodkendt && (
+                  <button
+                    onClick={godkendForudsaetninger}
+                    disabled={godkenderForudsaetninger}
+                    className="w-full py-2.5 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                  >
+                    {godkenderForudsaetninger ? (
+                      <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Godkender...</>
+                    ) : (
+                      <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Bekræft forudsætninger</>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Tilbudsdokument fra entreprenor */}
             {kontrakt.tilbud_dokument_url && (

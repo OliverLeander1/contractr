@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
 // POST /api/kontrakt — opdater kontraktindhold
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { kontrakt_id, bygherre_id, titel, beskrivelse, total_pris, betalingsplan, vilkaar, startdato, slutdato, haandvaerker_navn, haandvaerker_email, haandvaerker_firma, haandvaerker_cvr, godkend_tidsplan } = body;
+  const { kontrakt_id, bygherre_id, titel, beskrivelse, total_pris, betalingsplan, vilkaar, startdato, slutdato, haandvaerker_navn, haandvaerker_email, haandvaerker_firma, haandvaerker_cvr, godkend_tidsplan, godkend_forudsaetninger } = body;
 
   if (!kontrakt_id) {
     return NextResponse.json({ error: "kontrakt_id mangler" }, { status: 400 });
@@ -75,6 +75,17 @@ export async function POST(req: NextRequest) {
   if (haandvaerker_navn !== undefined) opdatering.haandvaerker_navn = haandvaerker_navn;
   if (haandvaerker_firma !== undefined) opdatering.haandvaerker_firma = haandvaerker_firma;
   if (haandvaerker_cvr !== undefined) opdatering.haandvaerker_cvr = haandvaerker_cvr;
+
+  // Bygherre godkender forudsætninger fra håndværker
+  if (godkend_forudsaetninger === true) {
+    const { data, error } = await db
+      .from("kontrakter")
+      .update({ forudsaetninger_godkendt: true, opdateret_at: new Date().toISOString() })
+      .eq("id", kontrakt_id)
+      .select().single();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data);
+  }
 
   // Bygherre godkender tidsplan — opdater kun tidsplan.godkendt_af_bygherre, nulstil IKKE underskrifter
   if (godkend_tidsplan === true) {

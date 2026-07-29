@@ -38,6 +38,9 @@ interface Kontrakt {
   tilbud_dokument_navn: string | null;
   besigtigelse_dato: string | null;
   besigtigelse_bekraeftet: boolean | null;
+  forudsaetninger: string | null;
+  forudsaetninger_sendt_at: string | null;
+  forudsaetninger_godkendt: boolean | null;
 }
 
 const fmtKr = (n: number) =>
@@ -65,6 +68,12 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   // Besigtigelse
   const [besigtigelseDato, setBesigtigelseDato] = useState("");
   const [gemmerBesigtigelse, setGemmerBesigtigelse] = useState(false);
+
+  // Forudsætninger
+  const [forudsaetningerTekst, setForudsaetningerTekst] = useState("");
+  const [redigererForudsaetninger, setRedigererForudsaetninger] = useState(false);
+  const [gemmerForudsaetninger, setGemmerForudsaetninger] = useState(false);
+  const [springetOver, setSpringetOver] = useState(false);
 
   // Tilbudsdokument upload
   const [uploader, setUploader] = useState(false);
@@ -98,6 +107,8 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
       if (data.haandvaerker_godkendt_at) setGodkendt(true);
       if (data.tidsplan) setTidsplanGemt(true);
       if (data.besigtigelse_dato) setBesigtigelseDato(data.besigtigelse_dato);
+      if (data.forudsaetninger) setForudsaetningerTekst(data.forudsaetninger);
+      if (data.forudsaetninger_godkendt || !data.forudsaetninger) setSpringetOver(false);
       setIndlæser(false);
     };
     hent();
@@ -140,6 +151,24 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
       setVisTidsplanEditor(false);
     }
     setGemmerTidsplan(false);
+  }
+
+  async function sendForudsaetninger() {
+    if (gemmerForudsaetninger) return;
+    setGemmerForudsaetninger(true);
+    const res = await fetch(`/api/kontrakt/${token}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        forudsaetninger: forudsaetningerTekst.trim(),
+        forudsaetninger_sendt_at: new Date().toISOString(),
+        forudsaetninger_godkendt: false,
+      }),
+    });
+    const data = await res.json();
+    setKontrakt(prev => prev ? { ...prev, ...data } : prev);
+    setRedigererForudsaetninger(false);
+    setGemmerForudsaetninger(false);
   }
 
   async function gemBesigtigelse(bekraeftet: boolean, dato: string) {
@@ -356,9 +385,95 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
           </div>
         )}
 
+        {/* Forudsætninger */}
+        {!godkendt && (() => {
+          const sendt = !!kontrakt.forudsaetninger_sendt_at;
+          const godkendtAfBygherre = kontrakt.forudsaetninger_godkendt === true;
+          if (springetOver) return null;
+          return (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-9 h-9 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
+                    <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">Forudsætninger</p>
+                  <p className="text-xs text-gray-400">Skriv hvad bygherre skal sørge for inden arbejdet starter</p>
+                </div>
+              </div>
+
+              {godkendtAfBygherre ? (
+                <div className="flex items-start gap-3 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
+                  <svg className="flex-shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <div>
+                    <p className="text-sm font-semibold text-green-800 mb-1">Bygherre har godkendt forudsætningerne</p>
+                    <p className="text-xs text-green-700/80 whitespace-pre-wrap leading-relaxed">{kontrakt.forudsaetninger}</p>
+                  </div>
+                </div>
+              ) : sendt && !redigererForudsaetninger ? (
+                <div className="space-y-3">
+                  <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+                    <p className="text-xs font-bold text-amber-800 mb-1">Afventer bygherrens godkendelse</p>
+                    <p className="text-xs text-amber-700/80 whitespace-pre-wrap leading-relaxed">{kontrakt.forudsaetninger}</p>
+                  </div>
+                  <button
+                    onClick={() => setRedigererForudsaetninger(true)}
+                    className="text-xs font-semibold text-gray-400 hover:text-gray-700 transition-colors"
+                  >
+                    Ret forudsætninger
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <textarea
+                    value={forudsaetningerTekst}
+                    onChange={e => setForudsaetningerTekst(e.target.value)}
+                    placeholder={"Fx: Rummet skal være ryddet for møbler og inventar inden opstart. Gulvvarme skal være slukket mindst 48 timer før."}
+                    rows={4}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={sendForudsaetninger}
+                      disabled={gemmerForudsaetninger || !forudsaetningerTekst.trim()}
+                      className="flex-1 py-2.5 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 disabled:opacity-40 transition-all"
+                    >
+                      {gemmerForudsaetninger ? "Sender..." : "Send forudsætninger til bygherre"}
+                    </button>
+                    <button
+                      onClick={() => setSpringetOver(true)}
+                      className="px-4 py-2.5 border border-gray-200 text-gray-500 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors"
+                    >
+                      Spring over
+                    </button>
+                  </div>
+                  {redigererForudsaetninger && (
+                    <button
+                      onClick={() => setRedigererForudsaetninger(false)}
+                      className="text-xs text-gray-400 hover:text-gray-600"
+                    >
+                      Annuller redigering
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Tilbudsdokument */}
-        {!godkendt && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
+        {!godkendt && (() => {
+          const forudsLast = !!(kontrakt.forudsaetninger_sendt_at && !kontrakt.forudsaetninger_godkendt && !springetOver);
+          return (
+          <div className={`bg-white rounded-2xl border shadow-sm p-6 mb-5 ${forudsLast ? "border-gray-100 opacity-50 pointer-events-none" : "border-gray-100"}`}>
+            {forudsLast && (
+              <div className="mb-3 flex items-center gap-2 text-xs text-amber-700 font-semibold">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Afventer bygherrens godkendelse af forudsætninger
+              </div>
+            )}
             <div className="flex items-center gap-3 mb-4">
               <div className="w-9 h-9 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
@@ -455,7 +570,8 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               <p className="mt-3 text-xs text-red-600 font-medium">{uploadFejl}</p>
             )}
           </div>
-        )}
+          );
+        })()}
 
         {/* ─── TIDSPLAN ─── */}
         <div className="mb-5">
