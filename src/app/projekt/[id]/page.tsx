@@ -50,6 +50,11 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
   const { id } = use(params);
   const [kontrakt, setKontrakt] = useState<Kontrakt | null | "loading">("loading");
   const [bygherreNavn, setBygherreNavn] = useState("");
+  const [visPaakrav, setVisPaakrav] = useState(false);
+  const [paakravBesked, setPaakravBesked] = useState("");
+  const [paakravFrist, setPaakravFrist] = useState("");
+  const [senderPaakrav, setSenderPaakrav] = useState(false);
+  const [paakravSendt, setPaakravSendt] = useState(false);
 
   useEffect(() => {
     const hent = async () => {
@@ -97,6 +102,24 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
     const st = aftaleStatus[kontrakt.status] || { label: kontrakt.status, klasse: "bg-gray-100 text-gray-600" };
     const beggeGodkendt = kontrakt.status === "begge_godkendt";
     const idag = new Date().toISOString();
+
+    const fmtDatoLang = (iso: string) =>
+      new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
+
+    async function sendPaakrav() {
+      if (!kontrakt || typeof kontrakt !== "object") return;
+      setSenderPaakrav(true);
+      const { createClient: cc } = await import("@/lib/supabase");
+      const supabase = cc();
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      const res = await fetch("/api/paakrav", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ kontrakt_id: kontrakt.id, besked: paakravBesked, ny_frist: paakravFrist || null }),
+      });
+      setSenderPaakrav(false);
+      if (res.ok) { setPaakravSendt(true); setVisPaakrav(false); }
+    }
 
     if (beggeGodkendt) {
       const dageТilStart = kontrakt.startdato ? dageImellem(idag, kontrakt.startdato) : null;
@@ -215,10 +238,33 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
               </div>
             </div>
 
+            {/* Påkrav sendt-bekræftelse */}
+            {paakravSendt && (
+              <div className="mb-5 bg-green-50 border border-green-200 rounded-2xl px-5 py-4 flex items-center gap-3">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <p className="text-sm font-semibold text-green-800">Påkrav sendt og registreret i logbogen.</p>
+              </div>
+            )}
+
             {/* Deadline-tæller */}
             {kontrakt.slutdato && (
               <div className="mb-5">
-                <DeadlineTæller startdato={kontrakt.startdato} slutdato={kontrakt.slutdato} />
+                <DeadlineTæller
+                  startdato={kontrakt.startdato}
+                  slutdato={kontrakt.slutdato}
+                  kanSendePaakrav={!!kontrakt.haandvaerker_email}
+                  onSendPaakrav={() => {
+                    const overskredetDage = kontrakt.slutdato
+                      ? Math.abs(Math.round((new Date(kontrakt.slutdato).getTime() - new Date().setHours(0,0,0,0)) / (1000*60*60*24)))
+                      : 0;
+                    const slutFormateret = kontrakt.slutdato ? fmtDatoLang(kontrakt.slutdato) : "";
+                    setPaakravBesked(
+                      `Kære ${kontrakt.haandvaerker_navn || "entreprenør"},\n\nJeg skal hermed gøre opmærksom på, at den aftalte afleveringsdato den ${slutFormateret} er overskredet med ${overskredetDage} ${overskredetDage === 1 ? "dag" : "dage"}.\n\nJeg anmoder om, at arbejdet afsluttes hurtigst muligt og senest til nedenstående frist. Såfremt dette ikke overholdes, forbeholder jeg mig retten til at søge erstatning for dokumenterede tab i henhold til AB-Forbruger 2012.\n\nMed venlig hilsen\n${bygherreNavn}`
+                    );
+                    setPaakravFrist("");
+                    setVisPaakrav(true);
+                  }}
+                />
               </div>
             )}
 
@@ -259,6 +305,68 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
           </div>
           <BesigtigelseKort kontraktId={kontrakt.id} projektId={id} rolle="bygherre" />
           <Suspense><Chat bruger="bygherre" /></Suspense>
+
+          {/* Påkrav-modal */}
+          {visPaakrav && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
+                <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5">
+                        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                      </svg>
+                    </div>
+                    <h2 className="font-bold text-gray-900">Send påkrav til entreprenøren</h2>
+                  </div>
+                  <p className="text-xs text-gray-400 ml-11 leading-relaxed">
+                    Påkravet sendes som e-mail og registreres automatisk i logbogen som juridisk dokumentation.
+                  </p>
+                </div>
+
+                <div className="px-6 py-5 space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wide">Besked til entreprenøren</label>
+                    <textarea
+                      rows={9}
+                      value={paakravBesked}
+                      onChange={e => setPaakravBesked(e.target.value)}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 leading-relaxed focus:outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 resize-none transition-all font-mono"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1">Du kan redigere teksten før afsendelse.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wide">Ny frist (valgfrit)</label>
+                    <input
+                      type="date"
+                      value={paakravFrist}
+                      onChange={e => setPaakravFrist(e.target.value)}
+                      min={new Date().toISOString().split("T")[0]}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition-all"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1">Sæt en ny realistisk frist. Den fremgår tydeligt i e-mailen.</p>
+                  </div>
+                </div>
+
+                <div className="px-6 pb-6 flex gap-3">
+                  <button
+                    onClick={() => setVisPaakrav(false)}
+                    className="flex-1 py-3 border border-gray-200 text-gray-600 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors"
+                  >
+                    Annuller
+                  </button>
+                  <button
+                    onClick={sendPaakrav}
+                    disabled={senderPaakrav || !paakravBesked.trim()}
+                    className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {senderPaakrav ? "Sender..." : "Send påkrav"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
     }

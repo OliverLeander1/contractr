@@ -4,6 +4,8 @@ interface Props {
   startdato: string | null;
   slutdato: string | null;
   kompakt?: boolean;
+  kanSendePaakrav?: boolean;
+  onSendPaakrav?: () => void;
 }
 
 type Fase = "forberedelse" | "igang" | "slutspurt" | "overskredet";
@@ -59,7 +61,7 @@ const FARVER: Record<Fase, { bg: string; ring: string; tal: string; bar: string;
   overskredet:  { bg: "bg-red-50",      ring: "border-red-200",      tal: "text-red-600",   bar: "bg-red-400",   badge: "bg-red-100 text-red-700",      badgeTekst: "Frist overskredet" },
 };
 
-export default function DeadlineTæller({ startdato, slutdato, kompakt = false }: Props) {
+export default function DeadlineTæller({ startdato, slutdato, kompakt = false, kanSendePaakrav = false, onSendPaakrav }: Props) {
   const s = beregnStatus(startdato, slutdato);
 
   if (!slutdato) {
@@ -139,10 +141,21 @@ export default function DeadlineTæller({ startdato, slutdato, kompakt = false }
       )}
 
       {fase === "overskredet" && (
-        <div className="bg-white px-6 py-4">
+        <div className="bg-white px-6 py-4 space-y-3">
           <p className="text-xs text-red-600 leading-relaxed">
-            Aftalt færdigmeldingsdato er overskredet. Kontakt entreprenøren eller registrer en mangel.
+            Aftalt færdigmeldingsdato er overskredet. Send et formelt påkrav til entreprenøren og sæt en ny frist.
           </p>
+          {kanSendePaakrav && onSendPaakrav && (
+            <button
+              onClick={onSendPaakrav}
+              className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+              Send påkrav til entreprenøren
+            </button>
+          )}
         </div>
       )}
 
