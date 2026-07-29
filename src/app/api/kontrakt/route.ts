@@ -28,13 +28,30 @@ export async function GET(req: NextRequest) {
   }
 
   if (!data) {
-    // Opret tom kontrakt
+    // Hent projektdata for at præ-udfylde kontrakten
+    const { data: projekt } = await db
+      .from("projekter")
+      .select("adresse, projekttype, startdato, slutdato, budget")
+      .eq("id", projekt_id)
+      .single();
+
+    const oprettet = new Date().toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
+    const titel = projekt
+      ? `${projekt.projekttype || "Byggeprojekt"}${projekt.adresse ? ` – ${projekt.adresse}` : ""}`
+      : null;
+
     const { data: ny, error: opretFejl } = await db
       .from("kontrakter")
       .insert({
         projekt_id,
         bygherre_id: bygherre_id || null,
         status: "udkast",
+        titel: titel || null,
+        startdato: projekt?.startdato || null,
+        slutdato: projekt?.slutdato || null,
+        total_pris: projekt?.budget || null,
+        vilkaar: "AB-Forbruger 2012 er gældende for denne aftale i sin helhed.",
+        beskrivelse: titel ? `NEMBYGGESTYRING\nnembyggestyring.dk\n\nDato\n${oprettet}\n\nUDBUDSDOKUMENT\n\n${titel}\n\nBYGHERRE\n` : null,
       })
       .select()
       .single();

@@ -468,6 +468,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               const erAktiv = redigererFelt === felt;
               const harForslag = afventendeFeltForslag.length > 0;
               const erLaast = felt === "vilkaar";
+              const erRedigerbar = !erBeggeGodkendt && !erAktiv && !erLaast && !kontrakt.haandvaerker_email;
 
               return (
                 <div key={felt} className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${harForslag ? "border-amber-200" : "border-gray-100"}`}>
@@ -482,7 +483,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                           </span>
                         )}
                       </div>
-                      {!erBeggeGodkendt && !erAktiv && !erLaast && (
+                      {erRedigerbar && (
                         <button
                           onClick={() => {
                             setRedigererFelt(felt);
@@ -580,7 +581,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                   <div className="px-5 py-4">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Arbejdets omfang</p>
-                      {!erBeggeGodkendt && !erAktiv && (
+                      {!erBeggeGodkendt && !erAktiv && !kontrakt.haandvaerker_email && (
                         <button
                           onClick={() => { setRedigererFelt("beskrivelse"); setFeltVaerdi(beskrivelseBody); }}
                           className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors"
@@ -723,7 +724,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         : "Betaling ved aflevering jf. AB-Forbruger § 25"}
                     </p>
                   </div>
-                  {!erBeggeGodkendt && !redigererBetalingsplan && (
+                  {!erBeggeGodkendt && !redigererBetalingsplan && !kontrakt.haandvaerker_email && (
                     <button
                       onClick={() => {
                         setBetalingsplanRækker(
