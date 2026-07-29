@@ -978,14 +978,16 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 <>
                   <button
                     onClick={godkendKontrakt}
-                    disabled={godkender || bygherreGodkendt}
+                    disabled={godkender || bygherreGodkendt || !haandvaerkerGodkendt}
                     className={`w-full mt-4 py-3 rounded-xl text-sm font-bold transition-all ${
                       bygherreGodkendt
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : !haandvaerkerGodkendt
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                         : "bg-[#1e3a2a] text-white hover:opacity-90"
                     }`}
                   >
-                    {godkender ? "Godkender..." : bygherreGodkendt ? "Du har accepteret" : "Accepter tilbud og indga aftale"}
+                    {godkender ? "Godkender..." : bygherreGodkendt ? "Du har accepteret" : !haandvaerkerGodkendt ? "Afventer tilbud fra entreprenøren" : "Acceptér tilbud og indgå aftale"}
                   </button>
                   {godkendFejl && (
                     <p className="mt-2 text-xs text-red-600 text-center leading-snug">{godkendFejl}</p>
