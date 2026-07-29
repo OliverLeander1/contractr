@@ -38,11 +38,9 @@ UDBUDSDOKUMENT
 {titel}
 
 
-${DIVIDER}
 
 1. PROJEKTBESKRIVELSE
 
-${DIVIDER}
 
 [2-3 sætninger der introducerer projektet og adressen]
 
@@ -58,20 +56,16 @@ Omfanget af arbejdet er:
 [1 sætning om forudsætninger for arbejdet — hvad der forventes at være i orden ved opstart, og at entreprenøren straks skal melde til bygherre hvis der opdages forhold der kræver yderligere arbejde]
 
 
-${DIVIDER}
 
 2. KRAV OG ØNSKER
 
-${DIVIDER}
 
 [Beskriv bygherrens specifikke ønsker og krav til materialer, mærker, udførelse og kvalitet. Skriv i løbende tekst med konkrete detaljer. Inkludér et afsnit om at alt arbejde skal udføres håndværksmæssigt korrekt og i overensstemmelse med gældende love og standarder.]
 
 
-${DIVIDER}
 
 3. TIDSRAMME
 
-${DIVIDER}
 
 Ønsket opstart:     [dato eller "Fleksibel — aftales nærmere"]
 Senest færdig:      [dato eller "Ikke fastsat"]
@@ -79,11 +73,9 @@ Senest færdig:      [dato eller "Ikke fastsat"]
 [1-2 sætninger om at entreprenøren i sit tilbud skal angive sin forventede tidsplan, og at arbejdet inkl. oprydning skal være afsluttet inden fristen]
 
 
-${DIVIDER}
 
 4. PRAKTISKE FORHOLD
 
-${DIVIDER}
 
 - [Om boligen er beboet eller tom under arbejdet]
 - [Adgang til ejendommen]
@@ -94,11 +86,9 @@ ${DIVIDER}
 [Afslut med anbefaling om besigtigelse inden tilbud afgives]
 
 
-${DIVIDER}
 
 5. TILBUD OG KONTRAKTGRUNDLAG
 
-${DIVIDER}
 
 Entreprenøren bedes afgive et fast tilbud på baggrund af ovenstående beskrivelse. Tilbuddet skal indeholde:
 
