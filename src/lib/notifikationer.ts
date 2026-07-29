@@ -159,18 +159,27 @@ export async function sendNotifikation(
   }
 }
 
-// Henter modtager-email og præference fra profiler-tabellen
+// Henter modtager-email og præference — tjekker profiler først, falder tilbage til auth.users
 export async function hentBygherreEmail(
   bygherre_id: string,
   db: ReturnType<typeof import("@/lib/supabase-server").createServiceClient>,
 ): Promise<{ email: string | null; notifikationer: boolean }> {
-  const { data } = await db
+  const { data: profil } = await db
     .from("profiler")
     .select("email, email_notifikationer")
     .eq("id", bygherre_id)
     .single();
+
+  let email = profil?.email ?? null;
+
+  // Fald tilbage til auth.users hvis profil ikke har email
+  if (!email) {
+    const { data: { user } } = await db.auth.admin.getUserById(bygherre_id);
+    email = user?.email ?? null;
+  }
+
   return {
-    email: data?.email ?? null,
-    notifikationer: data?.email_notifikationer !== false,
+    email,
+    notifikationer: profil?.email_notifikationer !== false,
   };
 }

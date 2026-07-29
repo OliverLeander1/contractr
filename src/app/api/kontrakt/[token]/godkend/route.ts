@@ -68,15 +68,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
   const projekttitel = data.titel || (data as Record<string, unknown> & { projekter?: { adresse?: string } })?.projekter?.adresse || "dit projekt";
   const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
 
-  if (forfatter === "haandvaerker" && data.bygherre_id) {
-    const { email, notifikationer } = await hentBygherreEmail(data.bygherre_id, db);
-    if (email) {
-      const type = opdatering.status === "begge_godkendt" ? "begge_godkendt_kontrakt" : "haandvaerker_godkendt_kontrakt";
-      sendNotifikation(type, email, {
-        projekttitel,
-        afsenderNavn: haandvaerker_navn || data.haandvaerker_navn || "Entreprenøren",
-        link: `${baseUrl}/projekt/${data.projekt_id}/aftale`,
-      }, notifikationer);
+  if (forfatter === "haandvaerker") {
+    // Hent bygherre_id — fra kontrakt eller via projektet hvis den mangler
+    let bygherreId = data.bygherre_id as string | null;
+    if (!bygherreId && data.projekt_id) {
+      const { data: proj } = await db.from("projekter").select("bygherre_id").eq("id", data.projekt_id).single();
+      bygherreId = proj?.bygherre_id ?? null;
+    }
+
+    if (bygherreId) {
+      const { email, notifikationer } = await hentBygherreEmail(bygherreId, db);
+      if (email) {
+        const type = opdatering.status === "begge_godkendt" ? "begge_godkendt_kontrakt" : "haandvaerker_godkendt_kontrakt";
+        sendNotifikation(type, email, {
+          projekttitel,
+          afsenderNavn: haandvaerker_navn || data.haandvaerker_navn || "Entreprenøren",
+          link: `${baseUrl}/projekt/${data.projekt_id}/aftale`,
+        }, notifikationer);
+      }
     }
   }
 
