@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { createServiceClient } from "@/lib/supabase-server";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -27,21 +28,45 @@ export async function GET(req: NextRequest) {
     }
   );
 
-  // Ny Supabase email-flow: token_hash + type
+  let authedUser: { id: string; email?: string } | null = null;
+
+  // Ny Supabase email-flow: token_hash + type (magic link og OTP)
   if (token_hash && type) {
-    const { error } = await supabase.auth.verifyOtp({ token_hash, type });
-    if (!error) {
-      return NextResponse.redirect(new URL(next, baseUrl));
+    const { data, error } = await supabase.auth.verifyOtp({ token_hash, type });
+    if (!error && data.user) {
+      authedUser = data.user;
     }
   }
 
   // Ældre PKCE-flow: code exchange
-  if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(new URL(next, baseUrl));
+  if (!authedUser && code) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error && data.user) {
+      authedUser = data.user;
     }
   }
 
-  return NextResponse.redirect(new URL("/login?fejl=bekraeftelse", baseUrl));
+  if (!authedUser) {
+    return NextResponse.redirect(new URL("/login?fejl=bekraeftelse", baseUrl));
+  }
+
+  // Sikr at der findes en profil-række — opretter én hvis brugeren er ny
+  // (bruges primært af håndværkere der logger ind via magic link)
+  const db = createServiceClient();
+  const { data: profil } = await db
+    .from("profiler")
+    .select("id")
+    .eq("id", authedUser.id)
+    .single();
+
+  if (!profil) {
+    await db.from("profiler").insert({
+      id: authedUser.id,
+      email: authedUser.email ?? null,
+      rolle: "haandvaerker",
+      email_notifikationer: true,
+    });
+  }
+
+  return NextResponse.redirect(new URL(next, baseUrl));
 }

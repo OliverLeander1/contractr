@@ -87,6 +87,13 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   // Auth
   const [loggetInd, setLoggetInd] = useState(false);
   const [brugerEmail, setBrugerEmail] = useState<string | null>(null);
+
+  // Magic link flow
+  const [magicLinkEmail, setMagicLinkEmail] = useState("");
+  const [senderMagicLink, setSenderMagicLink] = useState(false);
+  const [magicLinkSendt, setMagicLinkSendt] = useState(false);
+  const [magicLinkFejl, setMagicLinkFejl] = useState<string | null>(null);
+
   const [visTidsplanEditor, setVisTidsplanEditor] = useState(false);
   const [tidsplanType, setTidsplanType] = useState<"faser" | "ingen_tidsplan">("faser");
   const [faser, setFaser] = useState<TidsplanFase[]>([
@@ -107,6 +114,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
       if (!res.ok) { setFejl("Aftalegrundlaget blev ikke fundet. Tjek at linket er korrekt."); setIndlæser(false); return; }
       const data = await res.json();
       setKontrakt(data);
+      if (data.haandvaerker_email) setMagicLinkEmail(data.haandvaerker_email);
       if (data.haandvaerker_godkendt_at) setGodkendt(true);
       if (data.tidsplan) setTidsplanGemt(true);
       if (data.besigtigelse_dato) setBesigtigelseDato(data.besigtigelse_dato);
@@ -173,6 +181,25 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
     setKontrakt(prev => prev ? { ...prev, ...data } : prev);
     setRedigererForudsaetninger(false);
     setGemmerForudsaetninger(false);
+  }
+
+  async function sendMagicLink() {
+    if (!magicLinkEmail.trim() || senderMagicLink) return;
+    setMagicLinkFejl(null);
+    setSenderMagicLink(true);
+    const { createClient } = await import("@/lib/supabase");
+    const supabase = createClient();
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/kontrakt/${token}/aftale`)}`;
+    const { error } = await supabase.auth.signInWithOtp({
+      email: magicLinkEmail.trim().toLowerCase(),
+      options: { emailRedirectTo: redirectTo, shouldCreateUser: true },
+    });
+    if (error) {
+      setMagicLinkFejl("Noget gik galt. Prøv igen eller kontakt os.");
+    } else {
+      setMagicLinkSendt(true);
+    }
+    setSenderMagicLink(false);
   }
 
   async function gemBesigtigelse(bekraeftet: boolean, dato: string, tid: string) {
@@ -343,40 +370,108 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
           )}
         </div>
 
-        {/* Login-gate: vises når man ikke er logget ind som den rette håndværker */}
+        {/* Login-gate: magic link-flow */}
         {!godkendt && !harAdgang && (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-5">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-5">
+
+            {/* Forkert konto-advarsel */}
+            {loggetInd && brugerEmail && (
+              <div className="bg-amber-50 border-b border-amber-100 px-5 py-3 flex items-center gap-3">
+                <svg className="flex-shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                 </svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-gray-900 mb-1">Log ind for at redigere og godkende</p>
-                <p className="text-xs text-gray-500 leading-relaxed mb-4">
-                  Du kan se aftalegrundlaget herover. For at udfylde tidsplan, sende forudsætninger og godkende tilbuddet skal du oprette dig eller logge ind med den email du modtog linket på.
+                <p className="text-xs text-amber-800 leading-relaxed">
+                  Du er logget ind som <strong>{brugerEmail}</strong>. Dette link er sendt til <strong>{kontrakt.haandvaerker_email}</strong> — log ind med den rette konto for at redigere.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <a
-                    href={`/login?redirect=${encodeURIComponent(`/kontrakt/${token}/aftale`)}&email=${encodeURIComponent(kontrakt.haandvaerker_email ?? "")}`}
-                    className="flex-1 py-2.5 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all text-center"
-                  >
-                    Log ind
-                  </a>
-                  <a
-                    href={`/opret-konto?redirect=${encodeURIComponent(`/kontrakt/${token}/aftale`)}&email=${encodeURIComponent(kontrakt.haandvaerker_email ?? "")}`}
-                    className="flex-1 py-2.5 border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-all text-center"
-                  >
-                    Opret konto
-                  </a>
-                </div>
-                {loggetInd && brugerEmail && (
-                  <p className="text-xs text-amber-600 font-medium mt-3">
-                    Du er logget ind som {brugerEmail} — dette link er sendt til {kontrakt.haandvaerker_email}. Log ind med den rette konto for at redigere.
-                  </p>
-                )}
               </div>
+            )}
+
+            <div className="p-6">
+              {magicLinkSendt ? (
+                /* Sendt-tilstand */
+                <div className="text-center py-4">
+                  <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5">
+                      <path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                  </div>
+                  <p className="text-base font-bold text-gray-900 mb-1">Link sendt</p>
+                  <p className="text-sm text-gray-500 leading-relaxed mb-1">
+                    Tjek din indbakke på <strong>{magicLinkEmail}</strong>
+                  </p>
+                  <p className="text-xs text-gray-400 mb-5">Klik på linket i mailen — du er inde på sekunder. Tjek også spam.</p>
+                  <button
+                    onClick={() => { setMagicLinkSendt(false); setMagicLinkFejl(null); }}
+                    className="text-xs font-semibold text-[#1e3a2a] hover:underline"
+                  >
+                    Send igen eller ret e-mail
+                  </button>
+                </div>
+              ) : (
+                /* Magic link-formular */
+                <>
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-10 h-10 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-900">Log ind for at redigere</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Vi sender dig et link — du er inde på sekunder</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Din e-mail</label>
+                      <input
+                        type="email"
+                        value={magicLinkEmail}
+                        onChange={e => setMagicLinkEmail(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && sendMagicLink()}
+                        placeholder="din@email.dk"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 bg-gray-50"
+                      />
+                      {kontrakt.haandvaerker_email && magicLinkEmail.toLowerCase() !== kontrakt.haandvaerker_email.toLowerCase() && magicLinkEmail.length > 3 && (
+                        <p className="text-xs text-amber-600 font-medium mt-1.5 px-1">
+                          Linket er sendt til {kontrakt.haandvaerker_email} — brug den email for at få adgang til denne sag.
+                        </p>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={sendMagicLink}
+                      disabled={senderMagicLink || !magicLinkEmail.trim()}
+                      className="w-full py-3.5 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 disabled:opacity-40 transition-all flex items-center justify-center gap-2"
+                    >
+                      {senderMagicLink ? (
+                        <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>Sender...</>
+                      ) : (
+                        <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Send mig et login-link</>
+                      )}
+                    </button>
+
+                    {magicLinkFejl && (
+                      <p className="text-xs text-red-600 font-medium px-1">{magicLinkFejl}</p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3 my-4">
+                    <div className="flex-1 h-px bg-gray-100" />
+                    <span className="text-xs text-gray-400 font-medium">eller</span>
+                    <div className="flex-1 h-px bg-gray-100" />
+                  </div>
+
+                  <a
+                    href={`/login?next=${encodeURIComponent(`/kontrakt/${token}/aftale`)}`}
+                    className="block w-full py-3 border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-all text-center"
+                  >
+                    Log ind med adgangskode
+                  </a>
+                </>
+              )}
             </div>
           </div>
         )}
