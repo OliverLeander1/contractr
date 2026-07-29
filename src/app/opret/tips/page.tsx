@@ -121,7 +121,7 @@ export default function Tips() {
           Praktiske tips til {data.label.toLowerCase()}
         </h1>
         <p className="text-gray-500">
-          Disse punkter er værd at overveje og afklare med din håndværker - inden du skriver under.
+          Disse punkter er værd at overveje og afklare med din håndværker inden du skriver under.
         </p>
       </div>
 
