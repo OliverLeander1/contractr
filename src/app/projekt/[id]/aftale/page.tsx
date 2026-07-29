@@ -516,9 +516,12 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       </div>
                     ) : (
                       <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
-                        {vaerdi || (erBeggeGodkendt
-                          ? <span className="text-gray-400">Ikke udfyldt</span>
-                          : <span className="text-gray-400 italic">Ikke udfyldt. Klik Rediger for at tilføje</span>
+                        {vaerdi || (
+                          <span className="text-gray-400 italic">
+                            {felt === "total_pris" || felt === "startdato" || felt === "slutdato"
+                              ? "Udfyldes af entreprenøren"
+                              : erBeggeGodkendt ? "Ikke udfyldt" : "Ikke udfyldt"}
+                          </span>
                         )}
                       </p>
                     )}
@@ -1042,21 +1045,6 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 </div>
               </div>
             )}
-
-            {/* Invitationslink */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-              <h3 className="font-semibold text-gray-900 text-sm mb-1">Håndværkerlink</h3>
-              <p className="text-xs text-gray-400 mb-3 leading-relaxed">Send dette link direkte til håndværkeren. Ingen login krævet for at se og foreslå ændringer.</p>
-              <div className="flex gap-2">
-                <input readOnly value={invitationslink} className="flex-1 text-xs border border-gray-100 rounded-lg px-3 py-2 bg-gray-50 text-gray-500 truncate" />
-                <button
-                  onClick={kopierLink}
-                  className="flex-shrink-0 text-xs font-semibold text-[#1e3a2a] border border-[#1e3a2a]/20 bg-[#1e3a2a]/5 hover:bg-[#1e3a2a]/10 px-3 py-2 rounded-lg transition-colors"
-                >
-                  {kopieret ? "✓" : "Kopiér"}
-                </button>
-              </div>
-            </div>
 
             {/* AB-Forbruger */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">

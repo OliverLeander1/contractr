@@ -27,6 +27,29 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Eksisterende kontrakt mangler dato — hent fra projekt og opdater
+  if (data && (!data.startdato || !data.slutdato)) {
+    const { data: projekt } = await db
+      .from("projekter")
+      .select("startdato, slutdato")
+      .eq("id", projekt_id)
+      .single();
+    if (projekt?.startdato || projekt?.slutdato) {
+      const patch: Record<string, unknown> = {};
+      if (!data.startdato && projekt?.startdato) patch.startdato = projekt.startdato;
+      if (!data.slutdato && projekt?.slutdato) patch.slutdato = projekt.slutdato;
+      if (Object.keys(patch).length > 0) {
+        const { data: opdateret } = await db
+          .from("kontrakter")
+          .update(patch)
+          .eq("id", data.id)
+          .select("*, kontraktaendringer(*)")
+          .single();
+        if (opdateret) return NextResponse.json(opdateret);
+      }
+    }
+  }
+
   if (!data) {
     // Hent projektdata for at præ-udfylde kontrakten
     const { data: projekt } = await db
