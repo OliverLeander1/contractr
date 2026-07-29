@@ -24,6 +24,17 @@ export default function UdbudResultat() {
   const [opretter, setOpretter] = useState(false);
   const [redigerer, setRedigerer] = useState(false);
 
+  // Splitter dokumentet i fast header og redigerbar body
+  const splitDokument = (t: string) => {
+    const linjer = t.split("\n");
+    const bodyStart = linjer.findIndex(l => /^\d+\.\s+[A-ZÆØÅ]/.test(l.trim()) && l.trim().length > 3);
+    if (bodyStart === -1) return { header: "", body: t };
+    return { header: linjer.slice(0, bodyStart).join("\n"), body: linjer.slice(bodyStart).join("\n") };
+  };
+
+  const { header: dokumentHeader, body: redigerbarBody } = splitDokument(tekst);
+  const [bodyTekst, setBodyTekst] = useState("");
+
   // Invite-step state
   const [visInvite, setVisInvite] = useState(false);
   const [haandvaerkerNavn, setHaandvaerkerNavn] = useState("");
@@ -36,6 +47,9 @@ export default function UdbudResultat() {
         const parsed = JSON.parse(raw);
         setData(parsed);
         setTekst(parsed.dokument);
+        const linjer = (parsed.dokument as string).split("\n");
+        const bodyStart = linjer.findIndex((l: string) => /^\d+\.\s+[A-ZÆØÅ]/.test(l.trim()) && l.trim().length > 3);
+        setBodyTekst(bodyStart === -1 ? parsed.dokument : linjer.slice(bodyStart).join("\n"));
         track("document_generated", { titel: parsed.titel });
       } catch { /* ignore */ }
     }
@@ -136,10 +150,16 @@ export default function UdbudResultat() {
       <div className="mb-6">
         {redigerer ? (
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <p className="text-xs text-gray-400 mb-4 pb-3 border-b border-gray-100">
+              Overskrift og bygherre-oplysninger i toppen redigeres ikke her. Rediger selve indholdet nedenfor.
+            </p>
             <textarea
-              value={tekst}
-              onChange={(e) => setTekst(e.target.value)}
-              rows={Math.max(30, tekst.split("\n").length + 2)}
+              value={bodyTekst}
+              onChange={(e) => {
+                setBodyTekst(e.target.value);
+                setTekst(dokumentHeader ? dokumentHeader + "\n" + e.target.value : e.target.value);
+              }}
+              rows={Math.max(30, bodyTekst.split("\n").length + 2)}
               className="w-full text-sm text-gray-700 leading-relaxed resize-none focus:outline-none border-0 bg-transparent font-mono"
               autoFocus
             />

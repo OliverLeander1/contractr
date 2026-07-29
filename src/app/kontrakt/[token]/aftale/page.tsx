@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import DokumentRenderer from "@/components/DokumentRenderer";
 
 interface TidsplanFase {
   navn: string;
@@ -204,61 +205,38 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
           </div>
         )}
 
-        {/* Aftalegrundlag */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mb-5">
-          <div className="flex items-start justify-between mb-6">
-            <div>
+        {/* Aftalegrundlag — samme dokumentlayout som ved oprettelse */}
+        <div className="mb-5">
+          {kontrakt.beskrivelse ? (
+            <DokumentRenderer
+              tekst={kontrakt.beskrivelse}
+              titel={kontrakt.titel || undefined}
+              bygherreNavn={undefined}
+            />
+          ) : (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
               <p className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest mb-1">Aftalegrundlag</p>
-              <h1 className="text-2xl font-bold text-gray-900">{kontrakt.titel ?? "Byggeprojekt"}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-6">{kontrakt.titel ?? "Byggeprojekt"}</h1>
+              {kontrakt.total_pris && (
+                <div className="flex justify-between items-center py-2.5 border-b border-gray-50">
+                  <p className="text-sm text-gray-500">Entreprisesum</p>
+                  <p className="text-sm font-bold text-gray-900">{fmtKr(kontrakt.total_pris)} inkl. moms</p>
+                </div>
+              )}
+              {kontrakt.startdato && (
+                <div className="flex justify-between items-center py-2.5 border-b border-gray-50">
+                  <p className="text-sm text-gray-500">Opstart</p>
+                  <p className="text-sm font-semibold text-gray-800">{fmtDato(kontrakt.startdato)}</p>
+                </div>
+              )}
+              {kontrakt.slutdato && (
+                <div className="flex justify-between items-center py-2.5">
+                  <p className="text-sm text-gray-500">Aflevering</p>
+                  <p className="text-sm font-semibold text-gray-800">{fmtDato(kontrakt.slutdato)}</p>
+                </div>
+              )}
             </div>
-            {kontrakt.total_pris && (
-              <div className="text-right">
-                <p className="text-xs text-gray-400 mb-0.5">Entreprisesum</p>
-                <p className="text-xl font-bold text-gray-900">{fmtKr(kontrakt.total_pris)}</p>
-                <p className="text-xs text-gray-400">inkl. moms</p>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-5">
-            {kontrakt.beskrivelse && (
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Arbejdets omfang</p>
-                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{kontrakt.beskrivelse}</p>
-              </div>
-            )}
-
-            {(kontrakt.startdato || kontrakt.slutdato) && (
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-50">
-                {kontrakt.startdato && (
-                  <div>
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Opstart</p>
-                    <p className="text-sm font-semibold text-gray-800">{fmtDato(kontrakt.startdato)}</p>
-                  </div>
-                )}
-                {kontrakt.slutdato && (
-                  <div>
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Aflevering</p>
-                    <p className="text-sm font-semibold text-gray-800">{fmtDato(kontrakt.slutdato)}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {kontrakt.betalingsplan && (
-              <div className="pt-4 border-t border-gray-50">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Betalingsplan</p>
-                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{kontrakt.betalingsplan}</p>
-              </div>
-            )}
-
-            {kontrakt.vilkaar && (
-              <div className="pt-4 border-t border-gray-50">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Vilkår</p>
-                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{kontrakt.vilkaar}</p>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
         {/* ─── TIDSPLAN ─── */}

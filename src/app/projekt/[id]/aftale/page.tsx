@@ -3,6 +3,7 @@
 import { use, useEffect, useState, useCallback } from "react";
 import ProjektNav from "@/components/ProjektNav";
 import { createClient } from "@/lib/supabase";
+import DokumentRenderer from "@/components/DokumentRenderer";
 
 interface Aendring {
   id: string;
@@ -423,7 +424,8 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
           {/* Kontraktindhold */}
           <div className="lg:col-span-2 space-y-4">
 
-            {(["titel", "beskrivelse", "total_pris", "startdato", "slutdato", "vilkaar"] as const).map((felt) => {
+            {/* Projekttitel */}
+            {(["titel", "total_pris", "startdato", "slutdato", "vilkaar"] as const).map((felt) => {
               const vaerdi = felt === "total_pris"
                 ? (kontrakt.total_pris ? fmtKr(kontrakt.total_pris) : null)
                 : (felt === "startdato" || felt === "slutdato")
@@ -465,26 +467,14 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                     {erAktiv ? (
                       <div>
                         {felt === "total_pris" ? (
-                          <input
-                            type="number"
-                            value={feltVaerdi}
-                            onChange={e => setFeltVaerdi(e.target.value)}
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
-                          />
+                          <input type="number" value={feltVaerdi} onChange={e => setFeltVaerdi(e.target.value)}
+                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
                         ) : (felt === "startdato" || felt === "slutdato") ? (
-                          <input
-                            type="date"
-                            value={feltVaerdi}
-                            onChange={e => setFeltVaerdi(e.target.value)}
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
-                          />
+                          <input type="date" value={feltVaerdi} onChange={e => setFeltVaerdi(e.target.value)}
+                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
                         ) : (
-                          <textarea
-                            rows={felt === "beskrivelse" ? 5 : 3}
-                            value={feltVaerdi}
-                            onChange={e => setFeltVaerdi(e.target.value)}
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none"
-                          />
+                          <textarea rows={3} value={feltVaerdi} onChange={e => setFeltVaerdi(e.target.value)}
+                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none" />
                         )}
                         <div className="flex gap-2 mt-2">
                           <button onClick={() => setRedigererFelt(null)} className="flex-1 py-2 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50">Annuller</button>
@@ -495,16 +485,13 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       </div>
                     ) : (
                       <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
-                        {vaerdi || (
-                          erBeggeGodkendt
-                            ? <span className="text-gray-400">Ikke udfyldt</span>
-                            : <span className="text-gray-400 italic">Ikke udfyldt. Klik Rediger for at tilføje</span>
+                        {vaerdi || (erBeggeGodkendt
+                          ? <span className="text-gray-400">Ikke udfyldt</span>
+                          : <span className="text-gray-400 italic">Ikke udfyldt. Klik Rediger for at tilføje</span>
                         )}
                       </p>
                     )}
                   </div>
-
-                  {/* Forslag fra håndværker */}
                   {afventendeFeltForslag.map(a => (
                     <div key={a.id} className="border-t border-amber-100 bg-amber-50 px-5 py-4">
                       <div className="flex items-center gap-2 mb-2">
@@ -525,43 +512,119 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                           <p className="text-sm text-green-800 font-medium leading-relaxed">{a.ny_vaerdi}</p>
                         </div>
                       </div>
-                      {a.kommentar && (
-                        <p className="text-xs text-amber-700 italic mb-3">&ldquo;{a.kommentar}&rdquo;</p>
-                      )}
+                      {a.kommentar && <p className="text-xs text-amber-700 italic mb-3">&ldquo;{a.kommentar}&rdquo;</p>}
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => besvarForslag(a.id, "accepteret")}
-                          className="flex-1 py-2 text-xs font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
-                        >
-                          Acceptér ændring
-                        </button>
-                        <button
-                          onClick={() => besvarForslag(a.id, "afvist")}
-                          className="flex-1 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                        >
-                          Afvis
-                        </button>
+                        <button onClick={() => besvarForslag(a.id, "accepteret")} className="flex-1 py-2 text-xs font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors">Acceptér ændring</button>
+                        <button onClick={() => besvarForslag(a.id, "afvist")} className="flex-1 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">Afvis</button>
                       </div>
                     </div>
                   ))}
-
-                  {/* Historik */}
                   {kontrakt.kontraktaendringer.filter(a => a.felt === felt && a.status !== "afventer").map(a => (
                     <div key={a.id} className="border-t border-gray-100 px-5 py-2.5 flex items-center gap-2 bg-gray-50">
                       <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${a.status === "accepteret" ? "bg-green-100" : "bg-red-100"}`}>
                         {a.status === "accepteret"
                           ? <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                          : <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        }
+                          : <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
                       </div>
-                      <p className="text-xs text-gray-400">
-                        Forslag fra {a.forfatter_navn || a.forfatter} {a.status === "accepteret" ? "accepteret" : "afvist"}
-                      </p>
+                      <p className="text-xs text-gray-400">Forslag fra {a.forfatter_navn || a.forfatter} {a.status === "accepteret" ? "accepteret" : "afvist"}</p>
                     </div>
                   ))}
                 </div>
               );
             })}
+
+            {/* Arbejdets omfang — vises som professionelt dokument */}
+            {(() => {
+              const beskrivelse = kontrakt.beskrivelse;
+              const erAktiv = redigererFelt === "beskrivelse";
+              const afventende = kontrakt.kontraktaendringer.filter(a => a.felt === "beskrivelse" && a.status === "afventer");
+
+              // Splitter i header og body til redigering
+              const linjer = (beskrivelse || "").split("\n");
+              const bodyStart = linjer.findIndex(l => /^\d+\.\s+[A-ZÆØÅ]/.test(l.trim()) && l.trim().length > 3);
+              const beskrivelseBody = bodyStart === -1 ? (beskrivelse || "") : linjer.slice(bodyStart).join("\n");
+              const beskrivelseHeader = bodyStart === -1 ? "" : linjer.slice(0, bodyStart).join("\n");
+
+              return (
+                <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${afventende.length > 0 ? "border-amber-200" : "border-gray-100"}`}>
+                  <div className="px-5 py-4">
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Arbejdets omfang</p>
+                      {!erBeggeGodkendt && !erAktiv && (
+                        <button
+                          onClick={() => { setRedigererFelt("beskrivelse"); setFeltVaerdi(beskrivelseBody); }}
+                          className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors"
+                        >
+                          Rediger
+                        </button>
+                      )}
+                    </div>
+
+                    {erAktiv ? (
+                      <div>
+                        <p className="text-xs text-gray-400 mb-3 pb-3 border-b border-gray-100">
+                          Du redigerer indholdet fra og med afsnit 1. Overskrift og bygherre-oplysninger opdateres ikke her.
+                        </p>
+                        <textarea
+                          rows={Math.max(20, beskrivelseBody.split("\n").length + 2)}
+                          value={feltVaerdi}
+                          onChange={e => setFeltVaerdi(e.target.value)}
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono text-gray-700 leading-relaxed focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none"
+                          autoFocus
+                        />
+                        <div className="flex gap-2 mt-2">
+                          <button onClick={() => setRedigererFelt(null)} className="flex-1 py-2 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50">Annuller</button>
+                          <button
+                            onClick={async () => {
+                              const nyBeskrivelse = beskrivelseHeader ? beskrivelseHeader + "\n" + feltVaerdi : feltVaerdi;
+                              setGemmer(true);
+                              try {
+                                const r = await fetch("/api/kontrakt", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ kontrakt_id: kontrakt.id, beskrivelse: nyBeskrivelse }),
+                                });
+                                const data = await r.json();
+                                if (!data.error) setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, ...data } : prev);
+                              } finally {
+                                setGemmer(false);
+                                setRedigererFelt(null);
+                              }
+                            }}
+                            disabled={gemmer}
+                            className="flex-1 py-2 bg-[#1e3a2a] text-white text-xs font-bold rounded-lg hover:opacity-90 disabled:bg-gray-200 disabled:text-gray-400"
+                          >
+                            {gemmer ? "Gemmer..." : "Gem"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : beskrivelse ? (
+                      <DokumentRenderer
+                        tekst={beskrivelse}
+                        titel={kontrakt.titel || undefined}
+                        bygherreNavn={brugerNavn}
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-400 italic">Ikke udfyldt. Klik Rediger for at tilføje indhold.</p>
+                    )}
+                  </div>
+
+                  {afventende.map(a => (
+                    <div key={a.id} className="border-t border-amber-100 bg-amber-50 px-5 py-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">
+                          {a.forfatter_navn || "Håndværker"} foreslår ændring
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => besvarForslag(a.id, "accepteret")} className="flex-1 py-2 text-xs font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors">Acceptér ændring</button>
+                        <button onClick={() => besvarForslag(a.id, "afvist")} className="flex-1 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">Afvis</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Betalingsplan */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
