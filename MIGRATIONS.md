@@ -47,6 +47,12 @@ ALTER TABLE profiler
   ADD COLUMN IF NOT EXISTS email_notifikationer boolean DEFAULT true;
 ```
 
+```sql
+-- Tidspunkt for besigtigelse (fx "09:00")
+ALTER TABLE kontrakter
+  ADD COLUMN IF NOT EXISTS besigtigelse_tid text;
+```
+
 ---
 
 ## Ikke kørt endnu

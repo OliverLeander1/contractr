@@ -37,6 +37,7 @@ interface Kontrakt {
   tilbud_dokument_url: string | null;
   tilbud_dokument_navn: string | null;
   besigtigelse_dato: string | null;
+  besigtigelse_tid: string | null;
   besigtigelse_bekraeftet: boolean | null;
   forudsaetninger: string | null;
   forudsaetninger_sendt_at: string | null;
@@ -67,6 +68,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
 
   // Besigtigelse
   const [besigtigelseDato, setBesigtigelseDato] = useState("");
+  const [besigtigelseTid, setBesigtigelseTid] = useState("");
   const [gemmerBesigtigelse, setGemmerBesigtigelse] = useState(false);
 
   // Forudsætninger
@@ -107,6 +109,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
       if (data.haandvaerker_godkendt_at) setGodkendt(true);
       if (data.tidsplan) setTidsplanGemt(true);
       if (data.besigtigelse_dato) setBesigtigelseDato(data.besigtigelse_dato);
+      if (data.besigtigelse_tid) setBesigtigelseTid(data.besigtigelse_tid);
       if (data.forudsaetninger) setForudsaetningerTekst(data.forudsaetninger);
       if (data.forudsaetninger_godkendt || !data.forudsaetninger) setSpringetOver(false);
       setIndlæser(false);
@@ -171,14 +174,14 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
     setGemmerForudsaetninger(false);
   }
 
-  async function gemBesigtigelse(bekraeftet: boolean, dato: string) {
+  async function gemBesigtigelse(bekraeftet: boolean, dato: string, tid: string) {
     setGemmerBesigtigelse(true);
     await fetch(`/api/kontrakt/${token}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ besigtigelse_bekraeftet: bekraeftet, besigtigelse_dato: dato || null }),
+      body: JSON.stringify({ besigtigelse_bekraeftet: bekraeftet, besigtigelse_dato: dato || null, besigtigelse_tid: tid || null }),
     });
-    setKontrakt(prev => prev ? { ...prev, besigtigelse_bekraeftet: bekraeftet, besigtigelse_dato: dato || null } : prev);
+    setKontrakt(prev => prev ? { ...prev, besigtigelse_bekraeftet: bekraeftet, besigtigelse_dato: dato || null, besigtigelse_tid: tid || null } : prev);
     setGemmerBesigtigelse(false);
   }
 
@@ -248,25 +251,25 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   return (
     <div className="min-h-screen bg-[#f5f3ee]">
       {/* Nav */}
-      <nav className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#1e3a2a] rounded-lg flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+      <nav className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-50">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#1e3a2a] rounded-lg flex items-center justify-center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                 <polyline points="9 22 9 12 15 12 15 22"/>
               </svg>
             </div>
-            <span style={{ fontFamily: "var(--font-logo)", fontWeight: 200, letterSpacing: "2px" }} className="text-gray-900">contractr</span>
+            <span style={{ fontFamily: "var(--font-logo)", fontWeight: 200, letterSpacing: "2px" }} className="text-sm sm:text-base text-gray-900">nembyggestyring</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <Link href="/haandvaerker/sager" className="text-sm text-gray-500 hover:text-[#1e3a2a] transition-colors">← Mine sager</Link>
-            <span className="text-xs bg-[#1e3a2a]/10 text-[#1e3a2a] font-semibold px-3 py-1 rounded-full">Aftalegrundlag til gennemsyn</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <Link href="/haandvaerker/sager" className="hidden sm:block text-sm text-gray-500 hover:text-[#1e3a2a] transition-colors flex-shrink-0">← Mine sager</Link>
+            <span className="text-xs bg-[#1e3a2a]/10 text-[#1e3a2a] font-semibold px-2.5 sm:px-3 py-1 rounded-full truncate">Aftalegrundlag</span>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-3xl mx-auto px-6 py-10">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
 
         {/* Status-banner */}
         {beggeGodkendt ? (
@@ -339,46 +342,90 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
 
         {/* Besigtigelse */}
         {!godkendt && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
-            <div className="flex items-center gap-3 mb-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 mb-5">
+            <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
               </div>
               <div>
                 <p className="text-sm font-bold text-gray-900">Besigtigelse</p>
-                <p className="text-xs text-gray-400">Aftal et tidspunkt at se opgaven inden du giver pris</p>
+                <p className="text-xs text-gray-400">Aftal dato og tidspunkt inden du giver pris</p>
               </div>
             </div>
 
             {kontrakt.besigtigelse_bekraeftet ? (
-              <div className="flex items-center justify-between bg-green-50 border border-green-100 rounded-xl px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  <p className="text-sm font-semibold text-green-800">
-                    Besigtigelse {kontrakt.besigtigelse_dato ? `aftalt ${new Date(kontrakt.besigtigelse_dato).toLocaleDateString("da-DK", { day: "numeric", month: "long" })}` : "bekraeftet"}
-                  </p>
+              <div className="bg-green-50 border border-green-100 rounded-xl p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-green-800">Besigtigelse aftalt</p>
+                      {(kontrakt.besigtigelse_dato || kontrakt.besigtigelse_tid) && (
+                        <p className="text-xs text-green-700 mt-0.5">
+                          {kontrakt.besigtigelse_dato && new Date(kontrakt.besigtigelse_dato).toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" })}
+                          {kontrakt.besigtigelse_tid && <span className="ml-2 font-semibold">kl. {kontrakt.besigtigelse_tid}</span>}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <button onClick={() => gemBesigtigelse(false, "", "")} className="text-xs text-gray-400 hover:text-gray-600 flex-shrink-0">Fortryd</button>
                 </div>
-                <button onClick={() => gemBesigtigelse(false, "")} className="text-xs text-gray-400 hover:text-gray-700">Fortryd</button>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
+                {/* Dato-felt */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Dato for besigtigelse (valgfrit)</label>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Dato</label>
                   <input
                     type="date"
                     value={besigtigelseDato}
                     onChange={e => setBesigtigelseDato(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base font-semibold text-gray-800 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 bg-gray-50"
                   />
+                  {besigtigelseDato && (
+                    <p className="text-xs text-[#1e3a2a] font-semibold mt-1.5 px-1">
+                      {new Date(besigtigelseDato).toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+                    </p>
+                  )}
                 </div>
+
+                {/* Tidsvalg */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Tidspunkt (valgfrit)</label>
+                  <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5">
+                    {["07:00","08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00"].map(tid => (
+                      <button
+                        key={tid}
+                        onClick={() => setBesigtigelseTid(prev => prev === tid ? "" : tid)}
+                        className={`py-2 rounded-lg text-xs font-bold transition-all ${
+                          besigtigelseTid === tid
+                            ? "bg-[#1e3a2a] text-white shadow-sm"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
+                      >
+                        {tid}
+                      </button>
+                    ))}
+                  </div>
+                  {besigtigelseTid && (
+                    <p className="text-xs text-[#1e3a2a] font-semibold mt-2 px-1">Valgt tidspunkt: kl. {besigtigelseTid}</p>
+                  )}
+                </div>
+
                 <button
-                  onClick={() => gemBesigtigelse(true, besigtigelseDato)}
-                  disabled={gemmerBesigtigelse}
-                  className="w-full py-2.5 border border-[#1e3a2a]/30 text-[#1e3a2a] text-sm font-semibold rounded-xl hover:bg-[#1e3a2a]/5 transition-colors disabled:opacity-40"
+                  onClick={() => gemBesigtigelse(true, besigtigelseDato, besigtigelseTid)}
+                  disabled={gemmerBesigtigelse || !besigtigelseDato}
+                  className="w-full py-3 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
                 >
-                  {gemmerBesigtigelse ? "Gemmer..." : "Marker besigtigelse som aftalt"}
+                  {gemmerBesigtigelse ? (
+                    <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>Gemmer...</>
+                  ) : (
+                    <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Bekræft besigtigelse</>
+                  )}
                 </button>
               </div>
             )}
@@ -740,62 +787,65 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                 ) : (
                   <div className="space-y-3 mb-4">
                     {faser.map((fase, i) => (
-                      <div key={i} className="flex gap-3 items-start">
-                        {/* Nummer */}
-                        <div className="w-7 h-7 rounded-full bg-[#1e3a2a] text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-1">
-                          {i + 1}
+                      <div key={i} className="bg-gray-50 rounded-xl p-4 space-y-3">
+                        {/* Header: nummer + slet */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Fase {i + 1}</span>
+                          {faser.length > 1 && (
+                            <button
+                              onClick={() => setFaser(prev => prev.filter((_, j) => j !== i))}
+                              className="text-xs text-gray-400 hover:text-red-500 transition-colors font-medium"
+                            >
+                              Fjern
+                            </button>
+                          )}
                         </div>
-                        <div className="flex-1 bg-gray-50 rounded-xl p-3 space-y-2">
-                          <input
-                            placeholder="Fasenavn (fx Nedrivning, Grovinstallation, Overfladebehandling)"
-                            value={fase.navn}
-                            onChange={e => {
-                              const ny = [...faser];
-                              ny[i] = { ...ny[i], navn: e.target.value };
-                              setFaser(ny);
-                            }}
-                            className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
-                          />
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide block mb-1">Start</label>
-                              <input
-                                type="date"
-                                value={fase.startdato}
-                                min={kontrakt.startdato ?? undefined}
-                                max={kontrakt.slutdato ?? undefined}
-                                onChange={e => {
-                                  const ny = [...faser];
-                                  ny[i] = { ...ny[i], startdato: e.target.value };
-                                  setFaser(ny);
-                                }}
-                                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide block mb-1">Slut</label>
-                              <input
-                                type="date"
-                                value={fase.slutdato}
-                                min={fase.startdato || (kontrakt.startdato ?? undefined)}
-                                max={kontrakt.slutdato ?? undefined}
-                                onChange={e => {
-                                  const ny = [...faser];
-                                  ny[i] = { ...ny[i], slutdato: e.target.value };
-                                  setFaser(ny);
-                                }}
-                                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
-                              />
-                            </div>
+                        <input
+                          placeholder="Fasenavn — fx Nedrivning, Installationer, Overflader"
+                          value={fase.navn}
+                          onChange={e => {
+                            const ny = [...faser];
+                            ny[i] = { ...ny[i], navn: e.target.value };
+                            setFaser(ny);
+                          }}
+                          className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
+                        />
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Startdato</label>
+                            <input
+                              type="date"
+                              value={fase.startdato}
+                              min={kontrakt.startdato ?? undefined}
+                              max={kontrakt.slutdato ?? undefined}
+                              onChange={e => {
+                                const ny = [...faser];
+                                ny[i] = { ...ny[i], startdato: e.target.value };
+                                setFaser(ny);
+                              }}
+                              className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Slutdato</label>
+                            <input
+                              type="date"
+                              value={fase.slutdato}
+                              min={fase.startdato || (kontrakt.startdato ?? undefined)}
+                              max={kontrakt.slutdato ?? undefined}
+                              onChange={e => {
+                                const ny = [...faser];
+                                ny[i] = { ...ny[i], slutdato: e.target.value };
+                                setFaser(ny);
+                              }}
+                              className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
+                            />
                           </div>
                         </div>
-                        {faser.length > 1 && (
-                          <button
-                            onClick={() => setFaser(prev => prev.filter((_, j) => j !== i))}
-                            className="text-gray-300 hover:text-red-400 transition-colors mt-2 flex-shrink-0"
-                          >
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                          </button>
+                        {fase.startdato && fase.slutdato && (
+                          <p className="text-xs text-gray-400">
+                            {new Date(fase.startdato).toLocaleDateString("da-DK", { day: "numeric", month: "short" })} → {new Date(fase.slutdato).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
+                          </p>
                         )}
                       </div>
                     ))}

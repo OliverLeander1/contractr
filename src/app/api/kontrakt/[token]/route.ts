@@ -27,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ to
   const body = await req.json();
   const db = createServiceClient();
 
-  const tilladte = ["total_pris", "besigtigelse_dato", "besigtigelse_bekraeftet", "forudsaetninger", "forudsaetninger_sendt_at", "forudsaetninger_godkendt"];
+  const tilladte = ["total_pris", "besigtigelse_dato", "besigtigelse_tid", "besigtigelse_bekraeftet", "forudsaetninger", "forudsaetninger_sendt_at", "forudsaetninger_godkendt"];
   const opdatering: Record<string, unknown> = { opdateret_at: new Date().toISOString() };
 
   for (const felt of tilladte) {
