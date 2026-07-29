@@ -53,6 +53,34 @@ ALTER TABLE kontrakter
   ADD COLUMN IF NOT EXISTS besigtigelse_tid text;
 ```
 
+```sql
+-- Håndværker-profilfelter
+ALTER TABLE profiler
+  ADD COLUMN IF NOT EXISTS navn text,
+  ADD COLUMN IF NOT EXISTS virksomhed text,
+  ADD COLUMN IF NOT EXISTS cvr text,
+  ADD COLUMN IF NOT EXISTS telefon text,
+  ADD COLUMN IF NOT EXISTS fag text,
+  ADD COLUMN IF NOT EXISTS postnummer text,
+  ADD COLUMN IF NOT EXISTS by text,
+  ADD COLUMN IF NOT EXISTS tilgaengelig boolean DEFAULT true,
+  ADD COLUMN IF NOT EXISTS standby boolean DEFAULT false;
+```
+
+```sql
+-- Logbog til projektdokumentation
+CREATE TABLE IF NOT EXISTS logbog (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  projekt_id uuid NOT NULL REFERENCES projekter(id) ON DELETE CASCADE,
+  forfatter_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  forfatter_navn text NOT NULL,
+  tekst text NOT NULL,
+  billede_url text,
+  oprettet_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS logbog_projekt_idx ON logbog(projekt_id);
+```
+
 ---
 
 ## Ikke kørt endnu

@@ -5,6 +5,7 @@ import Link from "next/link";
 import ProjektNav from "@/components/ProjektNav";
 import Chat from "@/components/Chat";
 import BesigtigelseKort from "@/components/BesigtigelseKort";
+import DeadlineTæller from "@/components/DeadlineTæller";
 import { createClient } from "@/lib/supabase";
 
 interface Kontrakt {
@@ -214,10 +215,18 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
               </div>
             </div>
 
+            {/* Deadline-tæller */}
+            {kontrakt.slutdato && (
+              <div className="mb-5">
+                <DeadlineTæller startdato={kontrakt.startdato} slutdato={kontrakt.slutdato} />
+              </div>
+            )}
+
             {/* Hurtige handlinger */}
-            <div className="grid grid-cols-3 gap-3 mb-5">
+            <div className="grid grid-cols-4 gap-3 mb-5">
               {[
-                { href: `/projekt/${id}/ekstraarbejde`, ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>, label: "Ny aftaleseddel" },
+                { href: `/projekt/${id}/logbog`,        ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>, label: "Logbog" },
+                { href: `/projekt/${id}/ekstraarbejde`, ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>, label: "Aftaleseddel" },
                 { href: `/projekt/${id}/chat`,          ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>, label: "Send besked" },
                 { href: `/projekt/${id}/mangler`,       ikon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c38" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>, label: "Registrér mangel" },
               ].map((a, i) => (

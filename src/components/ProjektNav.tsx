@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase";
 const navLinks = [
   { label: "Oversigt",     href: "" },
   { label: "Aftale",       href: "/aftale" },
+  { label: "Logbog",       href: "/logbog" },
   { label: "Aftalesedler", href: "/ekstraarbejde" },
   { label: "Økonomi",      href: "/betalinger" },
   { label: "Mangler",      href: "/mangler" },
