@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
+import { sendNotifikation, hentBygherreEmail } from "@/lib/notifikationer";
 
 export const runtime = "nodejs";
 
@@ -56,11 +57,35 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
     .from("kontrakter")
     .update(opdatering)
     .eq("haandvaerker_token", token)
-    .select()
+    .select("*, projekter(adresse, projekttype)")
     .single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Send notifikation asynkront efter response
+  const projekttitel = data.titel || (data as Record<string, unknown> & { projekter?: { adresse?: string } })?.projekter?.adresse || "dit projekt";
+  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
+
+  if (forfatter === "haandvaerker" && data.bygherre_id) {
+    const { email, notifikationer } = await hentBygherreEmail(data.bygherre_id, db);
+    if (email) {
+      const type = opdatering.status === "begge_godkendt" ? "begge_godkendt_kontrakt" : "haandvaerker_godkendt_kontrakt";
+      sendNotifikation(type, email, {
+        projekttitel,
+        afsenderNavn: haandvaerker_navn || data.haandvaerker_navn || "Entreprenøren",
+        link: `${baseUrl}/projekt/${data.projekt_id}/aftale`,
+      }, notifikationer);
+    }
+  }
+
+  if (forfatter === "bygherre" && data.haandvaerker_email) {
+    const type = opdatering.status === "begge_godkendt" ? "begge_godkendt_kontrakt" : "bygherre_godkendt_kontrakt";
+    sendNotifikation(type, data.haandvaerker_email, {
+      projekttitel,
+      link: `${baseUrl}/kontrakt/${token}`,
+    });
   }
 
   return NextResponse.json(data);

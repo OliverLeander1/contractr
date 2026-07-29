@@ -43,6 +43,7 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
     id: string;
     haandvaerker_email: string;
     haandvaerker_navn: string | null;
+    haandvaerker_token: string | null;
     status: string;
   }
 
@@ -142,6 +143,17 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
       bygherre_godkendt_navn: brugerNavn,
       bygherre_godkendt_at: now,
     }).eq("id", sedel.id);
+
+    // Find tilknyttet kontrakt for at sende notifikation til håndværker
+    const tilknyttetKontrakt = kontrakter.find(k => k.haandvaerker_email === sedel.haandvaerker_email);
+    if (tilknyttetKontrakt?.haandvaerker_token) {
+      fetch(`/api/ekstraarbejde/${sedel.id}/godkend`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ haandvaerker_token: tilknyttetKontrakt.haandvaerker_token }),
+      }).catch(() => {});
+    }
+
     setGodkendSedel(null);
     setGodkender(null);
     hentData();

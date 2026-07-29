@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
+import { sendNotifikation, hentBygherreEmail } from "@/lib/notifikationer";
 
 export const runtime = "nodejs";
 
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
   // Find kontrakt via token
   const { data: kontrakt, error: hentFejl } = await db
     .from("kontrakter")
-    .select("id, titel, beskrivelse, total_pris, betalingsplan, vilkaar, status")
+    .select("id, titel, beskrivelse, total_pris, betalingsplan, vilkaar, status, bygherre_id, haandvaerker_email, haandvaerker_navn, projekt_id")
     .eq("haandvaerker_token", token)
     .single();
 
@@ -57,6 +58,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
       .eq("haandvaerker_token", token);
   }
 
+  // Notificer bygherre om ændringsforslag fra håndværker
+  if (forfatter === "haandvaerker" && kontrakt.bygherre_id) {
+    const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
+    const { email, notifikationer } = await hentBygherreEmail(kontrakt.bygherre_id, db);
+    if (email) {
+      sendNotifikation("haandvaerker_forslag_aendring", email, {
+        projekttitel: kontrakt.titel || "dit projekt",
+        afsenderNavn: forfatter_navn || kontrakt.haandvaerker_navn || "Entreprenøren",
+        link: `${baseUrl}/projekt/${kontrakt.projekt_id}/aftale`,
+      }, notifikationer);
+    }
+  }
+
   return NextResponse.json(aendring);
 }
 
@@ -75,7 +89,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ to
   // Verificer at token tilhører den rigtige kontrakt
   const { data: kontrakt } = await db
     .from("kontrakter")
-    .select("id, titel, beskrivelse, total_pris, betalingsplan, vilkaar")
+    .select("id, titel, beskrivelse, total_pris, betalingsplan, vilkaar, haandvaerker_email, haandvaerker_navn")
     .eq("haandvaerker_token", token)
     .single();
 
@@ -107,6 +121,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ to
         haandvaerker_godkendt_at: null,
       })
       .eq("id", kontrakt.id);
+  }
+
+  // Notificer håndværker om bygherrens svar
+  if (kontrakt.haandvaerker_email) {
+    const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
+    const type = status === "accepteret" ? "bygherre_accepteret_forslag" : "bygherre_afvist_forslag";
+    sendNotifikation(type, kontrakt.haandvaerker_email, {
+      projekttitel: kontrakt.titel || "projektet",
+      link: `${baseUrl}/kontrakt/${token}`,
+    });
   }
 
   return NextResponse.json(aendring);

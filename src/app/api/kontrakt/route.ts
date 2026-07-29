@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
+import { sendNotifikation } from "@/lib/notifikationer";
 
 export const runtime = "nodejs";
 
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
   // Bygherre godkender tidsplan — opdater kun tidsplan.godkendt_af_bygherre, nulstil IKKE underskrifter
   if (godkend_tidsplan === true) {
     const { data: eksisterende } = await db
-      .from("kontrakter").select("tidsplan").eq("id", kontrakt_id).single();
+      .from("kontrakter").select("tidsplan, titel, haandvaerker_email, haandvaerker_token").eq("id", kontrakt_id).single();
     const nuværendeTidsplan = eksisterende?.tidsplan ?? {};
     const { data, error } = await db
       .from("kontrakter")
@@ -86,6 +87,16 @@ export async function POST(req: NextRequest) {
       .eq("id", kontrakt_id)
       .select().single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // Notificer håndværker
+    if (eksisterende?.haandvaerker_email) {
+      const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
+      sendNotifikation("bygherre_godkendt_tidsplan", eksisterende.haandvaerker_email, {
+        projekttitel: eksisterende.titel || "projektet",
+        link: `${baseUrl}/kontrakt/${eksisterende.haandvaerker_token}`,
+      });
+    }
+
     return NextResponse.json(data);
   }
 

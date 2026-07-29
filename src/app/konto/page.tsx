@@ -11,6 +11,7 @@ interface Profil {
   email: string;
   telefon?: string;
   adresse?: string;
+  email_notifikationer?: boolean;
 }
 
 interface Projekt {
@@ -97,7 +98,7 @@ export default function MinSide() {
       // Hent profil
       const { data: profilData } = await supabase
         .from("profiler")
-        .select("navn, email, telefon, adresse")
+        .select("navn, email, telefon, adresse, email_notifikationer")
         .eq("id", user.id)
         .single();
 
@@ -368,6 +369,32 @@ export default function MinSide() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h2 className="font-semibold text-gray-900 mb-4">Kontoindstillinger</h2>
           <div className="space-y-1">
+            {/* E-mail notifikationer toggle */}
+            <div className="flex items-center gap-3 p-3 rounded-xl">
+              <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </div>
+              <div className="flex-1">
+                <span className="text-sm font-medium text-gray-700">E-mail notifikationer</span>
+                <p className="text-xs text-gray-400">Modtag mail ved ændringer fra din entreprenør</p>
+              </div>
+              <button
+                onClick={async () => {
+                  const nyVaerdi = profil?.email_notifikationer === false ? true : false;
+                  const supabase = createClient();
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (!user) return;
+                  await supabase.from("profiler").update({ email_notifikationer: nyVaerdi }).eq("id", user.id);
+                  setProfil(prev => prev ? { ...prev, email_notifikationer: nyVaerdi } : null);
+                }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${profil?.email_notifikationer === false ? "bg-gray-200" : "bg-[#1e3a2a]"}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${profil?.email_notifikationer === false ? "translate-x-1" : "translate-x-6"}`} />
+              </button>
+            </div>
+
             <Link href="/notifikationer" className="w-full flex items-center gap-3 p-3 rounded-xl text-left hover:bg-gray-50 transition-colors group">
               <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center flex-shrink-0 transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2">

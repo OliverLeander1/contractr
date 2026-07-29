@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
+import { sendNotifikation, hentBygherreEmail } from "@/lib/notifikationer";
 
 // GET — hent beskeder for et projekt
 export async function GET(req: NextRequest) {
@@ -77,5 +78,50 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Notificer modparten asynkront
+  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
+  if (afsender_rolle === "haandvaerker") {
+    // Hent bygherre_id fra samtale
+    const { data: samtaleData } = await db
+      .from("chat_samtaler")
+      .select("bygherre_id, projekt_id")
+      .eq("id", samtale.id)
+      .single();
+    if (samtaleData?.bygherre_id) {
+      const { email, notifikationer } = await hentBygherreEmail(samtaleData.bygherre_id, db);
+      if (email) {
+        sendNotifikation("ny_chatbesked", email, {
+          projekttitel: "dit projekt",
+          afsenderNavn: afsender_navn || "Entreprenøren",
+          link: `${baseUrl}/projekt/${samtaleData.projekt_id}/chat`,
+        }, notifikationer);
+      }
+    }
+  } else if (afsender_rolle === "bygherre") {
+    // Hent håndværker email fra kontrakter for projektet
+    const { data: samtaleData } = await db
+      .from("chat_samtaler")
+      .select("projekt_id")
+      .eq("id", samtale.id)
+      .single();
+    if (samtaleData?.projekt_id) {
+      const { data: kontrakt } = await db
+        .from("kontrakter")
+        .select("haandvaerker_email, haandvaerker_token, titel")
+        .eq("projekt_id", samtaleData.projekt_id)
+        .order("oprettet_at", { ascending: false })
+        .limit(1)
+        .single();
+      if (kontrakt?.haandvaerker_email) {
+        sendNotifikation("ny_chatbesked", kontrakt.haandvaerker_email, {
+          projekttitel: kontrakt.titel || "projektet",
+          afsenderNavn: afsender_navn || "Bygherren",
+          link: `${baseUrl}/kontrakt/${kontrakt.haandvaerker_token}`,
+        });
+      }
+    }
+  }
+
   return NextResponse.json(data);
 }

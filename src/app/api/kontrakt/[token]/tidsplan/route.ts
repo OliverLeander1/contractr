@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
+import { sendNotifikation, hentBygherreEmail } from "@/lib/notifikationer";
 
 export const runtime = "nodejs";
 
@@ -20,7 +21,7 @@ export async function PATCH(
 
   const { data: kontrakt } = await db
     .from("kontrakter")
-    .select("id, status")
+    .select("id, status, titel, bygherre_id, haandvaerker_navn, projekt_id")
     .eq("haandvaerker_token", token)
     .single();
 
@@ -44,6 +45,19 @@ export async function PATCH(
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Notificer bygherre om indsendt tidsplan
+  if (kontrakt.bygherre_id) {
+    const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
+    const { email, notifikationer } = await hentBygherreEmail(kontrakt.bygherre_id, db);
+    if (email) {
+      sendNotifikation("haandvaerker_indsendt_tidsplan", email, {
+        projekttitel: kontrakt.titel || "dit projekt",
+        afsenderNavn: kontrakt.haandvaerker_navn || "Entreprenøren",
+        link: `${baseUrl}/projekt/${kontrakt.projekt_id}/aftale`,
+      }, notifikationer);
+    }
   }
 
   return NextResponse.json(data);
