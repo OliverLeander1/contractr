@@ -1,15 +1,10 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 
-interface Step {
-  nr: number;
-  label: string;
-}
-
-const steps: Step[] = [
+const steps = [
   { nr: 1, label: "Projektinfo" },
-  { nr: 2, label: "Tips" },
+  { nr: 2, label: "Anbefalinger" },
   { nr: 3, label: "Upload aftale" },
   { nr: 4, label: "Din rapport" },
 ];
@@ -21,41 +16,63 @@ export default function FlowLayout({
   children: React.ReactNode;
   aktivTrin: number;
 }) {
+  const aktivStep = steps.find(s => s.nr === aktivTrin);
+  const pct = Math.round(((aktivTrin - 1) / (steps.length - 1)) * 100);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-100 px-6 py-4">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
+    <div className="min-h-screen bg-[#f5f3ee]">
+      <nav className="bg-[#f5f3ee]/95 backdrop-blur border-b border-[#e0ddd6] px-6 py-4 sticky top-0 z-50">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-6">
+          <Link href="/" className="flex-shrink-0">
             <span className="logo">nembyggestyring</span>
           </Link>
 
-          <div className="flex items-center gap-2">
-            {steps.map((step, i) => (
-              <div key={step.nr} className="flex items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                    step.nr < aktivTrin ? "bg-primary text-white" :
-                    step.nr === aktivTrin ? "bg-primary text-white" :
-                    "bg-gray-100 text-gray-400"
+          {/* Progress steps — desktop */}
+          <div className="hidden sm:flex items-center gap-1 flex-1 justify-center">
+            {steps.map((step, i) => {
+              const done = step.nr < aktivTrin;
+              const active = step.nr === aktivTrin;
+              return (
+                <div key={step.nr} className="flex items-center gap-1">
+                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    active ? "bg-[#1e3a2a] text-white" :
+                    done ? "bg-[#1e3a2a]/10 text-[#1e3a2a]" :
+                    "text-gray-300"
                   }`}>
-                    {step.nr < aktivTrin ? (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
-                    ) : step.nr}
-                  </div>
-                  <span className={`text-xs font-medium hidden sm:block ${step.nr === aktivTrin ? "text-gray-900" : "text-gray-400"}`}>
+                    {done ? (
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    ) : (
+                      <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${active ? "bg-white/20" : "bg-gray-100"}`}>{step.nr}</span>
+                    )}
                     {step.label}
-                  </span>
+                  </div>
+                  {i < steps.length - 1 && (
+                    <div className={`w-5 h-px mx-0.5 ${done ? "bg-[#1e3a2a]/30" : "bg-gray-200"}`} />
+                  )}
                 </div>
-                {i < steps.length - 1 && (
-                  <div className={`w-8 h-px mx-1 ${step.nr < aktivTrin ? "bg-primary" : "bg-gray-200"}`} />
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          <div className="text-xs text-gray-400">Trin {aktivTrin} af {steps.length}</div>
+          {/* Mobil: kun trin-label */}
+          <div className="sm:hidden text-xs font-semibold text-[#1e3a2a] bg-[#1e3a2a]/10 px-3 py-1.5 rounded-full flex-shrink-0">
+            {aktivStep?.label}
+          </div>
+
+          <div className="flex-shrink-0 w-20" />
+        </div>
+
+        {/* Progress bar */}
+        <div className="max-w-3xl mx-auto mt-3">
+          <div className="h-0.5 bg-[#e0ddd6] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[#1e3a2a] rounded-full transition-all duration-500"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
         </div>
       </nav>
+
       <main className="max-w-3xl mx-auto px-6 py-12">{children}</main>
     </div>
   );

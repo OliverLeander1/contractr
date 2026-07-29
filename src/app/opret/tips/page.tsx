@@ -118,7 +118,7 @@ export default function Tips() {
           Inden du accepterer tilbuddet
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Praktiske tips til {data.label.toLowerCase()}
+          Anbefalinger til {data.label.toLowerCase()}
         </h1>
         <p className="text-gray-500">
           Disse punkter er værd at overveje og afklare med din håndværker inden du skriver under.
