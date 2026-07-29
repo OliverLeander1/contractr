@@ -40,7 +40,7 @@ export default function StatikerVurdering() {
           </div>
           <h1 className="text-3xl md:text-4xl font-bold mb-4">Kræver dit projekt en statiker?</h1>
           <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed">
-            Mange bygherrer finder ud af det for sent. Beskriv hvad du vil bygge. En byggerådgiver svarer inden for 1 hverdag. Gratis, uforpligtende, dansk.
+            Mange bygherrer finder ud af det for sent. Beskriv hvad du vil bygge. En byggerådgiver svarer inden for 1 hverdag. Gratis og uforpligtende.
           </p>
         </div>
       </div>
