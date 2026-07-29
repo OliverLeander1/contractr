@@ -468,7 +468,14 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               const erAktiv = redigererFelt === felt;
               const harForslag = afventendeFeltForslag.length > 0;
               const erLaast = felt === "vilkaar";
-              const erRedigerbar = !erBeggeGodkendt && !erAktiv && !erLaast && !kontrakt.haandvaerker_email;
+              // total_pris: bygherre kan ikke redigere efter invitation (contractor udfylder)
+              // startdato/slutdato: bygherre kan redigere indtil begge godkender
+              // titel: bygherre kan redigere indtil contractor godkender
+              const erRedigerbar = !erBeggeGodkendt && !erAktiv && !erLaast && (
+                felt === "total_pris"
+                  ? !kontrakt.haandvaerker_email
+                  : !haandvaerkerGodkendt
+              );
 
               return (
                 <div key={felt} className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${harForslag ? "border-amber-200" : "border-gray-100"}`}>

@@ -94,6 +94,12 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   const [magicLinkSendt, setMagicLinkSendt] = useState(false);
   const [magicLinkFejl, setMagicLinkFejl] = useState<string | null>(null);
 
+  // Startdato / slutdato
+  const [startdatoVal, setStartdatoVal] = useState("");
+  const [slutdatoVal, setSlutdatoVal] = useState("");
+  const [gemmerDatoer, setGemmerDatoer] = useState(false);
+  const [datoerGemt, setDatoerGemt] = useState(false);
+
   const [visTidsplanEditor, setVisTidsplanEditor] = useState(false);
   const [tidsplanType, setTidsplanType] = useState<"faser" | "ingen_tidsplan">("faser");
   const [faser, setFaser] = useState<TidsplanFase[]>([
@@ -117,6 +123,9 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
       if (data.haandvaerker_email) setMagicLinkEmail(data.haandvaerker_email);
       if (data.haandvaerker_godkendt_at) setGodkendt(true);
       if (data.tidsplan) setTidsplanGemt(true);
+      if (data.startdato) { setStartdatoVal(data.startdato); }
+      if (data.slutdato) { setSlutdatoVal(data.slutdato); }
+      if (data.startdato && data.slutdato) setDatoerGemt(true);
       if (data.besigtigelse_dato) setBesigtigelseDato(data.besigtigelse_dato);
       if (data.besigtigelse_tid) setBesigtigelseTid(data.besigtigelse_tid);
       if (data.forudsaetninger) setForudsaetningerTekst(data.forudsaetninger);
@@ -244,6 +253,22 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
     setKontrakt(prev => prev ? { ...prev, total_pris: pris } : prev);
     setForeslaaetPris(null);
     setPrisGodkendt(true);
+  }
+
+  async function gemDatoer() {
+    if (gemmerDatoer || !startdatoVal || !slutdatoVal) return;
+    setGemmerDatoer(true);
+    const res = await fetch(`/api/kontrakt/${token}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ startdato: startdatoVal, slutdato: slutdatoVal }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setKontrakt(prev => prev ? { ...prev, startdato: data.startdato, slutdato: data.slutdato } : prev);
+      setDatoerGemt(true);
+    }
+    setGemmerDatoer(false);
   }
 
   async function sletTilbudsDokument() {
@@ -753,6 +778,78 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               <p className="mt-3 text-xs text-red-600 font-medium">{uploadFejl}</p>
             )}
           </div>
+          );
+        })()}
+
+        {/* ─── STARTDATO / SLUTDATO ─── */}
+        {!godkendt && harAdgang && (() => {
+          return (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-9 h-9 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">Opstartstidspunkt og færdigmelding</p>
+                  <p className="text-xs text-gray-400">AB-Forbruger § 12 — start- og slutdato for arbejdet</p>
+                </div>
+              </div>
+
+              {datoerGemt && kontrakt.startdato && kontrakt.slutdato ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between bg-[#f0f7f3] rounded-xl px-4 py-3">
+                    <div className="flex gap-6">
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Opstart</p>
+                        <p className="text-sm font-bold text-[#1e3a2a]">{fmtDato(kontrakt.startdato)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Færdigmelding</p>
+                        <p className="text-sm font-bold text-[#1e3a2a]">{fmtDato(kontrakt.slutdato)}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setDatoerGemt(false)} className="text-xs text-gray-400 hover:text-gray-600">Ret</button>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-green-700 font-semibold">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Datoer gemt
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1.5">Opstartsdato</label>
+                      <input
+                        type="date"
+                        value={startdatoVal}
+                        onChange={e => setStartdatoVal(e.target.value)}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1.5">Færdigmelding</label>
+                      <input
+                        type="date"
+                        value={slutdatoVal}
+                        min={startdatoVal}
+                        onChange={e => setSlutdatoVal(e.target.value)}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={gemDatoer}
+                    disabled={gemmerDatoer || !startdatoVal || !slutdatoVal}
+                    className="w-full py-2.5 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 disabled:opacity-40 transition-all"
+                  >
+                    {gemmerDatoer ? "Gemmer..." : "Gem datoer"}
+                  </button>
+                </div>
+              )}
+            </div>
           );
         })()}
 
