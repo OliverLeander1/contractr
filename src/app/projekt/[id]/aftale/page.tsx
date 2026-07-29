@@ -49,6 +49,10 @@ interface Kontrakt {
   haandvaerker_godkendt_at: string | null;
   kontraktaendringer: Aendring[];
   tidsplan: Tidsplan | null;
+  tilbud_dokument_url: string | null;
+  tilbud_dokument_navn: string | null;
+  besigtigelse_dato: string | null;
+  besigtigelse_bekraeftet: boolean | null;
 }
 
 const fmtKr = (n: number) =>
@@ -223,6 +227,12 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
     } finally {
       setGodkenderTidsplan(false);
     }
+  }
+
+  async function sletTilbudsDokument() {
+    if (!kontrakt || typeof kontrakt !== "object") return;
+    await fetch(`/api/kontrakt/${kontrakt.haandvaerker_token}/tilbud-slet`, { method: "DELETE" });
+    setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, tilbud_dokument_url: null, tilbud_dokument_navn: null } : prev);
   }
 
   async function besvarForslag(aendring_id: string, status: "accepteret" | "afvist") {
@@ -899,7 +909,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         : "bg-[#1e3a2a] text-white hover:opacity-90"
                     }`}
                   >
-                    {godkender ? "Godkender..." : bygherreGodkendt ? "Du har godkendt" : "Godkend kontrakten"}
+                    {godkender ? "Godkender..." : bygherreGodkendt ? "Du har accepteret" : "Accepter tilbud og indga aftale"}
                   </button>
                   {godkendFejl && (
                     <p className="mt-2 text-xs text-red-600 text-center leading-snug">{godkendFejl}</p>
@@ -907,6 +917,53 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 </>
               )}
             </div>
+
+            {/* Tilbudsdokument fra entreprenor */}
+            {kontrakt.tilbud_dokument_url && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <h3 className="font-semibold text-gray-900 text-sm mb-3">Tilbud fra entreprenoren</h3>
+                <div className="flex items-center justify-between bg-[#f5f3ee] rounded-xl px-4 py-3 border border-gray-200 mb-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2" className="flex-shrink-0">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    <a href={kontrakt.tilbud_dokument_url} target="_blank" rel="noopener noreferrer"
+                      className="text-sm font-semibold text-[#1e3a2a] truncate hover:underline">
+                      {kontrakt.tilbud_dokument_navn || "Tilbudsdokument"}
+                    </a>
+                  </div>
+                  <a href={kontrakt.tilbud_dokument_url} target="_blank" rel="noopener noreferrer"
+                    className="text-xs font-semibold text-[#1e3a2a] ml-3 hover:underline flex-shrink-0">
+                    Abn
+                  </a>
+                </div>
+                <button
+                  onClick={sletTilbudsDokument}
+                  className="text-xs text-red-400 hover:text-red-600 transition-colors"
+                >
+                  Slet dokument (GDPR)
+                </button>
+              </div>
+            )}
+
+            {/* Status-banner hvis haandvaerker har sendt tilbud men bygherre ikke godkendt endnu */}
+            {haandvaerkerGodkendt && !bygherreGodkendt && !erBeggeGodkendt && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-amber-900">Tilbud modtaget</p>
+                    <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                      {kontrakt.haandvaerker_navn || "Entreprenoren"} har sendt sit tilbud. Gennemse det og godkend kontrakten nedenfor naar du er klar.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Invitationslink */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">

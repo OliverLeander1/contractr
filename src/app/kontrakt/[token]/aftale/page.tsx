@@ -34,6 +34,10 @@ interface Kontrakt {
   haandvaerker_godkendt_at: string | null;
   status: string;
   tidsplan: Tidsplan | null;
+  tilbud_dokument_url: string | null;
+  tilbud_dokument_navn: string | null;
+  besigtigelse_dato: string | null;
+  besigtigelse_bekraeftet: boolean | null;
 }
 
 const fmtKr = (n: number) =>
@@ -57,6 +61,17 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   const [visNavnModal, setVisNavnModal] = useState(false);
   const [navn, setNavn]   = useState("");
   const [firma, setFirma] = useState("");
+
+  // Besigtigelse
+  const [besigtigelseDato, setBesigtigelseDato] = useState("");
+  const [gemmerBesigtigelse, setGemmerBesigtigelse] = useState(false);
+
+  // Tilbudsdokument upload
+  const [uploader, setUploader] = useState(false);
+  const [uploadFejl, setUploadFejl] = useState<string | null>(null);
+  const [foreslaaetPris, setForeslaaetPris] = useState<number | null>(null);
+  const [prisGodkendt, setPrisGodkendt] = useState(false);
+  const [sletter, setSletter] = useState(false);
 
   // Tidsplan state
   const [loggetInd, setLoggetInd] = useState(false);
@@ -82,6 +97,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
       setKontrakt(data);
       if (data.haandvaerker_godkendt_at) setGodkendt(true);
       if (data.tidsplan) setTidsplanGemt(true);
+      if (data.besigtigelse_dato) setBesigtigelseDato(data.besigtigelse_dato);
       setIndlæser(false);
     };
     hent();
@@ -124,6 +140,59 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
       setVisTidsplanEditor(false);
     }
     setGemmerTidsplan(false);
+  }
+
+  async function gemBesigtigelse(bekraeftet: boolean, dato: string) {
+    setGemmerBesigtigelse(true);
+    await fetch(`/api/kontrakt/${token}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ besigtigelse_bekraeftet: bekraeftet, besigtigelse_dato: dato || null }),
+    });
+    setKontrakt(prev => prev ? { ...prev, besigtigelse_bekraeftet: bekraeftet, besigtigelse_dato: dato || null } : prev);
+    setGemmerBesigtigelse(false);
+  }
+
+  async function uploadTilbud(fil: File) {
+    setUploader(true);
+    setUploadFejl(null);
+    setForeslaaetPris(null);
+    setPrisGodkendt(false);
+    const fd = new FormData();
+    fd.append("fil", fil);
+    const res = await fetch(`/api/kontrakt/${token}/tilbud-upload`, { method: "POST", body: fd });
+    const data = await res.json();
+    if (!res.ok) {
+      setUploadFejl(data.error || "Upload fejlede");
+    } else {
+      setKontrakt(prev => prev ? {
+        ...prev,
+        tilbud_dokument_url: data.dokumentUrl,
+        tilbud_dokument_navn: data.filNavn,
+      } : prev);
+      if (data.udtrukketPris) setForeslaaetPris(data.udtrukketPris);
+    }
+    setUploader(false);
+  }
+
+  async function godkendPris(pris: number) {
+    await fetch(`/api/kontrakt/${token}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ total_pris: pris }),
+    });
+    setKontrakt(prev => prev ? { ...prev, total_pris: pris } : prev);
+    setForeslaaetPris(null);
+    setPrisGodkendt(true);
+  }
+
+  async function sletTilbudsDokument() {
+    setSletter(true);
+    await fetch(`/api/kontrakt/${token}/tilbud-slet`, { method: "DELETE" });
+    setKontrakt(prev => prev ? { ...prev, tilbud_dokument_url: null, tilbud_dokument_navn: null } : prev);
+    setForeslaaetPris(null);
+    setPrisGodkendt(false);
+    setSletter(false);
   }
 
   if (indlæser) return (
@@ -187,8 +256,8 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
             <div>
-              <p className="font-bold text-blue-800">Du har godkendt aftalegrundlaget</p>
-              <p className="text-sm text-blue-700/70 mt-0.5">Afventer nu bygherrens godkendelse.</p>
+              <p className="font-bold text-blue-800">Dit tilbud er sendt til bygherre</p>
+              <p className="text-sm text-blue-700/70 mt-0.5">Bygherre gennemser nu tilbuddet og vender tilbage med en beslutning.</p>
             </div>
           </div>
         ) : (
@@ -238,6 +307,155 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
             </div>
           )}
         </div>
+
+        {/* Besigtigelse */}
+        {!godkendt && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-9 h-9 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-gray-900">Besigtigelse</p>
+                <p className="text-xs text-gray-400">Aftal et tidspunkt at se opgaven inden du giver pris</p>
+              </div>
+            </div>
+
+            {kontrakt.besigtigelse_bekraeftet ? (
+              <div className="flex items-center justify-between bg-green-50 border border-green-100 rounded-xl px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <p className="text-sm font-semibold text-green-800">
+                    Besigtigelse {kontrakt.besigtigelse_dato ? `aftalt ${new Date(kontrakt.besigtigelse_dato).toLocaleDateString("da-DK", { day: "numeric", month: "long" })}` : "bekraeftet"}
+                  </p>
+                </div>
+                <button onClick={() => gemBesigtigelse(false, "")} className="text-xs text-gray-400 hover:text-gray-700">Fortryd</button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Dato for besigtigelse (valgfrit)</label>
+                  <input
+                    type="date"
+                    value={besigtigelseDato}
+                    onChange={e => setBesigtigelseDato(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
+                  />
+                </div>
+                <button
+                  onClick={() => gemBesigtigelse(true, besigtigelseDato)}
+                  disabled={gemmerBesigtigelse}
+                  className="w-full py-2.5 border border-[#1e3a2a]/30 text-[#1e3a2a] text-sm font-semibold rounded-xl hover:bg-[#1e3a2a]/5 transition-colors disabled:opacity-40"
+                >
+                  {gemmerBesigtigelse ? "Gemmer..." : "Marker besigtigelse som aftalt"}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tilbudsdokument */}
+        {!godkendt && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-9 h-9 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-gray-900">Tilbudsdokument</p>
+                <p className="text-xs text-gray-400">Upload dit tilbud som PDF eller Word. Prisen udtrækkes automatisk.</p>
+              </div>
+            </div>
+
+            {kontrakt.tilbud_dokument_url ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between bg-[#f5f3ee] rounded-xl px-4 py-3 border border-gray-200">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2" className="flex-shrink-0">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    <a href={kontrakt.tilbud_dokument_url} target="_blank" rel="noopener noreferrer"
+                      className="text-sm font-semibold text-[#1e3a2a] truncate hover:underline">
+                      {kontrakt.tilbud_dokument_navn || "Tilbudsdokument"}
+                    </a>
+                  </div>
+                  <button
+                    onClick={sletTilbudsDokument}
+                    disabled={sletter}
+                    className="text-xs text-red-400 hover:text-red-600 flex-shrink-0 ml-3 disabled:opacity-40"
+                  >
+                    {sletter ? "Sletter..." : "Slet"}
+                  </button>
+                </div>
+
+                {foreslaaetPris && !prisGodkendt && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-4">
+                    <p className="text-xs font-bold text-amber-800 mb-1">Fundet pris i dokumentet</p>
+                    <p className="text-2xl font-bold text-amber-900 mb-3">
+                      {new Intl.NumberFormat("da-DK", { style: "currency", currency: "DKK", maximumFractionDigits: 0 }).format(foreslaaetPris)}
+                    </p>
+                    <p className="text-xs text-amber-700 mb-3">Er dette den korrekte entreprisesum fra tilbuddet?</p>
+                    <div className="flex gap-2">
+                      <button onClick={() => godkendPris(foreslaaetPris)}
+                        className="flex-1 py-2 bg-amber-700 text-white text-xs font-bold rounded-lg hover:bg-amber-800 transition-colors">
+                        Ja, brug denne pris
+                      </button>
+                      <button onClick={() => setForeslaaetPris(null)}
+                        className="flex-1 py-2 border border-amber-200 text-amber-800 text-xs font-semibold rounded-lg hover:bg-amber-100 transition-colors">
+                        Nej, jeg retter selv
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {prisGodkendt && (
+                  <div className="flex items-center gap-2 text-sm text-green-700 font-semibold">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Entreprisesum gemt fra tilbudsdokumentet
+                  </div>
+                )}
+              </div>
+            ) : (
+              <label className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-xl px-6 py-8 cursor-pointer transition-colors ${uploader ? "border-[#1e3a2a]/30 bg-[#1e3a2a]/5" : "border-gray-200 hover:border-[#1e3a2a]/40 hover:bg-[#1e3a2a]/3"}`}>
+                {uploader ? (
+                  <>
+                    <div className="w-6 h-6 border-2 border-[#1e3a2a]/30 border-t-[#1e3a2a] rounded-full animate-spin" />
+                    <p className="text-sm text-gray-500">Behandler dokument og finder pris...</p>
+                  </>
+                ) : (
+                  <>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-gray-700">Upload tilbudsdokument</p>
+                      <p className="text-xs text-gray-400 mt-0.5">PDF eller Word (.docx), maks 10 MB</p>
+                    </div>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  className="hidden"
+                  disabled={uploader}
+                  onChange={e => {
+                    const fil = e.target.files?.[0];
+                    if (fil) uploadTilbud(fil);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            )}
+
+            {uploadFejl && (
+              <p className="mt-3 text-xs text-red-600 font-medium">{uploadFejl}</p>
+            )}
+          </div>
+        )}
 
         {/* ─── TIDSPLAN ─── */}
         <div className="mb-5">
@@ -528,12 +746,12 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
           </div>
         </div>
 
-        {/* Godkend-knap */}
+        {/* Send til bygherre-knap */}
         {!godkendt && (
           <button onClick={() => setVisNavnModal(true)}
             className="w-full py-4 bg-[#1e3a2a] text-white font-bold text-base rounded-2xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-sm">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            Godkend aftalegrundlag
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Bekraeft og send tilbud til bygherre
           </button>
         )}
 
@@ -591,8 +809,8 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
               <div>
-                <h2 className="font-bold text-gray-900">Digital godkendelse</h2>
-                <p className="text-xs text-gray-400">Bekræft din identitet inden underskrift</p>
+                <h2 className="font-bold text-gray-900">Send tilbud til bygherre</h2>
+                <p className="text-xs text-gray-400">Bekraeft din identitet inden du sender</p>
               </div>
             </div>
 
@@ -613,7 +831,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
 
             <div className="bg-[#1e3a2a]/5 border border-[#1e3a2a]/10 rounded-xl px-4 py-3 mb-5">
               <p className="text-xs text-gray-600 leading-relaxed">
-                Ved at klikke &ldquo;Underskriv&rdquo; bekræfter du at du har gennemgået og accepterer aftalegrundlaget inkl. tidsplan. Din godkendelse logges med navn og tidsstempel.
+                Ved at klikke &ldquo;Send tilbud&rdquo; sender du dit tilbud til bygherre til gennemgang. Bygherre beslutter om tilbuddet accepteres. Handlingen logges med navn og tidsstempel.
               </p>
             </div>
 
@@ -625,7 +843,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               <button onClick={godkend} disabled={!navn.trim() || godkender}
                 className="flex-1 py-3 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-2">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                {godkender ? "Gemmer..." : "Underskriv"}
+                {godkender ? "Sender..." : "Send tilbud"}
               </button>
             </div>
           </div>

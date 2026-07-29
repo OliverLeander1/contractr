@@ -20,3 +20,31 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tok
 
   return NextResponse.json(data);
 }
+
+// PATCH /api/kontrakt/[token] — opdater felter via token (ingen auth, bruges af haandvaerker)
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params;
+  const body = await req.json();
+  const db = createServiceClient();
+
+  const tilladte = ["total_pris", "besigtigelse_dato", "besigtigelse_bekraeftet"];
+  const opdatering: Record<string, unknown> = { opdateret_at: new Date().toISOString() };
+
+  for (const felt of tilladte) {
+    if (felt in body) opdatering[felt] = body[felt];
+  }
+
+  if (Object.keys(opdatering).length <= 1) {
+    return NextResponse.json({ error: "Ingen gyldige felter" }, { status: 400 });
+  }
+
+  const { data, error } = await db
+    .from("kontrakter")
+    .update(opdatering)
+    .eq("haandvaerker_token", token)
+    .select()
+    .single();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data);
+}
