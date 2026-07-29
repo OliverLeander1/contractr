@@ -22,9 +22,14 @@ interface Aftale {
   status: string;
   haandvaerker_navn: string | null;
   haandvaerker_email: string | null;
+  haandvaerker_firma: string | null;
   oprettet_at: string;
   bygherre_godkendt_at: string | null;
   haandvaerker_godkendt_at: string | null;
+  startdato: string | null;
+  slutdato: string | null;
+  total_pris: number | null;
+  betalingsplan: { milepæl: string; andel: string }[] | null;
 }
 
 const projekttypeLabels: Record<string, string> = {
@@ -107,7 +112,7 @@ export default function Dashboard() {
 
       const { data: aftaleData } = await supabase
         .from("kontrakter")
-        .select("id, projekt_id, titel, status, haandvaerker_navn, haandvaerker_email, oprettet_at, bygherre_godkendt_at, haandvaerker_godkendt_at")
+        .select("id, projekt_id, titel, status, haandvaerker_navn, haandvaerker_email, haandvaerker_firma, oprettet_at, bygherre_godkendt_at, haandvaerker_godkendt_at, startdato, slutdato, total_pris, betalingsplan")
         .eq("bygherre_id", user.id)
         .order("oprettet_at", { ascending: false });
 
@@ -128,6 +133,20 @@ export default function Dashboard() {
   const aktiveProjekter = projekter.filter(p => p.status !== "afsluttet");
   const harProblemer = projekter.some(p => p.status === "problem");
   const ingenProjekter = projekter.length === 0;
+
+  const fmtKr = (n: number) => n.toLocaleString("da-DK") + " kr.";
+  const fmtDato = (iso: string) => new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "short" });
+  const dageImellem = (fra: string, til: string) =>
+    Math.round((new Date(til).getTime() - new Date(fra).getTime()) / (1000 * 60 * 60 * 24));
+
+  // Find primær aktiv kontrakt for et projekt
+  const aktivKontrakt = (projektId: string) =>
+    aftaler.find(a => a.projekt_id === projektId && a.status === "begge_godkendt") ||
+    aftaler.find(a => a.projekt_id === projektId);
+
+  // Projekter der er "i gang" eller "accepteret" — vises som fuldt overblik
+  const igangProjekter = projekter.filter(p => p.status === "igang" || p.status === "accepteret");
+  const andreProjekter = projekter.filter(p => p.status !== "igang" && p.status !== "accepteret");
 
   if (indlæser) {
     return (
@@ -341,18 +360,172 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Projekter */}
-        {projekter.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest">Dine projekter</h2>
-              <Link href="/opret" className="flex items-center gap-1.5 text-sm font-semibold text-[#1e3a2a] hover:underline">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Nyt projekt
+        {/* Aktive projekter — fuldt overblik */}
+        {igangProjekter.map(p => {
+          const k = aktivKontrakt(p.id);
+          const idag = new Date().toISOString();
+          const dageТilSlut = k?.slutdato ? dageImellem(idag, k.slutdato) : null;
+          const dageSidenStart = k?.startdato ? dageImellem(k.startdato, idag) : null;
+          const totalDage = (k?.startdato && k?.slutdato) ? dageImellem(k.startdato, k.slutdato) : null;
+          const fremdriftPct = (dageSidenStart !== null && totalDage && totalDage > 0)
+            ? Math.min(100, Math.max(0, Math.round((dageSidenStart / totalDage) * 100)))
+            : null;
+
+          return (
+            <div key={p.id} className="mb-6">
+              {/* Header-kort */}
+              <div className="bg-[#111c17] rounded-3xl overflow-hidden shadow-lg mb-3">
+                <div className="px-6 pt-6 pb-5">
+                  <div className="flex items-start justify-between gap-3 mb-5">
+                    <div>
+                      <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.15em] mb-1">
+                        {projekttypeLabels[p.projekttype] || "Byggeprojekt"}
+                      </p>
+                      <h2 className="text-xl font-bold text-white leading-snug">
+                        {k?.titel || p.adresse || projekttypeLabels[p.projekttype] || "Dit byggeprojekt"}
+                      </h2>
+                    </div>
+                    <span className="flex-shrink-0 text-[10px] font-bold px-2.5 py-1.5 rounded-full bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/20 uppercase tracking-wide">
+                      I gang
+                    </span>
+                  </div>
+
+                  {/* Nøgletal — 2-3 kolonner */}
+                  <div className="grid grid-cols-3 gap-3 mb-5">
+                    {k?.haandvaerker_navn && (
+                      <div className="bg-white/5 rounded-2xl px-3 py-3">
+                        <p className="text-[10px] text-white/40 mb-1">Håndværker</p>
+                        <p className="text-sm font-bold text-white leading-snug truncate">{k.haandvaerker_navn}</p>
+                        {k.haandvaerker_firma && <p className="text-[10px] text-white/40 mt-0.5 truncate">{k.haandvaerker_firma}</p>}
+                      </div>
+                    )}
+                    {k?.total_pris && (
+                      <div className="bg-white/5 rounded-2xl px-3 py-3">
+                        <p className="text-[10px] text-white/40 mb-1">Entreprisesum</p>
+                        <p className="text-sm font-bold text-white">{fmtKr(k.total_pris)}</p>
+                        <p className="text-[10px] text-white/40 mt-0.5">inkl. moms</p>
+                      </div>
+                    )}
+                    {dageТilSlut !== null && (
+                      <div className="bg-white/5 rounded-2xl px-3 py-3">
+                        <p className="text-[10px] text-white/40 mb-1">Aflevering</p>
+                        <p className={`text-sm font-bold ${dageТilSlut < 7 ? "text-amber-400" : "text-white"}`}>
+                          {dageТilSlut <= 0 ? "I dag" : `${dageТilSlut} dage`}
+                        </p>
+                        {k?.slutdato && <p className="text-[10px] text-white/40 mt-0.5">{fmtDato(k.slutdato)}</p>}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Tidslinje-bar */}
+                  {fremdriftPct !== null && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <p className="text-[10px] text-white/40">
+                          {k?.startdato ? fmtDato(k.startdato) : "Opstart"}
+                        </p>
+                        <p className="text-[10px] font-semibold text-white/60">{fremdriftPct}% af tidsplanen</p>
+                        <p className="text-[10px] text-white/40">
+                          {k?.slutdato ? fmtDato(k.slutdato) : "Aflevering"}
+                        </p>
+                      </div>
+                      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#4ade80] rounded-full transition-all"
+                          style={{ width: `${fremdriftPct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Hurtige handlinger */}
+                <div className="grid grid-cols-3 border-t border-white/10">
+                  {[
+                    {
+                      href: `/projekt/${p.id}/ekstraarbejde`,
+                      ikon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>,
+                      label: "Ekstraarbejde"
+                    },
+                    {
+                      href: `/projekt/${p.id}/chat`,
+                      ikon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+                      label: "Besked"
+                    },
+                    {
+                      href: `/projekt/${p.id}/mangler`,
+                      ikon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+                      label: "Mangel"
+                    },
+                  ].map((a, i) => (
+                    <Link
+                      key={i}
+                      href={a.href}
+                      className="flex flex-col items-center gap-1.5 py-4 text-white/60 hover:text-white hover:bg-white/5 transition-all"
+                    >
+                      {a.ikon}
+                      <span className="text-[10px] font-semibold">{a.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Se fuldt projektrum */}
+              <Link
+                href={`/projekt/${p.id}`}
+                className="flex items-center justify-between bg-white rounded-2xl border border-[#e0ddd6] px-5 py-3.5 hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors">Åbn projektrum</p>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
               </Link>
+
+              {/* AB-Forbruger påminding */}
+              <div className="mt-3 bg-white rounded-2xl border border-[#e0ddd6] px-5 py-3.5">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-lg bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-gray-700">Husk: ekstraarbejde aftales skriftligt inden opstart</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">AB-Forbruger § 23</p>
+                  </div>
+                  <Link href={`/projekt/${p.id}/ekstraarbejde`} className="text-[10px] font-bold text-[#1e3a2a] whitespace-nowrap hover:underline">
+                    Opret seddel
+                  </Link>
+                </div>
+              </div>
             </div>
+          );
+        })}
+
+        {/* Øvrige projekter — kompakt liste */}
+        {andreProjekter.length > 0 && (
+          <div className="mb-6">
+            {igangProjekter.length > 0 && (
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest">Andre projekter</h2>
+                <Link href="/opret" className="flex items-center gap-1.5 text-sm font-semibold text-[#1e3a2a] hover:underline">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Nyt
+                </Link>
+              </div>
+            )}
+            {igangProjekter.length === 0 && (
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest">Dine projekter</h2>
+                <Link href="/opret" className="flex items-center gap-1.5 text-sm font-semibold text-[#1e3a2a] hover:underline">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Nyt projekt
+                </Link>
+              </div>
+            )}
             <div className="space-y-3">
-              {projekter.map(p => (
+              {andreProjekter.map(p => (
                 <Link
                   key={p.id}
                   href={`/projekt/${p.id}`}
@@ -384,7 +557,6 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* CTA til at tjekke nyt tilbud */}
             <Link
               href="/opret/upload"
               className="mt-4 flex items-center justify-center gap-2 bg-white border border-dashed border-[#1e3a2a]/30 rounded-2xl py-4 text-sm font-semibold text-[#1e3a2a] hover:border-[#1e3a2a]/60 hover:bg-[#1e3a2a]/5 transition-all"
