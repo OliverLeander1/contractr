@@ -84,8 +84,9 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   const [prisGodkendt, setPrisGodkendt] = useState(false);
   const [sletter, setSletter] = useState(false);
 
-  // Tidsplan state
+  // Auth
   const [loggetInd, setLoggetInd] = useState(false);
+  const [brugerEmail, setBrugerEmail] = useState<string | null>(null);
   const [visTidsplanEditor, setVisTidsplanEditor] = useState(false);
   const [tidsplanType, setTidsplanType] = useState<"faser" | "ingen_tidsplan">("faser");
   const [faser, setFaser] = useState<TidsplanFase[]>([
@@ -102,7 +103,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
         fetch(`/api/kontrakt/${token}`),
         supabase.auth.getUser(),
       ]);
-      if (user) setLoggetInd(true);
+      if (user) { setLoggetInd(true); setBrugerEmail(user.email ?? null); }
       if (!res.ok) { setFejl("Aftalegrundlaget blev ikke fundet. Tjek at linket er korrekt."); setIndlæser(false); return; }
       const data = await res.json();
       setKontrakt(data);
@@ -245,6 +246,8 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   );
 
   const beggeGodkendt = !!(kontrakt.bygherre_godkendt_at && kontrakt.haandvaerker_godkendt_at);
+  const harAdgang = loggetInd && brugerEmail != null &&
+    (kontrakt.haandvaerker_email == null || brugerEmail.toLowerCase() === kontrakt.haandvaerker_email.toLowerCase());
   const tidsplan = kontrakt.tidsplan;
   const tidsplanGodkendt = tidsplan?.godkendt_af_bygherre === true;
 
@@ -340,8 +343,46 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
           )}
         </div>
 
+        {/* Login-gate: vises når man ikke er logget ind som den rette håndværker */}
+        {!godkendt && !harAdgang && (
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-5">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-gray-900 mb-1">Log ind for at redigere og godkende</p>
+                <p className="text-xs text-gray-500 leading-relaxed mb-4">
+                  Du kan se aftalegrundlaget herover. For at udfylde tidsplan, sende forudsætninger og godkende tilbuddet skal du oprette dig eller logge ind med den email du modtog linket på.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <a
+                    href={`/login?redirect=${encodeURIComponent(`/kontrakt/${token}/aftale`)}&email=${encodeURIComponent(kontrakt.haandvaerker_email ?? "")}`}
+                    className="flex-1 py-2.5 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all text-center"
+                  >
+                    Log ind
+                  </a>
+                  <a
+                    href={`/opret-konto?redirect=${encodeURIComponent(`/kontrakt/${token}/aftale`)}&email=${encodeURIComponent(kontrakt.haandvaerker_email ?? "")}`}
+                    className="flex-1 py-2.5 border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-all text-center"
+                  >
+                    Opret konto
+                  </a>
+                </div>
+                {loggetInd && brugerEmail && (
+                  <p className="text-xs text-amber-600 font-medium mt-3">
+                    Du er logget ind som {brugerEmail} — dette link er sendt til {kontrakt.haandvaerker_email}. Log ind med den rette konto for at redigere.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Besigtigelse */}
-        {!godkendt && (
+        {!godkendt && harAdgang && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 mb-5">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -433,7 +474,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
         )}
 
         {/* Forudsætninger */}
-        {!godkendt && (() => {
+        {!godkendt && harAdgang && (() => {
           const sendt = !!kontrakt.forudsaetninger_sendt_at;
           const godkendtAfBygherre = kontrakt.forudsaetninger_godkendt === true;
           if (springetOver) return null;
@@ -511,7 +552,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
         })()}
 
         {/* Tilbudsdokument */}
-        {!godkendt && (() => {
+        {!godkendt && harAdgang && (() => {
           const forudsLast = !!(kontrakt.forudsaetninger_sendt_at && !kontrakt.forudsaetninger_godkendt && !springetOver);
           return (
           <div className={`bg-white rounded-2xl border shadow-sm p-6 mb-5 ${forudsLast ? "border-gray-100 opacity-50 pointer-events-none" : "border-gray-100"}`}>
@@ -692,7 +733,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                 </div>
               )}
 
-              {!godkendt && (
+              {!godkendt && harAdgang && (
                 <div className="px-6 pb-5">
                   <button
                     onClick={() => {
@@ -708,7 +749,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                 </div>
               )}
             </div>
-          ) : visTidsplanEditor || !tidsplan ? (
+          ) : (visTidsplanEditor || !tidsplan) && harAdgang ? (
             /* Tidsplan-editor */
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               {/* Header */}
@@ -913,7 +954,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
         </div>
 
         {/* Send til bygherre-knap */}
-        {!godkendt && (
+        {!godkendt && harAdgang && (
           <button onClick={() => setVisNavnModal(true)}
             className="w-full py-4 bg-[#1e3a2a] text-white font-bold text-base rounded-2xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-sm">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -921,7 +962,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
           </button>
         )}
 
-        {!godkendt && (
+        {!godkendt && harAdgang && (
           <p className="text-xs text-center text-gray-400 mt-4 leading-relaxed">
             Har du spørgsmål til aftalegrundlaget? Kontakt bygherren direkte inden du godkender.
           </p>
