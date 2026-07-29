@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   const titel = projekttitel || "dit byggeprojekt";
 
   const { error } = await resend.emails.send({
-    from: "NemByggestyring <onboarding@resend.dev>",
+    from: "NemByggestyring <noreply@nembyggestyring.dk>",
     to: [to],
     subject: `En kunde har valgt dig til et nyt byggeprojekt`,
     html: `
