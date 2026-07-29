@@ -656,6 +656,61 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               );
             })()}
 
+            {/* Forudsætninger fra entreprenøren — vises i kontrakten som forslag */}
+            {kontrakt.forudsaetninger_sendt_at && (
+              <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${!kontrakt.forudsaetninger_godkendt ? "border-amber-200" : "border-gray-100"}`}>
+                <div className="px-5 py-4">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Forudsætninger</p>
+                    {kontrakt.forudsaetninger_godkendt && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Godkendt</span>
+                    )}
+                  </div>
+                  {kontrakt.forudsaetninger_godkendt ? (
+                    <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">{kontrakt.forudsaetninger}</p>
+                  ) : (
+                    <p className="text-sm text-gray-400 italic">Afventer din godkendelse herunder</p>
+                  )}
+                </div>
+
+                {!kontrakt.forudsaetninger_godkendt && !erBeggeGodkendt && (
+                  <div className="border-t border-amber-100 bg-amber-50 px-5 py-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">
+                        {kontrakt.haandvaerker_navn || "Entreprenøren"} har tilføjet forudsætninger
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap mb-4">{kontrakt.forudsaetninger}</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={godkendForudsaetninger}
+                        disabled={godkenderForudsaetninger}
+                        className="flex-1 py-2 text-xs font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {godkenderForudsaetninger ? "Godkender..." : "Acceptér og tilføj til aftalen"}
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!kontrakt || typeof kontrakt !== "object") return;
+                          await fetch("/api/kontrakt", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ kontrakt_id: kontrakt.id, afvis_forudsaetninger: true }),
+                          });
+                          setKontrakt(prev => prev && typeof prev === "object"
+                            ? { ...prev, forudsaetninger: null, forudsaetninger_sendt_at: null, forudsaetninger_godkendt: null }
+                            : prev);
+                        }}
+                        className="flex-1 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                      >
+                        Afvis
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Betalingsplan */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-5 py-4">
@@ -937,33 +992,6 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 </>
               )}
             </div>
-
-            {/* Forudsætninger fra entreprenøren */}
-            {kontrakt.forudsaetninger_sendt_at && (
-              <div className={`rounded-2xl border shadow-sm p-5 ${kontrakt.forudsaetninger_godkendt ? "bg-white border-gray-100" : "bg-amber-50 border-amber-200"}`}>
-                <div className="flex items-center gap-2 mb-3">
-                  <h3 className="font-semibold text-gray-900 text-sm">Forudsætninger fra entreprenøren</h3>
-                  {kontrakt.forudsaetninger_godkendt
-                    ? <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Godkendt</span>
-                    : <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">Afventer din godkendelse</span>
-                  }
-                </div>
-                <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap mb-4">{kontrakt.forudsaetninger}</p>
-                {!kontrakt.forudsaetninger_godkendt && !erBeggeGodkendt && (
-                  <button
-                    onClick={godkendForudsaetninger}
-                    disabled={godkenderForudsaetninger}
-                    className="w-full py-2.5 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                  >
-                    {godkenderForudsaetninger ? (
-                      <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Godkender...</>
-                    ) : (
-                      <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Bekræft forudsætninger</>
-                    )}
-                  </button>
-                )}
-              </div>
-            )}
 
             {/* Tilbudsdokument fra entreprenor */}
             {kontrakt.tilbud_dokument_url && (
