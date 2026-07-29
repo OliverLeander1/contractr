@@ -75,16 +75,24 @@ export default function HaandvaerkerProfil() {
     hent();
   }, []);
 
+  const [gemFejl, setGemFejl] = useState<string | null>(null);
+
   const gemProfil = async () => {
     setGemmer(true);
+    setGemFejl(null);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) { setGemmer(false); return; }
 
-    const { data } = await supabase
-      .from("profiler")
-      .upsert({
-        id: user.id,
+    const token = (await supabase.auth.getSession()).data.session?.access_token;
+
+    const res = await fetch("/api/profil/gem", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
         navn: nytNavn.trim() || null,
         virksomhed: nyVirksomhed.trim() || null,
         cvr: nytCvr.trim() || null,
@@ -94,15 +102,19 @@ export default function HaandvaerkerProfil() {
         by: nytBy.trim() || null,
         tilgaengelig,
         standby,
-      }, { onConflict: "id" })
-      .select()
-      .single();
+      }),
+    });
 
-    if (data) setProfil(prev => ({ ...prev!, ...data }));
+    const json = await res.json();
+    if (res.ok && json.data) {
+      setProfil(prev => ({ ...prev!, ...json.data }));
+      setRedigerer(false);
+      setGemtBesked(true);
+      setTimeout(() => setGemtBesked(false), 3000);
+    } else {
+      setGemFejl(json.error || "Kunne ikke gemme profil. Prøv igen.");
+    }
     setGemmer(false);
-    setRedigerer(false);
-    setGemtBesked(true);
-    setTimeout(() => setGemtBesked(false), 3000);
   };
 
   type Synlighed = "synlig" | "travlt" | "skjult";
@@ -277,6 +289,11 @@ export default function HaandvaerkerProfil() {
               <p className="text-xs text-green-700 font-medium">Profil gemt.</p>
             </div>
           )}
+          {gemFejl && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl">
+              <p className="text-xs text-red-700 font-medium">{gemFejl}</p>
+            </div>
+          )}
         </div>
 
         {/* Omtaler */}
@@ -332,10 +349,15 @@ export default function HaandvaerkerProfil() {
                   Annuller
                 </button>
                 <button
-                  disabled={sletter || sletNavn.trim().toLowerCase() !== (profil?.navn || "").trim().toLowerCase() || sletBekræft.trim().toLowerCase() !== "slet bruger"}
+                  disabled={sletter || (profil?.navn ? sletNavn.trim().toLowerCase() !== profil.navn.trim().toLowerCase() : false) || sletBekræft.trim().toLowerCase() !== "slet bruger"}
                   onClick={async () => {
                     setSletter(true);
-                    const res = await fetch("/api/bruger/slet", { method: "DELETE" });
+                    const supabase = createClient();
+                    const token = (await supabase.auth.getSession()).data.session?.access_token;
+                    const res = await fetch("/api/bruger/slet", {
+                      method: "DELETE",
+                      headers: token ? { Authorization: `Bearer ${token}` } : {},
+                    });
                     if (res.ok) { window.location.href = "/"; }
                     else { setSletter(false); }
                   }}
