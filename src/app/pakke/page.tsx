@@ -5,61 +5,72 @@ import Link from "next/link";
 import SimpleNav from "@/components/SimpleNav";
 import { createClient } from "@/lib/supabase";
 
-const PAKKER = [
+export const PAKKER = [
   {
-    id: "lille",
-    navn: "Mindre byggeprojekt",
-    eksempler: "Maling, gulv, vinduer, badeværelse",
+    id: "digital",
+    navn: "Digital",
+    undertitel: "Digitale værktøjer til dit projekt",
+    eksempler: "Maling, gulv, vinduer, carport",
     pris: 299,
+    anbefalet: false,
     features: [
-      "Digitalt aftalegrundlag klar til underskrift",
-      "Kopiérbar besked til håndværkeren",
+      "Ubegrænset screening af tilbud og kontrakter",
       "Projektrum med dokumentarkiv",
-      "Tjekliste over vigtige aftalepunkter",
-      "Løbende rapporter du kan udtrække",
-    ],
-    ikkeInkluderet: [
-      "Ekstraarbejde-sedler",
-      "Betalingsplan koblet til fremdrift",
-      "Afleveringsflow",
-      "Møde med byggesagkyndig",
-    ],
-  },
-  {
-    id: "mellem",
-    navn: "Mellemstort byggeprojekt",
-    eksempler: "Badeværelse, køkken, tilbygning",
-    pris: 2499,
-    features: [
-      "Alt fra Mindre byggeprojekt",
+      "AB-Forbruger notifikationer gennem hele projektet",
       "Ekstraarbejde-sedler med digital godkendelse",
       "Betalingsplan koblet til dokumenteret fremdrift",
-      "Afleveringsflow med tjekliste",
       "Mangelregistrering med billeder og status",
-      "Løbende rapporter du kan udtrække",
+      "Afleveringsflow med tjekliste",
     ],
     ikkeInkluderet: [
-      "Møde med byggesagkyndig",
+      "Rådgivergennemgang af din kontrakt",
+      "Mangelgennemgang ved aflevering",
     ],
   },
   {
-    id: "stor",
-    navn: "Stort byggeprojekt",
-    eksempler: "Totalrenovering, større tilbygning",
-    pris: 4999,
+    id: "tryg",
+    navn: "Tryg",
+    undertitel: "Digitale værktøjer og rådgiverhjælp",
+    eksempler: "Badeværelse, køkken, vådrum, tag",
+    pris: 1499,
+    anbefalet: true,
     features: [
-      "Alt fra Mellemstort byggeprojekt",
-      "Gratis online møde med byggesagkyndig (30 min.)",
-      "Koordination på tværs af flere håndværkere",
+      "Alt i Digital-pakken",
+      "1 times rådgivergennemgang af din kontrakt (video eller telefon)",
+      "Skriftlig anbefaling fra rådgiver",
       "Prioriteret support",
+    ],
+    ikkeInkluderet: [
+      "Mangelgennemgang ved aflevering",
+    ],
+  },
+  {
+    id: "komplet",
+    navn: "Komplet",
+    undertitel: "Fuld støtte fra start til aflevering",
+    eksempler: "Tilbygning, totalrenovering",
+    pris: 3999,
+    anbefalet: false,
+    features: [
+      "Alt i Tryg-pakken",
+      "Mangelgennemgang ved aflevering (video)",
+      "Vejledning og påmindelser til 1-årseftersyn",
       "Ubegrænset dokumentopload",
     ],
     ikkeInkluderet: [],
   },
 ];
 
+export const anbefalPakke = (projekttype: string): string => {
+  const komplet = ["tilbygning", "totalrenovering"];
+  const tryg = ["badevarelse", "kokken", "vaadrum", "tag", "maler"];
+  if (komplet.includes(projekttype)) return "komplet";
+  if (tryg.includes(projekttype)) return "tryg";
+  return "digital";
+};
+
 export default function VaelgPakke() {
-  const [valgt, setValgt] = useState<string>("mellem");
+  const [valgt, setValgt] = useState<string>("tryg");
   const [navn, setNavn] = useState("");
   const [email, setEmail] = useState("");
   const [projekId, setProjektId] = useState<string | null>(null);
@@ -78,6 +89,18 @@ export default function VaelgPakke() {
         setEmail(user.email ?? "");
         const { data: profil } = await supabase.from("profiler").select("navn").eq("id", user.id).single();
         if (profil?.navn) setNavn(profil.navn);
+
+        // Hvis brugeren har et projekt, anbefalér pakke baseret på type
+        const { data: projekter } = await supabase
+          .from("projekter")
+          .select("id, projekttype")
+          .eq("bygherre_id", user.id)
+          .order("oprettet_at", { ascending: false })
+          .limit(1);
+        if (projekter?.[0]) {
+          setProjektId(projekter[0].id);
+          setValgt(anbefalPakke(projekter[0].projekttype));
+        }
       }
       const projektId = sessionStorage.getItem("screening_projekt_id");
       if (projektId) setProjektId(projektId);
@@ -115,35 +138,43 @@ export default function VaelgPakke() {
       <div className="max-w-5xl mx-auto px-6 py-12">
 
         <div className="text-center mb-10">
-          <span className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest">Projektrum</span>
+          <span className="text-xs font-semibold text-[#1e3a2a] uppercase tracking-widest">Pakkeløsninger</span>
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-2 mb-3">Vælg din pakkeløsning</h1>
           <p className="text-gray-500 max-w-lg mx-auto leading-relaxed">
-            Vælg den løsning der passer til dit byggeprojekt. Er du i tvivl, er du velkommen til at kontakte os for vejledning.
+            Alle pakker er engangsbetaling uden abonnement. Du beholder adgangen så længe projektet løber.
           </p>
         </div>
 
-        {/* Pakke-kort — samme højde */}
         <div className="grid sm:grid-cols-3 gap-5 mb-10 items-stretch">
           {PAKKER.map((pakke) => {
             const erValgt = valgt === pakke.id;
-            const erMork = erValgt && pakke.id === "mellem";
+            const erMork = erValgt && pakke.id === "tryg";
             return (
               <button
                 key={pakke.id}
                 onClick={() => setValgt(pakke.id)}
-                className={`text-left rounded-2xl border-2 p-6 transition-all flex flex-col ${
+                className={`text-left rounded-2xl border-2 p-6 transition-all flex flex-col relative ${
                   erValgt
-                    ? pakke.id === "mellem"
+                    ? pakke.id === "tryg"
                       ? "border-[#1e3a2a] bg-[#1e3a2a] text-white"
                       : "border-[#1e3a2a] bg-white"
                     : "border-[#e0ddd6] bg-white hover:border-[#1e3a2a]/30"
                 }`}
               >
+                {pakke.anbefalet && (
+                  <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold ${erMork ? "bg-white text-[#1e3a2a]" : "bg-[#1e3a2a] text-white"}`}>
+                    Mest populær
+                  </div>
+                )}
+
                 <div className="flex-1">
-                  <p className={`font-bold text-lg mb-1 ${erMork ? "text-white" : "text-gray-900"}`}>
+                  <p className={`font-bold text-xl mb-0.5 ${erMork ? "text-white" : "text-gray-900"}`}>
                     {pakke.navn}
                   </p>
-                  <p className={`text-xs mb-4 ${erMork ? "text-white/60" : "text-gray-400"}`}>
+                  <p className={`text-xs mb-1 ${erMork ? "text-white/70" : "text-gray-500"}`}>
+                    {pakke.undertitel}
+                  </p>
+                  <p className={`text-xs mb-4 ${erMork ? "text-white/50" : "text-gray-400"}`}>
                     {pakke.eksempler}
                   </p>
                   <p className={`text-4xl font-bold mb-1 ${erMork ? "text-white" : "text-gray-900"}`}>
@@ -180,20 +211,18 @@ export default function VaelgPakke() {
           })}
         </div>
 
-        {/* Tryghedssignal */}
         <div className="bg-[#1e3a2a]/5 border border-[#1e3a2a]/10 rounded-2xl px-6 py-4 mb-8 flex items-start gap-4">
           <div className="w-9 h-9 bg-[#1e3a2a] rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           </div>
           <div>
-            <p className="font-semibold text-gray-900 text-sm mb-1">Du og din håndværker er i sikre hænder</p>
+            <p className="font-semibold text-gray-900 text-sm mb-1">Engangsbetaling, ingen binding</p>
             <p className="text-xs text-gray-500 leading-relaxed">
-              Alle pakker samler aftalegrundlaget ét sted og sikrer at begge parter er juridisk dækket. Undervejs kan du til enhver tid udtrække rapporter over projektets status.
+              Du betaler én gang og beholder adgangen så længe dit projekt løber. Ingen abonnement, ingen overraskelser. 30 dages pengene-tilbage-garanti.
             </p>
           </div>
         </div>
 
-        {/* Betaling */}
         <div className="max-w-md mx-auto">
           <div className="bg-white rounded-2xl border border-[#e0ddd6] shadow-sm overflow-hidden">
             <div className="bg-[#1e3a2a] px-6 py-5 flex items-center justify-between">
@@ -237,7 +266,7 @@ export default function VaelgPakke() {
                     : "bg-gray-100 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                {betaler ? "Sender til betaling..." : `Betal ${valgtPakke.pris.toLocaleString("da-DK")} kr. og opret projektrum`}
+                {betaler ? "Sender til betaling..." : `Betal ${valgtPakke.pris.toLocaleString("da-DK")} kr.`}
               </button>
 
               {fejl && (

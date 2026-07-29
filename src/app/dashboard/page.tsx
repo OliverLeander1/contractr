@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import PakkePop from "@/components/PakkePop";
 
 interface Projekt {
   id: string;
@@ -57,6 +58,8 @@ export default function Dashboard() {
   const [indlæser, setIndlæser] = useState(true);
   const [opretter, setOpretter] = useState(false);
   const [pendingUdkast, setPendingUdkast] = useState<{ titel: string } | null>(null);
+  const [visPakkePop, setVisPakkePop] = useState(false);
+  const [brugerInfo, setBrugerInfo] = useState<{ id: string; email: string; navn: string } | null>(null);
 
   useEffect(() => {
     const hent = async () => {
@@ -77,7 +80,9 @@ export default function Dashboard() {
       const { data: profil } = await supabase
         .from("profiler").select("navn").eq("id", user.id).single();
 
-      setNavn(profil?.navn || user.user_metadata?.navn || user.email?.split("@")[0] || "");
+      const navnStr = profil?.navn || user.user_metadata?.navn || user.email?.split("@")[0] || "";
+      setNavn(navnStr);
+      setBrugerInfo({ id: user.id, email: user.email ?? "", navn: navnStr });
 
       const { data: projektData } = await supabase
         .from("projekter")
@@ -86,7 +91,16 @@ export default function Dashboard() {
         .order("oprettet_at", { ascending: false })
         .limit(10);
 
-      if (projektData) setProjekter(projektData);
+      if (projektData) {
+        setProjekter(projektData);
+        // Vis pakke-pop hvis brugeren har projekter men ingen betalt pakke
+        // og ikke allerede har lukket pop'en denne session
+        const harBetalt = projektData.some(p => p.pakke_betalt);
+        const harDismisset = sessionStorage.getItem("pakke_pop_vist");
+        if (!harBetalt && projektData.length > 0 && !harDismisset) {
+          setTimeout(() => setVisPakkePop(true), 800);
+        }
+      }
 
       const { data: aftaleData } = await supabase
         .from("kontrakter")
@@ -120,8 +134,24 @@ export default function Dashboard() {
     );
   }
 
+  const lukPakkePop = () => {
+    setVisPakkePop(false);
+    sessionStorage.setItem("pakke_pop_vist", "1");
+  };
+
   return (
     <div className="min-h-screen bg-[#f5f3ee]">
+      {visPakkePop && brugerInfo && projekter.length > 0 && (
+        <PakkePop
+          projekttype={projekter[0].projekttype}
+          projektId={projekter[0].id}
+          email={brugerInfo.email}
+          navn={brugerInfo.navn}
+          brugerId={brugerInfo.id}
+          onLuk={lukPakkePop}
+        />
+      )}
+
       {/* Nav */}
       <nav className="bg-[#f5f3ee] border-b border-[#e0ddd6] px-6 py-4 sticky top-0 z-50">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
