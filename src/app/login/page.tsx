@@ -77,6 +77,8 @@ function LoginInner() {
     if (!email.trim()) { setError("Indtast din e-mail."); return; }
     if (!password.trim()) { setError("Indtast din adgangskode."); return; }
     if (mode === "opret" && !navn.trim()) { setError("Indtast dit navn."); return; }
+    if (mode === "opret" && rolle === "haandvaerker" && cvr.replace(/\D/g, "").length !== 8) { setError("Indtast dit CVR-nummer (8 cifre) for at oprette konto som entreprenør."); return; }
+    if (mode === "opret" && rolle === "haandvaerker" && !fag) { setError("Vælg dit fagområde for at oprette konto som entreprenør."); return; }
     if (password.length < 8) { setError("Adgangskoden skal være mindst 8 tegn."); return; }
     if (mode === "opret" && !/[A-Z]/.test(password)) { setError("Adgangskoden skal indeholde mindst ét stort bogstav."); return; }
     if (mode === "opret" && !/[0-9]/.test(password)) { setError("Adgangskoden skal indeholde mindst ét tal."); return; }
@@ -209,18 +211,18 @@ function LoginInner() {
             {[
               {
                 icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
-                titel: "Opret dit projekt hurtigt og nemt",
-                tekst: "Du laver en simpel beskrivelse af arbejdet der skal udføres, og vi laver et professionelt udbudsdokument klar til entreprenøren.",
+                titel: "Klare aftaler fra første dag",
+                tekst: "Alle parter arbejder ud fra det samme grundlag. Tilbud, kontrakt og ekstraarbejde er samlet ét sted og tilgængeligt hele vejen gennem projektet.",
+              },
+              {
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+                titel: "Bygherre og entreprenør i samme rum",
+                tekst: "Ingen beskeder der går tabt, ingen mundtlige aftaler der huskes forskelligt. Alt kommunikeres, dokumenteres og er synligt for begge parter.",
               },
               {
                 icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-                titel: "Tjek tilbuddet inden du siger ja",
-                tekst: "Har du allerede fået et tilbud fra en entreprenør? Vi screener det gratis!",
-              },
-              {
-                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>,
-                titel: "Alt samlet ét sted",
-                tekst: "Kontrakt, billeder, ekstraarbejde og tidsplan. Altid tilgængeligt for begge parter.",
+                titel: "Færre konflikter, bedre projekter",
+                tekst: "De fleste byggekonflikter opstår fordi aftalen var uklar fra starten. Med et fælles aftalegrundlag forsvinder størstedelen af dem, inden de opstår.",
               },
             ].map((p, i) => (
               <div key={i} className="flex gap-4">
@@ -298,7 +300,9 @@ function LoginInner() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Dit navn</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Dit navn <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
                     placeholder={rolle === "haandvaerker" ? "F.eks. Thomas Madsen" : "F.eks. Mette Hansen"}
@@ -339,7 +343,7 @@ function LoginInner() {
                   <>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">CVR</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">CVR <span className="text-red-500">*</span></label>
                         <div className="relative">
                           <input type="text" placeholder="8 cifre" value={cvr} maxLength={8}
                             onChange={e => { setCvr(e.target.value); setCvrVerificeret(false); }}
@@ -357,7 +361,7 @@ function LoginInner() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Fagområde</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Fagområde <span className="text-red-500">*</span></label>
                       <select value={fag} onChange={e => setFag(e.target.value)}
                         className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all">
                         <option value="">Vælg fagområde...</option>
@@ -458,9 +462,9 @@ function LoginInner() {
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 text-center">Hvad du får</p>
             <div className="space-y-3">
               {[
-                "Opret projektet og send det i udbud til entreprenører",
-                "Tjek tilbuddet inden du skriver under",
-                "Alle aftaler og ekstraarbejde samlet ét sted",
+                "Klare aftaler fra første dag — tilgængeligt for begge parter",
+                "Bygherre og entreprenør samlet i samme projektrum",
+                "Færre konflikter, fordi aftalegrundlaget er på plads fra start",
               ].map((t, i) => (
                 <div key={i} className="flex items-start gap-2.5">
                   <div className="w-5 h-5 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
