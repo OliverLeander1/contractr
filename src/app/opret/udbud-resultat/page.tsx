@@ -81,7 +81,7 @@ export default function UdbudResultat() {
       });
       const projekt = await rProjekt.json();
       if (projekt.error || !projekt.id) {
-        setOpretFejl("Kunne ikke oprette projekt. Prøv igen.");
+        setOpretFejl(`Projekt fejl: ${projekt.error || "ukendt fejl"}`);
         return;
       }
       const projekt_id = projekt.id;
