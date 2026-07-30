@@ -8,7 +8,7 @@ const KUN_HAANDVAERKER = ["/haandvaerker/sager", "/haandvaerker/nyt-tilbud", "/h
 const BESKYTTEDE = [...KUN_BYGHERRE, ...KUN_HAANDVAERKER];
 
 // Ruter der altid er tilgængelige selv under vedligeholdelse
-const VEDLIGEHOLDELSE_UNDTAGET = ["/under-vedligeholdelse", "/api/maintenance"];
+const VEDLIGEHOLDELSE_UNDTAGET = ["/under-vedligeholdelse", "/api/maintenance", "/kontrakt", "/auth"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
