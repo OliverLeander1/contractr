@@ -98,6 +98,21 @@ export default function BeskrivProjekt() {
     }
   }
 
+  const placeholderTekst: Record<string, string> = {
+    badevarelse: "F.eks. Badeværelset skal totalrenoveres. Eksisterende fliser og toilet fjernes. Vi ønsker walk-in bruser, dobbelt håndvask og gulvvarme. Badeværelset er ca. 8 m². Blyrør skal skiftes...",
+    kokken: "F.eks. Køkkenet skal renoveres komplet. Eksisterende køkken nedrives. Vi ønsker nyt køkken med ø, skjult emhætte og nyt gulv. Køkkenet er ca. 14 m². Elinstallationer skal opdateres...",
+    tag: "F.eks. Taget skal udskiftes pga. alder og utætheder. Ca. 120 m² eternittag ønskes erstattet med tegl. Inkl. nye tagrender og nedløbsrør. Undertaget skal efterses og evt. fornyes...",
+    tilbygning: "F.eks. Vi ønsker en tilbygning på ca. 20 m² i forlængelse af stuen. Tilbygningen skal indeholde et ekstra værelse og en gang. Fundament, ydervægge, tag og vinduer inkluderet...",
+    totalrenovering: "F.eks. Huset fra 1965 skal totalrenoveres. Ca. 120 m². Inkl. nyt køkken, 2 badeværelser, nyt el, nyt VVS, ny isolering og nye gulve i hele huset. Huset er ubeboet under arbejdet...",
+    vinduer: "F.eks. 12 vinduer og 2 yderdøre skal udskiftes. Nuværende træ-vinduer er utætte og defekte. Ønsker energiglas (energiklasse A) i samme størrelser. Facade skal repareres efter montage...",
+    maler: "F.eks. Hele husets indvendige vægge og lofter skal malerbehandles. Ca. 300 m² vægge og 150 m² loft. Enkelte rum har skader der skal spartles. Vindueskarm og fodpaneler medtages...",
+    carport: "F.eks. Vi ønsker en carport på ca. 6x6 m med redskabsrum på 6x2 m. Træ-konstruktion med tagpap-tag. Fundament og afløb inkluderet. Placering ud mod skel kræver dispensation...",
+    vaadrum: "F.eks. Eksisterende badeværelse på 5 m² ønskes renoveret som vådrum. Komplet med nye fliser, nyt bruseniche, toilet og håndvask. Membran og faldgulv. VVS og el inkluderet...",
+    andet: "F.eks. Beskriv arbejdet så detaljeret som muligt — hvad skal laves, omfang, materialer du ønsker, og eventuelle særlige krav eller hensyn...",
+  };
+
+  const placeholder = placeholderTekst[projekttype] ?? placeholderTekst.andet;
+
   return (
     <FlowLayout aktivTrin={2}>
       <div className="mb-8">
@@ -117,7 +132,7 @@ export default function BeskrivProjekt() {
         <p className="text-sm text-gray-400 mb-4">Beskriv så detaljeret som muligt - jo mere du skriver, jo bedre bliver dokumentet</p>
         <textarea
           rows={5}
-          placeholder="F.eks. Badeværelset skal totalrenoveres. Eksisterende fliser og toilet fjernes. Vi ønsker walk-in bruser, dobbelt håndvask og gulvvarme. Badeværelset er ca. 8 m². Blyrør skal skiftes..."
+          placeholder={placeholder}
           value={beskrivelse}
           onChange={(e) => setBeskrivelse(e.target.value)}
           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all resize-none"
