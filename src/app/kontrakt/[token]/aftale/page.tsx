@@ -23,7 +23,7 @@ interface Kontrakt {
   titel: string | null;
   beskrivelse: string | null;
   total_pris: number | null;
-  betalingsplan: string | null;
+  betalingsplan: { milepæl: string; andel: string }[] | null;
   vilkaar: string | null;
   startdato: string | null;
   slutdato: string | null;
@@ -363,11 +363,19 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
 
         {/* Aftalegrundlag — samme dokumentlayout som ved oprettelse */}
         <div className="mb-5">
-          {kontrakt.beskrivelse ? (
+          {(kontrakt.beskrivelse || kontrakt.total_pris || kontrakt.startdato || kontrakt.slutdato) ? (
             <DokumentRenderer
-              tekst={kontrakt.beskrivelse}
+              tekst={kontrakt.beskrivelse || undefined}
               titel={kontrakt.titel || undefined}
-              bygherreNavn={undefined}
+              totalPris={kontrakt.total_pris}
+              startdato={kontrakt.startdato}
+              slutdato={kontrakt.slutdato}
+              betalingsplan={kontrakt.betalingsplan as { milepæl: string; andel: string }[] | null}
+              forudsaetninger={kontrakt.forudsaetninger}
+              tidsplan={kontrakt.tidsplan}
+              vilkaar={kontrakt.vilkaar}
+              haandvaerkerNavn={kontrakt.haandvaerker_navn}
+              haandvaerkerFirma={kontrakt.haandvaerker_firma}
             />
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">

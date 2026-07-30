@@ -1,15 +1,99 @@
 "use client";
 
+interface TidsplanFase {
+  navn: string;
+  startdato: string;
+  slutdato: string;
+}
+
+interface Tidsplan {
+  type: "faser" | "ingen_tidsplan";
+  faser?: TidsplanFase[];
+  godkendt_af_bygherre?: boolean;
+}
+
 interface Props {
-  tekst: string;
+  tekst?: string;
   titel?: string;
   bygherreNavn?: string;
   bygherreKontakt?: string;
+  // Live felter fra kontrakt
+  totalPris?: number | null;
+  startdato?: string | null;
+  slutdato?: string | null;
+  betalingsplan?: { milepæl: string; andel: string }[] | null;
+  forudsaetninger?: string | null;
+  tidsplan?: Tidsplan | null;
+  vilkaar?: string | null;
+  haandvaerkerNavn?: string | null;
+  haandvaerkerFirma?: string | null;
 }
 
-export default function DokumentRenderer({ tekst, titel, bygherreNavn, bygherreKontakt }: Props) {
-  const linjer = tekst.split("\n");
+const fmtKr = (n: number) =>
+  new Intl.NumberFormat("da-DK", { style: "currency", currency: "DKK", maximumFractionDigits: 0 }).format(n);
+
+const fmtDato = (iso: string) =>
+  new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
+
+function SektionsOverskrift({ nr, label }: { nr: number; label: string }) {
+  return (
+    <div className="pt-8 pb-3">
+      <div className="flex items-center gap-3">
+        <span className="w-7 h-7 rounded-full bg-[#1e3a2a] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+          {nr}
+        </span>
+        <p className="font-bold text-gray-900 text-sm uppercase tracking-wide">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+function DataRække({ label, værdi }: { label: string; værdi: string }) {
+  return (
+    <div className="flex gap-4 py-1.5 border-b border-gray-50 last:border-0">
+      <span className="text-xs font-semibold text-gray-500 w-40 flex-shrink-0 pt-0.5">{label}</span>
+      <span className="text-sm text-gray-800 flex-1">{værdi}</span>
+    </div>
+  );
+}
+
+export default function DokumentRenderer({
+  tekst,
+  titel,
+  bygherreNavn,
+  bygherreKontakt,
+  totalPris,
+  startdato,
+  slutdato,
+  betalingsplan,
+  forudsaetninger,
+  tidsplan,
+  vilkaar,
+  haandvaerkerNavn,
+  haandvaerkerFirma,
+}: Props) {
   const dato = new Date().toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
+
+  // Udled projektbeskrivelse fra rå tekst — spring systemlinjer over
+  const beskrivelsesLinjer = tekst
+    ? tekst.split("\n").filter(l => {
+        const t = l.trim();
+        if (!t) return false;
+        if (/^NEMBYGGESTYRING$/i.test(t)) return false;
+        if (/^nembyggestyring\.dk$/i.test(t)) return false;
+        if (/^UDBUDSDOKUMENT$/i.test(t)) return false;
+        if (/^Dato$/i.test(t)) return false;
+        if (titel && t === titel) return false;
+        if (/^BYGHERRE$/i.test(t)) return false;
+        return true;
+      })
+    : [];
+
+  const harPrisSektion = !!(totalPris || (betalingsplan && betalingsplan.length > 0));
+  const harTidsplan = !!(startdato || slutdato || tidsplan);
+  const harForudsaetninger = !!forudsaetninger?.trim();
+
+  let sektionsNr = 1;
 
   return (
     <div className="bg-white rounded-2xl shadow-[0_4px_32px_rgba(0,0,0,0.08)] border border-gray-100 overflow-hidden">
@@ -34,78 +118,161 @@ export default function DokumentRenderer({ tekst, titel, bygherreNavn, bygherreK
           )}
         </div>
 
-        {(bygherreNavn || bygherreKontakt) && (
-          <div className="mt-5 flex gap-8">
+        <div className="mt-5 flex gap-8">
+          {(bygherreNavn || bygherreKontakt) && (
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400 mb-1">Bygherre</p>
               {bygherreNavn && <p className="text-sm font-semibold text-gray-800">{bygherreNavn}</p>}
               {bygherreKontakt && <p className="text-xs text-gray-500">{bygherreKontakt}</p>}
             </div>
-          </div>
-        )}
+          )}
+          {(haandvaerkerNavn || haandvaerkerFirma) && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400 mb-1">Entreprenør</p>
+              {haandvaerkerFirma && <p className="text-sm font-semibold text-gray-800">{haandvaerkerFirma}</p>}
+              {haandvaerkerNavn && <p className="text-xs text-gray-500">{haandvaerkerNavn}</p>}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Dokument-indhold */}
       <div className="px-10 py-8">
-        <div className="space-y-0.5 max-w-none">
-          {linjer.map((linje, i) => {
-            const trimmet = linje.trim();
 
-            // Spring UDBUDSDOKUMENT og tom titel over (vises i header)
-            if (/^UDBUDSDOKUMENT$/i.test(trimmet)) return null;
-            if (i < 4 && trimmet === titel) return null;
+        {/* 1. Projektbeskrivelse */}
+        {beskrivelsesLinjer.length > 0 && (
+          <div>
+            <SektionsOverskrift nr={sektionsNr++} label="Projektbeskrivelse" />
+            <div className="space-y-0.5">
+              {beskrivelsesLinjer.map((linje, i) => {
+                const trimmet = linje.trim();
+                if (trimmet.startsWith("- ")) {
+                  return (
+                    <div key={i} className="flex items-start gap-3 py-1 pl-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#1e3a2a] flex-shrink-0 mt-2" />
+                      <span className="text-sm text-gray-700 leading-relaxed">{trimmet.slice(2)}</span>
+                    </div>
+                  );
+                }
+                if (/^[A-ZÆØÅ][a-zæøåA-ZÆØÅ\s]+:\s+\S/.test(trimmet)) {
+                  const kolon = trimmet.indexOf(":");
+                  return (
+                    <div key={i} className="flex gap-4 py-1.5 border-b border-gray-50 last:border-0">
+                      <span className="text-xs font-semibold text-gray-500 w-40 flex-shrink-0 pt-0.5">{trimmet.slice(0, kolon).trim()}</span>
+                      <span className="text-sm text-gray-800 flex-1">{trimmet.slice(kolon + 1).trim()}</span>
+                    </div>
+                  );
+                }
+                return (
+                  <p key={i} className="text-sm text-gray-700 leading-[1.8] py-0.5">{trimmet}</p>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
-            // Nummereret overskrift: "1. PROJEKTBESKRIVELSE"
-            if (/^\d+\.\s+[A-ZÆØÅ][A-ZÆØÅ\s]+$/.test(trimmet) && trimmet.length > 3) {
-              return (
-                <div key={i} className="pt-8 pb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="w-7 h-7 rounded-full bg-[#1e3a2a] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {trimmet.match(/^\d+/)?.[0]}
-                    </span>
-                    <p className="font-bold text-gray-900 text-sm uppercase tracking-wide">
-                      {trimmet.replace(/^\d+\.\s+/, "")}
-                    </p>
+        {/* 2. Entreprisesum og betalingsplan */}
+        {harPrisSektion && (
+          <div>
+            <SektionsOverskrift nr={sektionsNr++} label="Entreprisesum og betalingsplan" />
+            <div className="space-y-0">
+              {totalPris ? (
+                <DataRække label="Aftalt pris (fast)" værdi={`${fmtKr(totalPris)} inkl. moms`} />
+              ) : (
+                <p className="text-sm text-gray-400 italic">Entreprisesum er endnu ikke fastsat.</p>
+              )}
+              {betalingsplan && betalingsplan.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Betalingsplan</p>
+                  <div className="space-y-1.5">
+                    {betalingsplan.map((b, i) => {
+                      const pct = parseFloat(b.andel);
+                      const beloeb = totalPris && !isNaN(pct) ? fmtKr(totalPris * (pct / 100)) : null;
+                      return (
+                        <div key={i} className="flex items-center gap-3 py-1.5 border-b border-gray-50 last:border-0">
+                          <span className="w-5 h-5 rounded-full bg-gray-100 text-gray-500 text-[10px] font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
+                          <span className="text-sm text-gray-700 flex-1">{b.milepæl}</span>
+                          <span className="text-sm font-semibold text-gray-900">{b.andel}</span>
+                          {beloeb && <span className="text-xs text-gray-400 w-24 text-right">{beloeb}</span>}
+                        </div>
+                      );
+                    })}
                   </div>
-                  <div className="mt-3 h-px bg-gray-100" />
+                  <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+                    Betaling frigives mod dokumenteret fremdrift i henhold til AB-Forbruger 2012 § 25 og § 37.
+                    Bygherre er ikke forpligtet til at betale en rate, før den tilhørende milepæl er nået og godkendt.
+                  </p>
                 </div>
-              );
-            }
+              )}
+            </div>
+          </div>
+        )}
 
-            // Bullet-punkt
-            if (trimmet.startsWith("- ")) {
-              return (
-                <div key={i} className="flex items-start gap-3 py-1 pl-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#1e3a2a] flex-shrink-0 mt-2" />
-                  <span className="text-sm text-gray-700 leading-relaxed">{trimmet.slice(2)}</span>
+        {/* 3. Tidsplan */}
+        {harTidsplan && (
+          <div>
+            <SektionsOverskrift nr={sektionsNr++} label="Tidsplan" />
+            <div className="space-y-0">
+              {startdato && <DataRække label="Opstartsdato" værdi={fmtDato(startdato)} />}
+              {slutdato && <DataRække label="Færdigmelding" værdi={fmtDato(slutdato)} />}
+              {tidsplan?.type === "ingen_tidsplan" && (
+                <p className="text-sm text-gray-600 py-1 leading-relaxed">
+                  Parterne har aftalt at arbejdet udføres uden en faseopdelt tidsplan.
+                  Dette udgør en eksplicit fravigelse af AB-Forbruger 2012 § 12.
+                </p>
+              )}
+              {tidsplan?.type === "faser" && tidsplan.faser && tidsplan.faser.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Arbejdsfaser</p>
+                  <div className="space-y-1.5">
+                    {tidsplan.faser.map((f, i) => (
+                      <div key={i} className="flex items-center gap-3 py-1.5 border-b border-gray-50 last:border-0">
+                        <span className="w-5 h-5 rounded-full bg-[#1e3a2a]/10 text-[#1e3a2a] text-[10px] font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
+                        <span className="text-sm text-gray-700 flex-1">{f.navn}</span>
+                        <span className="text-xs text-gray-500">
+                          {f.startdato && fmtDato(f.startdato)}
+                          {f.startdato && f.slutdato && " – "}
+                          {f.slutdato && fmtDato(f.slutdato)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              );
-            }
-
-            // Label:værdi-linje
-            if (/^[A-ZÆØÅ][a-zæøåA-ZÆØÅ\s]+:\s+\S/.test(trimmet)) {
-              const kolon = trimmet.indexOf(":");
-              const label = trimmet.slice(0, kolon).trim();
-              const værdi = trimmet.slice(kolon + 1).trim();
-              return (
-                <div key={i} className="flex gap-4 py-1.5 border-b border-gray-50 last:border-0">
-                  <span className="text-xs font-semibold text-gray-500 w-36 flex-shrink-0 pt-0.5">{label}</span>
-                  <span className="text-sm text-gray-800 flex-1">{værdi}</span>
-                </div>
-              );
-            }
-
-            // Tom linje
-            if (trimmet === "") return <div key={i} className="h-3" />;
-
-            // Normal tekst
-            return (
-              <p key={i} className="text-sm text-gray-700 leading-[1.8] py-0.5">
-                {trimmet}
+              )}
+              <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+                Tidsfristerne i tidsplanen er bindende i henhold til AB-Forbruger 2012 § 12.
+                Overskridelse kan udløse krav om erstatning.
               </p>
-            );
-          })}
+            </div>
+          </div>
+        )}
+
+        {/* 4. Forudsætninger */}
+        {harForudsaetninger && (
+          <div>
+            <SektionsOverskrift nr={sektionsNr++} label="Forudsætninger og krav til projektet" />
+            <div className="bg-gray-50 rounded-xl px-5 py-4 border border-gray-100">
+              <p className="text-sm text-gray-700 leading-[1.8] whitespace-pre-wrap">{forudsaetninger}</p>
+            </div>
+            <p className="text-xs text-gray-400 mt-2 leading-relaxed">
+              Ovenstående forudsætninger er fremsat af entreprenøren og accepteret af bygherre som vilkår for arbejdets udførelse.
+            </p>
+          </div>
+        )}
+
+        {/* 5. Vilkår */}
+        <div>
+          <SektionsOverskrift nr={sektionsNr++} label="Juridiske vilkår" />
+          <p className="text-sm text-gray-700 leading-[1.8]">
+            {vilkaar || "AB-Forbruger 2012 er gældende for denne aftale i sin helhed."}
+          </p>
+          <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+            AB-Forbruger 2012 gælder kun, hvis begge parter eksplicit har aftalt det. Begge parter har godkendt
+            at AB-Forbruger 2012 er gældende som vilkår for denne entreprise, herunder bestemmelser om
+            ekstraarbejde (§ 23), betaling (§ 25 og § 37), afleveringsforretning (§ 38) og 1-årseftersyn (§ 58).
+          </p>
         </div>
+
       </div>
 
       {/* Dokument-footer */}

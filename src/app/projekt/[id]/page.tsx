@@ -371,88 +371,49 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
       );
     }
 
-    // Ikke-godkendt tilstand
+    // Ikke-godkendt tilstand — vis status og send direkte til aftale
+    const statusBeskrivelse = {
+      udkast: "Aftalegrundlaget er et udkast. Udfyld felterne og inviter din entreprenør.",
+      inviteret: `Invitation er sendt til ${kontrakt.haandvaerker_email}. Du afventer at entreprenøren åbner linket og udfylder sin del.`,
+      forhandling: "Entreprenøren har foreslået ændringer. Gå til Aftale for at besvare dem.",
+      bygherre_godkendt: "Du har godkendt aftalegrundlaget. Afventer nu entreprenørens underskrift.",
+      haandvaerker_godkendt: "Entreprenøren har godkendt. Du mangler kun at give din endelige godkendelse.",
+    }[kontrakt.status] ?? "";
+
     return (
       <div className="min-h-screen bg-gray-50">
         <ProjektNav id={id} />
-        <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="max-w-2xl mx-auto px-4 py-10">
 
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-2">
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${st.klasse}`}>{st.label}</span>
-            </div>
+          {/* Projekt-header */}
+          <div className="mb-6">
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${st.klasse} mb-3 inline-block`}>{st.label}</span>
             <h1 className="text-2xl font-bold text-gray-900">{kontrakt.titel || "Nyt projekt"}</h1>
-            {kontrakt.beskrivelse && (
-              <p className="text-gray-500 text-sm mt-1 leading-relaxed max-w-2xl">{kontrakt.beskrivelse}</p>
-            )}
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-4">
-              <BesigtigelseKort kontraktId={kontrakt.id} projektId={id} rolle="bygherre" />
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                <h2 className="font-semibold text-gray-900 mb-4">Aftalestatus</h2>
-                <div className="flex items-start gap-3 p-4 bg-[#1e3a2a]/5 border border-[#1e3a2a]/15 rounded-xl hover:bg-[#1e3a2a]/10 transition-colors">
-                  <div className="w-9 h-9 bg-[#1e3a2a]/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-[#1e3a2a]">Aftalegrundlag er under udarbejdelse</p>
-                    <p className="text-xs text-[#1e3a2a]/70 mt-0.5 leading-relaxed">
-                      {kontrakt.status === "udkast" && "Udfyld kontraktfelterne og inviter håndværkeren."}
-                      {kontrakt.status === "inviteret" && `Invitation sendt til ${kontrakt.haandvaerker_email}. Afventer at håndværkeren åbner linket.`}
-                      {kontrakt.status === "forhandling" && "Håndværkeren har foreslået ændringer. Gå til Aftale for at besvare dem."}
-                      {kontrakt.status === "bygherre_godkendt" && "Du har godkendt. Afventer håndværkerens godkendelse."}
-                      {kontrakt.status === "haandvaerker_godkendt" && "Håndværkeren har godkendt. Gå til Aftale for at give din godkendelse."}
-                    </p>
-                    <Link href={`/projekt/${id}/aftale`} className="inline-block mt-3 text-xs font-bold text-[#1e3a2a] underline underline-offset-2">
-                      Gå til aftalegrundlag →
-                    </Link>
-                  </div>
-                </div>
+          {/* Statusforklaring + CTA */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                </svg>
               </div>
-            </div>
-
-            <div className="space-y-5">
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                <h3 className="font-semibold text-gray-900 text-sm mb-4">Projektoverblik</h3>
-                <div className="space-y-3">
-                  {kontrakt.total_pris && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-400">Entreprisesum</span>
-                      <span className="text-sm font-bold text-[#1e3a2a]">{fmtKr(kontrakt.total_pris)}</span>
-                    </div>
-                  )}
-                  {kontrakt.startdato && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-400">Opstart</span>
-                      <span className="text-xs text-gray-700">{fmtDato(kontrakt.startdato)}</span>
-                    </div>
-                  )}
-                  {kontrakt.slutdato && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-400">Aflevering</span>
-                      <span className="text-xs text-gray-700">{fmtDato(kontrakt.slutdato)}</span>
-                    </div>
-                  )}
-                  {kontrakt.haandvaerker_navn && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-400">Håndværker</span>
-                      <span className="text-xs text-gray-700">{kontrakt.haandvaerker_navn}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                <h3 className="font-semibold text-gray-900 text-sm mb-1">Brug for hjælp?</h3>
-                <p className="text-xs text-gray-400 mb-4 leading-relaxed">En byggesagkyndig kan gennemgå projektet og hjælpe undervejs.</p>
-                <Link href="/tilkoeb" className="block w-full text-center bg-[#1e3a2a] text-white text-sm font-semibold py-2.5 rounded-xl hover:opacity-90 transition-opacity">
-                  Book rådgiver
+              <div className="flex-1">
+                <p className="text-sm font-bold text-gray-900 mb-1">Aftalegrundlag under udarbejdelse</p>
+                <p className="text-sm text-gray-500 leading-relaxed">{statusBeskrivelse}</p>
+                <Link
+                  href={`/projekt/${id}/aftale`}
+                  className="inline-flex items-center gap-2 mt-4 bg-[#1e3a2a] text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+                >
+                  Gå til aftalegrundlag
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </Link>
               </div>
             </div>
           </div>
+
+          <BesigtigelseKort kontraktId={kontrakt.id} projektId={id} rolle="bygherre" />
         </div>
         <Suspense><Chat bruger="bygherre" /></Suspense>
       </div>

@@ -91,16 +91,25 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const [brugerNavn, setBrugerNavn] = useState("");
   const [godkenderTidsplan, setGodkenderTidsplan] = useState(false);
   const [godkenderForudsaetninger, setGodkenderForudsaetninger] = useState(false);
+  const [alleKontrakter, setAlleKontrakter] = useState<{ id: string; titel: string | null; status: string; oprettet_at: string }[]>([]);
+  const [opretter, setOpretter] = useState(false);
 
-  const hentKontrakt = useCallback(async () => {
+  const hentKontrakt = useCallback(async (kontraktId?: string) => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const r = await fetch(`/api/kontrakt?projekt_id=${id}&bygherre_id=${user.id}`);
+    const url = kontraktId
+      ? `/api/kontrakt?projekt_id=${id}&bygherre_id=${user.id}&kontrakt_id=${kontraktId}`
+      : `/api/kontrakt?projekt_id=${id}&bygherre_id=${user.id}`;
+    const r = await fetch(url);
     const d = await r.json();
     if (!d.error) setKontrakt(d);
     else setKontrakt(null);
+
+    const alleR = await fetch(`/api/projekter/${id}/kontrakter`);
+    const alleD = await alleR.json();
+    if (Array.isArray(alleD)) setAlleKontrakter(alleD);
 
     const { data: profil } = await supabase
       .from("profiler").select("navn").eq("id", user.id).single();
@@ -214,6 +223,23 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
       setCvrData(null);
     } finally {
       setSender(false);
+    }
+  }
+
+  async function opretNyKontrakt() {
+    if (opretter) return;
+    setOpretter(true);
+    try {
+      const r = await fetch(`/api/projekter/${id}/kontrakter`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
+      const d = await r.json();
+      if (!d.error) {
+        setKontrakt({ ...d });
+        const alleR = await fetch(`/api/projekter/${id}/kontrakter`);
+        const alleD = await alleR.json();
+        if (Array.isArray(alleD)) setAlleKontrakter(alleD);
+      }
+    } finally {
+      setOpretter(false);
     }
   }
 
@@ -343,7 +369,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
 
         {/* Header */}
-        <div className="flex items-start justify-between mb-6 gap-4">
+        <div className="flex items-start justify-between mb-4 gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${statusFarve[kontrakt.status] || "bg-gray-100 text-gray-600"}`}>
@@ -357,19 +383,48 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Aftalegrundlag</h1>
             <p className="text-sm text-gray-500 mt-1">
-              {kontrakt.titel || "Kontraktudkast"} · <span className="font-medium text-gray-700">Rev. {revision}</span> · Aftalen udarbejdes og godkendes af begge parter her
+              {kontrakt.titel || "Kontraktudkast"} · <span className="font-medium text-gray-700">Rev. {revision}</span>
             </p>
           </div>
-          {!erBeggeGodkendt && (
+          <div className="flex gap-2 flex-shrink-0">
             <button
-              onClick={() => setVisInviter(true)}
-              className="flex-shrink-0 flex items-center gap-2 bg-[#1e3a2a] text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+              onClick={opretNyKontrakt}
+              disabled={opretter}
+              className="flex items-center gap-1.5 border border-gray-200 text-gray-600 text-sm font-semibold px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-40"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-              Inviter håndværker
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              {opretter ? "Opretter..." : "Ny aftale"}
             </button>
-          )}
+            {!erBeggeGodkendt && (
+              <button
+                onClick={() => setVisInviter(true)}
+                className="flex items-center gap-2 bg-[#1e3a2a] text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Inviter håndværker
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Liste over alle kontrakter — vises kun hvis der er mere end 1 */}
+        {alleKontrakter.length > 1 && (
+          <div className="flex gap-2 flex-wrap mb-5">
+            {alleKontrakter.map(k => (
+              <button
+                key={k.id}
+                onClick={() => hentKontrakt(k.id)}
+                className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                  typeof kontrakt === "object" && kontrakt?.id === k.id
+                    ? "bg-[#1e3a2a] text-white border-[#1e3a2a]"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-[#1e3a2a]/40"
+                }`}
+              >
+                {k.titel || "Aftalegrundlag"} · {statusTekst[k.status] || k.status}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Invitation-modal */}
         {visInviter && (
@@ -639,14 +694,21 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                           </button>
                         </div>
                       </div>
-                    ) : beskrivelse ? (
+                    ) : (
                       <DokumentRenderer
-                        tekst={beskrivelse}
+                        tekst={beskrivelse || undefined}
                         titel={kontrakt.titel || undefined}
                         bygherreNavn={brugerNavn}
+                        totalPris={kontrakt.total_pris}
+                        startdato={kontrakt.startdato}
+                        slutdato={kontrakt.slutdato}
+                        betalingsplan={kontrakt.betalingsplan}
+                        forudsaetninger={kontrakt.forudsaetninger}
+                        tidsplan={kontrakt.tidsplan}
+                        vilkaar={kontrakt.vilkaar}
+                        haandvaerkerNavn={kontrakt.haandvaerker_navn}
+                        haandvaerkerFirma={kontrakt.haandvaerker_firma}
                       />
-                    ) : (
-                      <p className="text-sm text-gray-400 italic">Ikke udfyldt. Klik Rediger for at tilføje indhold.</p>
                     )}
                   </div>
 
