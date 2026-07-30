@@ -4,6 +4,82 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import DokumentRenderer from "@/components/DokumentRenderer";
 
+function ManuelPris({ token, onGemt }: { token: string; onGemt: (pris: number) => void }) {
+  const [prisInput, setPrisInput] = useState("");
+  const [gemmer, setGemmer] = useState(false);
+  const [vis, setVis] = useState(false);
+
+  // Formatér input til dansk talformat mens brugeren taster
+  function handlePrisInput(raw: string) {
+    // Tillad kun tal, punktum og komma
+    const renset = raw.replace(/[^0-9.,]/g, "");
+    setPrisInput(renset);
+  }
+
+  // Konvertér dansk format (1.234,56) til tal
+  function parseDanskPris(s: string): number | null {
+    // Fjern tusindtalsseparator (punktum), erstat komma med punktum
+    const normaliseret = s.replace(/\./g, "").replace(",", ".");
+    const tal = parseFloat(normaliseret);
+    return isNaN(tal) ? null : tal;
+  }
+
+  async function gem() {
+    const pris = parseDanskPris(prisInput);
+    if (!pris || pris <= 0) return;
+    setGemmer(true);
+    const res = await fetch(`/api/kontrakt/${token}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ total_pris: pris }),
+    });
+    if (res.ok) onGemt(pris);
+    setGemmer(false);
+  }
+
+  if (!vis) {
+    return (
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <button onClick={() => setVis(true)} className="flex items-center gap-2 text-sm font-semibold text-[#1a5c38] hover:underline">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Intet dokument — indtast pris manuelt
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-100">
+      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Manuel prisindtastning</p>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="125.000"
+            value={prisInput}
+            onChange={e => handlePrisInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && gem()}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:border-[#1e3a2a] pr-20"
+          />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium">kr. inkl. moms</span>
+        </div>
+        <button
+          onClick={gem}
+          disabled={gemmer || !prisInput.trim()}
+          className="px-4 py-3 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 disabled:opacity-40 transition-all"
+        >
+          {gemmer ? "..." : "Gem"}
+        </button>
+        <button onClick={() => { setVis(false); setPrisInput(""); }} className="px-3 py-3 border border-gray-200 rounded-xl text-gray-500 text-sm hover:bg-gray-50">
+          ✕
+        </button>
+      </div>
+      <p className="text-xs text-gray-400 mt-2">Brug punktum til tusindtal og komma til decimaler. Fx: 125.000 eller 87.500,50</p>
+    </div>
+  );
+}
+
 interface TidsplanFase {
   navn: string;
   startdato: string;
@@ -101,10 +177,10 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   const [datoerGemt, setDatoerGemt] = useState(false);
 
   const [visTidsplanEditor, setVisTidsplanEditor] = useState(false);
-  const [tidsplanType, setTidsplanType] = useState<"faser" | "ingen_tidsplan">("faser");
-  const [faser, setFaser] = useState<TidsplanFase[]>([
-    { navn: "", startdato: "", slutdato: "" },
-  ]);
+  const [datoValg, setDatoValg] = useState<"godkend" | "revider" | "ingen">("godkend");
+  const [revStartdato, setRevStartdato] = useState("");
+  const [revSlutdato, setRevSlutdato] = useState("");
+  const [revBemaerkning, setRevBemaerkning] = useState("");
   const [gemmerTidsplan, setGemmerTidsplan] = useState(false);
   const [tidsplanGemt, setTidsplanGemt] = useState(false);
 
@@ -153,12 +229,25 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
 
   async function gemTidsplan() {
     if (gemmerTidsplan) return;
-    if (tidsplanType === "faser" && faser.some(f => !f.navn.trim() || !f.startdato || !f.slutdato)) return;
+    if (datoValg === "revider" && (!revStartdato || !revSlutdato)) return;
     setGemmerTidsplan(true);
 
-    const payload: Tidsplan = tidsplanType === "ingen_tidsplan"
-      ? { type: "ingen_tidsplan", godkendt_af_bygherre: false }
-      : { type: "faser", faser: faser.filter(f => f.navn.trim()), godkendt_af_bygherre: false };
+    let payload: Tidsplan;
+    if (datoValg === "ingen") {
+      payload = { type: "ingen_tidsplan", godkendt_af_bygherre: false };
+    } else if (datoValg === "godkend") {
+      payload = {
+        type: "faser",
+        faser: [{ navn: revBemaerkning.trim() || "Aftalt periode", startdato: kontrakt!.startdato ?? revStartdato, slutdato: kontrakt!.slutdato ?? revSlutdato }],
+        godkendt_af_bygherre: false,
+      };
+    } else {
+      payload = {
+        type: "faser",
+        faser: [{ navn: revBemaerkning.trim() || "Foreslået af entreprenør", startdato: revStartdato, slutdato: revSlutdato }],
+        godkendt_af_bygherre: false,
+      };
+    }
 
     const res = await fetch(`/api/kontrakt/${token}/tidsplan`, {
       method: "PATCH",
@@ -785,6 +874,22 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
             {uploadFejl && (
               <p className="mt-3 text-xs text-red-600 font-medium">{uploadFejl}</p>
             )}
+
+            {/* Manuel prisindtastning — alternativ til dokument */}
+            {!kontrakt.tilbud_dokument_url && !kontrakt.total_pris && (
+              <ManuelPris
+                token={token}
+                onGemt={(pris) => setKontrakt(prev => prev ? { ...prev, total_pris: pris } : prev)}
+              />
+            )}
+
+            {kontrakt.total_pris && !kontrakt.tilbud_dokument_url && (
+              <div className="mt-3 flex items-center gap-2 text-sm text-green-700 font-semibold">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Entreprisesum gemt: {new Intl.NumberFormat("da-DK", { style: "currency", currency: "DKK", maximumFractionDigits: 0 }).format(kontrakt.total_pris)} inkl. moms
+                <button onClick={() => setKontrakt(prev => prev ? { ...prev, total_pris: null } : prev)} className="ml-2 text-xs text-gray-400 hover:text-gray-600 font-normal">Ret</button>
+              </div>
+            )}
           </div>
           );
         })()}
@@ -864,9 +969,8 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
         {/* ─── TIDSPLAN ─── */}
         <div className="mb-5">
           {tidsplan && !visTidsplanEditor ? (
-            /* Indsendt tidsplan */
+            /* Bekræftet tidspunkt */
             <div className="bg-[#111c17] rounded-2xl overflow-hidden">
-              {/* Header */}
               <div className="px-6 py-5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -877,82 +981,67 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                   <div>
                     <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">AB-Forbruger § 12</p>
                     <p className="text-base font-bold text-white">
-                      {tidsplan.type === "ingen_tidsplan" ? "Ingen fast tidsplan aftalt" : "Tidsplan indsendt"}
+                      {tidsplan.type === "ingen_tidsplan" ? "Ingen fast tidsplan aftalt" : "Tidspunkt bekræftet"}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {tidsplanGodkendt ? (
-                    <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/20">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                      Godkendt af bygherre
-                    </span>
-                  ) : (
-                    <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/20">
-                      Afventer bygherrens godkendelse
-                    </span>
-                  )}
-                </div>
+                {tidsplanGodkendt ? (
+                  <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/20">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    Godkendt af bygherre
+                  </span>
+                ) : (
+                  <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/20">
+                    Afventer bygherrens godkendelse
+                  </span>
+                )}
               </div>
 
-              {tidsplan.type === "ingen_tidsplan" ? (
-                <div className="px-6 pb-6">
+              <div className="px-6 pb-6">
+                {tidsplan.type === "ingen_tidsplan" ? (
                   <div className="bg-white/5 rounded-xl px-5 py-4 border border-white/10">
                     <p className="text-sm text-white/70 leading-relaxed">
-                      Parterne har aftalt at arbejdet udføres uden en fast faseopdelt tidsplan. Dette udgør en eksplicit fravigelse af AB-Forbruger § 12.
+                      Parterne har aftalt at arbejdet udføres uden en fast tidsplan. Dette udgør en eksplicit fravigelse af AB-Forbruger § 12.
                     </p>
                   </div>
-                </div>
-              ) : (
-                <div className="px-6 pb-6">
-                  {/* Timeline visualization */}
-                  <div className="relative">
-                    {(tidsplan.faser ?? []).map((fase, i) => (
-                      <div key={i} className="flex gap-4 mb-4 last:mb-0">
-                        {/* Linje og cirkel */}
-                        <div className="flex flex-col items-center flex-shrink-0 w-8">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${tidsplanGodkendt ? "bg-[#4ade80] text-[#111c17]" : "bg-[#1a5c38] text-white"}`}>
-                            {i + 1}
+                ) : (
+                  <div className="bg-white/5 rounded-xl px-5 py-4 border border-white/10">
+                    {tidsplan.faser?.[0] && (
+                      <>
+                        <div className="flex items-center gap-4">
+                          <div>
+                            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-0.5">Opstart</p>
+                            <p className="text-sm font-semibold text-white">{tidsplan.faser[0].startdato ? fmtDatoKort(tidsplan.faser[0].startdato) : "—"}</p>
                           </div>
-                          {i < (tidsplan.faser?.length ?? 0) - 1 && (
-                            <div className="w-0.5 flex-1 bg-white/10 mt-1 min-h-[16px]" />
-                          )}
-                        </div>
-                        {/* Indhold */}
-                        <div className="flex-1 bg-white/5 rounded-xl px-4 py-3 border border-white/8 mb-1">
-                          <p className="text-sm font-semibold text-white mb-1">{fase.navn}</p>
-                          <div className="flex items-center gap-2 text-xs text-white/50">
-                            <span>{fase.startdato ? fmtDatoKort(fase.startdato) : "—"}</span>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                            <span>{fase.slutdato ? fmtDatoKort(fase.slutdato) : "—"}</span>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" className="opacity-30"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                          <div>
+                            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-0.5">Aflevering</p>
+                            <p className="text-sm font-semibold text-white">{tidsplan.faser[0].slutdato ? fmtDatoKort(tidsplan.faser[0].slutdato) : "—"}</p>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                        {tidsplan.faser[0].navn && tidsplan.faser[0].navn !== "Aftalt periode" && (
+                          <p className="text-xs text-white/50 mt-3 leading-relaxed">{tidsplan.faser[0].navn}</p>
+                        )}
+                      </>
+                    )}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
               {!godkendt && harAdgang && (
                 <div className="px-6 pb-5">
                   <button
-                    onClick={() => {
-                      if (tidsplan.type === "faser" && tidsplan.faser) setFaser(tidsplan.faser);
-                      setTidsplanType(tidsplan.type);
-                      setVisTidsplanEditor(true);
-                      setTidsplanGemt(false);
-                    }}
+                    onClick={() => { setVisTidsplanEditor(true); setTidsplanGemt(false); }}
                     className="text-xs font-semibold text-white/40 hover:text-white/70 transition-colors"
                   >
-                    Ret tidsplan
+                    Ret tidspunkt
                   </button>
                 </div>
               )}
             </div>
           ) : (visTidsplanEditor || !tidsplan) && harAdgang ? (
-            /* Tidsplan-editor */
+            /* Tidsplan-editor — forenklet */
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              {/* Header */}
               <div className="bg-[#111c17] px-6 py-5">
                 <div className="flex items-center gap-3 mb-1">
                   <div className="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -962,145 +1051,100 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">AB-Forbruger § 12</p>
-                    <p className="text-base font-bold text-white">Opsæt tidsplan</p>
+                    <p className="text-base font-bold text-white">Bekræft tidspunkt for arbejdet</p>
                   </div>
                 </div>
                 <p className="text-xs text-white/50 leading-relaxed mt-2">
-                  AB-Forbruger § 12 kræver en aftalt tidsplan med start- og sluttidspunkt. Udfyld faserne herunder, eller vælg at fravige kravet.
-                  {(kontrakt.startdato || kontrakt.slutdato) && (
-                    <span className="text-white/70"> Aftalt ramme: {kontrakt.startdato ? fmtDatoKort(kontrakt.startdato) : "?"} → {kontrakt.slutdato ? fmtDatoKort(kontrakt.slutdato) : "?"}</span>
-                  )}
+                  Bygherre ønsker opstart{kontrakt.startdato && <span className="text-white/80 font-semibold"> {fmtDatoKort(kontrakt.startdato)}</span>} og aflevering{kontrakt.slutdato && <span className="text-white/80 font-semibold"> {fmtDatoKort(kontrakt.slutdato)}</span>}. Bekræft eller foreslå andre datoer.
                 </p>
               </div>
 
-              <div className="p-6">
-                {/* Type-valg */}
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                  <button
-                    onClick={() => setTidsplanType("faser")}
-                    className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${
-                      tidsplanType === "faser"
-                        ? "border-[#1a5c38] bg-[#f0f7f3]"
-                        : "border-gray-100 hover:border-gray-200 bg-white"
-                    }`}
-                  >
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${tidsplanType === "faser" ? "border-[#1a5c38]" : "border-gray-300"}`}>
-                      {tidsplanType === "faser" && <div className="w-2.5 h-2.5 rounded-full bg-[#1a5c38]" />}
-                    </div>
-                    <div>
-                      <p className={`text-sm font-bold ${tidsplanType === "faser" ? "text-[#1a5c38]" : "text-gray-700"}`}>Fast tidsplan</p>
-                      <p className="text-xs text-gray-400 mt-0.5 leading-snug">Faseopdelt plan med datoer</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => setTidsplanType("ingen_tidsplan")}
-                    className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${
-                      tidsplanType === "ingen_tidsplan"
-                        ? "border-amber-400 bg-amber-50"
-                        : "border-gray-100 hover:border-gray-200 bg-white"
-                    }`}
-                  >
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${tidsplanType === "ingen_tidsplan" ? "border-amber-500" : "border-gray-300"}`}>
-                      {tidsplanType === "ingen_tidsplan" && <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />}
-                    </div>
-                    <div>
-                      <p className={`text-sm font-bold ${tidsplanType === "ingen_tidsplan" ? "text-amber-700" : "text-gray-700"}`}>Ingen fast tidsplan</p>
-                      <p className="text-xs text-gray-400 mt-0.5 leading-snug">Eksplicit fravigelse af § 12</p>
-                    </div>
-                  </button>
-                </div>
-
-                {tidsplanType === "ingen_tidsplan" ? (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 mb-5">
-                    <div className="flex items-start gap-3">
-                      <svg className="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2">
-                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-                      </svg>
-                      <div>
-                        <p className="text-sm font-semibold text-amber-800 mb-1">Fravigelse af AB-Forbruger § 12</p>
-                        <p className="text-xs text-amber-700 leading-relaxed">
-                          Begge parter anerkender at arbejdet udføres uden en faseopdelt tidsplan. Bygherren modtager dette til godkendelse og begge parter er bevidste om at standarden fraviges.
-                        </p>
-                      </div>
-                    </div>
+              <div className="p-6 space-y-3">
+                {/* Valg */}
+                <button
+                  onClick={() => setDatoValg("godkend")}
+                  className={`w-full flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${datoValg === "godkend" ? "border-[#1a5c38] bg-[#f0f7f3]" : "border-gray-100 hover:border-gray-200"}`}
+                >
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${datoValg === "godkend" ? "border-[#1a5c38]" : "border-gray-300"}`}>
+                    {datoValg === "godkend" && <div className="w-2.5 h-2.5 rounded-full bg-[#1a5c38]" />}
                   </div>
-                ) : (
-                  <div className="space-y-3 mb-4">
-                    {faser.map((fase, i) => (
-                      <div key={i} className="bg-gray-50 rounded-xl p-4 space-y-3">
-                        {/* Header: nummer + slet */}
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Fase {i + 1}</span>
-                          {faser.length > 1 && (
-                            <button
-                              onClick={() => setFaser(prev => prev.filter((_, j) => j !== i))}
-                              className="text-xs text-gray-400 hover:text-red-500 transition-colors font-medium"
-                            >
-                              Fjern
-                            </button>
-                          )}
-                        </div>
+                  <div>
+                    <p className={`text-sm font-bold ${datoValg === "godkend" ? "text-[#1a5c38]" : "text-gray-700"}`}>Datoerne passer</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Jeg kan overholde bygherrens ønskede tidspunkt</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setDatoValg("revider")}
+                  className={`w-full flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${datoValg === "revider" ? "border-[#1a5c38] bg-[#f0f7f3]" : "border-gray-100 hover:border-gray-200"}`}
+                >
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${datoValg === "revider" ? "border-[#1a5c38]" : "border-gray-300"}`}>
+                    {datoValg === "revider" && <div className="w-2.5 h-2.5 rounded-full bg-[#1a5c38]" />}
+                  </div>
+                  <div>
+                    <p className={`text-sm font-bold ${datoValg === "revider" ? "text-[#1a5c38]" : "text-gray-700"}`}>Jeg foreslår andre datoer</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Jeg har brug for at justere tidspunktet</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setDatoValg("ingen")}
+                  className={`w-full flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${datoValg === "ingen" ? "border-amber-400 bg-amber-50" : "border-gray-100 hover:border-gray-200"}`}
+                >
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${datoValg === "ingen" ? "border-amber-500" : "border-gray-300"}`}>
+                    {datoValg === "ingen" && <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />}
+                  </div>
+                  <div>
+                    <p className={`text-sm font-bold ${datoValg === "ingen" ? "text-amber-700" : "text-gray-700"}`}>Ingen fast dato for aflevering</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Eksplicit fravigelse af AB-Forbruger § 12</p>
+                  </div>
+                </button>
+
+                {datoValg === "revider" && (
+                  <div className="bg-gray-50 rounded-xl p-4 space-y-4 mt-2">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Opstart</label>
                         <input
-                          placeholder="Fasenavn — fx Nedrivning, Installationer, Overflader"
-                          value={fase.navn}
-                          onChange={e => {
-                            const ny = [...faser];
-                            ny[i] = { ...ny[i], navn: e.target.value };
-                            setFaser(ny);
-                          }}
-                          className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
+                          type="date"
+                          value={revStartdato}
+                          onChange={e => setRevStartdato(e.target.value)}
+                          className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a]"
                         />
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Startdato</label>
-                            <input
-                              type="date"
-                              value={fase.startdato}
-                              min={kontrakt.startdato ?? undefined}
-                              max={kontrakt.slutdato ?? undefined}
-                              onChange={e => {
-                                const ny = [...faser];
-                                ny[i] = { ...ny[i], startdato: e.target.value };
-                                setFaser(ny);
-                              }}
-                              className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Slutdato</label>
-                            <input
-                              type="date"
-                              value={fase.slutdato}
-                              min={fase.startdato || (kontrakt.startdato ?? undefined)}
-                              max={kontrakt.slutdato ?? undefined}
-                              onChange={e => {
-                                const ny = [...faser];
-                                ny[i] = { ...ny[i], slutdato: e.target.value };
-                                setFaser(ny);
-                              }}
-                              className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
-                            />
-                          </div>
-                        </div>
-                        {fase.startdato && fase.slutdato && (
-                          <p className="text-xs text-gray-400">
-                            {new Date(fase.startdato).toLocaleDateString("da-DK", { day: "numeric", month: "short" })} → {new Date(fase.slutdato).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
-                          </p>
-                        )}
                       </div>
-                    ))}
-                    <button
-                      onClick={() => setFaser(prev => [...prev, { navn: "", startdato: "", slutdato: "" }])}
-                      className="flex items-center gap-2 text-sm font-semibold text-[#1a5c38] hover:underline pl-10"
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                      Tilføj fase
-                    </button>
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Aflevering</label>
+                        <input
+                          type="date"
+                          value={revSlutdato}
+                          min={revStartdato || undefined}
+                          onChange={e => setRevSlutdato(e.target.value)}
+                          className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a]"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Bemærkning til bygherre (valgfrit)</label>
+                      <textarea
+                        rows={2}
+                        placeholder="Fx: Grundet igangværende projekt kan vi tidligst starte 2 uger senere."
+                        value={revBemaerkning}
+                        onChange={e => setRevBemaerkning(e.target.value)}
+                        className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:border-[#1e3a2a]"
+                      />
+                    </div>
                   </div>
                 )}
 
-                <div className="flex gap-3 mt-5">
+                {datoValg === "ingen" && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4">
+                    <p className="text-xs text-amber-700 leading-relaxed">
+                      Bygherre modtager dette til godkendelse. Begge parter er bevidste om at AB-Forbruger § 12 fraviges.
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-2">
                   {visTidsplanEditor && (
                     <button onClick={() => { setVisTidsplanEditor(false); setTidsplanGemt(true); }}
                       className="flex-1 py-3 border border-gray-200 rounded-xl text-gray-600 text-sm font-medium hover:bg-gray-50">
@@ -1109,13 +1153,13 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                   )}
                   <button
                     onClick={gemTidsplan}
-                    disabled={gemmerTidsplan || (tidsplanType === "faser" && faser.some(f => !f.navn.trim() || !f.startdato || !f.slutdato))}
+                    disabled={gemmerTidsplan || (datoValg === "revider" && (!revStartdato || !revSlutdato))}
                     className="flex-1 py-3 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 disabled:opacity-40 transition-all flex items-center justify-center gap-2"
                   >
                     {gemmerTidsplan ? (
                       <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Gemmer...</>
                     ) : (
-                      <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Send tidsplan til bygherre</>
+                      <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Send til bygherre</>
                     )}
                   </button>
                 </div>
@@ -1158,7 +1202,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
           <button onClick={() => setVisNavnModal(true)}
             className="w-full py-4 bg-[#1e3a2a] text-white font-bold text-base rounded-2xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-sm">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            Bekraeft og send tilbud til bygherre
+            Bekræft og send tilbud til bygherre
           </button>
         )}
 
@@ -1217,7 +1261,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               </div>
               <div>
                 <h2 className="font-bold text-gray-900">Send tilbud til bygherre</h2>
-                <p className="text-xs text-gray-400">Bekraeft din identitet inden du sender</p>
+                <p className="text-xs text-gray-400">Bekræft din identitet inden du sender</p>
               </div>
             </div>
 

@@ -85,6 +85,8 @@ export default function DokumentRenderer({
         if (/^Dato$/i.test(t)) return false;
         if (titel && t === titel) return false;
         if (/^BYGHERRE$/i.test(t)) return false;
+        // Filtrer separatorlinjer (rækker af streger, underscores, stjerner)
+        if (/^[-_*=]{3,}$/.test(t)) return false;
         return true;
       })
     : [];
@@ -146,6 +148,15 @@ export default function DokumentRenderer({
             <div className="space-y-0.5">
               {beskrivelsesLinjer.map((linje, i) => {
                 const trimmet = linje.trim();
+                // Nummererede overskrifter fra AI-dokument — f.eks. "1. PROJEKTBESKRIVELSE"
+                if (/^\d+\.\s+[A-ZÆØÅ]/.test(trimmet)) {
+                  const tekst = trimmet.replace(/^\d+\.\s+/, "");
+                  return (
+                    <p key={i} className="text-xs font-bold text-gray-500 uppercase tracking-wider pt-5 pb-1">
+                      {tekst}
+                    </p>
+                  );
+                }
                 if (trimmet.startsWith("- ")) {
                   return (
                     <div key={i} className="flex items-start gap-3 py-1 pl-2">
