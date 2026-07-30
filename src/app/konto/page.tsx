@@ -322,25 +322,21 @@ export default function MinSide() {
           {projekter.length > 0 ? (
             <div className="space-y-2">
               {projekter.map(p => (
-                <Link
-                  key={p.id}
-                  href={`/projekt/${p.id}`}
-                  className="flex items-center justify-between py-3 px-4 rounded-xl border border-gray-100 hover:border-[#1e3a2a]/30 hover:shadow-sm transition-all group"
-                >
-                  <div className="flex items-center gap-3">
+                <div key={p.id} className="flex items-center justify-between py-3 px-4 rounded-xl border border-gray-100 hover:border-[#1e3a2a]/30 hover:shadow-sm transition-all group">
+                  <Link href={`/projekt/${p.id}`} className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="w-10 h-10 rounded-xl bg-[#f0f7f3] flex items-center justify-center text-xl flex-shrink-0">
                       {projekttypeEmoji[p.projekttype] || "📋"}
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors truncate">
                         {p.adresse || projekttypeLabels[p.projekttype] || "Byggeprojekt"}
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">
                         Oprettet {new Date(p.oprettet_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
                       </p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
+                  </Link>
+                  <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                       p.status === "igang" ? "bg-green-100 text-green-700" :
                       p.status === "problem" ? "bg-red-100 text-red-700" :
@@ -353,9 +349,26 @@ export default function MinSide() {
                        p.status === "problem" ? "Tvist" :
                        p.status === "afsluttet" ? "Afsluttet" : "Under forberedelse"}
                     </span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    <button
+                      title="Slet projekt"
+                      onClick={async () => {
+                        if (!confirm(`Slet projektet "${p.adresse || projekttypeLabels[p.projekttype] || "Byggeprojekt"}"? Dette kan ikke fortrydes.`)) return;
+                        const supabase = createClient();
+                        const { data: { session } } = await supabase.auth.getSession();
+                        await fetch(`/api/projekt/${p.id}/slet`, {
+                          method: "DELETE",
+                          headers: { Authorization: `Bearer ${session?.access_token}` },
+                        });
+                        setProjekter(prev => prev.filter(x => x.id !== p.id));
+                      }}
+                      className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>
+                      </svg>
+                    </button>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           ) : (
@@ -483,8 +496,13 @@ export default function MinSide() {
                           headers: { "Authorization": `Bearer ${session?.access_token}` },
                         });
                         if (res.ok) {
+                          const body = await res.json();
                           await supabase.auth.signOut();
-                          router.push("/");
+                          if (body.type === "soft") {
+                            router.push("/?slettet=1");
+                          } else {
+                            router.push("/");
+                          }
                         } else {
                           setSletterKonto(false);
                           setBekræftSlet(false);

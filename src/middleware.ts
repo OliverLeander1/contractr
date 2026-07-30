@@ -91,9 +91,14 @@ export async function middleware(request: NextRequest) {
   if (erKunBygherre || erKunHaandvaerker) {
     const { data: profil } = await supabase
       .from("profiler")
-      .select("rolle")
+      .select("rolle, slettet_planlagt_at")
       .eq("id", user.id)
       .maybeSingle();
+
+    // Konto er planlagt til sletning — send til gendanningsside
+    if (profil?.slettet_planlagt_at && !pathname.startsWith("/konto/gendan")) {
+      return NextResponse.redirect(new URL("/konto/gendan", request.url));
+    }
 
     const rolle = profil?.rolle;
 
