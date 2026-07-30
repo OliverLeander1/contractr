@@ -581,9 +581,11 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
                         {vaerdi || (
                           <span className="text-gray-400 italic">
-                            {felt === "total_pris" || felt === "startdato" || felt === "slutdato"
+                            {felt === "total_pris"
                               ? "Udfyldes af entreprenøren"
-                              : erBeggeGodkendt ? "Ikke udfyldt" : "Ikke udfyldt"}
+                              : felt === "startdato" || felt === "slutdato"
+                              ? "Afventer afklaring med entreprenøren"
+                              : "Ikke udfyldt"}
                           </span>
                         )}
                       </p>
