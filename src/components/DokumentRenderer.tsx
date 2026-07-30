@@ -81,12 +81,19 @@ export default function DokumentRenderer({
         if (!t) return false;
         if (/^NEMBYGGESTYRING$/i.test(t)) return false;
         if (/^nembyggestyring\.dk$/i.test(t)) return false;
-        if (/^UDBUDSDOKUMENT$/i.test(t)) return false;
+        if (/UDBUDSDOKUMENT/i.test(t)) return false;
         if (/^Dato$/i.test(t)) return false;
         if (titel && t === titel) return false;
         if (/^BYGHERRE$/i.test(t)) return false;
-        // Filtrer separatorlinjer (rækker af streger, underscores, stjerner)
+        if (/^ENTREPREN[ØO]R$/i.test(t)) return false;
+        // Filtrer rene separatorlinjer
         if (/^[-_*=]{3,}$/.test(t)) return false;
+        // Filtrer linjer der starter med mange streger/underscores (f.eks. "________ 1. SEKTION")
+        if (/^[-_]{5,}/.test(t)) return false;
+        // Filtrer nummererede sektionsoverskrifter i all-caps (f.eks. "1. PROJEKTBESKRIVELSE")
+        if (/^\d+\.\s+[A-ZÆØÅ\s]+$/.test(t)) return false;
+        // Filtrer linjer der kun er sektionsnumre (f.eks. "1.", "2.", "3.")
+        if (/^\d+\.$/.test(t)) return false;
         return true;
       })
     : [];
