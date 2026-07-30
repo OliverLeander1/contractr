@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { use, useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import ProjektNav from "@/components/ProjektNav";
 import { createClient } from "@/lib/supabase";
 import DokumentRenderer from "@/components/DokumentRenderer";
@@ -72,6 +73,7 @@ const feltLabels: Record<string, string> = {
 
 export default function Forhandling({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const [kontrakt, setKontrakt] = useState<Kontrakt | null | "loading">("loading");
   const [redigererFelt, setRedigererFelt] = useState<string | null>(null);
   const [feltVaerdi, setFeltVaerdi] = useState("");
@@ -388,12 +390,11 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
           </div>
           <div className="flex gap-2 flex-shrink-0">
             <button
-              onClick={opretNyKontrakt}
-              disabled={opretter}
-              className="flex items-center gap-1.5 border border-gray-200 text-gray-600 text-sm font-semibold px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-40"
+              onClick={() => router.push("/opret")}
+              className="flex items-center gap-1.5 border border-gray-200 text-gray-600 text-sm font-semibold px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              {opretter ? "Opretter..." : "Ny aftale"}
+              Opret ny sag
             </button>
             {!erBeggeGodkendt && (
               <button
