@@ -13,7 +13,8 @@ export type NotifikationsType =
   | "haandvaerker_ekstraarbejde_svar"
   | "bygherre_godkendt_ekstraarbejde"
   | "bygherre_ny_mangel"
-  | "haandvaerker_udbedret_mangel";
+  | "haandvaerker_udbedret_mangel"
+  | "haandvaerker_trukket_sig";
 
 interface NotifikationsData {
   projekttitel?: string;
@@ -129,6 +130,12 @@ const beskeder: Record<NotifikationsType, (data: NotifikationsData) => { emne: s
     overskrift: `Mangel meldt som udbedret`,
     brødtekst: `${d.afsenderNavn || "Entreprenøren"} har meldt en mangel som udbedret på <strong>${d.projekttitel || "dit projekt"}</strong>. Verificér at manglen er afhjulpet.`,
     knapTekst: "Se mangel",
+  }),
+  haandvaerker_trukket_sig: (d) => ({
+    emne: `Entreprenøren har trukket sig fra ${d.projekttitel || "dit projekt"}`,
+    overskrift: `Entreprenøren er ikke længere tilknyttet projektet`,
+    brødtekst: `Entreprenøren på <strong>${d.projekttitel || "dit projekt"}</strong> har slettet sin konto og er ikke længere tilknyttet projektet. Du kan sende projektet i udbud igen eller kontakte en ny entreprenør direkte.`,
+    knapTekst: "Gå til projektet",
   }),
 };
 
