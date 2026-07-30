@@ -24,6 +24,7 @@ export default function UdbudResultat() {
   const [tekst, setTekst] = useState("");
   const [kopieret, setKopieret] = useState(false);
   const [opretter, setOpretter] = useState(false);
+  const [opretFejl, setOpretFejl] = useState("");
   const [redigerer, setRedigerer] = useState(false);
 
   // Splitter dokumentet i fast header og redigerbar body
@@ -60,6 +61,7 @@ export default function UdbudResultat() {
   async function opretAftalegrundlag() {
     if (!data) return;
     setOpretter(true);
+    setOpretFejl("");
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
@@ -78,7 +80,10 @@ export default function UdbudResultat() {
         body: JSON.stringify({ bygherre_id: user.id, projekttype, adresse, navn, kontakt, startdato: data.opstart || null, slutdato: data.slutdato || null }),
       });
       const projekt = await rProjekt.json();
-      if (projekt.error || !projekt.id) return;
+      if (projekt.error || !projekt.id) {
+        setOpretFejl("Kunne ikke oprette projekt. Prøv igen.");
+        return;
+      }
       const projekt_id = projekt.id;
 
       // 2. Opret kontrakt for projektet
@@ -88,7 +93,10 @@ export default function UdbudResultat() {
         body: JSON.stringify({}),
       });
       const k = await rKontrakt.json();
-      if (k.error || !k.id) return;
+      if (k.error || !k.id) {
+        setOpretFejl("Kunne ikke oprette aftalegrundlag. Prøv igen.");
+        return;
+      }
 
       // 3. Fyld kontrakt med AI-dokument og evt. håndværkeroplysninger
       await fetch("/api/kontrakt", {
@@ -286,6 +294,9 @@ export default function UdbudResultat() {
 
           {!haandvaerkerEmail && (
             <p className="text-xs text-gray-400 text-center mt-3">Du kan tilføje håndværkeroplysninger inde i aftalen bagefter.</p>
+          )}
+          {opretFejl && (
+            <p className="text-xs text-red-600 text-center mt-2 font-medium">{opretFejl}</p>
           )}
         </div>
       )}
