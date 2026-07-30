@@ -152,6 +152,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   const [visNavnModal, setVisNavnModal] = useState(false);
   const [navn, setNavn]   = useState("");
   const [firma, setFirma] = useState("");
+  const [godkendFejl, setGodkendFejl] = useState("");
 
   // Besigtigelse
   const [besigtigelseDato, setBesigtigelseDato] = useState("");
@@ -203,10 +204,22 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
         fetch(`/api/kontrakt/${token}`),
         supabase.auth.getUser(),
       ]);
-      if (user) { setLoggetInd(true); setBrugerEmail(user.email ?? null); }
+      if (user) {
+        setLoggetInd(true);
+        setBrugerEmail(user.email ?? null);
+        // Hent navn og firma fra brugerens profil
+        const { data: profil } = await supabase.from("profiler").select("navn, firma").eq("id", user.id).single();
+        if (profil?.navn) setNavn(profil.navn);
+        if (profil?.firma) setFirma(profil.firma);
+        if (!profil?.navn && user.user_metadata?.navn) setNavn(user.user_metadata.navn);
+        if (!profil?.firma && user.user_metadata?.firma) setFirma(user.user_metadata.firma);
+      }
       if (!res.ok) { setFejl("Aftalegrundlaget blev ikke fundet. Tjek at linket er korrekt."); setIndlæser(false); return; }
       const data = await res.json();
       setKontrakt(data);
+      // Brug evt. allerede gemt navn/firma på kontrakten som fallback
+      if (data.haandvaerker_navn) setNavn(prev => prev || data.haandvaerker_navn);
+      if (data.haandvaerker_firma) setFirma(prev => prev || data.haandvaerker_firma);
       if (data.haandvaerker_email) setMagicLinkEmail(data.haandvaerker_email);
       if (data.haandvaerker_godkendt_at) setGodkendt(true);
       if (data.tidsplan) setTidsplanGemt(true);
@@ -223,7 +236,9 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   }, [token]);
 
   async function godkend() {
-    if (!navn.trim() || godkender) return;
+    if (godkender) return;
+    if (!navn.trim()) { setGodkendFejl("Skriv dit fulde navn inden du sender."); return; }
+    setGodkendFejl("");
     setGodkender(true);
     const res = await fetch(`/api/kontrakt/${token}/godkend`, {
       method: "POST",
@@ -234,6 +249,11 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
       setGodkendt(true);
       setVisNavnModal(false);
       setKontrakt(prev => prev ? { ...prev, haandvaerker_godkendt_at: new Date().toISOString(), haandvaerker_navn: navn.trim() } : prev);
+    } else {
+      const body = await res.json().catch(() => ({}));
+      setGodkendFejl(body.error === "Entreprisesum skal være udfyldt inden godkendelse"
+        ? "Du skal udfylde entreprisesummen inden du sender tilbuddet."
+        : body.error || "Noget gik galt. Prøv igen.");
     }
     setGodkender(false);
   }
@@ -1272,19 +1292,19 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               </div>
               <div>
                 <h2 className="font-bold text-gray-900">Send tilbud til bygherre</h2>
-                <p className="text-xs text-gray-400">Bekræft din identitet inden du sender</p>
+                <p className="text-xs text-gray-400">Bekræft oplysningerne og send</p>
               </div>
             </div>
 
             <div className="space-y-3 mb-5">
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">Dit fulde navn</label>
-                <input type="text" value={navn} onChange={e => setNavn(e.target.value)}
+                <input type="text" value={navn} onChange={e => { setNavn(e.target.value); setGodkendFejl(""); }}
                   placeholder="Fornavn Efternavn"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Firma (valgfrit)</label>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Firma</label>
                 <input type="text" value={firma} onChange={e => setFirma(e.target.value)}
                   placeholder="Firma ApS"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
@@ -1293,19 +1313,26 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
 
             <div className="bg-[#1e3a2a]/5 border border-[#1e3a2a]/10 rounded-xl px-4 py-3 mb-5">
               <p className="text-xs text-gray-600 leading-relaxed">
-                Ved at klikke &ldquo;Send tilbud&rdquo; sender du dit tilbud til bygherre til gennemgang. Bygherre beslutter om tilbuddet accepteres. Handlingen logges med navn og tidsstempel.
+                Bygherre modtager en e-mail og kan se tilbuddet under &ldquo;Aftaler&rdquo; i deres projektrum. Handlingen logges med navn og tidsstempel.
               </p>
             </div>
 
+            {godkendFejl && (
+              <p className="text-xs text-red-600 font-medium mb-3">{godkendFejl}</p>
+            )}
+
             <div className="flex gap-3">
-              <button onClick={() => setVisNavnModal(false)}
+              <button onClick={() => { setVisNavnModal(false); setGodkendFejl(""); }}
                 className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50">
                 Annuller
               </button>
-              <button onClick={godkend} disabled={!navn.trim() || godkender}
+              <button onClick={godkend} disabled={godkender}
                 className="flex-1 py-3 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                {godkender ? "Sender..." : "Send tilbud"}
+                {godkender ? (
+                  <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Sender...</>
+                ) : (
+                  <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Send tilbud</>
+                )}
               </button>
             </div>
           </div>
