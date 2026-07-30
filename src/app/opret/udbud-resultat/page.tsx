@@ -103,6 +103,21 @@ export default function UdbudResultat() {
         }),
       });
 
+      // 4. Send invitations-email til håndværker
+      if (haandvaerkerEmail && k.haandvaerker_token) {
+        const baseUrl = window.location.origin;
+        await fetch("/api/email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: haandvaerkerEmail,
+            link: `${baseUrl}/kontrakt/${k.haandvaerker_token}`,
+            navn: haandvaerkerNavn || null,
+            projekttitel: data.titel || null,
+          }),
+        });
+      }
+
       track("aftale_created", { med_invitation: !!haandvaerkerEmail });
       if (haandvaerkerEmail) track("haandvaerker_invited");
       sessionStorage.removeItem("udbud_resultat");
