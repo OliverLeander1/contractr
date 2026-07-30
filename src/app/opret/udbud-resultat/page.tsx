@@ -14,6 +14,8 @@ interface UdbudResultat {
   bygherreNavn: string;
   bygherreKontakt: string;
   billeder?: { navn: string; data: string }[];
+  opstart?: string;
+  slutdato?: string;
 }
 
 export default function UdbudResultat() {
@@ -73,7 +75,7 @@ export default function UdbudResultat() {
       const rProjekt = await fetch("/api/projekter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bygherre_id: user.id, projekttype, adresse, navn, kontakt }),
+        body: JSON.stringify({ bygherre_id: user.id, projekttype, adresse, navn, kontakt, startdato: data.opstart || null, slutdato: data.slutdato || null }),
       });
       const projekt = await rProjekt.json();
       if (projekt.error || !projekt.id) return;

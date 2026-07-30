@@ -89,7 +89,7 @@ export default function BeskrivProjekt() {
       clearInterval(interval);
       setLoadingPct(100);
       await new Promise(r => setTimeout(r, 400));
-      sessionStorage.setItem("udbud_resultat", JSON.stringify({ ...data, billeder }));
+      sessionStorage.setItem("udbud_resultat", JSON.stringify({ ...data, billeder, opstart, slutdato }));
       router.push("/opret/udbud-resultat");
     } catch {
       clearInterval(interval);
