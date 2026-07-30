@@ -106,7 +106,6 @@ export default function UdbudResultat() {
           kontrakt_id: k.id,
           titel: data.titel,
           beskrivelse: tekst,
-          ...(haandvaerkerNavn ? { haandvaerker_navn: haandvaerkerNavn } : {}),
           ...(haandvaerkerEmail ? { haandvaerker_email: haandvaerkerEmail } : {}),
         }),
       });
@@ -120,7 +119,7 @@ export default function UdbudResultat() {
           body: JSON.stringify({
             to: haandvaerkerEmail,
             link: `${baseUrl}/kontrakt/${k.haandvaerker_token}`,
-            navn: haandvaerkerNavn || null,
+            navn: null,
             projekttitel: data.titel || null,
           }),
         });
@@ -249,17 +248,9 @@ export default function UdbudResultat() {
 
           <div className="space-y-4 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Navn på håndværker eller firma</label>
-              <input
-                type="text"
-                placeholder="F.eks. Hansen VVS A/S"
-                value={haandvaerkerNavn}
-                onChange={e => setHaandvaerkerNavn(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">E-mail</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                E-mail <span className="text-red-400">*</span>
+              </label>
               <input
                 type="email"
                 placeholder="haandvaerker@email.dk"
