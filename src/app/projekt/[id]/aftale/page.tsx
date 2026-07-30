@@ -894,13 +894,13 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
             {(() => {
               const tp = kontrakt.tidsplan;
               const fmtDatoKort = (iso: string) =>
-                new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "short" });
+                new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" });
 
               if (!tp) {
                 return (
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                     <div className="flex items-center gap-2 mb-3">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tidsplan</p>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Aftalte datoer</p>
                       <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">AB-Forbruger § 12</span>
                     </div>
                     <div className="flex items-center gap-3 py-2">
@@ -910,8 +910,8 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         </svg>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Afventer tidsplan fra entreprenøren</p>
-                        <p className="text-xs text-gray-400 mt-0.5">Entreprenøren skal indsende en faseopdelt tidsplan inden underskrift</p>
+                        <p className="text-sm font-medium text-gray-700">Afventer bekræftelse fra entreprenøren</p>
+                        <p className="text-xs text-gray-400 mt-0.5">Entreprenøren skal bekræfte eller foreslå andre start- og slutdatoer</p>
                       </div>
                     </div>
                   </div>
@@ -920,10 +920,21 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
 
               const godkendt = tp.godkendt_af_bygherre;
 
+              // Tjek om entreprenøren har foreslået andre datoer end bygherre ønskede
+              const fase = tp.faser?.[0];
+              const entStartdato = fase?.startdato ?? null;
+              const entSlutdato = fase?.slutdato ?? null;
+              const bygStartdato = kontrakt.startdato;
+              const bygSlutdato = kontrakt.slutdato;
+              const startAendret = entStartdato && bygStartdato && entStartdato !== bygStartdato;
+              const slutAendret = entSlutdato && bygSlutdato && entSlutdato !== bygSlutdato;
+              const harAendringer = startAendret || slutAendret;
+              const harBemaerkning = fase?.navn && fase.navn !== "Aftalt periode" && fase.navn !== "Foreslået af entreprenør";
+
               return (
-                <div className={`rounded-2xl overflow-hidden border shadow-sm ${godkendt ? "border-green-100" : "border-amber-200"}`}>
-                  {/* Mørk header */}
-                  <div className="bg-[#111c17] px-5 py-4 flex items-center justify-between">
+                <div className={`rounded-2xl overflow-hidden border shadow-sm ${godkendt ? "border-green-100" : harAendringer ? "border-orange-300" : "border-amber-200"}`}>
+                  {/* Header */}
+                  <div className={`px-5 py-4 flex items-center justify-between ${harAendringer && !godkendt ? "bg-orange-600" : "bg-[#111c17]"}`}>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
@@ -933,7 +944,11 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       <div>
                         <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">AB-Forbruger § 12</p>
                         <p className="text-sm font-bold text-white">
-                          {tp.type === "ingen_tidsplan" ? "Ingen fast tidsplan" : "Tidsplan fra entreprenøren"}
+                          {tp.type === "ingen_tidsplan"
+                            ? "Ingen fast dato — entreprenøren fraviger § 12"
+                            : harAendringer
+                              ? "Entreprenøren foreslår andre datoer"
+                              : "Datoer bekræftet af entreprenøren"}
                         </p>
                       </div>
                     </div>
@@ -943,7 +958,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         Godkendt
                       </span>
                     ) : (
-                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/20">
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${harAendringer ? "bg-white/20 text-white border border-white/20" : "bg-amber-400/20 text-amber-300 border border-amber-400/20"}`}>
                         Afventer din godkendelse
                       </span>
                     )}
@@ -951,29 +966,73 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
 
                   <div className="bg-white px-5 py-4">
                     {tp.type === "ingen_tidsplan" ? (
-                      <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-4">
-                        <p className="text-xs font-semibold text-amber-800 mb-1">Fravigelse af § 12</p>
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4">
+                        <p className="text-xs font-bold text-amber-800 mb-1">Fravigelse af AB-Forbruger § 12</p>
                         <p className="text-xs text-amber-700 leading-relaxed">
-                          Entreprenøren ønsker at arbejde uden en faseopdelt tidsplan. Dette er en eksplicit fravigelse af AB-Forbruger § 12. Godkend kun hvis I har aftalt dette.
+                          Entreprenøren ønsker at arbejde uden en aftalt afleveringsdato. Godkend kun hvis I har aftalt dette.
                         </p>
                       </div>
                     ) : (
-                      <div className="space-y-2 mb-4">
-                        {(tp.faser ?? []).map((fase, i) => (
-                          <div key={i} className="flex gap-3 items-center">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${godkendt ? "bg-green-100 text-green-700" : "bg-[#1e3a2a]/10 text-[#1e3a2a]"}`}>
-                              {godkendt
-                                ? <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                                : i + 1}
-                            </div>
-                            <div className="flex-1 flex items-center justify-between gap-3 py-1.5 border-b border-gray-50 last:border-0">
-                              <p className="text-sm text-gray-800 font-medium">{fase.navn}</p>
-                              <p className="text-xs text-gray-400 whitespace-nowrap">
-                                {fase.startdato ? fmtDatoKort(fase.startdato) : "?"} → {fase.slutdato ? fmtDatoKort(fase.slutdato) : "?"}
-                              </p>
-                            </div>
+                      <div className="space-y-3 mb-4">
+                        {/* Startdato */}
+                        <div className={`rounded-xl px-4 py-3 border ${startAendret && !godkendt ? "bg-orange-50 border-orange-200" : "bg-gray-50 border-gray-100"}`}>
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Opstart</p>
+                            {startAendret && !godkendt && (
+                              <span className="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">Ændret</span>
+                            )}
                           </div>
-                        ))}
+                          {startAendret && !godkendt ? (
+                            <div className="mt-1 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-400 line-through">{bygStartdato ? fmtDatoKort(bygStartdato) : "—"}</span>
+                                <span className="text-xs text-gray-400">Din ønskede dato</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-orange-700">{entStartdato ? fmtDatoKort(entStartdato) : "—"}</span>
+                                <span className="text-xs font-semibold text-orange-600">Entreprenørens forslag</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className={`text-sm font-bold mt-1 ${godkendt ? "text-green-700" : "text-gray-900"}`}>
+                              {entStartdato ? fmtDatoKort(entStartdato) : (bygStartdato ? fmtDatoKort(bygStartdato) : "—")}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Slutdato / aflevering */}
+                        <div className={`rounded-xl px-4 py-3 border ${slutAendret && !godkendt ? "bg-orange-50 border-orange-200" : "bg-gray-50 border-gray-100"}`}>
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Aflevering</p>
+                            {slutAendret && !godkendt && (
+                              <span className="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">Ændret</span>
+                            )}
+                          </div>
+                          {slutAendret && !godkendt ? (
+                            <div className="mt-1 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-400 line-through">{bygSlutdato ? fmtDatoKort(bygSlutdato) : "—"}</span>
+                                <span className="text-xs text-gray-400">Din ønskede dato</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-orange-700">{entSlutdato ? fmtDatoKort(entSlutdato) : "—"}</span>
+                                <span className="text-xs font-semibold text-orange-600">Entreprenørens forslag</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className={`text-sm font-bold mt-1 ${godkendt ? "text-green-700" : "text-gray-900"}`}>
+                              {entSlutdato ? fmtDatoKort(entSlutdato) : (bygSlutdato ? fmtDatoKort(bygSlutdato) : "—")}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Bemærkning fra entreprenøren */}
+                        {harBemaerkning && !godkendt && (
+                          <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+                            <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Bemærkning fra entreprenøren</p>
+                            <p className="text-sm text-blue-900 leading-relaxed">{fase!.navn}</p>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -985,8 +1044,10 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       >
                         {godkenderTidsplan ? (
                           <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Godkender...</>
+                        ) : harAendringer ? (
+                          <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Godkend entreprenørens datoer</>
                         ) : (
-                          <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Godkend tidsplan</>
+                          <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Godkend datoerne</>
                         )}
                       </button>
                     )}

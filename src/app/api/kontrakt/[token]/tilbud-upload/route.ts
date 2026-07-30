@@ -43,6 +43,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
 
   // Udtræk tekst fra dokumentet
   let tekst = "";
+  let tekstFejlede = false;
   try {
     if (erPdf) {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -55,11 +56,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
       tekst = result.value;
     }
   } catch {
-    return NextResponse.json({ error: "Kunne ikke læse filen. Prøv at gemme som PDF og upload igen." }, { status: 422 });
-  }
-
-  if (!tekst.trim()) {
-    return NextResponse.json({ error: "Filen indeholder ingen tekst. Scannet PDF understøttes ikke endnu." }, { status: 422 });
+    tekstFejlede = true;
   }
 
   // Find samlet pris via AI
@@ -68,28 +65,59 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
   if (anthropicKey) {
     try {
       const client = new Anthropic({ apiKey: anthropicKey });
-      const response = await client.messages.create({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 100,
-        messages: [
-          {
-            role: "user",
-            content: `Find den samlede tilbudspris i dette tilbudsdokument. Svar KUN med et tal i danske kroner uden punktummer, kommaer eller "kr." - eksempel: 87500. Hvis du ikke kan finde en klar samlet pris, svar med null.
 
-Dokument:
-${tekst.slice(0, 6000)}`,
-          },
-        ],
-      });
+      let response;
+      if (erPdf && (tekstFejlede || !tekst.trim())) {
+        // Fallback: send PDF direkte til Claude som dokument (base64)
+        const base64 = buffer.toString("base64");
+        response = await client.messages.create({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 100,
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "document",
+                  source: { type: "base64", media_type: "application/pdf", data: base64 },
+                },
+                {
+                  type: "text",
+                  text: 'Find den samlede tilbudspris i dette tilbudsdokument. Svar KUN med et tal i danske kroner uden punktummer, kommaer eller "kr." - eksempel: 87500. Hvis du ikke kan finde en klar samlet pris, svar med null.',
+                },
+              ] as import("@anthropic-ai/sdk/resources").ContentBlockParam[],
+            },
+          ],
+        });
+        tekstFejlede = false; // Claude kunne læse den
+      } else if (tekst.trim()) {
+        response = await client.messages.create({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 100,
+          messages: [
+            {
+              role: "user",
+              content: `Find den samlede tilbudspris i dette tilbudsdokument. Svar KUN med et tal i danske kroner uden punktummer, kommaer eller "kr." - eksempel: 87500. Hvis du ikke kan finde en klar samlet pris, svar med null.\n\nDokument:\n${tekst.slice(0, 6000)}`,
+            },
+          ],
+        });
+      }
 
-      const svar = response.content[0].type === "text" ? response.content[0].text.trim() : "";
-      const tal = parseFloat(svar.replace(/[^0-9,.]/g, "").replace(",", "."));
-      if (!isNaN(tal) && tal > 0) {
-        udtrukketPris = tal;
+      if (response) {
+        const svar = response.content[0].type === "text" ? response.content[0].text.trim() : "";
+        const tal = parseFloat(svar.replace(/[^0-9,.]/g, "").replace(",", "."));
+        if (!isNaN(tal) && tal > 0) {
+          udtrukketPris = tal;
+        }
       }
     } catch {
       // AI fejlede - fortsæt uden pris
     }
+  }
+
+  // Afvis kun hvis tekst fejlede OG AI heller ikke hjalp og filen er tom
+  if (tekstFejlede && !udtrukketPris && erDocx) {
+    return NextResponse.json({ error: "Kunne ikke læse Word-filen. Prøv at gemme som PDF og upload igen." }, { status: 422 });
   }
 
   // Upload fil til Supabase Storage
