@@ -63,14 +63,32 @@ export default function UdbudResultat() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push("/login?next=/opret/udbud-resultat"); return; }
 
-      const projekt_id = crypto.randomUUID();
+      // Læs projektoplysninger fra sessionStorage (udfyldt i trin 1)
+      const projekttype = sessionStorage.getItem("screening_projekttype") || "andet";
+      const adresse = sessionStorage.getItem("screening_adresse") || null;
+      const navn = sessionStorage.getItem("screening_navn") || null;
+      const kontakt = sessionStorage.getItem("screening_kontakt") || null;
 
-      // Opret kontrakt
-      const r1 = await fetch(`/api/kontrakt?projekt_id=${projekt_id}&bygherre_id=${user.id}`);
-      const k = await r1.json();
-      if (k.error) return;
+      // 1. Opret projekt i databasen
+      const rProjekt = await fetch("/api/projekter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bygherre_id: user.id, projekttype, adresse, navn, kontakt }),
+      });
+      const projekt = await rProjekt.json();
+      if (projekt.error || !projekt.id) return;
+      const projekt_id = projekt.id;
 
-      // Fyld med AI-indhold og evt. håndværkeroplysninger
+      // 2. Opret kontrakt for projektet
+      const rKontrakt = await fetch(`/api/projekter/${projekt_id}/kontrakter`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const k = await rKontrakt.json();
+      if (k.error || !k.id) return;
+
+      // 3. Fyld kontrakt med AI-dokument og evt. håndværkeroplysninger
       await fetch("/api/kontrakt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
