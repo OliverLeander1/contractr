@@ -100,7 +100,7 @@ export default function OpretProjekt() {
     tag: ["Ændres tagkonstruktionen eller spærene?", "Etableres der tagetage til beboelse?"],
     totalrenovering: ["Fjernes der bærende vægge eller søjler?", "Ændres etageadskillelse eller dæk?"],
     badevarelse: ["Monteres der badekar, boblebad eller dampbad? (tung gulvlast)", "Er boligen i en etageejendom? (kræver vådrumsberegning)"],
-    kokken: ["Fjernes der vægge for at åbne køkkenet?"],
+    kokken: ["Fjernes der bærende vægge for at åbne køkkenet?"],
     andet: ["Indebærer projektet fjernelse af vægge eller bærende konstruktioner?"],
   };
 
