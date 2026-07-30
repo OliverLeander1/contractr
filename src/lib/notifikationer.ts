@@ -15,7 +15,8 @@ export type NotifikationsType =
   | "bygherre_ny_mangel"
   | "haandvaerker_udbedret_mangel"
   | "haandvaerker_trukket_sig"
-  | "bygherre_slettet_konto";
+  | "bygherre_slettet_konto"
+  | "bygherre_slettet_projekt";
 
 interface NotifikationsData {
   projekttitel?: string;
@@ -131,6 +132,12 @@ const beskeder: Record<NotifikationsType, (data: NotifikationsData) => { emne: s
     overskrift: `Mangel meldt som udbedret`,
     brødtekst: `${d.afsenderNavn || "Entreprenøren"} har meldt en mangel som udbedret på <strong>${d.projekttitel || "dit projekt"}</strong>. Verificér at manglen er afhjulpet.`,
     knapTekst: "Se mangel",
+  }),
+  bygherre_slettet_projekt: (d) => ({
+    emne: `Bygherren har slettet projektet`,
+    overskrift: `Projektet er slettet af bygherren`,
+    brødtekst: `Bygherren har slettet <strong>${d.projekttitel || "projektet"}</strong>. Sagen er ikke længere tilgængelig og alle tilknyttede data er fjernet. Kontakt bygherren direkte hvis du har spørgsmål.`,
+    knapTekst: "Se mine sager",
   }),
   bygherre_slettet_konto: (d) => ({
     emne: `Bygherren har anmodet om sletning af sin konto`,
