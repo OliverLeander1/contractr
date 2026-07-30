@@ -9,16 +9,27 @@ function ManuelPris({ token, onGemt }: { token: string; onGemt: (pris: number) =
   const [gemmer, setGemmer] = useState(false);
   const [vis, setVis] = useState(false);
 
-  // Formatér input til dansk talformat mens brugeren taster
+  // Formatér heltalsdel med punktum som tusindtalsseparator, bevar komma+decimaler
+  function formatMedPunktum(raw: string): string {
+    // Opdel på komma
+    const [heltals, decimaler] = raw.split(",");
+    // Fjern eksisterende punktummer fra heltalsdelen, tilføj ny formatering
+    const renHeltals = heltals.replace(/\./g, "");
+    const formateret = renHeltals.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return decimaler !== undefined ? formateret + "," + decimaler : formateret;
+  }
+
   function handlePrisInput(raw: string) {
-    // Tillad kun tal, punktum og komma
+    // Tillad kun tal, ét komma og punktum
     const renset = raw.replace(/[^0-9.,]/g, "");
-    setPrisInput(renset);
+    // Max ét komma
+    const dele = renset.split(",");
+    const normaliseret = dele.length > 2 ? dele[0] + "," + dele.slice(1).join("") : renset;
+    setPrisInput(formatMedPunktum(normaliseret));
   }
 
   // Konvertér dansk format (1.234,56) til tal
   function parseDanskPris(s: string): number | null {
-    // Fjern tusindtalsseparator (punktum), erstat komma med punktum
     const normaliseret = s.replace(/\./g, "").replace(",", ".");
     const tal = parseFloat(normaliseret);
     return isNaN(tal) ? null : tal;
@@ -56,7 +67,7 @@ function ManuelPris({ token, onGemt }: { token: string; onGemt: (pris: number) =
           <input
             type="text"
             inputMode="numeric"
-            placeholder="125.000"
+            placeholder="0"
             value={prisInput}
             onChange={e => handlePrisInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && gem()}
