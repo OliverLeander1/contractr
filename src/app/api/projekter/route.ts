@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 // POST /api/projekter — opret nyt projekt
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
-  const { bygherre_id, projekttype, adresse, navn, kontakt } = body;
+  const { bygherre_id, projekttype, adresse, navn, kontakt, startdato, slutdato, budget } = body;
 
   if (!bygherre_id) return NextResponse.json({ error: "bygherre_id mangler" }, { status: 400 });
 
@@ -19,6 +19,9 @@ export async function POST(req: NextRequest) {
       adresse: adresse || null,
       navn: navn || null,
       kontakt: kontakt || null,
+      startdato: startdato || null,
+      slutdato: slutdato || null,
+      budget: budget || null,
       status: "tilbud",
       ab_forbruger: true,
     })
