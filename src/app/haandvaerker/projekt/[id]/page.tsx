@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import BesigtigelseKort from "@/components/BesigtigelseKort";
+import DokumentRenderer from "@/components/DokumentRenderer";
 
 type Fane = "aftale" | "tidsplan" | "sedler" | "mangler" | "besigtigelse";
 
@@ -15,6 +16,7 @@ interface Kontrakt {
   total_pris: number | null;
   status: string;
   haandvaerker_navn: string | null;
+  haandvaerker_firma: string | null;
   haandvaerker_email: string;
   haandvaerker_token: string | null;
   startdato: string | null;
@@ -196,60 +198,17 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
         {/* Aftalegrundlag */}
         {fane === "aftale" && (
           <div className="space-y-4">
-            {kontrakt.haandvaerker_token && (
-              <div className="bg-[#111c17] rounded-2xl p-5 text-white mb-4">
-                <p className="text-xs text-white/60 mb-1">Du har underskrevet denne aftale</p>
-                <p className="text-sm font-semibold">{fmtDato(kontrakt.haandvaerker_godkendt_at || kontrakt.oprettet_at)}</p>
-                <Link href={`/kontrakt/${kontrakt.haandvaerker_token}/aftale`}
-                  className="mt-3 inline-flex items-center gap-2 text-sm font-semibold bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors">
-                  Se og opdater aftalen
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </Link>
-              </div>
-            )}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50">
-              {kontrakt.beskrivelse && (
-                <div className="p-5">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Beskrivelse</p>
-                  <p className="text-sm text-gray-700 leading-relaxed">{kontrakt.beskrivelse}</p>
-                </div>
-              )}
-              <div className="p-5 grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Pris</p>
-                  <p className="text-sm font-semibold text-gray-900">{kontrakt.total_pris ? fmtKr(kontrakt.total_pris) : "Ikke angivet"}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Status</p>
-                  <p className="text-sm font-semibold text-gray-900">{kontrakt.status === "begge_godkendt" ? "Begge godkendt" : kontrakt.status}</p>
-                </div>
-                {kontrakt.startdato && (
-                  <div>
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Opstart</p>
-                    <p className="text-sm font-semibold text-gray-900">{fmtDato(kontrakt.startdato)}</p>
-                  </div>
-                )}
-                {kontrakt.slutdato && (
-                  <div>
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Aflevering</p>
-                    <p className="text-sm font-semibold text-gray-900">{fmtDato(kontrakt.slutdato)}</p>
-                  </div>
-                )}
-              </div>
-              {kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0 && (
-                <div className="p-5">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Betalingsplan</p>
-                  <div className="space-y-2">
-                    {kontrakt.betalingsplan.map((b, i) => (
-                      <div key={i} className="flex justify-between text-sm">
-                        <span className="text-gray-700">{b.milepæl}</span>
-                        <span className="font-semibold text-gray-900">{b.andel}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <DokumentRenderer
+              tekst={kontrakt.beskrivelse || undefined}
+              titel={kontrakt.titel || undefined}
+              totalPris={kontrakt.total_pris}
+              startdato={kontrakt.startdato}
+              slutdato={kontrakt.slutdato}
+              betalingsplan={kontrakt.betalingsplan}
+              tidsplan={kontrakt.tidsplan as Parameters<typeof DokumentRenderer>[0]["tidsplan"]}
+              haandvaerkerNavn={kontrakt.haandvaerker_navn}
+              haandvaerkerFirma={kontrakt.haandvaerker_firma}
+            />
           </div>
         )}
 

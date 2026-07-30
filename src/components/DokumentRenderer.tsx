@@ -168,7 +168,7 @@ export default function DokumentRenderer({
                   return (
                     <div key={i} className="flex items-start gap-3 py-1 pl-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-[#1e3a2a] flex-shrink-0 mt-2" />
-                      <span className="text-sm text-gray-700 leading-relaxed">{trimmet.slice(2)}</span>
+                      <span className="text-sm text-gray-700 leading-relaxed">{trimmet.slice(2).replace(/\s*—\s*/g, ", ")}</span>
                     </div>
                   );
                 }
@@ -177,12 +177,12 @@ export default function DokumentRenderer({
                   return (
                     <div key={i} className="flex gap-4 py-1.5 border-b border-gray-50 last:border-0">
                       <span className="text-xs font-semibold text-gray-500 w-40 flex-shrink-0 pt-0.5">{trimmet.slice(0, kolon).trim()}</span>
-                      <span className="text-sm text-gray-800 flex-1">{trimmet.slice(kolon + 1).trim()}</span>
+                      <span className="text-sm text-gray-800 flex-1">{trimmet.slice(kolon + 1).trim().replace(/\s*—\s*/g, ", ")}</span>
                     </div>
                   );
                 }
                 return (
-                  <p key={i} className="text-sm text-gray-700 leading-[1.8] py-0.5">{trimmet}</p>
+                  <p key={i} className="text-sm text-gray-700 leading-[1.8] py-0.5">{trimmet.replace(/\s*—\s*/g, ", ")}</p>
                 );
               })}
             </div>
