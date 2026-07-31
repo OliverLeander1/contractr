@@ -172,6 +172,15 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   const [prisGodkendt, setPrisGodkendt] = useState(false);
   const [sletter, setSletter] = useState(false);
 
+  // Betalingsplan
+  const [betalingsplanRækker, setBetalingsplanRækker] = useState<{ milepæl: string; andel: string }[]>([
+    { milepæl: "", andel: "" },
+    { milepæl: "", andel: "" },
+  ]);
+  const [redigererBetalingsplan, setRedigererBetalingsplan] = useState(false);
+  const [gemmerBetalingsplan, setGemmerBetalingsplan] = useState(false);
+  const [betalingsplanFejl, setBetalingsplanFejl] = useState<string | null>(null);
+
   // Auth
   const [loggetInd, setLoggetInd] = useState(false);
   const [brugerEmail, setBrugerEmail] = useState<string | null>(null);
@@ -223,6 +232,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
       if (data.besigtigelse_tid) setBesigtigelseTid(data.besigtigelse_tid);
       if (data.forudsaetninger) setForudsaetningerTekst(data.forudsaetninger);
       if (data.forudsaetninger_godkendt || !data.forudsaetninger) setSpringetOver(false);
+      if (data.betalingsplan && data.betalingsplan.length > 0) setBetalingsplanRækker(data.betalingsplan);
       setIndlæser(false);
     };
     hent();
@@ -366,6 +376,28 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
     setKontrakt(prev => prev ? { ...prev, total_pris: pris } : prev);
     setForeslaaetPris(null);
     setPrisGodkendt(true);
+  }
+
+  async function gemBetalingsplan(rækker: { milepæl: string; andel: string }[] | null) {
+    if (gemmerBetalingsplan) return;
+    setGemmerBetalingsplan(true);
+    setBetalingsplanFejl(null);
+    const res = await fetch(`/api/kontrakt/${token}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ betalingsplan: rækker }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setBetalingsplanFejl(data.error || "Kunne ikke gemme betalingsplan");
+    } else {
+      setKontrakt(prev => prev ? { ...prev, betalingsplan: data.betalingsplan } : prev);
+      if (!rækker || rækker.length === 0) {
+        setBetalingsplanRækker([{ milepæl: "", andel: "" }, { milepæl: "", andel: "" }]);
+      }
+      setRedigererBetalingsplan(false);
+    }
+    setGemmerBetalingsplan(false);
   }
 
   async function sletTilbudsDokument() {
@@ -899,6 +931,192 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               </div>
             )}
           </div>
+          );
+        })()}
+
+        {/* ─── BETALINGSPLAN ─── */}
+        {harAdgang && (() => {
+          const låst = !!kontrakt.haandvaerker_godkendt_at;
+          const harPlan = !!(kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0);
+
+          if (låst && !harPlan) return null;
+
+          const planSum = betalingsplanRækker.reduce((acc, r) => {
+            return acc + (parseFloat(r.andel.replace(",", ".")) || 0);
+          }, 0);
+          const planGyldig =
+            betalingsplanRækker.length >= 2 &&
+            betalingsplanRækker.every(r => r.milepæl.trim() && r.andel) &&
+            Math.abs(planSum - 100) <= 0.01;
+
+          return (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 mb-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-9 h-9 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">
+                    {harPlan
+                      ? beggeGodkendt ? "Aftalt betalingsplan" : "Foreslået betalingsplan"
+                      : "Betalingsbetingelser"}
+                  </p>
+                  {!harPlan && (
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">AB-Forbruger § 25</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Standard — ingen plan, ikke redigering */}
+              {!harPlan && !redigererBetalingsplan && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 py-1">
+                    <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <p className="text-sm text-gray-700">Betaling efter arbejdets aflevering</p>
+                  </div>
+                  {!låst && (
+                    <button
+                      onClick={() => {
+                        setBetalingsplanRækker([{ milepæl: "", andel: "" }, { milepæl: "", andel: "" }]);
+                        setBetalingsplanFejl(null);
+                        setRedigererBetalingsplan(true);
+                      }}
+                      className="text-xs font-semibold text-[#1e3a2a] hover:underline"
+                    >
+                      Foreslå opdelt betalingsplan
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Redigering */}
+              {redigererBetalingsplan && !låst && (
+                <div className="space-y-3">
+                  {betalingsplanRækker.map((r, i) => (
+                    <div key={i} className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        placeholder={i === 0 ? "Fx: Efter afsluttet nedrivning" : i === 1 ? "Fx: Ved aflevering" : "Milepæl"}
+                        value={r.milepæl}
+                        onChange={e => {
+                          const ny = [...betalingsplanRækker];
+                          ny[i] = { ...ny[i], milepæl: e.target.value };
+                          setBetalingsplanRækker(ny);
+                        }}
+                        className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
+                      />
+                      <div className="flex gap-2 sm:flex-shrink-0">
+                        <div className="relative w-28">
+                          <input
+                            placeholder="0"
+                            value={r.andel}
+                            inputMode="decimal"
+                            onChange={e => {
+                              const ny = [...betalingsplanRækker];
+                              ny[i] = { ...ny[i], andel: e.target.value.replace(/[^0-9.,]/g, "") };
+                              setBetalingsplanRækker(ny);
+                            }}
+                            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm pr-8 focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">%</span>
+                        </div>
+                        {betalingsplanRækker.length > 2 && (
+                          <button
+                            onClick={() => setBetalingsplanRækker(prev => prev.filter((_, j) => j !== i))}
+                            className="text-gray-300 hover:text-red-400 transition-colors p-2 flex-shrink-0"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="flex items-center justify-between pt-1">
+                    <button
+                      onClick={() => setBetalingsplanRækker(prev => [...prev, { milepæl: "", andel: "" }])}
+                      className="text-xs font-semibold text-[#1e3a2a] hover:underline"
+                    >
+                      + Tilføj milepæl
+                    </button>
+                    <p className={`text-xs font-semibold ${Math.abs(planSum - 100) <= 0.01 ? "text-green-700" : "text-amber-600"}`}>
+                      {planSum % 1 === 0 ? planSum : planSum.toFixed(1)} %
+                      {Math.abs(planSum - 100) > 0.01 && ` · mangler ${(100 - planSum) % 1 === 0 ? 100 - planSum : (100 - planSum).toFixed(1)} %`}
+                    </p>
+                  </div>
+
+                  {betalingsplanFejl && (
+                    <p className="text-xs text-red-600 font-medium">{betalingsplanFejl}</p>
+                  )}
+
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={() => { setRedigererBetalingsplan(false); setBetalingsplanFejl(null); }}
+                      className="flex-1 py-2.5 border border-gray-200 text-gray-600 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors"
+                    >
+                      Annuller
+                    </button>
+                    <button
+                      onClick={() => gemBetalingsplan(betalingsplanRækker)}
+                      disabled={gemmerBetalingsplan || !planGyldig}
+                      className="flex-1 py-2.5 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 disabled:opacity-40 transition-all"
+                    >
+                      {gemmerBetalingsplan ? "Gemmer..." : "Gem betalingsplan"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Gemt plan */}
+              {harPlan && !redigererBetalingsplan && (
+                <div className="space-y-1">
+                  {!beggeGodkendt && (
+                    <p className="text-xs text-gray-400 mb-3 leading-relaxed">
+                      Den foreslåede betalingsplan indgår først i aftalen, når bygherre har godkendt det samlede aftalegrundlag.
+                    </p>
+                  )}
+                  {kontrakt.betalingsplan!.map((b, i) => (
+                    <div key={i} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                      <p className="text-sm text-gray-700 pr-4">{b.milepæl}</p>
+                      <p className="text-sm font-semibold text-gray-900 flex-shrink-0">{b.andel} %</p>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between pt-1.5">
+                    <p className="text-xs font-semibold text-gray-500">Samlet</p>
+                    <p className="text-xs font-semibold text-gray-900">100 %</p>
+                  </div>
+                  {!låst && (
+                    <div className="flex gap-4 pt-3">
+                      <button
+                        onClick={() => {
+                          setBetalingsplanRækker(kontrakt.betalingsplan!.map(b => ({ ...b })));
+                          setBetalingsplanFejl(null);
+                          setRedigererBetalingsplan(true);
+                        }}
+                        className="text-xs font-semibold text-[#1e3a2a] hover:underline"
+                      >
+                        Rediger
+                      </button>
+                      <button
+                        onClick={() => gemBetalingsplan(null)}
+                        disabled={gemmerBetalingsplan}
+                        className="text-xs font-semibold text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
+                      >
+                        {gemmerBetalingsplan ? "Gemmer..." : "Brug standardbetaling"}
+                      </button>
+                    </div>
+                  )}
+                  {låst && !beggeGodkendt && (
+                    <p className="text-xs text-amber-600 font-medium pt-2">
+                      Afventer bygherrens samlede godkendelse af aftalegrundlaget.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           );
         })()}
 
