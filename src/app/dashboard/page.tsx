@@ -65,6 +65,7 @@ export default function Dashboard() {
   const [pendingUdkast, setPendingUdkast] = useState<{ titel: string } | null>(null);
   const [visPakkePop, setVisPakkePop] = useState(false);
   const [brugerInfo, setBrugerInfo] = useState<{ id: string; email: string; navn: string } | null>(null);
+  const [sletterProjekt, setSletterProjekt] = useState<string | null>(null);
 
   useEffect(() => {
     const hent = async () => {
@@ -124,6 +125,20 @@ export default function Dashboard() {
 
   function opretNyAftale() {
     router.push("/opret");
+  }
+
+  async function sletProjekt(projektId: string, label: string) {
+    if (!confirm(`Slet "${label}"? Dette kan ikke fortrydes.`)) return;
+    setSletterProjekt(projektId);
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    await fetch(`/api/projekt/${projektId}/slet`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${session?.access_token}` },
+    });
+    setProjekter(prev => prev.filter(p => p.id !== projektId));
+    setAftaler(prev => prev.filter(a => a.projekt_id !== projektId));
+    setSletterProjekt(null);
   }
 
   const timer = new Date().getHours();
@@ -242,37 +257,52 @@ export default function Dashboard() {
                 const underForhandling = a.status === "forhandling";
                 const statusTekst = beggeGodkendt ? "Godkendt af begge" : afventerHaandvaerker ? "Afventer håndværker" : underForhandling ? "Under forhandling" : a.haandvaerker_email ? "Invitation sendt" : "Udkast";
                 const statusKlasse = beggeGodkendt ? "bg-green-100 text-green-700 border-green-200" : afventerHaandvaerker ? "bg-blue-100 text-blue-700 border-blue-200" : underForhandling ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-gray-100 text-gray-500 border-gray-200";
+                const erUdkast = !a.haandvaerker_email;
                 return (
-                  <Link
-                    key={a.id}
-                    href={`/projekt/${a.projekt_id}/aftale`}
-                    className="bg-white rounded-2xl border border-[#e0ddd6] px-5 py-4 flex items-center justify-between hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                          <polyline points="14 2 14 8 20 8"/>
-                          <line x1="16" y1="13" x2="8" y2="13"/>
-                          <line x1="16" y1="17" x2="8" y2="17"/>
-                        </svg>
+                  <div key={a.id} className="flex items-center gap-2">
+                    <Link
+                      href={`/projekt/${a.projekt_id}/aftale`}
+                      className="flex-1 bg-white rounded-2xl border border-[#e0ddd6] px-5 py-4 flex items-center justify-between hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-11 h-11 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors text-sm">
+                            {a.titel || "Aftalegrundlag uden titel"}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {a.haandvaerker_navn || a.haandvaerker_email || "Ingen håndværker tilknyttet endnu"}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors text-sm">
-                          {a.titel || "Aftalegrundlag uden titel"}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {a.haandvaerker_navn || a.haandvaerker_email || "Ingen håndværker tilknyttet endnu"}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${statusKlasse}`}>
+                          {statusTekst}
+                        </span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${statusKlasse}`}>
-                        {statusTekst}
-                      </span>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-                    </div>
-                  </Link>
+                    </Link>
+                    {erUdkast && (
+                      <button
+                        title="Slet udkast"
+                        disabled={sletterProjekt === a.projekt_id}
+                        onClick={() => sletProjekt(a.projekt_id, a.titel || "Aftalegrundlag uden titel")}
+                        className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0 disabled:opacity-40"
+                      >
+                        {sletterProjekt === a.projekt_id
+                          ? <div className="w-4 h-4 border-2 border-red-300 border-t-red-500 rounded-full animate-spin" />
+                          : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                        }
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -525,36 +555,54 @@ export default function Dashboard() {
               </div>
             )}
             <div className="space-y-3">
-              {andreProjekter.map(p => (
-                <Link
-                  key={p.id}
-                  href={`/projekt/${p.id}`}
-                  className="bg-white rounded-2xl border border-[#e0ddd6] px-5 py-4 flex items-center justify-between hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-11 h-11 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                        <polyline points="9 22 9 12 15 12 15 22"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors text-sm">
-                        {p.adresse || projekttypeLabels[p.projekttype] || "Byggeprojekt"}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {new Date(p.oprettet_at).toLocaleDateString("da-DK", { day: "numeric", month: "long" })}
-                      </p>
-                    </div>
+              {andreProjekter.map(p => {
+                const kanSlettes = p.status === "dialog" || p.status === "ingen-tilbud";
+                const projektLabel = p.adresse || projekttypeLabels[p.projekttype] || "Byggeprojekt";
+                return (
+                  <div key={p.id} className="flex items-center gap-2">
+                    <Link
+                      href={`/projekt/${p.id}`}
+                      className="flex-1 bg-white rounded-2xl border border-[#e0ddd6] px-5 py-4 flex items-center justify-between hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-11 h-11 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors text-sm">
+                            {projektLabel}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {new Date(p.oprettet_at).toLocaleDateString("da-DK", { day: "numeric", month: "long" })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${statusFarve[p.status] || "bg-gray-100 text-gray-500 border-gray-200"}`}>
+                          {statusLabel[p.status] || p.status}
+                        </span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                      </div>
+                    </Link>
+                    {kanSlettes && (
+                      <button
+                        title="Slet projekt"
+                        disabled={sletterProjekt === p.id}
+                        onClick={() => sletProjekt(p.id, projektLabel)}
+                        className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0 disabled:opacity-40"
+                      >
+                        {sletterProjekt === p.id
+                          ? <div className="w-4 h-4 border-2 border-red-300 border-t-red-500 rounded-full animate-spin" />
+                          : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                        }
+                      </button>
+                    )}
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${statusFarve[p.status] || "bg-gray-100 text-gray-500 border-gray-200"}`}>
-                      {statusLabel[p.status] || p.status}
-                    </span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-                  </div>
-                </Link>
-              ))}
+                );
+              })}
             </div>
 
             <Link
