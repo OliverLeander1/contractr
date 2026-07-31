@@ -53,6 +53,7 @@ interface Kontrakt {
   tilbud_dokument_url: string | null;
   tilbud_dokument_navn: string | null;
   besigtigelse_dato: string | null;
+  besigtigelse_tid: string | null;
   besigtigelse_bekraeftet: boolean | null;
   forudsaetninger: string | null;
   forudsaetninger_sendt_at: string | null;
@@ -711,6 +712,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         vilkaar={kontrakt.vilkaar}
                         haandvaerkerNavn={kontrakt.haandvaerker_navn}
                         haandvaerkerFirma={kontrakt.haandvaerker_firma}
+                        erAftaleEndeligtGodkendt={erBeggeGodkendt}
                       />
                     )}
                   </div>
@@ -944,11 +946,13 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       <div>
                         <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">AB-Forbruger § 12</p>
                         <p className="text-sm font-bold text-white">
-                          {tp.type === "ingen_tidsplan"
-                            ? "Ingen fast dato — entreprenøren fraviger § 12"
-                            : harAendringer
-                              ? "Entreprenøren foreslår andre datoer"
-                              : "Datoer bekræftet af entreprenøren"}
+                          {godkendt
+                            ? "Tidsplan godkendt"
+                            : tp.type === "ingen_tidsplan"
+                              ? "Ingen fast dato — entreprenøren fraviger § 12"
+                              : harAendringer
+                                ? "Entreprenøren foreslår andre datoer"
+                                : "Datoer bekræftet af entreprenøren"}
                         </p>
                       </div>
                     </div>
@@ -1052,10 +1056,17 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       </button>
                     )}
 
-                    {godkendt && tp.godkendt_at && (
-                      <p className="text-xs text-green-600 text-center">
-                        Godkendt {new Date(tp.godkendt_at).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" })}
-                      </p>
+                    {godkendt && (
+                      <div className="bg-[#f0f7f3] border border-[#1e3a2a]/15 rounded-xl px-4 py-3 text-center">
+                        {tp.godkendt_at && (
+                          <p className="text-xs text-[#1e3a2a] font-semibold mb-1">
+                            Godkendt {new Date(tp.godkendt_at).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" })}
+                          </p>
+                        )}
+                        <p className="text-xs text-[#1e3a2a]/70 leading-relaxed">
+                          Tidsplanen er godkendt. Aftalegrundlaget afventer stadig endelig godkendelse.
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1176,6 +1187,40 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                     </p>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Besigtigelse fra entreprenøren */}
+            {kontrakt.besigtigelse_bekraeftet && (
+              <div className="bg-white rounded-2xl border border-[#1e3a2a]/20 shadow-sm p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-lg bg-[#1e3a2a]/8 flex items-center justify-center flex-shrink-0">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 text-sm">Entreprenøren ønsker besigtigelse</h3>
+                </div>
+                <p className="text-xs text-gray-500 mb-3">Entreprenøren har angivet et tidspunkt for besigtigelse.</p>
+                <div className="space-y-2">
+                  {kontrakt.besigtigelse_dato && (
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-semibold text-gray-400 w-16">Dato</p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {new Date(kontrakt.besigtigelse_dato).toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" })}
+                      </p>
+                    </div>
+                  )}
+                  {kontrakt.besigtigelse_tid && (
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-semibold text-gray-400 w-16">Tidspunkt</p>
+                      <p className="text-sm font-semibold text-gray-900">kl. {kontrakt.besigtigelse_tid}</p>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+                  Kontakt entreprenøren, hvis tidspunktet ikke passer.
+                </p>
               </div>
             )}
 

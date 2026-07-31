@@ -27,6 +27,7 @@ interface Props {
   vilkaar?: string | null;
   haandvaerkerNavn?: string | null;
   haandvaerkerFirma?: string | null;
+  erAftaleEndeligtGodkendt?: boolean;
 }
 
 const fmtKr = (n: number) =>
@@ -71,6 +72,7 @@ export default function DokumentRenderer({
   vilkaar,
   haandvaerkerNavn,
   haandvaerkerFirma,
+  erAftaleEndeligtGodkendt = false,
 }: Props) {
   const dato = new Date().toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
 
@@ -255,7 +257,10 @@ export default function DokumentRenderer({
             <SektionsOverskrift nr={sektionsNr++} label="Entreprisesum og betalingsplan" />
             <div className="space-y-0">
               {totalPris ? (
-                <DataRække label="Aftalt pris (fast)" værdi={`${fmtKr(totalPris)} inkl. moms`} />
+                <DataRække
+                  label={erAftaleEndeligtGodkendt ? "Aftalt pris (fast)" : "Pris fra entreprenør"}
+                  værdi={`${fmtKr(totalPris)} inkl. moms`}
+                />
               ) : (
                 <p className="text-sm text-gray-400 italic">Entreprisesum er endnu ikke fastsat.</p>
               )}
