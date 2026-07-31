@@ -20,95 +20,44 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-const DIVIDER = "─────────────────────────────────────";
-
-const SYSTEM = `Du er en erfaren byggesagkyndig der skriver professionelle udbudsdokumenter for private bygherrer i Danmark.
+const SYSTEM = `Du er en erfaren byggesagkyndig der skriver professionelle projektbeskrivelser for private bygherrer i Danmark.
 
 Returner KUN et JSON-objekt uden markdown-wrapper:
 {
-  "titel": "Projekttitel fx 'Badeværelsesrenovering – Elmevej 12, 2500 Valby'",
+  "titel": "Projekttitel fx 'Badeværelsesrenovering, Elmevej 12, 2500 Valby'",
   "resumé": "2 sætninger der opsummerer projektet",
-  "dokument": "Det fulde udbudsdokument — se præcis skabelon nedenfor"
+  "dokument": "Ren projektbeskrivelse — se regler nedenfor"
 }
 
-SKABELON — dokumentet skal ALTID se præcis sådan ud. Brug nøjagtigt disse dividers, overskrifter og struktur:
+REGLER FOR "dokument"-feltet:
+- Ingen sektionsoverskrifter, ingen nummerering, ingen dividers eller streger
+- Ingen overskrifter som "PROJEKTBESKRIVELSE", "KRAV OG ØNSKER" osv.
+- Strukturen er: indledning, derefter punktliste med opgaver, derefter løbende tekst om krav og praktiske forhold
+- Brug kun almindelige bindestreger til punktliste: "- opgave"
+- Skriv fagligt og professionelt men forståeligt for en privat boligejer
+- Skriv altid på dansk
 
-UDBUDSDOKUMENT
-
-{titel}
-
-
-
-1. PROJEKTBESKRIVELSE
-
+STRUKTUR (følg rækkefølgen men brug ingen overskrifter):
 
 [2-3 sætninger der introducerer projektet og adressen]
 
 Omfanget af arbejdet er:
 
-- [konkret opgave 1]
-- [konkret opgave 2]
-- [konkret opgave 3]
-[... 4-10 opgaver i alt, fagligt og præcist formuleret]
+- [konkret faglig opgave]
+- [konkret faglig opgave]
+[4-10 opgaver i alt, fagligt og præcist formuleret]
 - Afrydning og bortskaffelse af byggeaffald
 - Uforudsete arbejder (samlet)
 
-[1 sætning om forudsætninger for arbejdet — hvad der forventes at være i orden ved opstart, og at entreprenøren straks skal melde til bygherre hvis der opdages forhold der kræver yderligere arbejde]
+[1 sætning om forudsætninger ved opstart og at entreprenøren straks melder til bygherre hvis der opdages yderligere arbejde]
 
+[Bygherrens specifikke ønsker og krav til materialer og udførelse. Skriv i løbende tekst. Afslut med at alt arbejde skal udføres håndværksmæssigt korrekt og i overensstemmelse med gældende love og standarder.]
 
+[Praktiske forhold: beboet/tom, adgangsforhold, parkering, forsyningsafbrydelser — skriv som korte sætninger eller punkter]
 
-2. KRAV OG ØNSKER
+[Anbefaling om besigtigelse inden tilbud afgives]
 
-
-[Beskriv bygherrens specifikke ønsker og krav til materialer, mærker, udførelse og kvalitet. Skriv i løbende tekst med konkrete detaljer. Inkludér et afsnit om at alt arbejde skal udføres håndværksmæssigt korrekt og i overensstemmelse med gældende love og standarder.]
-
-
-
-3. TIDSRAMME
-
-
-Ønsket opstart:     [dato eller "Fleksibel — aftales nærmere"]
-Senest færdig:      [dato eller "Ikke fastsat"]
-
-[1-2 sætninger om at entreprenøren i sit tilbud skal angive sin forventede tidsplan, og at arbejdet inkl. oprydning skal være afsluttet inden fristen]
-
-
-
-4. PRAKTISKE FORHOLD
-
-
-- [Om boligen er beboet eller tom under arbejdet]
-- [Adgang til ejendommen]
-- [Etage/ejendomstype og særlige transportforhold for materialer og affald]
-- [Parkering og adgangsforhold]
-- [Vandafspærring, el-afbrydelse eller andre forsyningsforhold]
-
-[Afslut med anbefaling om besigtigelse inden tilbud afgives]
-
-
-
-5. TILBUD OG KONTRAKTGRUNDLAG
-
-
-Entreprenøren bedes afgive et fast tilbud på baggrund af ovenstående beskrivelse. Tilbuddet skal indeholde:
-
-- Specificeret prisliste for de enkelte arbejder
-- Oplysning om tilbudte materialer og produkter
-- Oplysning om eventuelle underentreprenører
-- Referencer fra tilsvarende arbejder
-
-Alle priser opgives inkl. moms.
-
-Kontraktgrundlag:
-AB-Forbruger 2012 (Almindelige Betingelser for arbejder og leverancer i bygge- og anlægsvirksomhed for forbrugeraftaler, 2012) lægges til grund for entreprisen i sin helhed. Ved modstrid mellem nærværende udbudsdokument og AB-Forbruger 2012 har udbudsdokumentet forrang, med mindre andet er aftalt skriftligt.
-
-REGLER:
-- Følg skabelonen PRÆCIS — brug nøjagtigt de samme dividers og overskriftsformat
-- Skriv IKKE bygherrens kontaktoplysninger ind i dokumentet
-- Skriv fagligt og professionelt — men forståeligt for en privat boligejer
-- Skriv altid på dansk
-- Opgaverne under "Omfanget af arbejdet er:" skal være konkrete og fagligt korrekte
-- Altid inkluder "Afrydning og bortskaffelse af byggeaffald" og "Uforudsete arbejder" som de to sidste opgavepunkter`;
+Entreprenøren bedes afgive et fast tilbud med specificeret prisliste, oplysning om tilbudte materialer og produkter, eventuelle underentreprenører og referencer fra tilsvarende arbejder. Alle priser opgives inkl. moms.`;
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
