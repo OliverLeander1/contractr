@@ -74,30 +74,44 @@ export default function DokumentRenderer({
 }: Props) {
   const dato = new Date().toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
 
-  // Udled projektbeskrivelse fra rå tekst — spring systemlinjer over
-  const beskrivelsesLinjer = tekst
-    ? tekst.split("\n").filter(l => {
-        const t = l.trim();
-        if (!t) return false;
-        if (/^NEMBYGGESTYRING$/i.test(t)) return false;
-        if (/^nembyggestyring\.dk$/i.test(t)) return false;
-        if (/UDBUDSDOKUMENT/i.test(t)) return false;
-        if (/^Dato$/i.test(t)) return false;
-        if (titel && t === titel) return false;
-        if (/^BYGHERRE$/i.test(t)) return false;
-        if (/^ENTREPREN[ØO]R$/i.test(t)) return false;
-        // Filtrer rene separatorlinjer
-        if (/^[-_*=]{3,}$/.test(t)) return false;
-        // Filtrer linjer der starter med mange streger/underscores (f.eks. "________ 1. SEKTION")
-        if (/^[-_]{5,}/.test(t)) return false;
-        // Filtrer nummererede sektionsoverskrifter i all-caps (f.eks. "1. PROJEKTBESKRIVELSE")
-        if (/^\d+\.\s+[A-ZÆØÅ\s]+$/.test(t)) return false;
-        // Filtrer linjer der kun er sektionsnumre (f.eks. "1.", "2.", "3.")
-        if (/^\d+\.$/.test(t)) return false;
-        return true;
-      })
-    : [];
+  // Udled sektioner fra rå tekst via markører sat af udbud-flow
+  const udledSektioner = (rå: string) => {
+    const kravIdx = rå.indexOf("[KRAV OG ØNSKER]");
+    const praktiskIdx = rå.indexOf("[PRAKTISKE FORHOLD]");
+    const hoved = kravIdx !== -1 ? rå.slice(0, kravIdx) : (praktiskIdx !== -1 ? rå.slice(0, praktiskIdx) : rå);
+    const krav = kravIdx !== -1
+      ? (praktiskIdx !== -1 ? rå.slice(kravIdx + 16, praktiskIdx) : rå.slice(kravIdx + 16))
+      : null;
+    const praktisk = praktiskIdx !== -1 ? rå.slice(praktiskIdx + 19) : null;
+    return { hoved, krav, praktisk };
+  };
 
+  const { hoved: hovedTekst, krav: kravTekst, praktisk: praktiskTekst } = udledSektioner(tekst || "");
+
+  const filtrerLinjer = (t: string) =>
+    t.split("\n").filter(l => {
+      const tr = l.trim();
+      if (!tr) return false;
+      if (/^NEMBYGGESTYRING$/i.test(tr)) return false;
+      if (/^nembyggestyring\.dk$/i.test(tr)) return false;
+      if (/UDBUDSDOKUMENT/i.test(tr)) return false;
+      if (/^Dato$/i.test(tr)) return false;
+      if (titel && tr === titel) return false;
+      if (/^BYGHERRE$/i.test(tr)) return false;
+      if (/^ENTREPREN[ØO]R$/i.test(tr)) return false;
+      if (/^[-_*=]{3,}$/.test(tr)) return false;
+      if (/^[-_]{5,}/.test(tr)) return false;
+      if (/^\d+\.\s+[A-ZÆØÅ\s]+$/.test(tr)) return false;
+      if (/^\d+\.$/.test(tr)) return false;
+      return true;
+    });
+
+  const beskrivelsesLinjer = filtrerLinjer(hovedTekst);
+  const kravLinjer = kravTekst ? filtrerLinjer(kravTekst) : [];
+  const praktiskLinjer = praktiskTekst ? filtrerLinjer(praktiskTekst) : [];
+
+  const harKravSektion = kravLinjer.length > 0;
+  const harPraktiskSektion = praktiskLinjer.length > 0;
   const harPrisSektion = !!(totalPris || (betalingsplan && betalingsplan.length > 0));
   const harTidsplan = !!(startdato || slutdato || tidsplan);
   const harForudsaetninger = !!forudsaetninger?.trim();
@@ -189,7 +203,53 @@ export default function DokumentRenderer({
           </div>
         )}
 
-        {/* 2. Entreprisesum og betalingsplan */}
+        {/* 2. Krav og ønsker */}
+        {harKravSektion && (
+          <div>
+            <SektionsOverskrift nr={sektionsNr++} label="Krav og ønsker" />
+            <div className="space-y-0.5">
+              {kravLinjer.map((linje, i) => {
+                const trimmet = linje.trim();
+                if (trimmet.startsWith("- ")) {
+                  return (
+                    <div key={i} className="flex items-start gap-3 py-1 pl-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#1e3a2a] flex-shrink-0 mt-2" />
+                      <span className="text-sm text-gray-700 leading-relaxed">{trimmet.slice(2).replace(/\s*—\s*/g, ", ")}</span>
+                    </div>
+                  );
+                }
+                return (
+                  <p key={i} className="text-sm text-gray-700 leading-[1.8] py-0.5">{trimmet.replace(/\s*—\s*/g, ", ")}</p>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 3. Praktiske forhold */}
+        {harPraktiskSektion && (
+          <div>
+            <SektionsOverskrift nr={sektionsNr++} label="Praktiske forhold" />
+            <div className="space-y-0.5">
+              {praktiskLinjer.map((linje, i) => {
+                const trimmet = linje.trim();
+                if (trimmet.startsWith("- ")) {
+                  return (
+                    <div key={i} className="flex items-start gap-3 py-1 pl-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#1e3a2a] flex-shrink-0 mt-2" />
+                      <span className="text-sm text-gray-700 leading-relaxed">{trimmet.slice(2).replace(/\s*—\s*/g, ", ")}</span>
+                    </div>
+                  );
+                }
+                return (
+                  <p key={i} className="text-sm text-gray-700 leading-[1.8] py-0.5">{trimmet.replace(/\s*—\s*/g, ", ")}</p>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 4. Entreprisesum og betalingsplan */}
         {harPrisSektion && (
           <div>
             <SektionsOverskrift nr={sektionsNr++} label="Entreprisesum og betalingsplan" />

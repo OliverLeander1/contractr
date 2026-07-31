@@ -26,38 +26,46 @@ Returner KUN et JSON-objekt uden markdown-wrapper:
 {
   "titel": "Projekttitel fx 'Badeværelsesrenovering, Elmevej 12, 2500 Valby'",
   "resumé": "2 sætninger der opsummerer projektet",
-  "dokument": "Ren projektbeskrivelse — se regler nedenfor"
+  "dokument": "Ren projektbeskrivelse med omfang — se regler nedenfor",
+  "kravOgOensker": "Krav og ønsker til materialer og udførelse — se regler nedenfor",
+  "praktiskeForhold": "Praktiske forhold — se regler nedenfor"
 }
 
 REGLER FOR "dokument"-feltet:
+- KUN projektbeskrivelse og omfang af arbejdet
 - Ingen sektionsoverskrifter, ingen nummerering, ingen dividers eller streger
-- Ingen overskrifter som "PROJEKTBESKRIVELSE", "KRAV OG ØNSKER" osv.
-- Strukturen er: indledning, derefter punktliste med opgaver, derefter løbende tekst om krav og praktiske forhold
 - Brug kun almindelige bindestreger til punktliste: "- opgave"
 - Skriv fagligt og professionelt men forståeligt for en privat boligejer
 - Skriv altid på dansk
 
-STRUKTUR (følg rækkefølgen men brug ingen overskrifter):
-
+STRUKTUR FOR "dokument":
 [2-3 sætninger der introducerer projektet og adressen]
 
 Omfanget af arbejdet er:
 
 - [konkret faglig opgave]
-- [konkret faglig opgave]
 [4-10 opgaver i alt, fagligt og præcist formuleret]
 - Afrydning og bortskaffelse af byggeaffald
 - Uforudsete arbejder (samlet)
 
-[1 sætning om forudsætninger ved opstart og at entreprenøren straks melder til bygherre hvis der opdages yderligere arbejde]
+[1 sætning om at entreprenøren straks melder til bygherre hvis der opdages yderligere arbejde]
 
-[Bygherrens specifikke ønsker og krav til materialer og udførelse. Skriv i løbende tekst. Afslut med at alt arbejde skal udføres håndværksmæssigt korrekt og i overensstemmelse med gældende love og standarder.]
+Entreprenøren bedes afgive et fast tilbud med specificeret prisliste, oplysning om tilbudte materialer og produkter, eventuelle underentreprenører og referencer fra tilsvarende arbejder. Alle priser opgives inkl. moms.
 
-[Praktiske forhold: beboet/tom, adgangsforhold, parkering, forsyningsafbrydelser — skriv som korte sætninger eller punkter]
+REGLER FOR "kravOgOensker"-feltet:
+- Bygherrens specifikke ønsker og krav til materialer, produkter og udførelse
+- Løbende tekst, ingen overskrifter
+- Afslut med at alt arbejde skal udføres håndværksmæssigt korrekt og i overensstemmelse med gældende love, normer og branchestandarder
+- Hvis der ikke er specifikke krav: skriv at bygherre ønsker materialer af god og dokumenteret kvalitet
 
-[Anbefaling om besigtigelse inden tilbud afgives]
+REGLER FOR "praktiskeForhold"-feltet:
+- Beboet eller tom bolig under arbejdet
+- Adgangsforhold og nøgleaftaler
+- Parkering og varetilkørsel
+- Eventuelle forsyningsafbrydelser der skal koordineres
+- Anbefaling om besigtigelse inden tilbud afgives
+- Skriv som korte sætninger eller punktliste med "- punkt"`;
 
-Entreprenøren bedes afgive et fast tilbud med specificeret prisliste, oplysning om tilbudte materialer og produkter, eventuelle underentreprenører og referencer fra tilsvarende arbejder. Alle priser opgives inkl. moms.`;
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";

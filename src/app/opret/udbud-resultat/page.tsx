@@ -11,6 +11,8 @@ interface UdbudResultat {
   titel: string;
   resumé: string;
   dokument: string;
+  kravOgOensker?: string;
+  praktiskeForhold?: string;
   bygherreNavn: string;
   bygherreKontakt: string;
   billeder?: { navn: string; data: string }[];
@@ -49,10 +51,13 @@ export default function UdbudResultat() {
       try {
         const parsed = JSON.parse(raw);
         setData(parsed);
-        setTekst(parsed.dokument);
-        const linjer = (parsed.dokument as string).split("\n");
-        const bodyStart = linjer.findIndex((l: string) => /^\d+\.\s+[A-ZÆØÅ]/.test(l.trim()) && l.trim().length > 3);
-        setBodyTekst(bodyStart === -1 ? parsed.dokument : linjer.slice(bodyStart).join("\n"));
+        // Sammensæt tekst med sektionsmarkører
+        const dele = [parsed.dokument || ""];
+        if (parsed.kravOgOensker?.trim()) dele.push("[KRAV OG ØNSKER]\n" + parsed.kravOgOensker.trim());
+        if (parsed.praktiskeForhold?.trim()) dele.push("[PRAKTISKE FORHOLD]\n" + parsed.praktiskeForhold.trim());
+        const samletTekst = dele.join("\n\n");
+        setTekst(samletTekst);
+        setBodyTekst(samletTekst);
         track("document_generated", { titel: parsed.titel });
       } catch { /* ignore */ }
     }
@@ -212,6 +217,8 @@ export default function UdbudResultat() {
             titel={data.titel}
             bygherreNavn={data.bygherreNavn}
             bygherreKontakt={data.bygherreKontakt}
+            startdato={data.opstart || null}
+            slutdato={data.slutdato || null}
           />
         )}
       </div>
