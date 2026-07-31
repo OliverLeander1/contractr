@@ -102,13 +102,6 @@ export default function Dashboard() {
         // Vis pakke-pop hvis brugeren har projekter men ingen betalt pakke
         // og ikke allerede har lukket pop'en denne session
         const harBetalt = projektData.some(p => p.pakke_betalt);
-        const harDismisset = sessionStorage.getItem("pakke_pop_vist");
-        // Vis kun pakke-pop hvis brugeren har projekter med en tilknyttet håndværker
-        // (dvs. de har sendt invitationen og er klar til projektrum-fasen)
-        const harAktivtProjekt = projektData.some(p => p.status === "igang" || p.status === "accepteret" || p.status === "tilbud");
-        if (!harBetalt && harAktivtProjekt && !harDismisset) {
-          setTimeout(() => setVisPakkePop(true), 1200);
-        }
       }
 
       const { data: aftaleData } = await supabase
