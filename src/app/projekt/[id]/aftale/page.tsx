@@ -932,9 +932,9 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               const harBemaerkning = fase?.navn && fase.navn !== "Aftalt periode" && fase.navn !== "Foreslået af entreprenør";
 
               return (
-                <div className={`rounded-2xl overflow-hidden border shadow-sm ${godkendt ? "border-green-100" : harAendringer ? "border-orange-300" : "border-amber-200"}`}>
+                <div className={`rounded-2xl overflow-hidden border shadow-sm ${godkendt ? "border-green-100" : harAendringer ? "border-[#1e3a2a]/30" : "border-amber-200"}`}>
                   {/* Header */}
-                  <div className={`px-5 py-4 flex items-center justify-between ${harAendringer && !godkendt ? "bg-orange-600" : "bg-[#111c17]"}`}>
+                  <div className="px-5 py-4 flex items-center justify-between bg-[#111c17]">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
@@ -958,7 +958,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         Godkendt
                       </span>
                     ) : (
-                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${harAendringer ? "bg-white/20 text-white border border-white/20" : "bg-amber-400/20 text-amber-300 border border-amber-400/20"}`}>
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/10 text-white border border-white/20">
                         Afventer din godkendelse
                       </span>
                     )}
@@ -975,11 +975,11 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                     ) : (
                       <div className="space-y-3 mb-4">
                         {/* Startdato */}
-                        <div className={`rounded-xl px-4 py-3 border ${startAendret && !godkendt ? "bg-orange-50 border-orange-200" : "bg-gray-50 border-gray-100"}`}>
+                        <div className={`rounded-xl px-4 py-3 border ${startAendret && !godkendt ? "bg-[#f0f7f3] border-[#1e3a2a]/20" : "bg-gray-50 border-gray-100"}`}>
                           <div className="flex items-center justify-between">
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Opstart</p>
                             {startAendret && !godkendt && (
-                              <span className="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">Ændret</span>
+                              <span className="text-[10px] font-bold text-[#1e3a2a] bg-[#1e3a2a]/10 px-2 py-0.5 rounded-full">Ændret</span>
                             )}
                           </div>
                           {startAendret && !godkendt ? (
@@ -989,8 +989,8 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                                 <span className="text-xs text-gray-400">Din ønskede dato</span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-orange-700">{entStartdato ? fmtDatoKort(entStartdato) : "—"}</span>
-                                <span className="text-xs font-semibold text-orange-600">Entreprenørens forslag</span>
+                                <span className="text-sm font-bold text-[#1e3a2a]">{entStartdato ? fmtDatoKort(entStartdato) : "—"}</span>
+                                <span className="text-xs font-semibold text-[#1e3a2a]/70">Entreprenørens forslag</span>
                               </div>
                             </div>
                           ) : (
@@ -1001,11 +1001,11 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         </div>
 
                         {/* Slutdato / aflevering */}
-                        <div className={`rounded-xl px-4 py-3 border ${slutAendret && !godkendt ? "bg-orange-50 border-orange-200" : "bg-gray-50 border-gray-100"}`}>
+                        <div className={`rounded-xl px-4 py-3 border ${slutAendret && !godkendt ? "bg-[#f0f7f3] border-[#1e3a2a]/20" : "bg-gray-50 border-gray-100"}`}>
                           <div className="flex items-center justify-between">
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Aflevering</p>
                             {slutAendret && !godkendt && (
-                              <span className="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">Ændret</span>
+                              <span className="text-[10px] font-bold text-[#1e3a2a] bg-[#1e3a2a]/10 px-2 py-0.5 rounded-full">Ændret</span>
                             )}
                           </div>
                           {slutAendret && !godkendt ? (
@@ -1015,8 +1015,8 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                                 <span className="text-xs text-gray-400">Din ønskede dato</span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-orange-700">{entSlutdato ? fmtDatoKort(entSlutdato) : "—"}</span>
-                                <span className="text-xs font-semibold text-orange-600">Entreprenørens forslag</span>
+                                <span className="text-sm font-bold text-[#1e3a2a]">{entSlutdato ? fmtDatoKort(entSlutdato) : "—"}</span>
+                                <span className="text-xs font-semibold text-[#1e3a2a]/70">Entreprenørens forslag</span>
                               </div>
                             </div>
                           ) : (

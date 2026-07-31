@@ -30,6 +30,7 @@ interface Aftale {
   slutdato: string | null;
   total_pris: number | null;
   betalingsplan: { milepæl: string; andel: string }[] | null;
+  tidsplan: { godkendt_af_bygherre: boolean } | null;
 }
 
 const projekttypeLabels: Record<string, string> = {
@@ -106,7 +107,7 @@ export default function Dashboard() {
 
       const { data: aftaleData } = await supabase
         .from("kontrakter")
-        .select("id, projekt_id, titel, status, haandvaerker_navn, haandvaerker_email, haandvaerker_firma, oprettet_at, bygherre_godkendt_at, haandvaerker_godkendt_at, startdato, slutdato, total_pris, betalingsplan")
+        .select("id, projekt_id, titel, status, haandvaerker_navn, haandvaerker_email, haandvaerker_firma, oprettet_at, bygherre_godkendt_at, haandvaerker_godkendt_at, startdato, slutdato, total_pris, betalingsplan, tidsplan")
         .eq("bygherre_id", user.id)
         .order("oprettet_at", { ascending: false });
 
@@ -248,8 +249,9 @@ export default function Dashboard() {
                 const beggeGodkendt = a.status === "begge_godkendt";
                 const afventerHaandvaerker = a.bygherre_godkendt_at && !a.haandvaerker_godkendt_at;
                 const underForhandling = a.status === "forhandling";
-                const statusTekst = beggeGodkendt ? "Godkendt af begge" : afventerHaandvaerker ? "Afventer håndværker" : underForhandling ? "Under forhandling" : a.haandvaerker_email ? "Invitation sendt" : "Udkast";
-                const statusKlasse = beggeGodkendt ? "bg-green-100 text-green-700 border-green-200" : afventerHaandvaerker ? "bg-blue-100 text-blue-700 border-blue-200" : underForhandling ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-gray-100 text-gray-500 border-gray-200";
+                const nyeDatoerForeslaaet = !!(a.tidsplan && a.tidsplan.godkendt_af_bygherre === false && !a.bygherre_godkendt_at);
+                const statusTekst = nyeDatoerForeslaaet ? "Nye datoer foreslået" : beggeGodkendt ? "Godkendt af begge" : afventerHaandvaerker ? "Afventer håndværker" : underForhandling ? "Under forhandling" : a.haandvaerker_email ? "Invitation sendt" : "Udkast";
+                const statusKlasse = nyeDatoerForeslaaet ? "bg-[#1e3a2a]/10 text-[#1e3a2a] border-[#1e3a2a]/20" : beggeGodkendt ? "bg-green-100 text-green-700 border-green-200" : afventerHaandvaerker ? "bg-blue-100 text-blue-700 border-blue-200" : underForhandling ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-gray-100 text-gray-500 border-gray-200";
                 const erUdkast = !a.haandvaerker_email;
                 return (
                   <div key={a.id} className="flex items-center gap-2">
@@ -273,6 +275,9 @@ export default function Dashboard() {
                           <p className="text-xs text-gray-400 mt-0.5">
                             {a.haandvaerker_navn || a.haandvaerker_email || "Ingen håndværker tilknyttet endnu"}
                           </p>
+                          {nyeDatoerForeslaaet && (
+                            <p className="text-xs text-[#1e3a2a] font-medium mt-0.5">Entreprenøren har foreslået nye datoer</p>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
