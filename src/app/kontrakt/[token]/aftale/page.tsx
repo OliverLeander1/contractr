@@ -753,7 +753,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                       disabled={gemmerForudsaetninger || !forudsaetningerTekst.trim()}
                       className="flex-1 py-2.5 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 disabled:opacity-40 transition-all"
                     >
-                      {gemmerForudsaetninger ? "Sender..." : "Send forudsætninger til bygherre"}
+                      {gemmerForudsaetninger ? "Gemmer..." : "Gem forudsætninger på sagen"}
                     </button>
                     <button
                       onClick={() => setSpringetOver(true)}
@@ -1075,7 +1075,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                 {datoValg === "ingen" && (
                   <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4">
                     <p className="text-xs text-amber-700 leading-relaxed">
-                      Bygherre modtager dette til godkendelse. Begge parter er bevidste om at AB-Forbruger § 12 fraviges.
+                      Bygherre kan se og godkende dette i projektrummet. Begge parter er bevidste om, at AB-Forbruger § 12 fraviges.
                     </p>
                   </div>
                 )}
@@ -1095,7 +1095,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                     {gemmerTidsplan ? (
                       <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Gemmer...</>
                     ) : (
-                      <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Send til bygherre</>
+                      <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Gem tidsplan på sagen</>
                     )}
                   </button>
                 </div>
@@ -1138,13 +1138,13 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
           <button onClick={() => setVisNavnModal(true)}
             className="w-full py-4 bg-[#1e3a2a] text-white font-bold text-base rounded-2xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-sm">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            Bekræft og send tilbud til bygherre
+            Send samlet grundlag til bygherres godkendelse
           </button>
         )}
 
         {!godkendt && harAdgang && (
           <p className="text-xs text-center text-gray-400 mt-4 leading-relaxed">
-            Har du spørgsmål til aftalegrundlaget? Kontakt bygherren direkte inden du godkender.
+            Brug denne knap, når pris, tidsplan og vilkår er klar til bygherres gennemgang. Bygherre modtager en besked og kan derefter godkende eller vende tilbage med bemærkninger.
           </p>
         )}
 
@@ -1196,8 +1196,8 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
               <div>
-                <h2 className="font-bold text-gray-900">Send tilbud til bygherre</h2>
-                <p className="text-xs text-gray-400">Bekræft oplysningerne og send</p>
+                <h2 className="font-bold text-gray-900">Send samlet grundlag til bygherre</h2>
+                <p className="text-xs text-gray-400">Bekræft dine oplysninger, inden du sender</p>
               </div>
             </div>
 
@@ -1218,7 +1218,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
 
             <div className="bg-[#1e3a2a]/5 border border-[#1e3a2a]/10 rounded-xl px-4 py-3 mb-5">
               <p className="text-xs text-gray-600 leading-relaxed">
-                Bygherre modtager en e-mail og kan se tilbuddet under &ldquo;Aftaler&rdquo; i deres projektrum. Handlingen logges med navn og tidsstempel.
+                Bygherre modtager en e-mail om, at aftalegrundlaget er klar til gennemgang. Handlingen logges med navn og tidsstempel.
               </p>
             </div>
 
@@ -1236,7 +1236,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                 {godkender ? (
                   <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Sender...</>
                 ) : (
-                  <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Send tilbud</>
+                  <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Send til godkendelse</>
                 )}
               </button>
             </div>
