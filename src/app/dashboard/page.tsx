@@ -30,7 +30,55 @@ interface Aftale {
   slutdato: string | null;
   total_pris: number | null;
   betalingsplan: { milepæl: string; andel: string }[] | null;
-  tidsplan: { godkendt_af_bygherre: boolean } | null;
+  tidsplan: { godkendt_af_bygherre: boolean; indsendt_at: string | null } | null;
+  forudsaetninger_sendt_at: string | null;
+  forudsaetninger_godkendt: boolean | null;
+  tilbud_dokument_url: string | null;
+  besigtigelse_bekraeftet: boolean | null;
+}
+
+interface KontraktStatus {
+  badgeText: string | null;
+  secondaryText: string | null;
+  badgeKlasse: string;
+}
+
+function getContractorUpdateStatus(a: Aftale): KontraktStatus {
+  const ingen: KontraktStatus = { badgeText: null, secondaryText: null, badgeKlasse: "" };
+
+  if (a.bygherre_godkendt_at) return ingen;
+
+  // Niveau 1: kræver aktiv handling fra bygherre
+  const action: string[] = [];
+  if (a.haandvaerker_godkendt_at && !a.bygherre_godkendt_at)
+    action.push("Entreprenøren har sendt grundlaget til godkendelse");
+  if (a.tidsplan?.indsendt_at && a.tidsplan.godkendt_af_bygherre === false)
+    action.push("Entreprenøren har foreslået nye datoer");
+  if (a.forudsaetninger_sendt_at && a.forudsaetninger_godkendt !== true)
+    action.push("Entreprenøren har tilføjet forudsætninger");
+
+  if (action.length > 0) {
+    return {
+      badgeText: "Afventer din gennemgang",
+      secondaryText: action.length === 1 ? action[0] : "Entreprenøren har lavet flere opdateringer",
+      badgeKlasse: "bg-[#1e3a2a]/10 text-[#1e3a2a] border-[#1e3a2a]/20",
+    };
+  }
+
+  // Niveau 2: orientering
+  const update: string[] = [];
+  if (a.tilbud_dokument_url) update.push("Entreprenøren har uploadet tilbud");
+  if (a.besigtigelse_bekraeftet === true) update.push("Entreprenøren har angivet besigtigelse");
+
+  if (update.length > 0) {
+    return {
+      badgeText: "Opdateret af entreprenør",
+      secondaryText: update.length === 1 ? update[0] : "Entreprenøren har opdateret sagen",
+      badgeKlasse: "bg-[#f0f7f3] text-[#1e3a2a]/70 border-[#1e3a2a]/10",
+    };
+  }
+
+  return ingen;
 }
 
 const projekttypeLabels: Record<string, string> = {
@@ -107,7 +155,7 @@ export default function Dashboard() {
 
       const { data: aftaleData } = await supabase
         .from("kontrakter")
-        .select("id, projekt_id, titel, status, haandvaerker_navn, haandvaerker_email, haandvaerker_firma, oprettet_at, bygherre_godkendt_at, haandvaerker_godkendt_at, startdato, slutdato, total_pris, betalingsplan, tidsplan")
+        .select("id, projekt_id, titel, status, haandvaerker_navn, haandvaerker_email, haandvaerker_firma, oprettet_at, bygherre_godkendt_at, haandvaerker_godkendt_at, startdato, slutdato, total_pris, betalingsplan, tidsplan, forudsaetninger_sendt_at, forudsaetninger_godkendt, tilbud_dokument_url, besigtigelse_bekraeftet")
         .eq("bygherre_id", user.id)
         .order("oprettet_at", { ascending: false });
 
@@ -249,9 +297,9 @@ export default function Dashboard() {
                 const beggeGodkendt = a.status === "begge_godkendt";
                 const afventerHaandvaerker = a.bygherre_godkendt_at && !a.haandvaerker_godkendt_at;
                 const underForhandling = a.status === "forhandling";
-                const nyeDatoerForeslaaet = !!(a.tidsplan && a.tidsplan.godkendt_af_bygherre === false && !a.bygherre_godkendt_at);
-                const statusTekst = nyeDatoerForeslaaet ? "Nye datoer foreslået" : beggeGodkendt ? "Godkendt af begge" : afventerHaandvaerker ? "Afventer håndværker" : underForhandling ? "Under forhandling" : a.haandvaerker_email ? "Invitation sendt" : "Udkast";
-                const statusKlasse = nyeDatoerForeslaaet ? "bg-[#1e3a2a]/10 text-[#1e3a2a] border-[#1e3a2a]/20" : beggeGodkendt ? "bg-green-100 text-green-700 border-green-200" : afventerHaandvaerker ? "bg-blue-100 text-blue-700 border-blue-200" : underForhandling ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-gray-100 text-gray-500 border-gray-200";
+                const kontraktStatus = getContractorUpdateStatus(a);
+                const statusTekst = kontraktStatus.badgeText ?? (beggeGodkendt ? "Godkendt af begge" : afventerHaandvaerker ? "Afventer håndværker" : underForhandling ? "Under forhandling" : a.haandvaerker_email ? "Invitation sendt" : "Udkast");
+                const statusKlasse = kontraktStatus.badgeKlasse || (beggeGodkendt ? "bg-green-100 text-green-700 border-green-200" : afventerHaandvaerker ? "bg-blue-100 text-blue-700 border-blue-200" : underForhandling ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-gray-100 text-gray-500 border-gray-200");
                 const erUdkast = !a.haandvaerker_email;
                 return (
                   <div key={a.id} className="flex items-center gap-2">
@@ -275,8 +323,8 @@ export default function Dashboard() {
                           <p className="text-xs text-gray-400 mt-0.5">
                             {a.haandvaerker_navn || a.haandvaerker_email || "Ingen håndværker tilknyttet endnu"}
                           </p>
-                          {nyeDatoerForeslaaet && (
-                            <p className="text-xs text-[#1e3a2a] font-medium mt-0.5">Entreprenøren har foreslået nye datoer</p>
+                          {kontraktStatus.secondaryText && (
+                            <p className="text-xs text-[#1e3a2a] font-medium mt-0.5">{kontraktStatus.secondaryText}</p>
                           )}
                         </div>
                       </div>
