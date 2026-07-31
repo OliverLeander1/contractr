@@ -342,7 +342,7 @@ export default function DokumentRenderer({
         <div>
           <SektionsOverskrift nr={sektionsNr++} label="Juridiske vilkår" />
           <p className="text-sm text-gray-700 leading-[1.8]">
-            {vilkaar || "AB-Forbruger 2012 er gældende for denne aftale i sin helhed, herunder bestemmelser om ekstraarbejde (§ 23), betaling (§ 25 og § 37), afleveringsforretning (§ 38) og 1-årseftersyn (§ 58)."}
+            {vilkaar || "AB-Forbruger 2012 er gældende for denne aftale i sin helhed, herunder bestemmelser om ekstraarbejde (§ 23), betaling (§ 25 og § 37) og afleveringsforretning (§ 38)."}
           </p>
         </div>
 
