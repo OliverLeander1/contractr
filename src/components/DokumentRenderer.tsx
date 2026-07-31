@@ -342,12 +342,7 @@ export default function DokumentRenderer({
         <div>
           <SektionsOverskrift nr={sektionsNr++} label="Juridiske vilkår" />
           <p className="text-sm text-gray-700 leading-[1.8]">
-            {vilkaar || "AB-Forbruger 2012 er gældende for denne aftale i sin helhed."}
-          </p>
-          <p className="text-xs text-gray-400 mt-3 leading-relaxed">
-            AB-Forbruger 2012 gælder kun, hvis begge parter eksplicit har aftalt det. Begge parter har godkendt
-            at AB-Forbruger 2012 er gældende som vilkår for denne entreprise, herunder bestemmelser om
-            ekstraarbejde (§ 23), betaling (§ 25 og § 37), afleveringsforretning (§ 38) og 1-årseftersyn (§ 58).
+            {vilkaar || "AB-Forbruger 2012 er gældende for denne aftale i sin helhed, herunder bestemmelser om ekstraarbejde (§ 23), betaling (§ 25 og § 37), afleveringsforretning (§ 38) og 1-årseftersyn (§ 58)."}
           </p>
         </div>
 
