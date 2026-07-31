@@ -397,7 +397,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Opret ny sag
             </button>
-            {!erBeggeGodkendt && (
+            {!erBeggeGodkendt && !kontrakt.haandvaerker_email && (
               <button
                 onClick={() => setVisInviter(true)}
                 className="flex items-center gap-2 bg-[#1e3a2a] text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
@@ -405,6 +405,13 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 Inviter håndværker
               </button>
+            )}
+            {!erBeggeGodkendt && kontrakt.haandvaerker_email && (
+              <span className="text-sm font-medium text-gray-500">
+                {haandvaerkerGodkendt && !bygherreGodkendt
+                  ? "Grundlag modtaget"
+                  : "Håndværker inviteret"}
+              </span>
             )}
           </div>
         </div>
