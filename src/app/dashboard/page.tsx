@@ -57,18 +57,19 @@ function getContractorUpdateStatus(a: Aftale): KontraktStatus {
   if (a.forudsaetninger_sendt_at && a.forudsaetninger_godkendt !== true)
     action.push("Entreprenøren har tilføjet forudsætninger");
 
-  if (action.length > 0) {
-    return {
-      badgeText: "Afventer din gennemgang",
-      secondaryText: action.length === 1 ? action[0] : "Entreprenøren har lavet flere opdateringer",
-      badgeKlasse: "bg-[#1e3a2a]/10 text-[#1e3a2a] border-[#1e3a2a]/20",
-    };
-  }
-
-  // Niveau 2: orientering
+  // Niveau 2: orientering (bygges altid, bruges til samlet tælling)
   const update: string[] = [];
   if (a.tilbud_dokument_url) update.push("Entreprenøren har uploadet tilbud");
   if (a.besigtigelse_bekraeftet === true) update.push("Entreprenøren har angivet besigtigelse");
+
+  if (action.length > 0) {
+    const samlet = action.length + update.length;
+    return {
+      badgeText: "Afventer din gennemgang",
+      secondaryText: samlet > 1 ? "Entreprenøren har lavet flere opdateringer" : action[0],
+      badgeKlasse: "bg-[#1e3a2a]/10 text-[#1e3a2a] border-[#1e3a2a]/20",
+    };
+  }
 
   if (update.length > 0) {
     return {
