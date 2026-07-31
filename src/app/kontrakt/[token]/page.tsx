@@ -111,7 +111,7 @@ export default function HaandvaerkerLanding({ params }: { params: Promise<{ toke
 
         {/* CTA */}
         <div className="bg-[#1e3a2a] rounded-2xl p-6 mb-8 text-center">
-          <p className="text-white/70 text-sm mb-1">Ingen konto kræves</p>
+          <p className="text-white/70 text-sm mb-1">Du kan gennemse aftalegrundlaget uden konto</p>
           <h2 className="text-white font-bold text-xl mb-4">Åbn aftalegrundlaget</h2>
           <Link
             href={`/kontrakt/${token}/aftale`}
@@ -119,7 +119,7 @@ export default function HaandvaerkerLanding({ params }: { params: Promise<{ toke
           >
             Gå til aftalegrundlag →
           </Link>
-          <p className="text-white/40 text-xs mt-4">Du kan gennemse, foreslå ændringer og godkende direkte i systemet</p>
+          <p className="text-white/40 text-xs mt-4">Vil du sende tilbud, foreslå ændringer eller godkende, logger du ind med din e-mail. Det tager under et minut.</p>
         </div>
 
         {/* Fordele */}

@@ -548,8 +548,8 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                       </svg>
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900">Log ind for at redigere</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Vi sender dig et link — du er inde på sekunder</p>
+                      <p className="text-sm font-bold text-gray-900">Log ind for at svare på aftalegrundlaget</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Skriv din e-mail, så sender vi dig et adgangslink. Hvis det er første gang, oprettes din gratis konto automatisk.</p>
                     </div>
                   </div>
 
@@ -579,7 +579,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                       {senderMagicLink ? (
                         <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>Sender...</>
                       ) : (
-                        <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Send mig et login-link</>
+                        <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Send mig et adgangslink</>
                       )}
                     </button>
 

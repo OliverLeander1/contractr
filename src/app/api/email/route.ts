@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
         <p style="color: #6b7280; margin-bottom: 24px; line-height: 1.6;">
           Hej ${modtagerNavn},<br><br>
           En bygherre har oprettet et aftalegrundlag for <strong>${titel}</strong> og ønsker at gennemgå det sammen med dig inden arbejdet går i gang.<br><br>
-          Du kan gennemse aftalegrundlaget, foreslå ændringer og godkende det direkte via linket nedenfor. Ingen konto kræves.
+          Du kan åbne og gennemse aftalegrundlaget uden konto. Hvis du vil sende tilbud, foreslå ændringer eller godkende aftalegrundlaget, logger du ind med din e-mail. Det sikrer, at svar og godkendelser bliver dokumenteret korrekt.
         </p>
 
         <a href="${link}" style="display: inline-block; background: #1e3a2a; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 700; font-size: 15px; margin-bottom: 32px;">
