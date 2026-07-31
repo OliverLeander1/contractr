@@ -794,7 +794,11 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               <div className="px-5 py-4">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Betalingsplan</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                      {kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0
+                        ? (erBeggeGodkendt ? "Aftalt betalingsplan" : "Foreslået betalingsplan")
+                        : "Betalingsplan"}
+                    </p>
                     <p className="text-xs text-gray-400 mt-0.5">
                       {kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0
                         ? "Milepælsplan jf. AB-Forbruger § 26"
@@ -851,18 +855,29 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                     </div>
                   </div>
                 ) : kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0 ? (
-                  <div className="space-y-1">
-                    {kontrakt.betalingsplan.map((b, i) => (
-                      <div key={i} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
-                        <p className="text-sm text-gray-700">{b.milepæl}</p>
-                        <p className="text-sm font-semibold text-gray-900">
-                          {b.andel}
-                          {kontrakt.total_pris && !isNaN(parseFloat(b.andel))
-                            ? ` · ${fmtKr(kontrakt.total_pris * (parseFloat(b.andel) / 100))}`
-                            : ""}
+                  <div className="space-y-0">
+                    {kontrakt.betalingsplan.map((b, i) => {
+                      const pct = parseFloat(b.andel);
+                      const beloeb = kontrakt.total_pris && !isNaN(pct)
+                        ? fmtKr(kontrakt.total_pris * (pct / 100))
+                        : null;
+                      return (
+                        <div key={i} className="py-2.5 border-b border-gray-50 last:border-0">
+                          <p className="text-sm text-gray-700 mb-0.5">{b.milepæl}</p>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {b.andel} %{beloeb ? ` · ${beloeb}` : ""}
+                          </p>
+                        </div>
+                      );
+                    })}
+                    {kontrakt.total_pris && (
+                      <div className="pt-2.5 mt-1 border-t border-gray-200">
+                        <p className="text-xs text-gray-400 mb-0.5">Samlet</p>
+                        <p className="text-sm font-bold text-gray-900">
+                          100 % · {fmtKr(kontrakt.total_pris)}
                         </p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 ) : (
                   <div className="flex items-center gap-3 py-2">

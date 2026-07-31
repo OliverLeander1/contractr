@@ -278,7 +278,7 @@ export default function DokumentRenderer({
                         <div key={i} className="flex items-center gap-3 py-1.5 border-b border-gray-50 last:border-0">
                           <span className="w-5 h-5 rounded-full bg-gray-100 text-gray-500 text-[10px] font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
                           <span className="text-sm text-gray-700 flex-1">{b.milepæl}</span>
-                          <span className="text-sm font-semibold text-gray-900">{b.andel}</span>
+                          <span className="text-sm font-semibold text-gray-900">{b.andel} %</span>
                           {beloeb && <span className="text-xs text-gray-400 w-24 text-right">{beloeb}</span>}
                         </div>
                       );
