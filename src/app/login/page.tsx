@@ -204,25 +204,25 @@ function LoginInner() {
             <br />og undgå dyre overraskelser.
           </h1>
           <p className="text-white/60 text-base leading-relaxed mb-10 max-w-sm">
-            Den gode byggesag starter altid med et godt aftalegrundlag. Det hjælper vi med.
+            Et godt byggeprojekt starter med klare aftaler. Vi hjælper dig med at få styr på det vigtigste, før arbejdet går i gang.
           </p>
 
           <div className="space-y-6">
             {[
               {
                 icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
-                titel: "Klare aftaler fra første dag",
-                tekst: "Alle parter arbejder ud fra det samme grundlag. Tilbud, kontrakt og ekstraarbejde er samlet ét sted og tilgængeligt hele vejen gennem projektet.",
+                titel: "Klare aftaler fra start",
+                tekst: "Få samlet tilbud, pris, tidsplan og ekstraarbejde ét sted, så både du og håndværkeren ved, hvad der er aftalt.",
               },
               {
                 icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-                titel: "Bygherre og entreprenør i samme rum",
-                tekst: "Ingen beskeder der går tabt, ingen mundtlige aftaler der huskes forskelligt. Alt kommunikeres, dokumenteres og er synligt for begge parter.",
+                titel: "Bygherre og håndværker på samme side",
+                tekst: "Aftaler, beskeder og ændringer samles ét sted, så begge parter kan følge med.",
               },
               {
                 icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-                titel: "Færre konflikter, bedre projekter",
-                tekst: "De fleste byggekonflikter opstår fordi aftalen var uklar fra starten. Med et fælles aftalegrundlag forsvinder størstedelen af dem, inden de opstår.",
+                titel: "Færre misforståelser undervejs",
+                tekst: "Når aftalegrundlaget er tydeligt, bliver det lettere at undgå uklare forventninger, ekstraregninger og uenigheder.",
               },
             ].map((p, i) => (
               <div key={i} className="flex gap-4">
@@ -462,9 +462,9 @@ function LoginInner() {
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 text-center">Hvad du får</p>
             <div className="space-y-3">
               {[
-                "Klare aftaler fra første dag — tilgængeligt for begge parter",
-                "Bygherre og entreprenør samlet i samme projektrum",
-                "Færre konflikter, fordi aftalegrundlaget er på plads fra start",
+                "Klare aftaler fra start — tilgængeligt for begge parter",
+                "Bygherre og håndværker på samme side",
+                "Færre misforståelser undervejs, fordi aftalegrundlaget er tydeligt fra start",
               ].map((t, i) => (
                 <div key={i} className="flex items-start gap-2.5">
                   <div className="w-5 h-5 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center flex-shrink-0 mt-0.5">

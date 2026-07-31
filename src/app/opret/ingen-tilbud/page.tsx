@@ -78,7 +78,7 @@ Inden vi aftaler noget endeligt, vil jeg gerne modtage et skriftligt tilbud med 
 • Pris (fast pris eller overslag med maksimum)
 • Start- og slutdato
 • Betalingsplan koblet til milepæle
-• At AB-Forbruger 2012 gælder for aftalen
+• At AB-Forbruger 2012 indgår i aftalegrundlaget
 
 Når jeg har modtaget tilbuddet, kan jeg hurtigt få det gennemgået og vende tilbage.
 

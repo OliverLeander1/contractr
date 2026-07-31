@@ -794,8 +794,8 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-bold text-gray-900">Tilbudsdokument</p>
-                <p className="text-xs text-gray-400">Upload dit tilbud som PDF eller Word. Prisen udtrækkes automatisk.</p>
+                <p className="text-sm font-bold text-gray-900">Upload dit tilbud</p>
+                <p className="text-xs text-gray-400">Upload dit tilbud som PDF eller Word. Vi forsøger at finde prisen automatisk.</p>
               </div>
             </div>
 
@@ -860,7 +860,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
                     </svg>
                     <div className="text-center">
-                      <p className="text-sm font-semibold text-gray-700">Upload tilbudsdokument</p>
+                      <p className="text-sm font-semibold text-gray-700">Upload tilbud</p>
                       <p className="text-xs text-gray-400 mt-0.5">PDF eller Word (.docx), maks 10 MB</p>
                     </div>
                   </>

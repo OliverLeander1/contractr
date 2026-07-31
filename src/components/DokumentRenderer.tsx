@@ -340,7 +340,7 @@ export default function DokumentRenderer({
 
         {/* 5. Vilkår */}
         <div>
-          <SektionsOverskrift nr={sektionsNr++} label="Juridiske vilkår" />
+          <SektionsOverskrift nr={sektionsNr++} label="Aftalevilkår" />
           <p className="text-sm text-gray-700 leading-[1.8]">
             {vilkaar || "AB-Forbruger 2012 indgår som fast del af aftalegrundlaget. Det betyder, at aftalegrundlaget tager udgangspunkt i regler om blandt andet ekstraarbejde (§ 23), betaling (§ 25 og § 37) og aflevering (§ 38)."}
           </p>
