@@ -305,7 +305,7 @@ export default function Rapport() {
                 { ok: true, tekst: "Fagperson læser aftalen" },
                 { ok: true, tekst: "Professionel vurdering" },
                 { ok: true, tekst: "Skriftlig anbefaling" },
-                { ok: true, tekst: "Juridisk rygrad" },
+                { ok: true, tekst: "AB-Forbruger indgår" },
               ],
             },
           ].map((kolonne) => (

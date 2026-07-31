@@ -5,7 +5,7 @@ import Link from "next/link";
 const steps = [
   { nr: 1, label: "Projektinfo" },
   { nr: 2, label: "Anbefalinger" },
-  { nr: 3, label: "Upload aftale" },
+  { nr: 3, label: "Aftalegrundlag" },
   { nr: 4, label: "Din rapport" },
 ];
 

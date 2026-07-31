@@ -70,7 +70,7 @@ export default function DetGodeByggeprojekt() {
 
           <hr className="border-gray-100 my-10" />
 
-          <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-5">Kommunikation er ikke blødt. Det er juridisk rygrad.</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mt-10 mb-5">God kommunikation beskytter begge parter.</h2>
 
           <p className="text-gray-600 leading-relaxed mb-5">
             Mange bygherrer tænker på kommunikation som noget der handler om stemning og samarbejdsevner. Det er det også. Men god kommunikation i et byggeprojekt er samtidig en dokumentationspraksis der i yderste konsekvens bestemmer hvem der har ret, hvis det ender i tvist.

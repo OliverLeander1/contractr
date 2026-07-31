@@ -13,7 +13,7 @@ const pakkeData = {
     budget: "Under 100.000 kr.",
     eksempler: "Badeværelse · Malerarbejde · Vinduer · Smaller renoveringer",
     inkluderet: [
-      { ikon: "doc", label: "Udbudsdokument med AB-Forbruger 2012" },
+      { ikon: "doc", label: "Aftalegrundlag med AB-Forbruger 2012" },
       { ikon: "contract", label: "Digital kontrakt til håndværker" },
       { ikon: "check", label: "Accept-flow med dokumenteret tidspunkt" },
       { ikon: "time", label: "Tidsplan med milepæle" },
@@ -42,7 +42,7 @@ const pakkeData = {
     eksempler: "Tilbygning · Nyt tag · Køkken · Større renovering",
     popular: true,
     inkluderet: [
-      { ikon: "doc", label: "Udbudsdokument med AB-Forbruger 2012" },
+      { ikon: "doc", label: "Aftalegrundlag med AB-Forbruger 2012" },
       { ikon: "contract", label: "Digital kontrakt til håndværker" },
       { ikon: "check", label: "Accept-flow med dokumenteret tidspunkt" },
       { ikon: "extra", label: "Ekstraarbejde-sedler med digital godkendelse" },
@@ -72,7 +72,7 @@ const pakkeData = {
     budget: "Over 300.000 kr.",
     eksempler: "Ombygning · Totalrenovering · Tilbygning · Nybyg",
     inkluderet: [
-      { ikon: "doc", label: "Udbudsdokument med AB-Forbruger 2012" },
+      { ikon: "doc", label: "Aftalegrundlag med AB-Forbruger 2012" },
       { ikon: "contract", label: "Digital kontrakt til håndværker" },
       { ikon: "check", label: "Accept-flow med dokumenteret tidspunkt" },
       { ikon: "extra", label: "Ekstraarbejde-sedler med digital godkendelse" },

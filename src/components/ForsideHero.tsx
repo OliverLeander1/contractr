@@ -163,9 +163,9 @@ function Bygherre() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12">
             {[
-              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>, titel: "Opret projektet med det samme", tekst: "Beskriv dit projekt, og vi genererer et professionelt udbudsdokument. Send det til entreprenøren og kom i gang." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>, titel: "Opret projektet med det samme", tekst: "Beskriv dit projekt, og vi samler et aftalegrundlag du kan sende direkte til din håndværker." },
               { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>, titel: "Alt samlet i ét projektrum", tekst: "Kontrakt, betalingsplan, ekstraarbejde, billeder og kommunikation. Alt samlet, altid tilgængeligt." },
-              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, titel: "Juridisk rygrad, forklaret enkelt", tekst: "AB-Forbruger 2012 er standard på alle projekter. Vi tjekker tilbuddene og viser præcist hvad du skal afklare." },
+              { ikon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, titel: "AB-Forbruger som fast udgangspunkt", tekst: "AB-Forbruger 2012 indgår i alle aftalegrundlag oprettet via platformen. Vi viser præcist hvad du skal afklare." },
             ].map((s) => (
               <div key={s.titel} className="flex gap-4">
                 <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-green-200 flex-shrink-0 mt-0.5">{s.ikon}</div>
@@ -188,7 +188,7 @@ function Bygherre() {
           </div>
           <div className="grid sm:grid-cols-3 gap-6 sm:gap-8">
             {[
-              { nr: "1", titel: "Beskriv dit projekt", tekst: "Fortæl hvad du vil bygge. Vi stiller de rigtige spørgsmål og laver et professionelt udbudsdokument klar til at sende.", ikon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
+              { nr: "1", titel: "Beskriv dit projekt", tekst: "Fortæl hvad du vil bygge. Vi stiller de rigtige spørgsmål og samler det til et aftalegrundlag du kan sende.", ikon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
               { nr: "2", titel: "Inviter entreprenøren", tekst: "Send et link direkte til din entreprenør. De kan gennemse aftalegrundlaget, foreslå ændringer og godkende. Ingen konto kræves.", ikon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> },
               { nr: "3", titel: "Styr projektet sammen", tekst: "Ekstraarbejde aftales digitalt, betalinger kobles til fremdrift, og alt dokumenteres undervejs. Færre konflikter, mere overblik.", ikon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg> },
             ].map((s) => (
@@ -225,7 +225,7 @@ function Bygherre() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-6">
             {[
-              { anim: <UploadAnimation />, titel: "Udbudsdokument på få minutter", tekst: "Beskriv projektet og få et professionelt dokument klar til at sende." },
+              { anim: <UploadAnimation />, titel: "Aftalegrundlag på få minutter", tekst: "Beskriv projektet og få et aftalegrundlag klar til at sende." },
               { anim: <ScanAnimation />, titel: "Tilbudstjek mod AB-Forbruger", tekst: "Vi gennemgår aftalen og viser præcist hvad du skal afklare." },
               { anim: <AdvisorAnimation />, titel: "Rådgiver ved behov", tekst: "Book en byggesagkyndig direkte når sagen kræver professionel hjælp." },
               { anim: <ProjectAnimation />, titel: "Projektet samlet ét sted", tekst: "Kontrakt, betalinger, ekstraarbejde og kommunikation fra dag ét." },

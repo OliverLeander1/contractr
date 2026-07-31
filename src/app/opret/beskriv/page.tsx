@@ -51,7 +51,7 @@ export default function BeskrivProjekt() {
   const kanGenerere = beskrivelse.trim().length >= 20;
 
   const loadingTips = [
-    { titel: "Aftalegrundlag", tekst: "Platformen genererer et struktureret udbudsdokument med alle væsentlige punkter, klar til at sende til håndværkeren." },
+    { titel: "Aftalegrundlag", tekst: "Vi samler de vigtigste aftalevilkår og sender dem til håndværkeren som et klart aftalegrundlag." },
     { titel: "Ekstraarbejde som aftaleseddel", tekst: "Ekstraarbejde der ikke er beskrevet i aftalegrundlaget skal altid aftales skriftligt som en aftaleseddel inden arbejdet starter." },
     { titel: "Mangelregistrering", tekst: "Opdager du en fejl eller mangel? Du kan fotografere og registrere den direkte i platformen med beskrivelse og status." },
     { titel: "Digital underskrift", tekst: "Begge parter godkender aftalegrundlaget digitalt. Intet er bindende før begge har skrevet under." },
@@ -118,11 +118,11 @@ export default function BeskrivProjekt() {
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          Udbudsdokument
+          Aftalegrundlag
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Beskriv dit projekt</h1>
         <p className="text-gray-500">
-          Vi genererer et professionelt udbudsdokument du kan sende til 2-3 håndværkere for at indhente sammenlignelige tilbud.
+          Vi hjælper dig med at beskrive projektet, så håndværkeren ved, hvad der skal gives pris på.
         </p>
       </div>
 
@@ -276,7 +276,7 @@ export default function BeskrivProjekt() {
               Genererer dokument…
             </>
           ) : (
-            "Generér udbudsdokument →"
+            "Saml aftalegrundlag →"
           )}
         </button>
       </div>
@@ -293,7 +293,7 @@ export default function BeskrivProjekt() {
               <div className="w-14 h-14 rounded-2xl bg-[#1e3a2a]/8 flex items-center justify-center mb-4">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
               </div>
-              <h2 className="text-lg font-bold text-gray-900">Genererer dit udbudsdokument</h2>
+              <h2 className="text-lg font-bold text-gray-900">Vi samler dit aftalegrundlag</h2>
               <p className="text-sm text-gray-400 mt-1">Det tager typisk 10–20 sekunder</p>
             </div>
 

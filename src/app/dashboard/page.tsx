@@ -316,7 +316,7 @@ export default function Dashboard() {
               </div>
               <h2 className="text-xl font-bold text-white mb-2">Kom i gang med dit projekt</h2>
               <p className="text-white/70 text-sm leading-relaxed mb-6">
-                Beskriv dit projekt og vi laver et professionelt udbudsdokument klar til at sende til håndværkere. Eller upload et tilbud du allerede har modtaget.
+                Beskriv dit projekt, og vi samler et aftalegrundlag du kan sende til din håndværker. Eller upload et tilbud du allerede har modtaget.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <button

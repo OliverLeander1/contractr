@@ -66,7 +66,7 @@ Jeg accepterer hermed opgaven på følgende vilkår:
 - Pris: ${pris} (inkl. moms)
 - Opstart: ${start}
 - Aflevering: ${slut}
-- AB-Forbruger 2012 er gældende for opgaven: ${ab ? "Ja" : "Skal bekræftes skriftligt"}
+- AB-Forbruger 2012 indgår i aftalegrundlaget: ${ab ? "Ja" : "Afventer skriftlig bekræftelse"}
 - Ekstraarbejde aftales skriftligt inden opstart
 - Betaling sker i takt med dokumenteret fremdrift${ekstra ? "\n\n" + "Derudover er vi aftalt:\n" + ekstra : ""}
 
@@ -115,8 +115,8 @@ Genereret via Nembyggestyring, digital tryghed for bygherren`;
     },
     {
       ok: kontrakt?.ab_forbruger === true,
-      label: "AB-Forbruger 2012 er gældende",
-      ok_tekst: "Ja, aftalt som gældende vilkår",
+      label: "AB-Forbruger 2012 indgår i aftalegrundlaget",
+      ok_tekst: "Ja, indgår i aftalegrundlaget",
       mangler_tekst: "AB-Forbruger er ikke bekræftet. Bed om at det indgår skriftligt i aftalen",
       paragraf: "§ 1",
     },

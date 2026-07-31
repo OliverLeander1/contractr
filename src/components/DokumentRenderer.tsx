@@ -135,7 +135,7 @@ export default function DokumentRenderer({
         </div>
 
         <div className="border-t border-gray-100 pt-6">
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400 mb-2">Udbudsdokument</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400 mb-2">Aftalegrundlag</p>
           {titel && (
             <h1 className="text-xl font-bold text-gray-900 leading-snug">{titel}</h1>
           )}
@@ -342,7 +342,7 @@ export default function DokumentRenderer({
         <div>
           <SektionsOverskrift nr={sektionsNr++} label="Juridiske vilkår" />
           <p className="text-sm text-gray-700 leading-[1.8]">
-            {vilkaar || "AB-Forbruger 2012 er gældende for denne aftale i sin helhed, herunder bestemmelser om ekstraarbejde (§ 23), betaling (§ 25 og § 37) og afleveringsforretning (§ 38)."}
+            {vilkaar || "AB-Forbruger 2012 indgår som fast del af aftalegrundlaget. Det betyder, at aftalegrundlaget tager udgangspunkt i regler om blandt andet ekstraarbejde (§ 23), betaling (§ 25 og § 37) og aflevering (§ 38)."}
           </p>
         </div>
 

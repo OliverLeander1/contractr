@@ -45,7 +45,7 @@ export default function KontraktSide({ params }: { params: Promise<{ id: string 
     <div className="min-h-screen bg-gray-50">
       <ProjektNav id={id} />
       <div className="max-w-2xl mx-auto px-6 py-20 text-center">
-        <p className="text-gray-500">Ingen kontrakt fundet. Send et udbudsdokument og inviter en håndværker for at komme i gang.</p>
+        <p className="text-gray-500">Intet aftalegrundlag fundet. Opret et aftalegrundlag og inviter din håndværker for at komme i gang.</p>
         <Link href={`/projekt/${id}/aftale`} className="mt-4 inline-block text-primary text-sm underline">Opret aftalegrundlag</Link>
       </div>
     </div>
@@ -168,7 +168,7 @@ export default function KontraktSide({ params }: { params: Promise<{ id: string 
 
             <div className="border-t border-gray-100 pt-6">
               <h3 className="font-bold text-gray-900 mb-3 text-xs uppercase tracking-widest text-primary">§ 6 - Aftalegrundlag</h3>
-              <p>AB-Forbruger 2012 er gældende for denne aftale i sin helhed. Fravigelse gælder kun hvis det sker tydeligt og udtrykkeligt jf. § 1, stk. 2.</p>
+              <p>AB-Forbruger 2012 indgår i aftalegrundlaget. Fravigelse skal ske tydeligt og udtrykkeligt jf. § 1, stk. 2.</p>
             </div>
           </div>
         </div>
