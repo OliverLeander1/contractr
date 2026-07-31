@@ -19,6 +19,7 @@ const navLinks = [
 export default function ProjektNav({ id }: { id: string }) {
   const pathname = usePathname();
   const base = `/projekt/${id}`;
+  const erBygherreSide = pathname.startsWith("/projekt/");
   const [menuÅben, setMenuÅben] = useState(false);
   const [initialer, setInitialer] = useState("?");
 
@@ -45,10 +46,21 @@ export default function ProjektNav({ id }: { id: string }) {
     <nav className="bg-white border-b border-gray-100 px-6 py-3.5 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-6">
 
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
-          <span className="logo">nembyggestyring</span>
-        </Link>
+        {/* Logo + tilbage */}
+        <div className="flex items-center gap-4 flex-shrink-0">
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="logo">nembyggestyring</span>
+          </Link>
+          {erBygherreSide && (
+            <Link
+              href="/dashboard"
+              className="hidden md:flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1e3a2a] transition-colors border-l border-gray-100 pl-4"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              <span>Mit overblik</span>
+            </Link>
+          )}
+        </div>
 
         {/* Desktop nav — 5 punkter */}
         <div className="hidden md:flex items-center gap-1 flex-1">
@@ -106,6 +118,16 @@ export default function ProjektNav({ id }: { id: string }) {
       {/* Mobil-menu */}
       {menuÅben && (
         <div className="md:hidden border-t border-gray-100 mt-3 pt-3 pb-2 space-y-1">
+          {erBygherreSide && (
+            <Link
+              href="/dashboard"
+              onClick={() => setMenuÅben(false)}
+              className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              Mit overblik
+            </Link>
+          )}
           {navLinks.map((link) => {
             const aktiv = erAktiv(link.href);
             return (
