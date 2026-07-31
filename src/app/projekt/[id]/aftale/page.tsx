@@ -406,13 +406,6 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 Inviter håndværker
               </button>
             )}
-            {!erBeggeGodkendt && kontrakt.haandvaerker_email && (
-              <span className="text-sm font-medium text-gray-500">
-                {haandvaerkerGodkendt && !bygherreGodkendt
-                  ? "Grundlag modtaget"
-                  : "Håndværker inviteret"}
-              </span>
-            )}
           </div>
         </div>
 
@@ -1141,7 +1134,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         : "bg-[#1e3a2a] text-white hover:opacity-90"
                     }`}
                   >
-                    {godkender ? "Godkender..." : bygherreGodkendt ? "Du har accepteret" : !haandvaerkerGodkendt ? "Afventer tilbud fra entreprenøren" : "Acceptér tilbud og indgå aftale"}
+                    {godkender ? "Godkender..." : bygherreGodkendt ? "Du har accepteret" : !haandvaerkerGodkendt ? (kontrakt.haandvaerker_email ? "Afventer samlet grundlag" : "Ingen håndværker inviteret") : "Godkend og indgå aftale"}
                   </button>
                   {godkendFejl && (
                     <p className="mt-2 text-xs text-red-600 text-center leading-snug">{godkendFejl}</p>
