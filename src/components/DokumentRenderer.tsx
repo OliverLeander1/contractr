@@ -115,6 +115,7 @@ export default function DokumentRenderer({
   const harKravSektion = kravLinjer.length > 0;
   const harPraktiskSektion = praktiskLinjer.length > 0;
   const harPrisSektion = !!(totalPris || (betalingsplan && betalingsplan.length > 0));
+  const harBetalingsplan = !!(betalingsplan && betalingsplan.length > 0);
   const harTidsplan = !!(startdato || slutdato || tidsplan);
   const harForudsaetninger = !!forudsaetninger?.trim();
 
@@ -264,11 +265,13 @@ export default function DokumentRenderer({
               ) : (
                 <p className="text-sm text-gray-400 italic">Entreprisesum er endnu ikke fastsat.</p>
               )}
-              {betalingsplan && betalingsplan.length > 0 && (
+              {harBetalingsplan ? (
                 <div className="mt-4">
-                  <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Betalingsplan</p>
+                  <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
+                    {erAftaleEndeligtGodkendt ? "Aftalt betalingsplan" : "Foreslået betalingsplan"}
+                  </p>
                   <div className="space-y-1.5">
-                    {betalingsplan.map((b, i) => {
+                    {betalingsplan!.map((b, i) => {
                       const pct = parseFloat(b.andel);
                       const beloeb = totalPris && !isNaN(pct) ? fmtKr(totalPris * (pct / 100)) : null;
                       return (
@@ -281,9 +284,17 @@ export default function DokumentRenderer({
                       );
                     })}
                   </div>
-                  <p className="text-xs text-gray-400 mt-3 leading-relaxed">
-                    Betaling frigives mod dokumenteret fremdrift i henhold til AB-Forbruger 2012 § 25 og § 37.
-                    Bygherre er ikke forpligtet til at betale en rate, før den tilhørende milepæl er nået og godkendt.
+                  {!erAftaleEndeligtGodkendt && (
+                    <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+                      Den foreslåede betalingsplan indgår først i aftalen, når bygherre har godkendt det samlede aftalegrundlag.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="mt-4">
+                  <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Betalingsbetingelser</p>
+                  <p className="text-sm text-gray-700 leading-[1.8]">
+                    Betaling sker efter AB-Forbruger § 25, medmindre andet er aftalt. Betaling sker, når arbejdet er afleveret, og entreprenøren har fremsendt faktura. Fakturaen forfalder til betaling, når bygherre modtager fakturaen. Betaling anses for rettidig, når den sker senest 15 arbejdsdage efter forfaldsdagen. Ved uenighed om en faktura kan bygherre holde hele eller dele af betalingen tilbage, men skal betale den del af fakturaen, der er enighed om.
                   </p>
                 </div>
               )}
