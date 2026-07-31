@@ -801,21 +801,6 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         : "Betaling ved aflevering jf. AB-Forbruger § 25"}
                     </p>
                   </div>
-                  {!erBeggeGodkendt && !redigererBetalingsplan && !kontrakt.haandvaerker_email && (
-                    <button
-                      onClick={() => {
-                        setBetalingsplanRækker(
-                          kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0
-                            ? [...kontrakt.betalingsplan]
-                            : [{ milepæl: "", andel: "" }]
-                        );
-                        setRedigererBetalingsplan(true);
-                      }}
-                      className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors flex-shrink-0"
-                    >
-                      {kontrakt.betalingsplan && kontrakt.betalingsplan.length > 0 ? "Rediger" : "Aftal milepælsplan"}
-                    </button>
-                  )}
                 </div>
 
                 {redigererBetalingsplan ? (
@@ -886,7 +871,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-800">Betaling ved aflevering</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Standardvilkår jf. § 25. Klik &ldquo;Aftal milepælsplan&rdquo; for at oprette en alternativ betalingsplan</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Standardvilkår jf. AB-Forbruger § 25. En anden betalingsplan skal foreslås af entreprenøren og godkendes af bygherre som del af det samlede aftalegrundlag.</p>
                     </div>
                   </div>
                 )}
