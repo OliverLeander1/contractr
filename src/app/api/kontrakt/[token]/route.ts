@@ -21,34 +21,79 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tok
   return NextResponse.json(data);
 }
 
-// PATCH /api/kontrakt/[token] — opdater felter via token (ingen auth, bruges af haandvaerker)
+// PATCH /api/kontrakt/[token] — opdater felter som verificeret håndværker
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  const body = await req.json();
+
+  // 1. Autentifikation
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return NextResponse.json({ error: "Ikke logget ind" }, { status: 401 });
+  }
+  const accessToken = authHeader.replace("Bearer ", "");
+
   const db = createServiceClient();
 
-  const tilladte = ["total_pris", "startdato", "slutdato", "besigtigelse_dato", "besigtigelse_tid", "besigtigelse_bekraeftet", "forudsaetninger", "forudsaetninger_sendt_at", "forudsaetninger_godkendt"];
+  const { data: { user }, error: authError } = await db.auth.getUser(accessToken);
+  if (authError || !user) {
+    return NextResponse.json({ error: "Ugyldig session" }, { status: 401 });
+  }
+
+  // 2. Hent kontrakt
+  const { data: kontrakt, error: hentFejl } = await db
+    .from("kontrakter")
+    .select("id, haandvaerker_email, haandvaerker_godkendt_at, bygherre_godkendt_at")
+    .eq("haandvaerker_token", token)
+    .single();
+
+  if (hentFejl || !kontrakt) {
+    return NextResponse.json({ error: "Kontrakt ikke fundet" }, { status: 404 });
+  }
+
+  // 3. Verificer entreprenør-identitet — kun matchende e-mail gives adgang
+  if (
+    !kontrakt.haandvaerker_email ||
+    !user.email ||
+    user.email.trim().toLowerCase() !== kontrakt.haandvaerker_email.trim().toLowerCase()
+  ) {
+    return NextResponse.json({ error: "Du har ikke adgang til denne kontrakt" }, { status: 403 });
+  }
+
+  // 4. Lås-kontrol: afvis ændringer når ét eller begge godkendelsestimestamps er sat
+  if (kontrakt.haandvaerker_godkendt_at || kontrakt.bygherre_godkendt_at) {
+    return NextResponse.json(
+      { error: "Aftalegrundlaget kan ikke ændres, efter det er sendt til godkendelse." },
+      { status: 403 }
+    );
+  }
+
+  // 5. Valider og byg opdatering
+  const body = await req.json();
   const opdatering: Record<string, unknown> = { opdateret_at: new Date().toISOString() };
 
-  for (const felt of tilladte) {
+  // total_pris — validering
+  if ("total_pris" in body) {
+    const pris = Number(body.total_pris);
+    if (!Number.isFinite(pris) || pris <= 0) {
+      return NextResponse.json({ error: "Entreprisesum skal være et positivt tal" }, { status: 400 });
+    }
+    opdatering.total_pris = pris;
+  }
+
+  // forudsaetninger — ledsagefelter sættes server-side
+  if ("forudsaetninger" in body) {
+    opdatering.forudsaetninger = body.forudsaetninger;
+    opdatering.forudsaetninger_sendt_at = new Date().toISOString();
+    opdatering.forudsaetninger_godkendt = false;
+  }
+
+  // besigtigelse-felter
+  for (const felt of ["besigtigelse_dato", "besigtigelse_tid", "besigtigelse_bekraeftet"] as const) {
     if (felt in body) opdatering[felt] = body[felt];
   }
 
-  // Betalingsplan: særskilt validering og lås-check
+  // Betalingsplan: særskilt validering
   if ("betalingsplan" in body) {
-    const { data: eksisterende } = await db
-      .from("kontrakter")
-      .select("haandvaerker_godkendt_at, bygherre_godkendt_at")
-      .eq("haandvaerker_token", token)
-      .single();
-
-    if (!eksisterende) {
-      return NextResponse.json({ error: "Kontrakt ikke fundet" }, { status: 404 });
-    }
-    if (eksisterende.haandvaerker_godkendt_at || eksisterende.bygherre_godkendt_at) {
-      return NextResponse.json({ error: "Betalingsplan kan ikke ændres efter godkendelse" }, { status: 403 });
-    }
-
     const rå = body.betalingsplan;
 
     if (rå === null || (Array.isArray(rå) && rå.length === 0)) {
@@ -88,10 +133,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ to
     return NextResponse.json({ error: "Ingen gyldige felter" }, { status: 400 });
   }
 
+  // 6. Skriv
   const { data, error } = await db
     .from("kontrakter")
     .update(opdatering)
-    .eq("haandvaerker_token", token)
+    .eq("id", kontrakt.id)
     .select()
     .single();
 

@@ -8,6 +8,7 @@ function ManuelPris({ token, onGemt }: { token: string; onGemt: (pris: number) =
   const [prisInput, setPrisInput] = useState("");
   const [gemmer, setGemmer] = useState(false);
   const [vis, setVis] = useState(false);
+  const [fejl, setFejl] = useState<string | null>(null);
 
   // Formatér heltalsdel med punktum som tusindtalsseparator, bevar komma+decimaler
   function formatMedPunktum(raw: string): string {
@@ -38,14 +39,16 @@ function ManuelPris({ token, onGemt }: { token: string; onGemt: (pris: number) =
   async function gem() {
     const pris = parseDanskPris(prisInput);
     if (!pris || pris <= 0) return;
+    setFejl(null);
     setGemmer(true);
-    const res = await fetch(`/api/kontrakt/${token}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ total_pris: pris }),
-    });
-    if (res.ok) onGemt(pris);
-    setGemmer(false);
+    try {
+      await autentificeretPatch(`/api/kontrakt/${token}`, { total_pris: pris });
+      onGemt(pris);
+    } catch (e) {
+      setFejl(e instanceof Error ? e.message : "Der opstod en fejl. Prøv igen.");
+    } finally {
+      setGemmer(false);
+    }
   }
 
   if (!vis) {
@@ -87,6 +90,7 @@ function ManuelPris({ token, onGemt }: { token: string; onGemt: (pris: number) =
         </button>
       </div>
       <p className="text-xs text-gray-400 mt-2">Brug punktum til tusindtal og komma til decimaler. Fx: 125.000 eller 87.500,50</p>
+      {fejl && <p className="text-xs text-red-600 font-medium mt-1">{fejl}</p>}
     </div>
   );
 }
@@ -140,6 +144,48 @@ const fmtDato = (iso: string) =>
 const fmtDatoKort = (iso: string) =>
   new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "short" });
 
+async function autentificeretPatch(
+  url: string,
+  body: Record<string, unknown>
+): Promise<unknown> {
+  const { createClient } = await import("@/lib/supabase");
+  const supabase = createClient();
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError || !session?.access_token) {
+    throw new Error("Din session er udløbet. Log ind igen, og prøv på ny.");
+  }
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new Error("Der opstod en fejl. Kontrollér din forbindelse, og prøv igen.");
+  }
+  let data: unknown;
+  try {
+    data = await res.json();
+  } catch {
+    data = null;
+  }
+  if (!res.ok) {
+    const fejlTekst =
+      typeof data === "object" && data !== null && "error" in data
+        ? String((data as { error: unknown }).error)
+        : "Der opstod en fejl. Kontrollér din forbindelse, og prøv igen.";
+    throw new Error(fejlTekst);
+  }
+  if (data === null) {
+    throw new Error("Serveren returnerede et ugyldigt svar. Prøv igen.");
+  }
+  return data;
+}
+
 export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
 
@@ -180,6 +226,10 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   const [redigererBetalingsplan, setRedigererBetalingsplan] = useState(false);
   const [gemmerBetalingsplan, setGemmerBetalingsplan] = useState(false);
   const [betalingsplanFejl, setBetalingsplanFejl] = useState<string | null>(null);
+  const [tidsplanFejl, setTidsplanFejl] = useState<string | null>(null);
+  const [forudsaetningerFejl, setForudsaetningerFejl] = useState<string | null>(null);
+  const [besigtigelseFejl, setBesigtigelseFejl] = useState<string | null>(null);
+  const [prisFejl, setPrisFejl] = useState<string | null>(null);
 
   // Auth
   const [loggetInd, setLoggetInd] = useState(false);
@@ -298,36 +348,34 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
       };
     }
 
-    const res = await fetch(`/api/kontrakt/${token}/tidsplan`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tidsplan: payload }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setKontrakt(data);
+    setTidsplanFejl(null);
+    try {
+      const data = await autentificeretPatch(`/api/kontrakt/${token}/tidsplan`, { tidsplan: payload as unknown as Record<string, unknown> });
+      setKontrakt(data as Kontrakt);
       setTidsplanGemt(true);
       setVisTidsplanEditor(false);
+    } catch (e) {
+      setTidsplanFejl(e instanceof Error ? e.message : "Der opstod en fejl. Prøv igen.");
+    } finally {
+      setGemmerTidsplan(false);
     }
-    setGemmerTidsplan(false);
   }
 
   async function sendForudsaetninger() {
     if (gemmerForudsaetninger) return;
+    setForudsaetningerFejl(null);
     setGemmerForudsaetninger(true);
-    const res = await fetch(`/api/kontrakt/${token}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    try {
+      const data = await autentificeretPatch(`/api/kontrakt/${token}`, {
         forudsaetninger: forudsaetningerTekst.trim(),
-        forudsaetninger_sendt_at: new Date().toISOString(),
-        forudsaetninger_godkendt: false,
-      }),
-    });
-    const data = await res.json();
-    setKontrakt(prev => prev ? { ...prev, ...data } : prev);
-    setRedigererForudsaetninger(false);
-    setGemmerForudsaetninger(false);
+      });
+      setKontrakt(prev => prev ? { ...prev, ...(data as Partial<Kontrakt>) } : prev);
+      setRedigererForudsaetninger(false);
+    } catch (e) {
+      setForudsaetningerFejl(e instanceof Error ? e.message : "Der opstod en fejl. Prøv igen.");
+    } finally {
+      setGemmerForudsaetninger(false);
+    }
   }
 
   async function sendMagicLink() {
@@ -350,14 +398,20 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   }
 
   async function gemBesigtigelse(bekraeftet: boolean, dato: string, tid: string) {
+    setBesigtigelseFejl(null);
     setGemmerBesigtigelse(true);
-    await fetch(`/api/kontrakt/${token}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ besigtigelse_bekraeftet: bekraeftet, besigtigelse_dato: dato || null, besigtigelse_tid: tid || null }),
-    });
-    setKontrakt(prev => prev ? { ...prev, besigtigelse_bekraeftet: bekraeftet, besigtigelse_dato: dato || null, besigtigelse_tid: tid || null } : prev);
-    setGemmerBesigtigelse(false);
+    try {
+      await autentificeretPatch(`/api/kontrakt/${token}`, {
+        besigtigelse_bekraeftet: bekraeftet,
+        besigtigelse_dato: dato || null,
+        besigtigelse_tid: tid || null,
+      });
+      setKontrakt(prev => prev ? { ...prev, besigtigelse_bekraeftet: bekraeftet, besigtigelse_dato: dato || null, besigtigelse_tid: tid || null } : prev);
+    } catch (e) {
+      setBesigtigelseFejl(e instanceof Error ? e.message : "Der opstod en fejl. Prøv igen.");
+    } finally {
+      setGemmerBesigtigelse(false);
+    }
   }
 
   async function uploadTilbud(fil: File) {
@@ -383,36 +437,33 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   }
 
   async function godkendPris(pris: number) {
-    await fetch(`/api/kontrakt/${token}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ total_pris: pris }),
-    });
-    setKontrakt(prev => prev ? { ...prev, total_pris: pris } : prev);
-    setForeslaaetPris(null);
-    setPrisGodkendt(true);
+    setPrisFejl(null);
+    try {
+      await autentificeretPatch(`/api/kontrakt/${token}`, { total_pris: pris });
+      setKontrakt(prev => prev ? { ...prev, total_pris: pris } : prev);
+      setForeslaaetPris(null);
+      setPrisGodkendt(true);
+    } catch (e) {
+      setPrisFejl(e instanceof Error ? e.message : "Der opstod en fejl. Prøv igen.");
+    }
   }
 
   async function gemBetalingsplan(rækker: { milepæl: string; andel: string }[] | null) {
     if (gemmerBetalingsplan) return;
     setGemmerBetalingsplan(true);
     setBetalingsplanFejl(null);
-    const res = await fetch(`/api/kontrakt/${token}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ betalingsplan: rækker }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setBetalingsplanFejl(data.error || "Kunne ikke gemme betalingsplan");
-    } else {
-      setKontrakt(prev => prev ? { ...prev, betalingsplan: data.betalingsplan } : prev);
+    try {
+      const data = await autentificeretPatch(`/api/kontrakt/${token}`, { betalingsplan: rækker as unknown as Record<string, unknown> });
+      setKontrakt(prev => prev ? { ...prev, betalingsplan: (data as Kontrakt).betalingsplan } : prev);
       if (!rækker || rækker.length === 0) {
         setBetalingsplanRækker([{ milepæl: "", andel: "" }, { milepæl: "", andel: "" }]);
       }
       setRedigererBetalingsplan(false);
+    } catch (e) {
+      setBetalingsplanFejl(e instanceof Error ? e.message : "Der opstod en fejl. Prøv igen.");
+    } finally {
+      setGemmerBetalingsplan(false);
     }
-    setGemmerBetalingsplan(false);
   }
 
   async function sletTilbudsDokument() {
@@ -740,6 +791,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                     <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Bekræft besigtigelse</>
                   )}
                 </button>
+                {besigtigelseFejl && <p className="text-xs text-red-600 font-medium">{besigtigelseFejl}</p>}
               </div>
             )}
           </div>
@@ -809,6 +861,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                       Spring over
                     </button>
                   </div>
+                  {forudsaetningerFejl && <p className="text-xs text-red-600 font-medium">{forudsaetningerFejl}</p>}
                   {redigererForudsaetninger && (
                     <button
                       onClick={() => setRedigererForudsaetninger(false)}
@@ -884,6 +937,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                         Nej, jeg retter selv
                       </button>
                     </div>
+                    {prisFejl && <p className="text-xs text-red-600 font-medium mt-2">{prisFejl}</p>}
                   </div>
                 )}
 
@@ -1332,6 +1386,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                     )}
                   </button>
                 </div>
+                {tidsplanFejl && <p className="text-xs text-red-600 font-medium px-6 pb-4">{tidsplanFejl}</p>}
               </div>
             </div>
           ) : null}

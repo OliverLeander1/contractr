@@ -10,23 +10,54 @@ export async function PATCH(
   { params }: { params: Promise<{ token: string }> }
 ) {
   const { token } = await params;
-  const body = await req.json();
-  const { tidsplan } = body;
 
-  if (!tidsplan) {
-    return NextResponse.json({ error: "tidsplan mangler" }, { status: 400 });
+  // 1. Autentifikation
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return NextResponse.json({ error: "Ikke logget ind" }, { status: 401 });
   }
+  const accessToken = authHeader.replace("Bearer ", "");
 
   const db = createServiceClient();
 
+  const { data: { user }, error: authError } = await db.auth.getUser(accessToken);
+  if (authError || !user) {
+    return NextResponse.json({ error: "Ugyldig session" }, { status: 401 });
+  }
+
+  // 2. Hent kontrakt med de felter vi skal bruge til identitets- og låskontrol
   const { data: kontrakt } = await db
     .from("kontrakter")
-    .select("id, status, titel, bygherre_id, haandvaerker_navn, projekt_id")
+    .select("id, status, titel, bygherre_id, haandvaerker_navn, projekt_id, haandvaerker_email, haandvaerker_godkendt_at, bygherre_godkendt_at")
     .eq("haandvaerker_token", token)
     .single();
 
   if (!kontrakt) {
     return NextResponse.json({ error: "Kontrakt ikke fundet" }, { status: 404 });
+  }
+
+  // 3. Verificer entreprenør-identitet — kun matchende e-mail gives adgang
+  if (
+    !kontrakt.haandvaerker_email ||
+    !user.email ||
+    user.email.trim().toLowerCase() !== kontrakt.haandvaerker_email.trim().toLowerCase()
+  ) {
+    return NextResponse.json({ error: "Du har ikke adgang til denne kontrakt" }, { status: 403 });
+  }
+
+  // 4. Lås-kontrol: afvis ændringer når ét eller begge godkendelsestimestamps er sat
+  if (kontrakt.haandvaerker_godkendt_at || kontrakt.bygherre_godkendt_at) {
+    return NextResponse.json(
+      { error: "Aftalegrundlaget kan ikke ændres, efter det er sendt til godkendelse." },
+      { status: 403 }
+    );
+  }
+
+  const body = await req.json();
+  const { tidsplan } = body;
+
+  if (!tidsplan) {
+    return NextResponse.json({ error: "tidsplan mangler" }, { status: 400 });
   }
 
   const payload = {
