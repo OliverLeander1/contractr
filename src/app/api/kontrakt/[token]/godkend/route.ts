@@ -82,23 +82,31 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
     .from("kontrakter")
     .update(opdatering)
     .eq("haandvaerker_token", token)
-    .select("*, projekter(adresse, projekttype)")
+    .select("*")
     .single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Send notifikation asynkront efter response
-  const projekttitel = data.titel || (data as Record<string, unknown> & { projekter?: { adresse?: string } })?.projekter?.adresse || "dit projekt";
+  // Hent projektdata separat — fejl her må ikke tilbagerulle en allerede gennemført godkendelse
+  let projektAdresse: string | null = null;
+  let projektBygherreId: string | null = null;
+  if (data.projekt_id) {
+    const { data: proj } = await db
+      .from("projekter")
+      .select("bygherre_id, adresse")
+      .eq("id", data.projekt_id)
+      .single();
+    projektAdresse = proj?.adresse ?? null;
+    projektBygherreId = proj?.bygherre_id ?? null;
+  }
+
+  const projekttitel = data.titel || projektAdresse || "dit projekt";
   const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
 
   if (rolle === "haandvaerker") {
-    let bygherreId = data.bygherre_id as string | null;
-    if (!bygherreId && data.projekt_id) {
-      const { data: proj } = await db.from("projekter").select("bygherre_id").eq("id", data.projekt_id).single();
-      bygherreId = proj?.bygherre_id ?? null;
-    }
+    const bygherreId = (data.bygherre_id as string | null) ?? projektBygherreId;
 
     if (bygherreId) {
       const { email, notifikationer } = await hentBygherreEmail(bygherreId, db);
