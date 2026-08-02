@@ -21,6 +21,19 @@ const fmtKr = (n: number) =>
 const fmtDato = (iso: string) =>
   new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" });
 
+function sagStatusMærke(status: string): { label: string; klasse: string } {
+  if (status === "begge_godkendt" || status === "accepteret") {
+    return { label: "Aftale indgået", klasse: "bg-green-100 text-green-700" };
+  }
+  if (status === "haandvaerker_godkendt") {
+    return { label: "Afventer bygherre", klasse: "bg-amber-100 text-amber-700" };
+  }
+  if (status === "bygherre_godkendt") {
+    return { label: "Afventer entreprenør", klasse: "bg-amber-100 text-amber-700" };
+  }
+  return { label: "Afventer", klasse: "bg-amber-100 text-amber-700" };
+}
+
 export default function HaandvaerkerSager() {
   const supabase = createClient();
   const [kontrakter, setKontrakter] = useState<Kontrakt[]>([]);
@@ -140,10 +153,8 @@ export default function HaandvaerkerSager() {
                             <h3 className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors truncate">
                               {k.titel || "Projekt"}
                             </h3>
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                              k.status === "accepteret" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                            }`}>
-                              {k.status === "accepteret" ? "Accepteret" : "Afventer"}
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${sagStatusMærke(k.status).klasse}`}>
+                              {sagStatusMærke(k.status).label}
                             </span>
                           </div>
                           {k.haandvaerker_navn && <p className="text-sm text-gray-500 mb-2">{k.haandvaerker_navn}</p>}
