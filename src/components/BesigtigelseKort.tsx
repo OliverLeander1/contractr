@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase";
 
 interface Besigtigelse {
   id: string;
@@ -21,10 +22,33 @@ interface Props {
 const fmtDato = (iso: string) =>
   new Date(iso + "T00:00:00").toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
-export default function BesigtigelseKort({ kontraktId, projektId, rolle }: Props) {
+async function hentToken(): Promise<string | null> {
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token ?? null;
+}
+
+async function autentificeretFetch(
+  url: string,
+  token: string,
+  options: RequestInit = {},
+): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+      ...(options.headers ?? {}),
+    },
+  });
+}
+
+export default function BesigtigelseKort({ kontraktId, rolle }: Props) {
   const [besigtigelse, setBesigtigelse] = useState<Besigtigelse | null>(null);
   const [indlæser, setIndlæser] = useState(true);
+  const [sessionFejl, setSessionFejl] = useState(false);
   const [visForum, setVisForum] = useState(false);
+  const [fejl, setFejl] = useState<string | null>(null);
 
   // Opret-form
   const [dato, setDato] = useState("");
@@ -40,41 +64,102 @@ export default function BesigtigelseKort({ kontraktId, projektId, rolle }: Props
   const [svarer, setSvarer] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/besigtigelse?kontrakt_id=${kontraktId}`)
-      .then(r => r.json())
-      .then(d => { setBesigtigelse(d); setIndlæser(false); })
-      .catch(() => setIndlæser(false));
+    let aktiv = true;
+    (async () => {
+      const token = await hentToken();
+      if (!token) {
+        if (aktiv) { setSessionFejl(true); setIndlæser(false); }
+        return;
+      }
+      try {
+        const res = await autentificeretFetch(
+          `/api/besigtigelse?kontrakt_id=${kontraktId}`,
+          token,
+        );
+        if (!aktiv) return;
+        if (res.ok) {
+          const d = await res.json();
+          setBesigtigelse(d);
+        } else {
+          const d = await res.json().catch(() => null);
+          setFejl(typeof d?.error === "string" ? d.error : "Kunne ikke hente besigtigelse.");
+        }
+      } catch {
+        if (aktiv) setFejl("Der opstod en netværksfejl. Prøv igen.");
+      } finally {
+        if (aktiv) setIndlæser(false);
+      }
+    })();
+    return () => { aktiv = false; };
   }, [kontraktId]);
 
   async function opret() {
     if (!dato) return;
+    setFejl(null);
     setSender(true);
-    const res = await fetch("/api/besigtigelse", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kontrakt_id: kontraktId, projekt_id: projektId, dato, tidspunkt, kommentar, foreslaaet_af: rolle }),
-    });
-    const data = await res.json();
-    setBesigtigelse(data);
-    setVisForum(false);
-    setSender(false);
+    try {
+      const token = await hentToken();
+      if (!token) { setFejl("Din session er udløbet. Log ind igen."); return; }
+
+      const res = await autentificeretFetch("/api/besigtigelse", token, {
+        method: "POST",
+        body: JSON.stringify({ kontrakt_id: kontraktId, dato, tidspunkt, kommentar }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setFejl(typeof data?.error === "string" ? data.error : "Kunne ikke oprette besigtigelse.");
+        return;
+      }
+      setBesigtigelse(data);
+      setVisForum(false);
+      setDato("");
+      setTidspunkt("");
+      setKommentar("");
+    } catch {
+      setFejl("Der opstod en netværksfejl. Prøv igen.");
+    } finally {
+      setSender(false);
+    }
   }
 
-  async function svar(status: string) {
+  async function svar(action: "accept" | "counter") {
     if (!besigtigelse) return;
+    if (action === "counter" && !nyDato) return;
+    setFejl(null);
     setSvarer(true);
-    const body: Record<string, unknown> = { id: besigtigelse.id, status, rolle, kommentar: svarKommentar || undefined };
-    if (visNyDato && nyDato) { body.ny_dato = nyDato; body.ny_tidspunkt = nyTidspunkt || null; }
-    const res = await fetch("/api/besigtigelse", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
-    setBesigtigelse(data);
-    setSvarer(false);
-    setSvarKommentar("");
-    setVisNyDato(false);
+    try {
+      const token = await hentToken();
+      if (!token) { setFejl("Din session er udløbet. Log ind igen."); return; }
+
+      const body: Record<string, unknown> = {
+        id: besigtigelse.id,
+        action,
+        kommentar: svarKommentar || undefined,
+      };
+      if (action === "counter") {
+        body.ny_dato = nyDato;
+        body.ny_tidspunkt = nyTidspunkt || null;
+      }
+
+      const res = await autentificeretFetch("/api/besigtigelse", token, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setFejl(typeof data?.error === "string" ? data.error : "Kunne ikke sende svar.");
+        return;
+      }
+      setBesigtigelse(data);
+      setSvarKommentar("");
+      setVisNyDato(false);
+      setNyDato("");
+      setNyTidspunkt("");
+    } catch {
+      setFejl("Der opstod en netværksfejl. Prøv igen.");
+    } finally {
+      setSvarer(false);
+    }
   }
 
   const statusUI: Record<string, { label: string; klasse: string }> = {
@@ -83,12 +168,29 @@ export default function BesigtigelseKort({ kontraktId, projektId, rolle }: Props
     afvist:     { label: "Afvist",               klasse: "bg-red-100 text-red-700" },
   };
 
-  const andenPart = rolle === "bygherre" ? "haandvaerker" : "bygherre";
-  const kanSvare = besigtigelse &&
-    besigtigelse.status === "foreslaaet" &&
-    besigtigelse.foreslaaet_af !== rolle;
+  // Forslagsstiller afventer svar — ingen handlinger
+  const erForslagsstillerAfventer =
+    besigtigelse?.status === "foreslaaet" && besigtigelse.foreslaaet_af === rolle;
+
+  // Modparten kan svare
+  const kanSvare =
+    besigtigelse?.status === "foreslaaet" && besigtigelse.foreslaaet_af !== rolle;
+
+  // Ny anmodning kan startes når ingen besigtigelse eksisterer eller den er afvist
+  const kanOpretteNy = !besigtigelse || besigtigelse.status === "afvist";
+
+  const afventerTekst =
+    rolle === "haandvaerker" ? "Afventer bygherrens svar." : "Afventer entreprenørens svar.";
 
   if (indlæser) return null;
+
+  if (sessionFejl) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
+        <p className="text-sm text-red-600">Du skal være logget ind for at se besigtigelse.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
@@ -102,23 +204,28 @@ export default function BesigtigelseKort({ kontraktId, projektId, rolle }: Props
           </div>
           <h2 className="font-semibold text-gray-900 text-sm">Besigtigelse</h2>
         </div>
-        {besigtigelse && besigtigelse.status !== "godkendt" && !visForum && (
+        {/* Knap: kun modparten kan foreslå ny dato; forslagsstiller under afventning ser ingen knap */}
+        {kanSvare && !visForum && (
           <button
-            onClick={() => setVisForum(true)}
+            onClick={() => { setFejl(null); setVisForum(false); }}
             className="text-xs font-semibold text-[#1e3a2a] hover:underline"
           >
-            {besigtigelse.foreslaaet_af === rolle ? "Rediger" : "Foreslå ny dato"}
+            Foreslå ny dato
           </button>
         )}
-        {!besigtigelse && !visForum && (
+        {kanOpretteNy && !visForum && (
           <button
-            onClick={() => setVisForum(true)}
+            onClick={() => { setFejl(null); setVisForum(true); }}
             className="text-xs font-semibold text-[#1e3a2a] hover:underline"
           >
-            Anmod om besigtigelse
+            {besigtigelse?.status === "afvist" ? "Foreslå ny dato" : "Anmod om besigtigelse"}
           </button>
         )}
       </div>
+
+      {fejl && (
+        <p className="text-xs text-red-600 font-medium mb-3">{fejl}</p>
+      )}
 
       {/* Eksisterende besigtigelse */}
       {besigtigelse && !visForum && (
@@ -156,7 +263,14 @@ export default function BesigtigelseKort({ kontraktId, projektId, rolle }: Props
             </div>
           )}
 
-          {/* Svar-sektion */}
+          {/* Forslagsstiller afventer — ingen handlinger */}
+          {erForslagsstillerAfventer && (
+            <div className="border-t border-gray-100 pt-3">
+              <p className="text-xs text-gray-400">{afventerTekst}</p>
+            </div>
+          )}
+
+          {/* Modpartens svarmuligheder */}
           {kanSvare && (
             <div className="border-t border-gray-100 pt-4">
               <p className="text-xs font-semibold text-gray-500 mb-3">Dit svar</p>
@@ -171,7 +285,7 @@ export default function BesigtigelseKort({ kontraktId, projektId, rolle }: Props
               {!visNyDato ? (
                 <div className="flex gap-2">
                   <button
-                    onClick={() => svar("godkendt")}
+                    onClick={() => svar("accept")}
                     disabled={svarer}
                     className="flex-1 py-2.5 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50"
                   >
@@ -199,10 +313,11 @@ export default function BesigtigelseKort({ kontraktId, projektId, rolle }: Props
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => setVisNyDato(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all">
+                    <button onClick={() => setVisNyDato(false)}
+                      className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all">
                       Annuller
                     </button>
-                    <button onClick={() => svar("foreslaaet")} disabled={svarer || !nyDato}
+                    <button onClick={() => svar("counter")} disabled={svarer || !nyDato}
                       className="flex-1 py-2.5 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-all">
                       {svarer ? "Sender..." : "Send forslag"}
                     </button>
@@ -211,20 +326,11 @@ export default function BesigtigelseKort({ kontraktId, projektId, rolle }: Props
               )}
             </div>
           )}
-
-          {/* Allerede foreslået af denne part */}
-          {besigtigelse.status === "foreslaaet" && besigtigelse.foreslaaet_af === rolle && (
-            <div className="border-t border-gray-100 pt-3">
-              <p className="text-xs text-gray-400">
-                Afventer svar fra {andenPart === "bygherre" ? "bygherre" : "entreprenøren"}.
-              </p>
-            </div>
-          )}
         </div>
       )}
 
-      {/* Opret-formular */}
-      {(visForum || (!besigtigelse && visForum)) && (
+      {/* Opret-formular — ny anmodning eller genåbning efter afvisning */}
+      {visForum && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -248,7 +354,7 @@ export default function BesigtigelseKort({ kontraktId, projektId, rolle }: Props
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none transition-all" />
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setVisForum(false)}
+            <button onClick={() => { setVisForum(false); setFejl(null); }}
               className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all">
               Annuller
             </button>
@@ -260,7 +366,7 @@ export default function BesigtigelseKort({ kontraktId, projektId, rolle }: Props
         </div>
       )}
 
-      {/* Ingen besigtigelse endnu og ikke vist form */}
+      {/* Ingen besigtigelse endnu og formular ikke vist */}
       {!besigtigelse && !visForum && (
         <p className="text-sm text-gray-400">
           {rolle === "bygherre"
