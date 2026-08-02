@@ -247,6 +247,253 @@ ny kernefunktion, datamodel, AI-analyse, deploy-ændringer.
 
 ---
 
+## Analyseprotokol
+
+Ved analyseopgaver skal du prioritere dokumentation, præcision og sikkerhed over hurtige konklusioner.
+
+### 1. Start med eksisterende kode
+
+Før du foreslår en løsning, skal du:
+
+- inspicere alle relevante filer
+- finde samtlige reads og writes for de berørte felter
+- finde relevante API-routes, serverfunktioner og UI-komponenter
+- kontrollere eksisterende validering, auth, låsning og nulstilling
+- undersøge, om samme logik findes flere steder
+
+Henvis til konkrete filstier, funktioner og kodeområder.
+
+Du må ikke konkludere alene ud fra:
+
+- et feltnavn
+- en UI-tekst
+- en skjult knap
+- et TypeScript-interface
+- en lokal SQL-fil
+- en enkelt route
+
+Spor den faktiske adfærd gennem hele dataflowet.
+
+### 2. Adskil fakta og antagelser
+
+Klassificér væsentlige udsagn som:
+
+- DOKUMENTERET: Kan direkte bevises ud fra den inspicerede kode eller det materiale, du faktisk har adgang til.
+- SANDSYNLIGT: Understøttes af fundene, men kan ikke bevises fuldt ud.
+- UKENDT: Kræver databaseaudit, runtime-test, produktionsadgang eller anden ekstern kontrol.
+- PRODUKTBESLUTNING: Kan ikke afgøres teknisk og kræver Olivers stillingtagen.
+
+Du må ikke fremstille en sandsynlig eller ukendt konklusion som et dokumenteret faktum.
+
+Eksempler:
+
+- At en SQL-fil findes lokalt, beviser ikke, at den er kørt i produktion.
+- At en tabel bruges i kode, beviser ikke, hvilken migration der oprettede den.
+- At en knap er skjult i UI, beviser ikke, at API'et er server-side låst.
+- At et felt hedder "godkendt", beviser ikke dets produktmæssige betydning.
+- At TypeScript forventer en bestemt datatype, beviser ikke, at alle eksisterende databaserækker følger typen.
+- At en route bruger et token, beviser ikke, at brugeren er autentificeret eller autoriseret til handlingen.
+
+### 3. Kontrollér hele dataflowet
+
+For hvert centralt felt eller datastruktur skal du undersøge:
+
+- tabel og datatype
+- nullability og defaults
+- hvem der kan skrive feltet
+- alle routes og serverfunktioner der skriver feltet
+- alle sider og komponenter der læser feltet
+- hvilke payloads der kan indeholde feltet
+- eksisterende validering
+- server-side autorisation
+- hvornår feltet låses
+- hvornår feltet nulstilles
+- om klienten kan skrive serverstyrede værdier
+- om der findes parallelle sources of truth
+- om null, false, tom string og tomt array fortolkes forskelligt
+- om eksisterende data kan have ældre formater
+- om ændring af feltet påvirker andre felter, statustilstande eller godkendelser
+
+Undersøg også, om samme felt kan skrives gennem flere forskellige routes. Hvis det kan, skal validering, autorisation og låsning sammenlignes på tværs af alle write-paths.
+
+### 4. Adskil nuværende og ønsket adfærd
+
+Rapportér separat:
+
+A. Hvad systemet dokumenteret gør i dag
+
+B. Hvad produktreglerne kræver
+
+C. Hvor de to afviger
+
+D. Den mindste mulige rettelse
+
+Bland ikke ønsket produktlogik ind i beskrivelsen af den nuværende kode.
+
+Beskriv ikke en foreslået fremtidig model, som om den allerede eksisterer.
+
+### 5. Modsigelseskontrol
+
+Før du afslutter en rapport, skal du kontrollere:
+
+- om forskellige sider bruger forskellige betingelser for samme tilstand
+- om status og timestamps kan modsige hinanden
+- om frontend og API fortolker samme felt forskelligt
+- om flere routes har forskellige allowlists, valideringer eller låse
+- om en foreslået rettelse påvirker andre statusser eller flows
+- om rapportens egne afsnit modsiger hinanden
+- om en konklusion kræver information, du ikke har adgang til
+- om et server-side problem fejlagtigt beskrives som et rent UI-problem
+- om noget beskrives som låst, selv om låsen kun findes i UI
+- om en GET-route har writes eller andre sideeffekter
+- om en foreslået rettelse kan ramme udkast, inviterede eller allerede godkendte sager forskelligt
+
+Beskriv fundne modsigelser eksplicit.
+
+Hvis du retter en tidligere konklusion, skal du tydeligt oplyse:
+
+- hvad den tidligere konklusion var
+- hvorfor den var for bred eller forkert
+- hvad der nu er dokumenteret
+
+### 6. Sikkerhed og autorisation
+
+Et token, ID, e-mailfelt, URL-parameter eller request-body-felt må ikke automatisk antages at bevise brugerens identitet eller rolle.
+
+Ved auth-analyse skal du altid skelne mellem:
+
+- identifikation af en sag
+- autentifikation af en bruger
+- autorisation til en handling
+- brugerens rolle i den konkrete sag
+
+Kontrollér server-side:
+
+- hvordan session eller JWT verificeres
+- hvordan brugeren knyttes til sagen
+- hvordan rollen udledes
+- om ejerskab verificeres
+- om en bruger kan vælge sin egen rolle i request-body
+- om en part kan handle på den anden parts vegne
+- om en part kan godkende sit eget forslag
+- om service role-klienten omgår RLS
+- om klientbaseret adgangskontrol også håndhæves i API'et
+
+En bruger, som ikke dokumenteret matcher en tilladt rolle, skal behandles som uautoriseret. Serveren må ikke gætte rollen.
+
+### 7. Forslag til rettelser
+
+For hver foreslået rettelse skal du beskrive:
+
+- det dokumenterede problem
+- problemets konsekvens
+- om risikoen er aktiv gennem det eksisterende UI eller kun gennem direkte API-kald
+- berørte filer
+- berørte reads og writes
+- risiko for eksisterende data
+- behov for databaseændring
+- behov for samtidig klient- og API-deployment
+- testplan
+- rollback-mulighed
+- om ændringen er selvstændigt deploybar
+- om den kan ændre eksisterende brugeradfærd
+
+Foreslå ikke større refaktorering, hvis en mindre rettelse kan løse problemet.
+
+Vælg som udgangspunkt:
+
+Den mindste rettelse, der lukker den største dokumenterede risiko uden at ændre database eller eksisterende data.
+
+Du må ikke anbefale at:
+
+- slette felter
+- omdøbe databasekolonner
+- køre migrationer
+- normalisere produktionsdata
+- ændre RLS
+- omskrive hele flows
+
+uden først at dokumentere behovet og vente på særskilt godkendelse.
+
+### 8. Analyse før implementering
+
+Ved nye features, authændringer, backendændringer eller dataflowændringer:
+
+- foretag først kun analyse
+- ændr ingen filer
+- vent på eksplicit godkendelse
+- implementér derefter én lille fase ad gangen
+- stop, hvis flere filer eller større ændringer bliver nødvendige end godkendt
+- stop, hvis analysen viser behov for database-, schema-, auth- eller RLS-ændringer, som ikke allerede er særskilt godkendt
+
+Ved små UI-rettelser skal du fortsat bekræfte:
+
+- TypeScript ren
+- ændrede filer
+- ingen database/schema
+- ingen auth
+- ingen API-routes
+- ingen Supabase writes
+- ingen Stripe/PostHog
+- ingen commit/push uden godkendelse
+
+### 9. Outputformat
+
+Større analyser skal som minimum indeholde:
+
+1. Dokumenterede fund
+2. Sandsynlige, men ikke beviste forhold
+3. Ukendte forhold
+4. Produktbeslutninger
+5. Nuværende dataflow
+6. Modstridende eller parallel logik
+7. Risikoklassifikation
+8. Mindste sikre næste skridt
+9. Berørte filer og write-paths
+10. Risiko for eksisterende data
+11. Test- og rollbackplan
+12. Punkter der kræver godkendelse
+
+Risikoklassifikation:
+
+- GRØN: Dokumenteret konsistent og forsvarligt
+- GUL: Uklart, teknisk gæld eller bør forbedres
+- RØD: Reel risiko for forkert autorisation, dataintegritet, forkert godkendelsesstatus eller tab af funktionalitet
+
+Skeln tydeligt mellem:
+
+- dokumenteret fejl
+- mulig risiko
+- navngivningsproblem
+- produktbeslutning
+- kosmetisk oprydning
+
+### 10. Ingen overdrivelse
+
+Brug præcise formuleringer.
+
+Skriv eksempelvis:
+
+- "Repoet viser, at tabellen bruges"
+- ikke "Migrationen er kørt i produktion"
+
+- "JSONB-feltet kan få en forkert datastruktur"
+- ikke "Databasen bliver korrupt"
+
+- "UI'et skjuler redigering"
+- ikke "Feltet er låst", medmindre API'et også håndhæver det
+
+- "Koden gør det teknisk muligt gennem et direkte API-kald"
+- ikke "Alle brugere kan uden videre gøre det", hvis det kræver kendskab til token, route og payload
+
+- "Det kan ikke fastslås ud fra repoet"
+- ikke et gæt forklædt som en konklusion
+
+- "Denne SQL-fil kan være kørt"
+- ikke "Denne SQL-fil er kørt", medmindre det er verificeret
+
+---
+
 ## Supabase-regler
 
 Inden du ændrer Supabase-relateret kode, identificér: hvilke tabeller der
