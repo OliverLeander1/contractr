@@ -878,15 +878,8 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
 
         {/* Tilbudsdokument */}
         {!godkendt && harAdgang && (() => {
-          const forudsLast = !!(kontrakt.forudsaetninger_sendt_at && !kontrakt.forudsaetninger_godkendt && !springetOver);
           return (
-          <div className={`bg-white rounded-2xl border shadow-sm p-6 mb-5 ${forudsLast ? "border-gray-100 opacity-50 pointer-events-none" : "border-gray-100"}`}>
-            {forudsLast && (
-              <div className="mb-3 flex items-center gap-2 text-xs text-amber-700 font-semibold">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                Afventer bygherrens godkendelse af forudsætninger
-              </div>
-            )}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-9 h-9 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
