@@ -243,22 +243,37 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
     if (!navn.trim()) { setGodkendFejl("Skriv dit fulde navn inden du sender."); return; }
     setGodkendFejl("");
     setGodkender(true);
-    const res = await fetch(`/api/kontrakt/${token}/godkend`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ forfatter: "haandvaerker", haandvaerker_navn: navn.trim(), haandvaerker_firma: firma.trim() || null }),
-    });
-    if (res.ok) {
-      setGodkendt(true);
-      setVisNavnModal(false);
-      setKontrakt(prev => prev ? { ...prev, haandvaerker_godkendt_at: new Date().toISOString(), haandvaerker_navn: navn.trim() } : prev);
-    } else {
-      const body = await res.json().catch(() => ({}));
-      setGodkendFejl(body.error === "Entreprisesum skal være udfyldt inden godkendelse"
-        ? "Du skal udfylde entreprisesummen inden du sender tilbuddet."
-        : body.error || "Noget gik galt. Prøv igen.");
+    try {
+      const { createClient } = await import("@/lib/supabase");
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setGodkendFejl("Du er ikke logget ind. Log ind og prøv igen.");
+        return;
+      }
+      const res = await fetch(`/api/kontrakt/${token}/godkend`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ haandvaerker_navn: navn.trim(), haandvaerker_firma: firma.trim() || null }),
+      });
+      if (res.ok) {
+        setGodkendt(true);
+        setVisNavnModal(false);
+        setKontrakt(prev => prev ? { ...prev, haandvaerker_godkendt_at: new Date().toISOString(), haandvaerker_navn: navn.trim() } : prev);
+      } else {
+        const body = await res.json().catch(() => ({}));
+        setGodkendFejl(body.error === "Entreprisesum skal være udfyldt inden godkendelse"
+          ? "Du skal udfylde entreprisesummen inden du sender tilbuddet."
+          : body.error || "Noget gik galt. Prøv igen.");
+      }
+    } catch {
+      setGodkendFejl("Der opstod en fejl under godkendelsen. Kontrollér din forbindelse, og prøv igen.");
+    } finally {
+      setGodkender(false);
     }
-    setGodkender(false);
   }
 
   async function gemTidsplan() {

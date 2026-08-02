@@ -302,10 +302,19 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
     setGodkendFejl("");
     setGodkender(true);
     try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setGodkendFejl("Du er ikke logget ind. Genindlæs siden og prøv igen.");
+        return;
+      }
       const r = await fetch(`/api/kontrakt/${kontrakt.haandvaerker_token}/godkend`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ forfatter: "bygherre" }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({}),
       });
       const data = await r.json();
       if (data.error) {
@@ -313,6 +322,8 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
       } else {
         setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, ...data } : prev);
       }
+    } catch {
+      setGodkendFejl("Der opstod en fejl under godkendelsen. Kontrollér din forbindelse, og prøv igen.");
     } finally {
       setGodkender(false);
     }
