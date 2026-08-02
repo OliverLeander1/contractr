@@ -16,7 +16,7 @@ export async function GET(
 
   const [{ data: kontrakt, error: kErr }, { data: sedler }, { data: mangler }] = await Promise.all([
     db.from("kontrakter")
-      .select("id, projekt_id, titel, beskrivelse, total_pris, status, haandvaerker_navn, haandvaerker_email, haandvaerker_token, startdato, slutdato, betalingsplan, tidsplan, oprettet_at, haandvaerker_godkendt_at, bygherre_godkendt_at")
+      .select("id, projekt_id, titel, beskrivelse, total_pris, status, haandvaerker_navn, haandvaerker_email, haandvaerker_token, startdato, slutdato, betalingsplan, tidsplan, oprettet_at, haandvaerker_godkendt_at, bygherre_godkendt_at, besigtigelse_dato, besigtigelse_tid, besigtigelse_bekraeftet")
       .eq("projekt_id", id)
       .ilike("haandvaerker_email", email)
       .single(),

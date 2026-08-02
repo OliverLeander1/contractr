@@ -26,6 +26,9 @@ interface Kontrakt {
   oprettet_at: string;
   haandvaerker_godkendt_at: string | null;
   bygherre_godkendt_at: string | null;
+  besigtigelse_dato: string | null;
+  besigtigelse_tid: string | null;
+  besigtigelse_bekraeftet: boolean | null;
 }
 
 interface Sedel {
@@ -424,6 +427,9 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
             kontraktId={kontrakt.id}
             projektId={kontrakt.projekt_id}
             rolle="haandvaerker"
+            legacyBesigtigelseDato={kontrakt.besigtigelse_dato}
+            legacyBesigtigelseTid={kontrakt.besigtigelse_tid}
+            legacyBesigtigelseBekraeftet={kontrakt.besigtigelse_bekraeftet}
           />
         )}
       </div>

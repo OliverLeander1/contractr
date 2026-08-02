@@ -17,6 +17,9 @@ interface Props {
   kontraktId: string;
   projektId: string;
   rolle: "bygherre" | "haandvaerker";
+  legacyBesigtigelseDato?: string | null;
+  legacyBesigtigelseTid?: string | null;
+  legacyBesigtigelseBekraeftet?: boolean | null;
 }
 
 const fmtDato = (iso: string) =>
@@ -43,10 +46,17 @@ async function autentificeretFetch(
   });
 }
 
-export default function BesigtigelseKort({ kontraktId, rolle }: Props) {
+export default function BesigtigelseKort({
+  kontraktId,
+  rolle,
+  legacyBesigtigelseDato,
+  legacyBesigtigelseTid,
+  legacyBesigtigelseBekraeftet,
+}: Props) {
   const [besigtigelse, setBesigtigelse] = useState<Besigtigelse | null>(null);
   const [indlæser, setIndlæser] = useState(true);
   const [sessionFejl, setSessionFejl] = useState(false);
+  const [getSucceeded, setGetSucceeded] = useState(false);
   const [visForum, setVisForum] = useState(false);
   const [fejl, setFejl] = useState<string | null>(null);
 
@@ -79,6 +89,7 @@ export default function BesigtigelseKort({ kontraktId, rolle }: Props) {
         if (!aktiv) return;
         if (res.ok) {
           const d = await res.json();
+          setGetSucceeded(true);
           setBesigtigelse(d);
         } else {
           const d = await res.json().catch(() => null);
@@ -176,8 +187,15 @@ export default function BesigtigelseKort({ kontraktId, rolle }: Props) {
   const kanSvare =
     besigtigelse?.status === "foreslaaet" && besigtigelse.foreslaaet_af !== rolle;
 
-  // Ny anmodning kan startes når ingen besigtigelse eksisterer eller den er afvist
-  const kanOpretteNy = !besigtigelse || besigtigelse.status === "afvist";
+  // Legacy-fallback: GET lykkedes med null, og legacy-flaget er sat
+  const erLegacyFallback =
+    getSucceeded && besigtigelse === null && !!legacyBesigtigelseBekraeftet;
+
+  // Ny anmodning kan startes når GET lykkedes, ingen selvstændig række og ingen legacy-anmodning
+  const kanOpretteNy =
+    getSucceeded &&
+    (!besigtigelse || besigtigelse.status === "afvist") &&
+    !erLegacyFallback;
 
   const afventerTekst =
     rolle === "haandvaerker" ? "Afventer bygherrens svar." : "Afventer entreprenørens svar.";
@@ -329,6 +347,28 @@ export default function BesigtigelseKort({ kontraktId, rolle }: Props) {
         </div>
       )}
 
+      {/* Legacy-fallback — read-only overgangsvisning når GET returnerede null og legacy-flag er sat */}
+      {erLegacyFallback && !visForum && (
+        <div>
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">
+                {legacyBesigtigelseDato ? fmtDato(legacyBesigtigelseDato) : "Dato ikke angivet"}
+              </p>
+              {legacyBesigtigelseTid && (
+                <p className="text-xs text-gray-500 mt-0.5">Kl. {legacyBesigtigelseTid.slice(0, 5)}</p>
+              )}
+            </div>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 bg-amber-100 text-amber-700">
+              Afventer bygherre
+            </span>
+          </div>
+          <div className="border-t border-gray-100 pt-3">
+            <p className="text-xs text-gray-400">Besigtigelsesanmodningen er sendt og afventer bygherrens svar.</p>
+          </div>
+        </div>
+      )}
+
       {/* Opret-formular — ny anmodning eller genåbning efter afvisning */}
       {visForum && (
         <div className="space-y-4">
@@ -366,8 +406,8 @@ export default function BesigtigelseKort({ kontraktId, rolle }: Props) {
         </div>
       )}
 
-      {/* Ingen besigtigelse endnu og formular ikke vist */}
-      {!besigtigelse && !visForum && (
+      {/* Ingen besigtigelse endnu og formular ikke vist — kun når GET lykkedes, ingen legacy-anmodning */}
+      {getSucceeded && !besigtigelse && !visForum && !erLegacyFallback && (
         <p className="text-sm text-gray-400">
           {rolle === "bygherre"
             ? "Entreprenøren kan anmode om at besigtige opgaven inden pris afgives."
