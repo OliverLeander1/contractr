@@ -37,6 +37,17 @@ interface Aftale {
   besigtigelse_bekraeftet: boolean | null;
 }
 
+interface Besigtigelse {
+  id: string;
+  kontrakt_id: string;
+  dato: string;
+  tidspunkt: string | null;
+  status: string;
+  foreslaaet_af: string;
+  kommentar_haandvaerker: string | null;
+  kommentar_bygherre: string | null;
+}
+
 interface KontraktStatus {
   badgeText: string | null;
   secondaryText: string | null;
@@ -82,6 +93,45 @@ function getContractorUpdateStatus(a: Aftale): KontraktStatus {
   return ingen;
 }
 
+const fmtDatoKort = (iso: string) =>
+  new Date(iso + "T00:00:00").toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" });
+
+interface BesigtigelseStatusUI {
+  badge: string;
+  tekst: string | null;
+  klasse: string;
+  prioritet: number;
+}
+
+function getBesigtigelseStatusUI(b: Besigtigelse): BesigtigelseStatusUI {
+  const datoTekst = b.dato
+    ? `${fmtDatoKort(b.dato)}${b.tidspunkt ? ` kl. ${b.tidspunkt.slice(0, 5)}` : ""}`
+    : null;
+
+  if (b.status === "foreslaaet" && b.foreslaaet_af === "haandvaerker") {
+    return {
+      badge: "Besigtigelse afventer dit svar",
+      tekst: datoTekst,
+      klasse: "bg-amber-100 text-amber-800 border-amber-200",
+      prioritet: 1,
+    };
+  }
+  if (b.status === "foreslaaet" && b.foreslaaet_af === "bygherre") {
+    return {
+      badge: "Dit forslag afventer entreprenøren",
+      tekst: datoTekst,
+      klasse: "bg-blue-100 text-blue-700 border-blue-200",
+      prioritet: 3,
+    };
+  }
+  return {
+    badge: "Besigtigelse aftalt",
+    tekst: datoTekst,
+    klasse: "bg-green-100 text-green-700 border-green-200",
+    prioritet: 4,
+  };
+}
+
 const projekttypeLabels: Record<string, string> = {
   badevarelse: "Badeværelse", kokken: "Køkken", tag: "Tag",
   tilbygning: "Tilbygning", totalrenovering: "Totalrenovering",
@@ -110,6 +160,7 @@ export default function Dashboard() {
   const [navn, setNavn] = useState("");
   const [projekter, setProjekter] = useState<Projekt[]>([]);
   const [aftaler, setAftaler] = useState<Aftale[]>([]);
+  const [besigtigelser, setBesigtigelser] = useState<Besigtigelse[]>([]);
   const [indlæser, setIndlæser] = useState(true);
   const [opretter, setOpretter] = useState(false);
   const [pendingUdkast, setPendingUdkast] = useState<{ titel: string } | null>(null);
@@ -160,7 +211,20 @@ export default function Dashboard() {
         .eq("bygherre_id", user.id)
         .order("oprettet_at", { ascending: false });
 
-      if (aftaleData) setAftaler(aftaleData);
+      if (aftaleData) {
+        setAftaler(aftaleData);
+        // Hent besigtigelse for brugerens kontrakter — ét serverside-kald
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          const bRes = await fetch("/api/bruger/besigtigelser", {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
+          if (bRes.ok) {
+            const bData = await bRes.json();
+            if (Array.isArray(bData)) setBesigtigelser(bData);
+          }
+        }
+      }
       setIndlæser(false);
     };
     hent();
@@ -299,9 +363,30 @@ export default function Dashboard() {
                 const afventerHaandvaerker = a.bygherre_godkendt_at && !a.haandvaerker_godkendt_at;
                 const underForhandling = a.status === "forhandling";
                 const kontraktStatus = getContractorUpdateStatus(a);
-                const statusTekst = kontraktStatus.badgeText ?? (beggeGodkendt ? "Godkendt af begge" : afventerHaandvaerker ? "Afventer håndværker" : underForhandling ? "Under forhandling" : a.haandvaerker_email ? "Invitation sendt" : "Udkast");
-                const statusKlasse = kontraktStatus.badgeKlasse || (beggeGodkendt ? "bg-green-100 text-green-700 border-green-200" : afventerHaandvaerker ? "bg-blue-100 text-blue-700 border-blue-200" : underForhandling ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-gray-100 text-gray-500 border-gray-200");
                 const erUdkast = !a.haandvaerker_email;
+
+                // Besigtigelse-status (selvstændig tabel — højeste prioritet)
+                const aktivBesigtigelse = besigtigelser.find(b => b.kontrakt_id === a.id);
+                const besigtigelseUI = aktivBesigtigelse ? getBesigtigelseStatusUI(aktivBesigtigelse) : null;
+
+                // Prioritet: 1 = bygherre skal svare, 2 = konkret kontrakthandling, 3 = bygherre afventer, 4 = godkendt, 5 = generel
+                const visBesigtigelseBadge = besigtigelseUI !== null && (
+                  besigtigelseUI.prioritet === 1 ||
+                  (!kontraktStatus.badgeText && besigtigelseUI.prioritet <= 4)
+                );
+
+                const statusTekst = visBesigtigelseBadge
+                  ? besigtigelseUI!.badge
+                  : (kontraktStatus.badgeText ?? (beggeGodkendt ? "Godkendt af begge" : afventerHaandvaerker ? "Afventer håndværker" : underForhandling ? "Under forhandling" : a.haandvaerker_email ? "Invitation sendt" : "Udkast"));
+                const statusKlasse = visBesigtigelseBadge
+                  ? besigtigelseUI!.klasse
+                  : (kontraktStatus.badgeKlasse || (beggeGodkendt ? "bg-green-100 text-green-700 border-green-200" : afventerHaandvaerker ? "bg-blue-100 text-blue-700 border-blue-200" : underForhandling ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-gray-100 text-gray-500 border-gray-200"));
+
+                // Sekundær linje: vis generel kontrakt-info hvis besigtigelse tager badge, eller vis besigtigelse som supplement
+                const secondaryTekst = visBesigtigelseBadge && besigtigelseUI!.tekst
+                  ? besigtigelseUI!.tekst
+                  : (kontraktStatus.secondaryText ?? (besigtigelseUI?.tekst || null));
+
                 return (
                   <div key={a.id} className="flex items-center gap-2">
                     <Link
@@ -309,13 +394,20 @@ export default function Dashboard() {
                       className="flex-1 bg-white rounded-2xl border border-[#e0ddd6] px-5 py-4 flex items-center justify-between hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                          </svg>
+                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${besigtigelseUI?.prioritet === 1 ? "bg-amber-100" : "bg-[#1e3a2a]/5"}`}>
+                          {besigtigelseUI?.prioritet === 1 ? (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="1.8">
+                              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+                              <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                          ) : (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                              <polyline points="14 2 14 8 20 8"/>
+                              <line x1="16" y1="13" x2="8" y2="13"/>
+                              <line x1="16" y1="17" x2="8" y2="17"/>
+                            </svg>
+                          )}
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors text-sm">
@@ -324,8 +416,8 @@ export default function Dashboard() {
                           <p className="text-xs text-gray-400 mt-0.5">
                             {a.haandvaerker_navn || a.haandvaerker_email || "Ingen håndværker tilknyttet endnu"}
                           </p>
-                          {kontraktStatus.secondaryText && (
-                            <p className="text-xs text-[#1e3a2a] font-medium mt-0.5">{kontraktStatus.secondaryText}</p>
+                          {secondaryTekst && (
+                            <p className={`text-xs font-medium mt-0.5 ${besigtigelseUI?.prioritet === 1 ? "text-amber-700" : "text-[#1e3a2a]"}`}>{secondaryTekst}</p>
                           )}
                         </div>
                       </div>

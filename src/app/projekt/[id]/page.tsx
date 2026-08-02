@@ -306,14 +306,16 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
               </div>
             </div>
           </div>
-          <BesigtigelseKort
-            kontraktId={kontrakt.id}
-            projektId={id}
-            rolle="bygherre"
-            legacyBesigtigelseDato={kontrakt.besigtigelse_dato}
-            legacyBesigtigelseTid={kontrakt.besigtigelse_tid}
-            legacyBesigtigelseBekraeftet={kontrakt.besigtigelse_bekraeftet}
-          />
+          <div id="besigtigelse">
+            <BesigtigelseKort
+              kontraktId={kontrakt.id}
+              projektId={id}
+              rolle="bygherre"
+              legacyBesigtigelseDato={kontrakt.besigtigelse_dato}
+              legacyBesigtigelseTid={kontrakt.besigtigelse_tid}
+              legacyBesigtigelseBekraeftet={kontrakt.besigtigelse_bekraeftet}
+            />
+          </div>
           <Suspense><Chat bruger="bygherre" /></Suspense>
 
           {/* Påkrav-modal */}
@@ -423,14 +425,16 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
             </div>
           </div>
 
-          <BesigtigelseKort
-            kontraktId={kontrakt.id}
-            projektId={id}
-            rolle="bygherre"
-            legacyBesigtigelseDato={kontrakt.besigtigelse_dato}
-            legacyBesigtigelseTid={kontrakt.besigtigelse_tid}
-            legacyBesigtigelseBekraeftet={kontrakt.besigtigelse_bekraeftet}
-          />
+          <div id="besigtigelse">
+            <BesigtigelseKort
+              kontraktId={kontrakt.id}
+              projektId={id}
+              rolle="bygherre"
+              legacyBesigtigelseDato={kontrakt.besigtigelse_dato}
+              legacyBesigtigelseTid={kontrakt.besigtigelse_tid}
+              legacyBesigtigelseBekraeftet={kontrakt.besigtigelse_bekraeftet}
+            />
+          </div>
         </div>
         <Suspense><Chat bruger="bygherre" /></Suspense>
       </div>

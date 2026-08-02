@@ -6,6 +6,17 @@ import ProjektNav from "@/components/ProjektNav";
 import { createClient } from "@/lib/supabase";
 import DokumentRenderer from "@/components/DokumentRenderer";
 
+interface Besigtigelse {
+  id: string;
+  kontrakt_id: string;
+  dato: string;
+  tidspunkt: string | null;
+  status: string;
+  foreslaaet_af: string;
+  kommentar_haandvaerker: string | null;
+  kommentar_bygherre: string | null;
+}
+
 interface Aendring {
   id: string;
   felt: string;
@@ -96,6 +107,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const [godkenderForudsaetninger, setGodkenderForudsaetninger] = useState(false);
   const [alleKontrakter, setAlleKontrakter] = useState<{ id: string; titel: string | null; status: string; oprettet_at: string }[]>([]);
   const [opretter, setOpretter] = useState(false);
+  const [besigtigelse, setBesigtigelse] = useState<Besigtigelse | null | "loading">("loading");
 
   const hentKontrakt = useCallback(async (kontraktId?: string) => {
     const supabase = createClient();
@@ -113,6 +125,23 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
     const alleR = await fetch(`/api/projekter/${id}/kontrakter`);
     const alleD = await alleR.json();
     if (Array.isArray(alleD)) setAlleKontrakter(alleD);
+
+    // Hent besigtigelse for den aktuelle kontrakt
+    if (d && !d.error && d.id) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        setBesigtigelse("loading");
+        const bRes = await fetch(`/api/besigtigelse?kontrakt_id=${d.id}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (bRes.ok) {
+          const bData = await bRes.json();
+          setBesigtigelse(bData ?? null);
+        } else {
+          setBesigtigelse(null);
+        }
+      }
+    }
 
     const { data: profil } = await supabase
       .from("profiler").select("navn").eq("id", user.id).single();
@@ -516,6 +545,83 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
             </div>
           </div>
         )}
+
+        {/* Besigtigelse-handlingsboks — vises kun ved aktiv selvstændig besigtigelse */}
+        {besigtigelse !== "loading" && besigtigelse !== null && (() => {
+          const fmtDatoLang = (iso: string) =>
+            new Date(iso + "T00:00:00").toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" });
+
+          if (besigtigelse.status === "foreslaaet" && besigtigelse.foreslaaet_af === "haandvaerker") {
+            return (
+              <div className="mb-5 bg-amber-50 border border-amber-200 rounded-2xl p-5">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-amber-900">Entreprenøren har foreslået en besigtigelse</p>
+                    <p className="text-xs text-amber-700 mt-0.5">
+                      {fmtDatoLang(besigtigelse.dato)}
+                      {besigtigelse.tidspunkt && <span className="ml-2 font-semibold">kl. {besigtigelse.tidspunkt.slice(0, 5)}</span>}
+                    </p>
+                    {besigtigelse.kommentar_haandvaerker && (
+                      <p className="text-xs text-amber-700 mt-1.5 italic">&ldquo;{besigtigelse.kommentar_haandvaerker}&rdquo;</p>
+                    )}
+                  </div>
+                </div>
+                <a
+                  href={`/projekt/${id}#besigtigelse`}
+                  className="inline-flex items-center gap-2 bg-amber-700 text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+                >
+                  Se og besvar besigtigelse
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </a>
+              </div>
+            );
+          }
+
+          if (besigtigelse.status === "foreslaaet" && besigtigelse.foreslaaet_af === "bygherre") {
+            return (
+              <div className="mb-5 bg-blue-50 border border-blue-200 rounded-2xl p-5 flex items-start gap-3">
+                <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-blue-900">Dit forslag til besigtigelse afventer entreprenørens svar</p>
+                  <p className="text-xs text-blue-700 mt-0.5">
+                    {fmtDatoLang(besigtigelse.dato)}
+                    {besigtigelse.tidspunkt && <span className="ml-2 font-semibold">kl. {besigtigelse.tidspunkt.slice(0, 5)}</span>}
+                  </p>
+                </div>
+              </div>
+            );
+          }
+
+          if (besigtigelse.status === "godkendt") {
+            return (
+              <div className="mb-5 bg-green-50 border border-green-200 rounded-2xl p-5 flex items-start gap-3">
+                <div className="w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-green-900">Besigtigelse aftalt</p>
+                  <p className="text-xs text-green-700 mt-0.5">
+                    {fmtDatoLang(besigtigelse.dato)}
+                    {besigtigelse.tidspunkt && <span className="ml-2 font-semibold">kl. {besigtigelse.tidspunkt.slice(0, 5)}</span>}
+                  </p>
+                </div>
+              </div>
+            );
+          }
+
+          return null;
+        })()}
 
         <div className="grid lg:grid-cols-3 gap-5">
 
