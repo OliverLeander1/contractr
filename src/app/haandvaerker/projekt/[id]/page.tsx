@@ -178,10 +178,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
               if (hG && bG)  return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Aftale indgået</span>;
               if (hG)        return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Afventer bygherre</span>;
               if (bG)        return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Afventer din godkendelse</span>;
-              const st = kontrakt.status;
-              if (st === "afventer" || st === "sendt" || st === "forhandling")
-                             return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Afventer dit tilbud</span>;
-              return               <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Udkast</span>;
+              return               <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Afventer dit tilbud</span>;
             })()}
           </div>
         </div>
