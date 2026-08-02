@@ -1201,40 +1201,6 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               </div>
             )}
 
-            {/* Besigtigelse fra entreprenøren */}
-            {kontrakt.besigtigelse_bekraeftet && (
-              <div className="bg-white rounded-2xl border border-[#1e3a2a]/20 shadow-sm p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-lg bg-[#1e3a2a]/8 flex items-center justify-center flex-shrink-0">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
-                      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 text-sm">Entreprenøren ønsker besigtigelse</h3>
-                </div>
-                <p className="text-xs text-gray-500 mb-3">Entreprenøren har angivet et tidspunkt for besigtigelse.</p>
-                <div className="space-y-2">
-                  {kontrakt.besigtigelse_dato && (
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs font-semibold text-gray-400 w-16">Dato</p>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {new Date(kontrakt.besigtigelse_dato).toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" })}
-                      </p>
-                    </div>
-                  )}
-                  {kontrakt.besigtigelse_tid && (
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs font-semibold text-gray-400 w-16">Tidspunkt</p>
-                      <p className="text-sm font-semibold text-gray-900">kl. {kontrakt.besigtigelse_tid}</p>
-                    </div>
-                  )}
-                </div>
-                <p className="text-xs text-gray-400 mt-3 leading-relaxed">
-                  Kontakt entreprenøren, hvis tidspunktet ikke passer.
-                </p>
-              </div>
-            )}
-
             {/* AB-Forbruger */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="flex items-center gap-2 mb-2">

@@ -87,11 +87,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ to
     opdatering.forudsaetninger_godkendt = false;
   }
 
-  // besigtigelse-felter
-  for (const felt of ["besigtigelse_dato", "besigtigelse_tid", "besigtigelse_bekraeftet"] as const) {
-    if (felt in body) opdatering[felt] = body[felt];
-  }
-
   // Betalingsplan: særskilt validering
   if ("betalingsplan" in body) {
     const rå = body.betalingsplan;

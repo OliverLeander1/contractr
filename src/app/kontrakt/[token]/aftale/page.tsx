@@ -127,6 +127,7 @@ interface Kontrakt {
   tidsplan: Tidsplan | null;
   tilbud_dokument_url: string | null;
   tilbud_dokument_navn: string | null;
+  projekt_id: string | null;
   besigtigelse_dato: string | null;
   besigtigelse_tid: string | null;
   besigtigelse_bekraeftet: boolean | null;
@@ -707,7 +708,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
         {/* Besigtigelse */}
         {!godkendt && harAdgang && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 mb-5">
-            <div className="flex items-center gap-3 mb-5">
+            <div className="flex items-center gap-3 mb-4">
               <div className="w-9 h-9 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
                   <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
@@ -715,85 +716,19 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               </div>
               <div>
                 <p className="text-sm font-bold text-gray-900">Besigtigelse</p>
-                <p className="text-xs text-gray-400">Aftal dato og tidspunkt inden du giver pris</p>
+                <p className="text-xs text-gray-400">Anmod om besigtigelse via dit projektrum</p>
               </div>
             </div>
-
-            {kontrakt.besigtigelse_bekraeftet ? (
-              <div className="bg-green-50 border border-green-100 rounded-xl p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-green-800">Besigtigelse aftalt</p>
-                      {(kontrakt.besigtigelse_dato || kontrakt.besigtigelse_tid) && (
-                        <p className="text-xs text-green-700 mt-0.5">
-                          {kontrakt.besigtigelse_dato && new Date(kontrakt.besigtigelse_dato).toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" })}
-                          {kontrakt.besigtigelse_tid && <span className="ml-2 font-semibold">kl. {kontrakt.besigtigelse_tid}</span>}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <button onClick={() => gemBesigtigelse(false, "", "")} className="text-xs text-gray-400 hover:text-gray-600 flex-shrink-0">Fortryd</button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Dato-felt */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Dato</label>
-                  <input
-                    type="date"
-                    value={besigtigelseDato}
-                    onChange={e => setBesigtigelseDato(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base font-semibold text-gray-800 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 bg-gray-50"
-                  />
-                  {besigtigelseDato && (
-                    <p className="text-xs text-[#1e3a2a] font-semibold mt-1.5 px-1">
-                      {new Date(besigtigelseDato).toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-                    </p>
-                  )}
-                </div>
-
-                {/* Tidsvalg */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Tidspunkt (valgfrit)</label>
-                  <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5">
-                    {["07:00","08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00"].map(tid => (
-                      <button
-                        key={tid}
-                        onClick={() => setBesigtigelseTid(prev => prev === tid ? "" : tid)}
-                        className={`py-2 rounded-lg text-xs font-bold transition-all ${
-                          besigtigelseTid === tid
-                            ? "bg-[#1e3a2a] text-white shadow-sm"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        }`}
-                      >
-                        {tid}
-                      </button>
-                    ))}
-                  </div>
-                  {besigtigelseTid && (
-                    <p className="text-xs text-[#1e3a2a] font-semibold mt-2 px-1">Valgt tidspunkt: kl. {besigtigelseTid}</p>
-                  )}
-                </div>
-
-                <button
-                  onClick={() => gemBesigtigelse(true, besigtigelseDato, besigtigelseTid)}
-                  disabled={gemmerBesigtigelse || !besigtigelseDato}
-                  className="w-full py-3 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
-                >
-                  {gemmerBesigtigelse ? (
-                    <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>Gemmer...</>
-                  ) : (
-                    <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Bekræft besigtigelse</>
-                  )}
-                </button>
-                {besigtigelseFejl && <p className="text-xs text-red-600 font-medium">{besigtigelseFejl}</p>}
-              </div>
-            )}
+            <p className="text-sm text-gray-500 leading-relaxed mb-3">
+              Besigtigelse aftales nu direkte i projektområdet, så både du og bygherren har overblik og en fælles aftale.
+            </p>
+            <a
+              href={`/haandvaerker/projekt/${kontrakt.projekt_id}`}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[#1e3a2a] hover:underline"
+            >
+              Gå til dit projektrum
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
           </div>
         )}
 

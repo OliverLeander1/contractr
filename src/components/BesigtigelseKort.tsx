@@ -359,12 +359,22 @@ export default function BesigtigelseKort({
                 <p className="text-xs text-gray-500 mt-0.5">Kl. {legacyBesigtigelseTid.slice(0, 5)}</p>
               )}
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 bg-amber-100 text-amber-700">
-              Afventer bygherre
-            </span>
+            {rolle === "haandvaerker" ? (
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 bg-amber-100 text-amber-700">
+                Afventer bygherre
+              </span>
+            ) : (
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 bg-blue-100 text-blue-700">
+                Besigtigelsesanmodning modtaget
+              </span>
+            )}
           </div>
           <div className="border-t border-gray-100 pt-3">
-            <p className="text-xs text-gray-400">Besigtigelsesanmodningen er sendt og afventer bygherrens svar.</p>
+            {rolle === "haandvaerker" ? (
+              <p className="text-xs text-gray-400">Besigtigelsesanmodningen er sendt og afventer bygherrens svar.</p>
+            ) : (
+              <p className="text-xs text-gray-400">Denne anmodning blev oprettet i det tidligere besigtigelsesflow. Ændringer til tidspunktet skal aftales direkte med entreprenøren.</p>
+            )}
           </div>
         </div>
       )}
