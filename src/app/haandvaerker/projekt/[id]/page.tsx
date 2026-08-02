@@ -266,62 +266,87 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
         )}
 
         {/* Tidsplan */}
-        {fane === "tidsplan" && (
-          <div className="space-y-4">
-            {!tidsplan ? (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
-                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                </div>
-                <p className="text-sm font-semibold text-gray-800 mb-1">Ingen tidsplan indsendt endnu</p>
-                <p className="text-xs text-gray-500 mb-4">Indsend en faseopdelt tidsplan via aftalesiden</p>
-                {kontrakt.haandvaerker_token && (
-                  <Link href={`/kontrakt/${kontrakt.haandvaerker_token}/aftale`}
-                    className="inline-flex items-center gap-2 text-sm font-semibold bg-[#1e3a2a] text-white px-5 py-2.5 rounded-xl hover:opacity-90 transition-opacity">
-                    Indsend tidsplan
-                  </Link>
-                )}
-              </div>
-            ) : (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="bg-[#111c17] px-5 py-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-white/60 mb-0.5">AB-Forbruger § 12</p>
-                    <p className="text-sm font-semibold text-white">
-                      {tidsplan.type === "ingen_tidsplan" ? "Ingen fast tidsplan aftalt" : "Faseopdelt tidsplan"}
-                    </p>
+        {fane === "tidsplan" && (() => {
+          const hG = !!kontrakt.haandvaerker_godkendt_at;
+          const bG = !!kontrakt.bygherre_godkendt_at;
+          const tidsplanLaast = hG || bG;
+
+          const laastTekst = (() => {
+            if (!tidsplan) {
+              if (hG && bG) return "Der er ikke angivet en tidsplan i det godkendte aftalegrundlag.";
+              if (hG)       return "Der er ikke angivet en tidsplan i det fremsendte aftalegrundlag.";
+                            return "Der er ikke angivet en tidsplan i det aftalegrundlag, som bygherren har godkendt.";
+            }
+            if (hG && bG) return "Tidsplanen er en del af det godkendte aftalegrundlag.";
+            if (hG)       return "Tidsplanen er sendt og afventer bygherrens svar.";
+                          return "Bygherren har godkendt aftalegrundlaget. Tidsplanen kan ikke længere redigeres.";
+          })();
+
+          return (
+            <div className="space-y-4">
+              {!tidsplan ? (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+                  <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                   </div>
-                  {tidsplan.godkendt_af_bygherre ? (
-                    <span className="text-xs font-semibold bg-green-500 text-white px-2.5 py-1 rounded-full">Godkendt</span>
+                  <p className="text-sm font-semibold text-gray-800 mb-1">Ingen tidsplan indsendt endnu</p>
+                  {tidsplanLaast ? (
+                    <p className="text-xs text-gray-500">{laastTekst}</p>
                   ) : (
-                    <span className="text-xs font-semibold bg-amber-400 text-white px-2.5 py-1 rounded-full">Afventer bygherre</span>
+                    <>
+                      <p className="text-xs text-gray-500 mb-4">Indsend en faseopdelt tidsplan via aftalesiden</p>
+                      {kontrakt.haandvaerker_token && (
+                        <Link href={`/kontrakt/${kontrakt.haandvaerker_token}/aftale`}
+                          className="inline-flex items-center gap-2 text-sm font-semibold bg-[#1e3a2a] text-white px-5 py-2.5 rounded-xl hover:opacity-90 transition-opacity">
+                          Indsend tidsplan
+                        </Link>
+                      )}
+                    </>
                   )}
                 </div>
-                {tidsplan.faser && (tidsplan.faser as { navn: string; startdato: string; slutdato: string }[]).length > 0 && (
-                  <div className="divide-y divide-gray-50">
-                    {(tidsplan.faser as { navn: string; startdato: string; slutdato: string }[]).map((f, i) => (
-                      <div key={i} className="px-5 py-4 flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">{f.navn}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">{fmtDato(f.startdato)} – {fmtDato(f.slutdato)}</p>
+              ) : (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="bg-[#111c17] px-5 py-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-white/60 mb-0.5">AB-Forbruger § 12</p>
+                      <p className="text-sm font-semibold text-white">
+                        {tidsplan.type === "ingen_tidsplan" ? "Ingen fast tidsplan aftalt" : "Faseopdelt tidsplan"}
+                      </p>
+                    </div>
+                    {tidsplan.godkendt_af_bygherre ? (
+                      <span className="text-xs font-semibold bg-green-500 text-white px-2.5 py-1 rounded-full">Godkendt</span>
+                    ) : (
+                      <span className="text-xs font-semibold bg-amber-400 text-white px-2.5 py-1 rounded-full">Afventer bygherre</span>
+                    )}
+                  </div>
+                  {tidsplan.faser && (tidsplan.faser as { navn: string; startdato: string; slutdato: string }[]).length > 0 && (
+                    <div className="divide-y divide-gray-50">
+                      {(tidsplan.faser as { navn: string; startdato: string; slutdato: string }[]).map((f, i) => (
+                        <div key={i} className="px-5 py-4 flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">{f.navn}</p>
+                            <p className="text-xs text-gray-400 mt-0.5">{fmtDato(f.startdato)} – {fmtDato(f.slutdato)}</p>
+                          </div>
+                          <div className="w-6 h-6 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center text-xs font-bold text-[#1e3a2a]">{i + 1}</div>
                         </div>
-                        <div className="w-6 h-6 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center text-xs font-bold text-[#1e3a2a]">{i + 1}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {kontrakt.haandvaerker_token && (
+                      ))}
+                    </div>
+                  )}
                   <div className="px-5 py-4 border-t border-gray-50">
-                    <Link href={`/kontrakt/${kontrakt.haandvaerker_token}/aftale`}
-                      className="text-sm font-semibold text-[#1e3a2a] hover:underline">
-                      Opdater tidsplan
-                    </Link>
+                    {tidsplanLaast ? (
+                      <p className="text-xs text-gray-400">{laastTekst}</p>
+                    ) : kontrakt.haandvaerker_token && (
+                      <Link href={`/kontrakt/${kontrakt.haandvaerker_token}/aftale`}
+                        className="text-sm font-semibold text-[#1e3a2a] hover:underline">
+                        Opdater tidsplan
+                      </Link>
+                    )}
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Aftalesedler */}
         {fane === "sedler" && (
