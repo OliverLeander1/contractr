@@ -494,6 +494,172 @@ Skriv eksempelvis:
 
 ---
 
+## Kodekvalitet og teknisk gæld
+
+### Sammenhængende features
+
+- En feature må gerne ændre flere direkte relaterede filer.
+- Undgå kunstigt små ændringer, der efterlader funktionen halvfærdig.
+- Én commit skal stadig have ét klart formål.
+- Uvedkommende oprydning må ikke blandes ind i en featurecommit.
+
+### Genbrug før ny kode
+
+- Søg efter eksisterende komponenter, typer, helpers og statusmodeller før ny kode oprettes.
+- Undgå parallelle systemer for samme produktfunktion.
+- Udvid eksisterende løsninger, når det er forsvarligt.
+
+### Undgå duplikeret domænelogik
+
+Følgende må ikke kopieres ukontrolleret mellem sider:
+
+- statusberegninger
+- rolletjek
+- godkendelsesregler
+- handlingsprioritet
+- dato- og tidsformatering
+- mapping fra databaseværdier til UI-tekster
+
+Hvis samme domænelogik findes tre eller flere steder, skal Claude:
+
+- foreslå eller anvende en fælles helper/type/model
+- eller dokumentere, hvorfor samling ikke er hensigtsmæssig endnu
+
+Sikkerheds- og rollelogik skal vurderes allerede ved to gentagelser.
+
+### Serveren er source of truth
+
+- Roller, medlemskab, statusovergange og bindende produktregler skal håndhæves server-side.
+- Klientlogik må ikke være eneste beskyttelse.
+- URL-parametre, request-body og props er ikke verificeret identitet.
+- UI må ikke vise handlinger, som serveren afviser.
+
+### TypeScript
+
+Undgå:
+
+- `any`
+- brede string-typer for kendte statusværdier
+- unødvendige type assertions
+- ukontrollerede non-null assertions
+- flere forskellige interfaces for samme datamodel
+
+Undtagelser skal være lokale og begrundede.
+
+### Fejlhåndtering
+
+Undgå:
+
+- tomme catch-blokke
+- ikke-OK responses behandlet som succes
+- tekniske fejl behandlet som tomme data
+- loading-state der ikke nulstilles
+- fejl der skjuler en afventende brugerhandling uden information
+- generiske fejltekster, når serveren returnerer en brugbar fejl
+
+### Død og misvisende kode
+
+Efter en feature skal Claude kontrollere for:
+
+- ubrugte imports
+- ubrugte props
+- døde state-variabler
+- gamle formularer
+- knapper der ikke længere virker
+- links til handlinger, serveren afviser
+- kommentarer der ikke længere passer
+- gammel kode fra udfasede flows
+
+Lokal død kode må fjernes som en del af featuren. Bred oprydning skal være en separat commit.
+
+### Store filer
+
+Claude skal rapportere ved:
+
+- page- eller komponentfiler over cirka 500 linjer
+- funktioner eller renderblokke over cirka 80 linjer
+- mange indlejrede betingelser eller IIFE'er
+- komponenter der både henter data, håndterer produktlogik og renderer omfattende UI
+
+Dette udløser ikke automatisk refaktorering. Der skal være en konkret vedligeholdelsesgevinst.
+
+### Legacy-kode
+
+Når legacy-fallbacks bruges, skal rapporten angive:
+
+- hvorfor de stadig er nødvendige
+- hvilken løsning der er fremtidig source of truth
+- hvad der skal være opfyldt, før fallbacken kan fjernes
+- hvilke filer der senere skal ryddes op
+
+Legacy-kode må ikke blive permanent ved et uheld.
+
+### Database og migrationsdisciplin
+
+- Lokale SQL-filer må ikke antages at være kørt.
+- Kode og faktisk database skal behandles som forskellige evidenskilder.
+- Ingen database-, schema-, migrations-, RLS- eller destruktive ændringer uden særskilt godkendelse.
+
+### Test og ærlig rapportering
+
+Efter featureændringer skal der som minimum køres:
+
+- `npx tsc --noEmit`
+- `git diff --check`
+- ESLint uden `--fix` på ændrede filer
+- `git status --short`
+- `git diff --stat`
+- read-only gennemgang af diffet
+
+Rapporten skal skelne mellem:
+
+- mekaniske checks
+- logisk kodeinspektion
+- integrationstests
+- manuel browsertest
+
+Kodeinspektion må ikke omtales som en gennemført integrationstest.
+
+### Kvalitetsregnskab efter hver feature
+
+Rapportér:
+
+- ændrede filer
+- ny duplikation
+- nye legacy-afhængigheder
+- døde eller ubrugte props
+- markant vækst eller kompleksitet i filer
+- nye og pre-eksisterende lintproblemer
+- tests der er kørt
+- flows der mangler manuel test
+- ny teknisk gæld
+
+Hvis ingen ny teknisk gæld er introduceret, skal det siges eksplicit.
+
+### Stopbetingelser
+
+Stop fortsat ved:
+
+- database/schemaændringer
+- migrationer eller SQL
+- RLS
+- ændring af grundlæggende auth- eller rollemodel
+- destruktiv databehandling
+- uklar source of truth
+- væsentlige uafklarede produktbeslutninger
+- ændring af kendte untracked filer
+
+Stop ikke for normale, direkte relaterede ændringer i:
+
+- interfaces
+- props
+- read-routes
+- lokale helpers
+- eksisterende komponenter
+- lokal UI-logik
+
+---
+
 ## Supabase-regler
 
 Inden du ændrer Supabase-relateret kode, identificér: hvilke tabeller der
