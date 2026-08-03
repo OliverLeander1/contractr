@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase";
+import { fmtBesigtigelseDatoLang } from "@/lib/besigtigelse";
 
 interface Besigtigelse {
   id: string;
@@ -21,9 +22,6 @@ interface Props {
   legacyBesigtigelseTid?: string | null;
   legacyBesigtigelseBekraeftet?: boolean | null;
 }
-
-const fmtDato = (iso: string) =>
-  new Date(iso + "T00:00:00").toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
 async function hentToken(): Promise<string | null> {
   const supabase = createClient();
@@ -222,15 +220,6 @@ export default function BesigtigelseKort({
           </div>
           <h2 className="font-semibold text-gray-900 text-sm">Besigtigelse</h2>
         </div>
-        {/* Knap: kun modparten kan foreslå ny dato; forslagsstiller under afventning ser ingen knap */}
-        {kanSvare && !visForum && (
-          <button
-            onClick={() => { setFejl(null); setVisForum(false); }}
-            className="text-xs font-semibold text-[#1e3a2a] hover:underline"
-          >
-            Foreslå ny dato
-          </button>
-        )}
         {kanOpretteNy && !visForum && (
           <button
             onClick={() => { setFejl(null); setVisForum(true); }}
@@ -250,7 +239,7 @@ export default function BesigtigelseKort({
         <div>
           <div className="flex items-start justify-between gap-3 mb-4">
             <div>
-              <p className="text-sm font-semibold text-gray-900">{fmtDato(besigtigelse.dato)}</p>
+              <p className="text-sm font-semibold text-gray-900">{fmtBesigtigelseDatoLang(besigtigelse.dato)}</p>
               {besigtigelse.tidspunkt && (
                 <p className="text-xs text-gray-500 mt-0.5">Kl. {besigtigelse.tidspunkt.slice(0, 5)}</p>
               )}
@@ -353,7 +342,7 @@ export default function BesigtigelseKort({
           <div className="flex items-start justify-between gap-3 mb-4">
             <div>
               <p className="text-sm font-semibold text-gray-900">
-                {legacyBesigtigelseDato ? fmtDato(legacyBesigtigelseDato) : "Dato ikke angivet"}
+                {legacyBesigtigelseDato ? fmtBesigtigelseDatoLang(legacyBesigtigelseDato) : "Dato ikke angivet"}
               </p>
               {legacyBesigtigelseTid && (
                 <p className="text-xs text-gray-500 mt-0.5">Kl. {legacyBesigtigelseTid.slice(0, 5)}</p>

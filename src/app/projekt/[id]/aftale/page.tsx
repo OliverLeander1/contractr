@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ProjektNav from "@/components/ProjektNav";
 import { createClient } from "@/lib/supabase";
 import DokumentRenderer from "@/components/DokumentRenderer";
+import { fmtBesigtigelseDatoLang } from "@/lib/besigtigelse";
 
 interface Besigtigelse {
   id: string;
@@ -107,7 +108,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const [godkenderForudsaetninger, setGodkenderForudsaetninger] = useState(false);
   const [alleKontrakter, setAlleKontrakter] = useState<{ id: string; titel: string | null; status: string; oprettet_at: string }[]>([]);
   const [opretter, setOpretter] = useState(false);
-  const [besigtigelse, setBesigtigelse] = useState<Besigtigelse | null | "loading">("loading");
+  const [besigtigelse, setBesigtigelse] = useState<Besigtigelse | null | "loading" | "error">("loading");
 
   const hentKontrakt = useCallback(async (kontraktId?: string) => {
     const supabase = createClient();
@@ -138,7 +139,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
           const bData = await bRes.json();
           setBesigtigelse(bData ?? null);
         } else {
-          setBesigtigelse(null);
+          setBesigtigelse("error");
         }
       }
     }
@@ -547,10 +548,12 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
         )}
 
         {/* Besigtigelse-handlingsboks — vises kun ved aktiv selvstændig besigtigelse */}
-        {besigtigelse !== "loading" && besigtigelse !== null && (() => {
-          const fmtDatoLang = (iso: string) =>
-            new Date(iso + "T00:00:00").toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" });
-
+        {besigtigelse === "error" && (
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-5">
+            Besigtigelsesstatus kunne ikke hentes. Opdater siden for at prøve igen.
+          </p>
+        )}
+        {besigtigelse !== "loading" && besigtigelse !== null && besigtigelse !== "error" && (() => {
           if (besigtigelse.status === "foreslaaet" && besigtigelse.foreslaaet_af === "haandvaerker") {
             return (
               <div className="mb-5 bg-amber-50 border border-amber-200 rounded-2xl p-5">
@@ -564,7 +567,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                   <div className="flex-1">
                     <p className="text-sm font-bold text-amber-900">Entreprenøren har foreslået en besigtigelse</p>
                     <p className="text-xs text-amber-700 mt-0.5">
-                      {fmtDatoLang(besigtigelse.dato)}
+                      {fmtBesigtigelseDatoLang(besigtigelse.dato)}
                       {besigtigelse.tidspunkt && <span className="ml-2 font-semibold">kl. {besigtigelse.tidspunkt.slice(0, 5)}</span>}
                     </p>
                     {besigtigelse.kommentar_haandvaerker && (
@@ -595,7 +598,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 <div>
                   <p className="text-sm font-bold text-blue-900">Dit forslag til besigtigelse afventer entreprenørens svar</p>
                   <p className="text-xs text-blue-700 mt-0.5">
-                    {fmtDatoLang(besigtigelse.dato)}
+                    {fmtBesigtigelseDatoLang(besigtigelse.dato)}
                     {besigtigelse.tidspunkt && <span className="ml-2 font-semibold">kl. {besigtigelse.tidspunkt.slice(0, 5)}</span>}
                   </p>
                 </div>
@@ -612,7 +615,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 <div>
                   <p className="text-sm font-bold text-green-900">Besigtigelse aftalt</p>
                   <p className="text-xs text-green-700 mt-0.5">
-                    {fmtDatoLang(besigtigelse.dato)}
+                    {fmtBesigtigelseDatoLang(besigtigelse.dato)}
                     {besigtigelse.tidspunkt && <span className="ml-2 font-semibold">kl. {besigtigelse.tidspunkt.slice(0, 5)}</span>}
                   </p>
                 </div>

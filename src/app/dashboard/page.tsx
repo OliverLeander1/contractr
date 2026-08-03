@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import PakkePop from "@/components/PakkePop";
+import {
+  getBesigtigelseStatusUI,
+  type BesigtigelseData,
+  type BesigtigelseStatusUI,
+} from "@/lib/besigtigelse";
 
 interface Projekt {
   id: string;
@@ -37,13 +42,7 @@ interface Aftale {
   besigtigelse_bekraeftet: boolean | null;
 }
 
-interface Besigtigelse {
-  id: string;
-  kontrakt_id: string;
-  dato: string;
-  tidspunkt: string | null;
-  status: string;
-  foreslaaet_af: string;
+interface Besigtigelse extends BesigtigelseData {
   kommentar_haandvaerker: string | null;
   kommentar_bygherre: string | null;
 }
@@ -93,45 +92,6 @@ function getContractorUpdateStatus(a: Aftale): KontraktStatus {
   return ingen;
 }
 
-const fmtDatoKort = (iso: string) =>
-  new Date(iso + "T00:00:00").toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" });
-
-interface BesigtigelseStatusUI {
-  badge: string;
-  tekst: string | null;
-  klasse: string;
-  prioritet: number;
-}
-
-function getBesigtigelseStatusUI(b: Besigtigelse): BesigtigelseStatusUI {
-  const datoTekst = b.dato
-    ? `${fmtDatoKort(b.dato)}${b.tidspunkt ? ` kl. ${b.tidspunkt.slice(0, 5)}` : ""}`
-    : null;
-
-  if (b.status === "foreslaaet" && b.foreslaaet_af === "haandvaerker") {
-    return {
-      badge: "Besigtigelse afventer dit svar",
-      tekst: datoTekst,
-      klasse: "bg-amber-100 text-amber-800 border-amber-200",
-      prioritet: 1,
-    };
-  }
-  if (b.status === "foreslaaet" && b.foreslaaet_af === "bygherre") {
-    return {
-      badge: "Dit forslag afventer entreprenøren",
-      tekst: datoTekst,
-      klasse: "bg-blue-100 text-blue-700 border-blue-200",
-      prioritet: 3,
-    };
-  }
-  return {
-    badge: "Besigtigelse aftalt",
-    tekst: datoTekst,
-    klasse: "bg-green-100 text-green-700 border-green-200",
-    prioritet: 4,
-  };
-}
-
 const projekttypeLabels: Record<string, string> = {
   badevarelse: "Badeværelse", kokken: "Køkken", tag: "Tag",
   tilbygning: "Tilbygning", totalrenovering: "Totalrenovering",
@@ -167,6 +127,7 @@ export default function Dashboard() {
   const [visPakkePop, setVisPakkePop] = useState(false);
   const [brugerInfo, setBrugerInfo] = useState<{ id: string; email: string; navn: string } | null>(null);
   const [sletterProjekt, setSletterProjekt] = useState<string | null>(null);
+  const [besigtigelserFejl, setBesigtigelserFejl] = useState(false);
 
   useEffect(() => {
     const hent = async () => {
@@ -221,7 +182,13 @@ export default function Dashboard() {
           });
           if (bRes.ok) {
             const bData = await bRes.json();
-            if (Array.isArray(bData)) setBesigtigelser(bData);
+            if (Array.isArray(bData)) {
+              setBesigtigelser(bData);
+            } else {
+              setBesigtigelserFejl(true);
+            }
+          } else {
+            setBesigtigelserFejl(true);
           }
         }
       }
@@ -357,6 +324,11 @@ export default function Dashboard() {
         {aftaler.length > 0 && (
           <div className="mb-6">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Dine aftalegrundlag</h2>
+            {besigtigelserFejl && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-3">
+                Besigtigelsesstatus kunne ikke hentes. Opdater siden for at prøve igen.
+              </p>
+            )}
             <div className="space-y-3">
               {aftaler.map(a => {
                 const beggeGodkendt = a.status === "begge_godkendt";
