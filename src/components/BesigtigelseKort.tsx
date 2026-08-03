@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase";
-import { fmtBesigtigelseDatoLang } from "@/lib/besigtigelse";
+import { fmtBesigtigelseDatoLang, erBesigtigelsePasseret } from "@/lib/besigtigelse";
 
 interface Besigtigelse {
   id: string;
@@ -171,9 +171,17 @@ export default function BesigtigelseKort({
     }
   }
 
+  // Tidspunkt passeret i Europe/Copenhagen — beregnes kun én gang pr. render
+  const erPasseret =
+    besigtigelse?.status === "godkendt" &&
+    erBesigtigelsePasseret(besigtigelse.dato, besigtigelse.tidspunkt);
+
   const statusUI: Record<string, { label: string; klasse: string }> = {
     foreslaaet: { label: "Afventer godkendelse", klasse: "bg-amber-100 text-amber-700" },
-    godkendt:   { label: "Bekræftet",            klasse: "bg-green-100 text-green-700" },
+    godkendt:   {
+      label: erPasseret ? "Tidspunkt passeret" : "Bekræftet",
+      klasse: erPasseret ? "bg-gray-100 text-gray-500" : "bg-green-100 text-green-700",
+    },
     afvist:     { label: "Afvist",               klasse: "bg-red-100 text-red-700" },
   };
 
@@ -189,10 +197,17 @@ export default function BesigtigelseKort({
   const erLegacyFallback =
     getSucceeded && besigtigelse === null && !!legacyBesigtigelseBekraeftet;
 
-  // Ny anmodning kan startes når GET lykkedes, ingen selvstændig række og ingen legacy-anmodning
+  // Ny anmodning kan startes:
+  // — ingen eksisterende selvstændig række, eller
+  // — eksisterende er afvist, eller
+  // — eksisterende er godkendt og tidspunkt er passeret (kun haandvaerker)
   const kanOpretteNy =
     getSucceeded &&
-    (!besigtigelse || besigtigelse.status === "afvist") &&
+    (
+      !besigtigelse ||
+      besigtigelse.status === "afvist" ||
+      (erPasseret && rolle === "haandvaerker")
+    ) &&
     !erLegacyFallback;
 
   const afventerTekst =
@@ -225,7 +240,7 @@ export default function BesigtigelseKort({
             onClick={() => { setFejl(null); setVisForum(true); }}
             className="text-xs font-semibold text-[#1e3a2a] hover:underline"
           >
-            {besigtigelse?.status === "afvist" ? "Foreslå ny dato" : "Anmod om besigtigelse"}
+            {erPasseret ? "Anmod om ny besigtigelse" : besigtigelse?.status === "afvist" ? "Foreslå ny dato" : "Anmod om besigtigelse"}
           </button>
         )}
       </div>
@@ -267,6 +282,13 @@ export default function BesigtigelseKort({
                   <p className="text-sm text-gray-700">{besigtigelse.kommentar_haandvaerker}</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Passeret godkendt besigtigelse — historiktekst */}
+          {erPasseret && (
+            <div className="border-t border-gray-100 pt-3">
+              <p className="text-xs text-gray-400">Det aftalte tidspunkt for besigtigelsen er passeret.</p>
             </div>
           )}
 

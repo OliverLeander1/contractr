@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
+import { erBesigtigelsePasseret } from "@/lib/besigtigelse";
 
 type SupabaseUser = Awaited<ReturnType<ReturnType<typeof createServiceClient>["auth"]["getUser"]>>["data"]["user"];
 
@@ -135,14 +136,14 @@ export async function POST(req: NextRequest) {
   if (!rolleRes.ok) return rolleRes.response;
   const { rolle, kontrakt } = rolleRes;
 
-  // 5. Kontrollér eksisterende besigtigelse
+  // 5. Kontrollér eksisterende besigtigelse (nyeste pr. kontrakt)
   const { data: eksisterende } = await db
     .from("besigtigelse")
-    .select("id, status")
+    .select("id, status, dato, tidspunkt")
     .eq("kontrakt_id", kontrakt_id)
     .order("oprettet_at", { ascending: false })
     .limit(1)
-    .single() as { data: { id: string; status: string } | null };
+    .single() as { data: { id: string; status: string; dato: string; tidspunkt: string | null } | null };
 
   if (eksisterende) {
     if (eksisterende.status === "foreslaaet") {
@@ -152,37 +153,48 @@ export async function POST(req: NextRequest) {
       );
     }
     if (eksisterende.status === "godkendt") {
-      return NextResponse.json(
-        { error: "Der er allerede aftalt en besigtigelse." },
-        { status: 409 },
-      );
+      if (!erBesigtigelsePasseret(eksisterende.dato, eksisterende.tidspunkt)) {
+        return NextResponse.json(
+          { error: "Der er allerede aftalt en besigtigelse." },
+          { status: 409 },
+        );
+      }
+      // Godkendt men tidspunktet er passeret — kun haandvaerker må oprette ny anmodning
+      if (rolle !== "haandvaerker") {
+        return NextResponse.json(
+          { error: "Ny besigtigelsesanmodning skal komme fra entreprenøren." },
+          { status: 403 },
+        );
+      }
+      // Falder igennem til INSERT nedenfor — den passerede godkendte række bevares som historik
+    } else {
+      // status = "afvist" — genbrug rækken via UPDATE, ingen DELETE
+      const genbrugOpdatering: Record<string, unknown> = {
+        dato,
+        tidspunkt: tidspunkt || null,
+        status: "foreslaaet",
+        foreslaaet_af: rolle,
+        opdateret_at: new Date().toISOString(),
+        // Nulstil begge kommentarfelter, sæt derefter kun den verificerede brugers
+        kommentar_bygherre: null,
+        kommentar_haandvaerker: null,
+      };
+      if (rolle === "bygherre") genbrugOpdatering.kommentar_bygherre = kommentar || null;
+      if (rolle === "haandvaerker") genbrugOpdatering.kommentar_haandvaerker = kommentar || null;
+
+      const { data, error } = await db
+        .from("besigtigelse")
+        .update(genbrugOpdatering)
+        .eq("id", eksisterende.id)
+        .select()
+        .single();
+
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json(data);
     }
-    // status = "afvist" — genbrug rækken via UPDATE, ingen DELETE
-    const genbrugOpdatering: Record<string, unknown> = {
-      dato,
-      tidspunkt: tidspunkt || null,
-      status: "foreslaaet",
-      foreslaaet_af: rolle,
-      opdateret_at: new Date().toISOString(),
-      // Nulstil begge kommentarfelter, sæt derefter kun den verificerede brugers
-      kommentar_bygherre: null,
-      kommentar_haandvaerker: null,
-    };
-    if (rolle === "bygherre") genbrugOpdatering.kommentar_bygherre = kommentar || null;
-    if (rolle === "haandvaerker") genbrugOpdatering.kommentar_haandvaerker = kommentar || null;
-
-    const { data, error } = await db
-      .from("besigtigelse")
-      .update(genbrugOpdatering)
-      .eq("id", eksisterende.id)
-      .select()
-      .single();
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json(data);
   }
 
-  // 6. Ingen eksisterende — INSERT nyt forslag
+  // 6. Ingen eksisterende ELLER godkendt+passeret+haandvaerker — INSERT nyt forslag
   const indsæt: Record<string, unknown> = {
     kontrakt_id,
     projekt_id: kontrakt.projekt_id,

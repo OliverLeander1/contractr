@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import ProjektNav from "@/components/ProjektNav";
 import { createClient } from "@/lib/supabase";
 import DokumentRenderer from "@/components/DokumentRenderer";
-import { fmtBesigtigelseDatoLang } from "@/lib/besigtigelse";
+import { fmtBesigtigelseDatoLang, erBesigtigelsePasseret } from "@/lib/besigtigelse";
 
 interface Besigtigelse {
   id: string;
@@ -607,6 +607,8 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
           }
 
           if (besigtigelse.status === "godkendt") {
+            // Passeret tidspunkt vises ikke som aktuel kommende begivenhed
+            if (erBesigtigelsePasseret(besigtigelse.dato, besigtigelse.tidspunkt)) return null;
             return (
               <div className="mb-5 bg-green-50 border border-green-200 rounded-2xl p-5 flex items-start gap-3">
                 <div className="w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
