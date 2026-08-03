@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import ProjektNav from "@/components/ProjektNav";
 import { createClient } from "@/lib/supabase";
 import DokumentRenderer from "@/components/DokumentRenderer";
@@ -1270,6 +1271,26 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                     <p className="mt-2 text-xs text-red-600 text-center leading-snug">{godkendFejl}</p>
                   )}
                 </>
+              )}
+            </div>
+
+            {/* Chat med håndværker */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <h3 className="font-semibold text-gray-900 text-sm mb-3">Chat med håndværker</h3>
+              {kontrakt.haandvaerker_email ? (
+                <Link
+                  href={`/projekt/${id}/chat/${kontrakt.id}`}
+                  className="flex items-center justify-center gap-2 w-full bg-[#1e3a2a] text-white text-sm font-bold py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  Åbn chat
+                </Link>
+              ) : (
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  Chat er tilgængeligt, når håndværkerens e-mail er registreret på kontrakten.
+                </p>
               )}
             </div>
 
