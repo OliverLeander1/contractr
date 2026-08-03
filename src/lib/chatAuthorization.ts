@@ -9,7 +9,8 @@ export interface AccessContext {
   rolle: ChatRole;
   bygherreId: string;
   haandvaerkerEmail: string;
-  projektId: string | null;
+  haandvaerkerNavn: string;
+  projektId: string;
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -41,7 +42,7 @@ export async function resolveAccess(
 
   const { data: kontrakt } = await supabase
     .from("kontrakter")
-    .select("id, projekt_id, bygherre_id, haandvaerker_email")
+    .select("id, projekt_id, haandvaerker_email, haandvaerker_navn, haandvaerker_firma")
     .eq("id", kontraktId)
     .maybeSingle();
 
@@ -60,7 +61,11 @@ export async function resolveAccess(
     .filter("id::text", "eq", kontrakt.projekt_id)
     .maybeSingle();
 
-  const canonicalBygherreId: string = projekt?.bygherre_id ?? kontrakt.bygherre_id;
+  if (!projekt?.bygherre_id) {
+    return { error: NextResponse.json({ fejl: "Projekt ikke fundet eller mangler ejer" }, { status: 422 }) };
+  }
+
+  const canonicalBygherreId = projekt.bygherre_id;
 
   const erBygherre = user.id === canonicalBygherreId;
   const erHaandvaerker =
@@ -79,7 +84,8 @@ export async function resolveAccess(
       rolle: erBygherre ? "bygherre" : "haandvaerker",
       bygherreId: canonicalBygherreId,
       haandvaerkerEmail: kontrakt.haandvaerker_email,
-      projektId: projekt?.id ?? null,
+      haandvaerkerNavn: kontrakt.haandvaerker_firma || kontrakt.haandvaerker_navn || kontrakt.haandvaerker_email,
+      projektId: projekt.id,
     },
   };
 }
@@ -87,10 +93,6 @@ export async function resolveAccess(
 export async function ensureConversation(
   ctx: AccessContext
 ): Promise<{ samtaleId: string } | { error: NextResponse }> {
-  if (!ctx.projektId) {
-    return { error: NextResponse.json({ fejl: "Projekt ikke fundet" }, { status: 404 }) };
-  }
-
   const supabase = createServiceClient();
 
   const { data: existing } = await supabase
@@ -108,16 +110,16 @@ export async function ensureConversation(
     .insert({
       projekt_id: ctx.projektId,
       bygherre_id: ctx.bygherreId,
+      modpart_navn: ctx.haandvaerkerNavn,
       modpart_email: ctx.haandvaerkerEmail,
+      modpart_rolle: "Entreprenør",
       kontrakt_id: ctx.kontraktId,
-      navn: "Chat",
     })
     .select("id")
     .single();
 
   if (insertError) {
     if (insertError.code === "23505") {
-      // Race condition: another request created the row first
       const { data: raceRow } = await supabase
         .from("chat_samtaler")
         .select("id")
@@ -126,6 +128,12 @@ export async function ensureConversation(
 
       if (raceRow) return { samtaleId: raceRow.id };
     }
+    console.error("[chat] Kunne ikke oprette samtale", {
+      code: insertError.code,
+      message: insertError.message,
+      details: insertError.details,
+      hint: insertError.hint,
+    });
     return { error: NextResponse.json({ fejl: "Kunne ikke oprette samtale" }, { status: 500 }) };
   }
 
