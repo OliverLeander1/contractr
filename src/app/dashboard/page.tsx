@@ -8,7 +8,6 @@ import PakkePop from "@/components/PakkePop";
 import {
   getBesigtigelseStatusUI,
   type BesigtigelseData,
-  type BesigtigelseStatusUI,
 } from "@/lib/besigtigelse";
 
 interface Projekt {
