@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import DokumentRenderer from "@/components/DokumentRenderer";
+import BesigtigelseKort from "@/components/BesigtigelseKort";
 
 function ManuelPris({ token, onGemt }: { token: string; onGemt: (pris: number) => void }) {
   const [prisInput, setPrisInput] = useState("");
@@ -201,11 +202,6 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   const [firma, setFirma] = useState("");
   const [godkendFejl, setGodkendFejl] = useState("");
 
-  // Besigtigelse
-  const [besigtigelseDato, setBesigtigelseDato] = useState("");
-  const [besigtigelseTid, setBesigtigelseTid] = useState("");
-  const [gemmerBesigtigelse, setGemmerBesigtigelse] = useState(false);
-
   // Forudsætninger
   const [forudsaetningerTekst, setForudsaetningerTekst] = useState("");
   const [redigererForudsaetninger, setRedigererForudsaetninger] = useState(false);
@@ -229,7 +225,6 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   const [betalingsplanFejl, setBetalingsplanFejl] = useState<string | null>(null);
   const [tidsplanFejl, setTidsplanFejl] = useState<string | null>(null);
   const [forudsaetningerFejl, setForudsaetningerFejl] = useState<string | null>(null);
-  const [besigtigelseFejl, setBesigtigelseFejl] = useState<string | null>(null);
   const [prisFejl, setPrisFejl] = useState<string | null>(null);
 
   // Auth
@@ -279,8 +274,6 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
       if (data.haandvaerker_email) setMagicLinkEmail(data.haandvaerker_email);
       if (data.haandvaerker_godkendt_at) setGodkendt(true);
       if (data.tidsplan) setTidsplanGemt(true);
-      if (data.besigtigelse_dato) setBesigtigelseDato(data.besigtigelse_dato);
-      if (data.besigtigelse_tid) setBesigtigelseTid(data.besigtigelse_tid);
       if (data.forudsaetninger) setForudsaetningerTekst(data.forudsaetninger);
       if (data.forudsaetninger_godkendt || !data.forudsaetninger) setSpringetOver(false);
       if (data.betalingsplan && data.betalingsplan.length > 0) setBetalingsplanRækker(data.betalingsplan);
@@ -396,23 +389,6 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
       setMagicLinkSendt(true);
     }
     setSenderMagicLink(false);
-  }
-
-  async function gemBesigtigelse(bekraeftet: boolean, dato: string, tid: string) {
-    setBesigtigelseFejl(null);
-    setGemmerBesigtigelse(true);
-    try {
-      await autentificeretPatch(`/api/kontrakt/${token}`, {
-        besigtigelse_bekraeftet: bekraeftet,
-        besigtigelse_dato: dato || null,
-        besigtigelse_tid: tid || null,
-      });
-      setKontrakt(prev => prev ? { ...prev, besigtigelse_bekraeftet: bekraeftet, besigtigelse_dato: dato || null, besigtigelse_tid: tid || null } : prev);
-    } catch (e) {
-      setBesigtigelseFejl(e instanceof Error ? e.message : "Der opstod en fejl. Prøv igen.");
-    } finally {
-      setGemmerBesigtigelse(false);
-    }
   }
 
   async function uploadTilbud(fil: File) {
@@ -706,29 +682,18 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
         )}
 
         {/* Besigtigelse */}
-        {!godkendt && harAdgang && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 mb-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-9 h-9 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
-                  <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-bold text-gray-900">Besigtigelse</p>
-                <p className="text-xs text-gray-400">Anmod om besigtigelse via dit projektrum</p>
-              </div>
-            </div>
-            <p className="text-sm text-gray-500 leading-relaxed mb-3">
-              Besigtigelse aftales nu direkte i projektområdet, så både du og bygherren har overblik og en fælles aftale.
-            </p>
-            <a
-              href={`/haandvaerker/projekt/${kontrakt.projekt_id}`}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-[#1e3a2a] hover:underline"
-            >
-              Gå til dit projektrum
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </a>
+        {!godkendt && harAdgang && kontrakt.projekt_id && (
+          <div className="mb-5">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Besigtigelse</p>
+            <p className="text-sm text-gray-500 mb-3">Har du brug for at se opgaven, før du afgiver pris?</p>
+            <BesigtigelseKort
+              kontraktId={kontrakt.id}
+              projektId={kontrakt.projekt_id}
+              rolle="haandvaerker"
+              legacyBesigtigelseDato={kontrakt.besigtigelse_dato}
+              legacyBesigtigelseTid={kontrakt.besigtigelse_tid}
+              legacyBesigtigelseBekraeftet={kontrakt.besigtigelse_bekraeftet}
+            />
           </div>
         )}
 
