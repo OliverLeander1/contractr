@@ -1212,7 +1212,13 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{brugerNavn || "Bygherre"}</p>
-                    <p className="text-xs text-gray-400">{bygherreGodkendt ? "Godkendt" : "Afventer din godkendelse"}</p>
+                    <p className="text-xs text-gray-400">
+                      {bygherreGodkendt
+                        ? "Godkendt"
+                        : haandvaerkerGodkendt
+                        ? "Afventer din godkendelse"
+                        : "Ingen handling endnu"}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -1226,9 +1232,11 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                     <p className="text-sm font-semibold text-gray-900">{kontrakt.haandvaerker_navn || "Håndværker"}</p>
                     <p className="text-xs text-gray-400">
                       {haandvaerkerGodkendt
-                        ? "Godkendt"
+                        ? (bygherreGodkendt ? "Godkendt" : "Indsendt til godkendelse")
+                        : bygherreGodkendt
+                        ? "Afventer entreprenørens godkendelse"
                         : kontrakt.haandvaerker_email
-                        ? `Inviteret · ${kontrakt.haandvaerker_email}`
+                        ? "Udarbejder aftalegrundlaget"
                         : "Ikke inviteret endnu"}
                     </p>
                   </div>
