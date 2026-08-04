@@ -111,7 +111,7 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
   return (
     <div className="flex-1 flex flex-col [--shell-h:88px] md:[--shell-h:64px]">
       {visShell && (
-        <header className="sticky top-0 z-50 bg-white border-b border-gray-100 h-[var(--shell-h)] flex-shrink-0">
+        <header className="sticky top-0 z-50 bg-white border-b border-gray-100 h-[var(--shell-h)] flex-shrink-0 overflow-x-hidden">
           {/* Desktop — én kompakt vandret bar */}
           <div className="hidden md:flex items-center justify-between h-full max-w-6xl mx-auto px-6">
             <Link href="/dashboard" className="logo flex-shrink-0">nembyggestyring</Link>
@@ -153,7 +153,11 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
                 {IkonProfil}
               </Link>
             </div>
-            <div className="h-11 flex items-center justify-around border-t border-gray-100 flex-shrink-0">
+            {/* grid-cols-4 (i stedet for flex+justify-around) garanterer fire
+                lige brede, ikke-krympende felter — en flex-række uden
+                min-w-0 lod tidligere det lange ord "Notifikationer" tvinge
+                rækken (og dermed siden) bredere end viewporten. */}
+            <div className="h-11 w-full grid grid-cols-4 border-t border-gray-100 flex-shrink-0">
               {NAV_ITEMS.map((item) => {
                 const aktiv = item.aktiv(pathname);
                 return (
@@ -161,12 +165,14 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
                     key={item.href}
                     href={item.href}
                     aria-label={item.label}
-                    className={`relative flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded-lg transition-colors ${
+                    className={`relative min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 py-1 rounded-lg transition-colors ${
                       aktiv ? "text-[#1e3a2a]" : "text-gray-400"
                     }`}
                   >
                     {item.ikon}
-                    <span className="text-[9px] font-semibold leading-none">{item.label}</span>
+                    <span className="w-full text-center text-[9px] font-semibold leading-none truncate">
+                      {item.label}
+                    </span>
                     {item.href === "/chat" && ulaestSamlet !== null && ulaestSamlet > 0 && (
                       <span className="absolute top-0 right-1.5 w-2 h-2 rounded-full bg-[#1e3a2a]" />
                     )}
