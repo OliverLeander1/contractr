@@ -1,9 +1,7 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase";
 
 const navLinks = [
   { label: "Oversigt",     href: "" },
@@ -16,25 +14,12 @@ const navLinks = [
   { label: "Rapport",      href: "/rapport" },
 ];
 
+// Kompakt, projektspecifik fanelinje under den globale app-shell.
+// Logo, "Mit overblik", notifikationer og profil hører til shellen og
+// vises bevidst ikke her igen — se AuthenticatedAppShell.tsx.
 export default function ProjektNav({ id }: { id: string }) {
   const pathname = usePathname();
   const base = `/projekt/${id}`;
-  const erBygherreSide = pathname.startsWith("/projekt/");
-  const [menuÅben, setMenuÅben] = useState(false);
-  const [initialer, setInitialer] = useState("?");
-
-  useEffect(() => {
-    const hent = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data: profil } = await supabase
-        .from("profiler").select("navn").eq("id", user.id).single();
-      const navn = profil?.navn || user.user_metadata?.navn || user.email || "";
-      setInitialer(navn.charAt(0).toUpperCase() || "?");
-    };
-    hent();
-  }, []);
 
   function erAktiv(href: string) {
     const fuld = `${base}${href}`;
@@ -43,34 +28,19 @@ export default function ProjektNav({ id }: { id: string }) {
   }
 
   return (
-    <nav className="bg-white border-b border-gray-100 px-6 py-3.5 sticky top-[var(--shell-h)] z-40">
-      <div className="max-w-6xl mx-auto flex items-center justify-between gap-6">
-
-        {/* Logo + tilbage */}
-        <div className="flex items-center gap-4 flex-shrink-0">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="logo">nembyggestyring</span>
-          </Link>
-          {erBygherreSide && (
-            <Link
-              href="/dashboard"
-              className="hidden md:flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1e3a2a] transition-colors border-l border-gray-100 pl-4"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-              <span>Mit overblik</span>
-            </Link>
-          )}
-        </div>
-
-        {/* Desktop nav — 5 punkter */}
-        <div className="hidden md:flex items-center gap-1 flex-1">
+    <nav className="bg-white border-b border-gray-100 sticky top-[var(--shell-h)] z-40">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div
+          className="flex items-center gap-1 overflow-x-auto py-2"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           {navLinks.map((link) => {
             const aktiv = erAktiv(link.href);
             return (
               <Link
                 key={link.label}
                 href={`${base}${link.href}`}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`flex-shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   aktiv
                     ? "bg-[#1e3a2a]/10 text-[#1e3a2a] font-semibold"
                     : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
@@ -81,78 +51,7 @@ export default function ProjektNav({ id }: { id: string }) {
             );
           })}
         </div>
-
-        {/* Højre side — minimal */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <Link
-            href="/tilkoeb"
-            className="hidden md:block text-sm font-semibold bg-[#1e3a2a] text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
-          >
-            Book rådgiver
-          </Link>
-          <Link href="/notifikationer" className="relative">
-            <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#1e3a2a] hover:border-[#1e3a2a]/30 transition-colors">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-              </svg>
-            </div>
-          </Link>
-          <Link href="/konto">
-            <div className="w-8 h-8 rounded-full bg-[#1e3a2a] flex items-center justify-center text-white font-semibold text-sm">{initialer}</div>
-          </Link>
-
-          {/* Burger — mobil */}
-          <button
-            className="md:hidden w-8 h-8 flex flex-col items-center justify-center gap-1.5"
-            onClick={() => setMenuÅben(!menuÅben)}
-            aria-label="Menu"
-          >
-            <span className={`block w-5 h-0.5 bg-gray-600 transition-all ${menuÅben ? "rotate-45 translate-y-2" : ""}`} />
-            <span className={`block w-5 h-0.5 bg-gray-600 transition-all ${menuÅben ? "opacity-0" : ""}`} />
-            <span className={`block w-5 h-0.5 bg-gray-600 transition-all ${menuÅben ? "-rotate-45 -translate-y-2" : ""}`} />
-          </button>
-        </div>
       </div>
-
-      {/* Mobil-menu */}
-      {menuÅben && (
-        <div className="md:hidden border-t border-gray-100 mt-3 pt-3 pb-2 space-y-1">
-          {erBygherreSide && (
-            <Link
-              href="/dashboard"
-              onClick={() => setMenuÅben(false)}
-              className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-              Mit overblik
-            </Link>
-          )}
-          {navLinks.map((link) => {
-            const aktiv = erAktiv(link.href);
-            return (
-              <Link
-                key={link.label}
-                href={`${base}${link.href}`}
-                onClick={() => setMenuÅben(false)}
-                className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  aktiv ? "bg-[#1e3a2a]/10 text-[#1e3a2a] font-semibold" : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-          <div className="pt-2 border-t border-gray-100 mt-2">
-            <Link
-              href="/tilkoeb"
-              className="block text-center text-sm bg-[#1e3a2a] text-white px-4 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity"
-            >
-              Book rådgiver
-            </Link>
-          </div>
-        </div>
-      )}
     </nav>
   );
 }
