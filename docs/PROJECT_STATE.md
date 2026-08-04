@@ -23,9 +23,9 @@ Fungerer nu:
 - Bearer JWT og server-side kontraktautorisation bruges.
 - Den gamle usikre chatroute er deaktiveret.
 - Chat-navigation for bygherre forbliver aktiv på undersider.
-- POST /api/chat/laest og GET /api/chat/oversigt er implementeret.
-  Ingen UI eller navigation bruger endnu disse endpoints — de er kun
-  server-side på nuværende tidspunkt.
+- POST /api/chat/laest og GET /api/chat/oversigt er implementeret
+  (commit 5481eb7). Ingen UI eller navigation bruger endnu disse
+  endpoints — de er kun server-side på nuværende tidspunkt.
 
 Ikke implementeret endnu:
 
