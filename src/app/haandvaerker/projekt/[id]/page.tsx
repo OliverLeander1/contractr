@@ -183,6 +183,21 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
           </div>
         </div>
 
+        {/* Chat-handling */}
+        {kontrakt.haandvaerker_email ? (
+          <Link
+            href={`/haandvaerker/projekt/${kontrakt.projekt_id}/chat/${kontrakt.id}`}
+            className="inline-flex items-center gap-2 mb-6 text-sm font-semibold bg-[#1e3a2a] text-white px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Chat med bygherre
+          </Link>
+        ) : (
+          <p className="text-xs text-gray-400 mb-6">Chat er ikke tilgængeligt på denne sag.</p>
+        )}
+
         {/* Faner */}
         <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 overflow-x-auto">
           {([

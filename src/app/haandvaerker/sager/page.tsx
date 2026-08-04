@@ -145,27 +145,39 @@ export default function HaandvaerkerSager() {
                 <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Aktive sager</h2>
                 <div className="space-y-3">
                   {aktive.map(k => (
-                    <Link key={k.id} href={`/haandvaerker/projekt/${k.projekt_id}`}
-                      className="block bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-[#1e3a2a]/30 hover:shadow-md transition-all group">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h3 className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors truncate">
-                              {k.titel || "Projekt"}
-                            </h3>
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${sagStatusMærke(k.status).klasse}`}>
-                              {sagStatusMærke(k.status).label}
-                            </span>
+                    <div key={k.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-[#1e3a2a]/30 hover:shadow-md transition-all group">
+                      <Link href={`/haandvaerker/projekt/${k.projekt_id}`} className="block p-5">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <h3 className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors truncate">
+                                {k.titel || "Projekt"}
+                              </h3>
+                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${sagStatusMærke(k.status).klasse}`}>
+                                {sagStatusMærke(k.status).label}
+                              </span>
+                            </div>
+                            {k.haandvaerker_navn && <p className="text-sm text-gray-500 mb-2">{k.haandvaerker_navn}</p>}
+                            <p className="text-xs text-gray-400">Sendt {fmtDato(k.oprettet_at)}</p>
                           </div>
-                          {k.haandvaerker_navn && <p className="text-sm text-gray-500 mb-2">{k.haandvaerker_navn}</p>}
-                          <p className="text-xs text-gray-400">Sendt {fmtDato(k.oprettet_at)}</p>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-sm font-bold text-gray-900">{k.total_pris ? fmtKr(k.total_pris) : "—"}</p>
+                            <p className="text-xs text-gray-400 mt-0.5">inkl. moms</p>
+                          </div>
                         </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="text-sm font-bold text-gray-900">{k.total_pris ? fmtKr(k.total_pris) : "—"}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">inkl. moms</p>
-                        </div>
+                      </Link>
+                      <div className="border-t border-gray-50 px-5 py-3">
+                        <Link
+                          href={`/haandvaerker/projekt/${k.projekt_id}/chat/${k.id}`}
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1e3a2a] hover:underline"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                          </svg>
+                          Chat med bygherre
+                        </Link>
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               </div>
