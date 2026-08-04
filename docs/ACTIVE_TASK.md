@@ -1,44 +1,40 @@
 # Aktiv opgave
 
-Dokumentationsopdatering: lås den nye produktretning (pre-contract-flow,
-AI-principper, rådgiveradgang, UX/UI-krav) ind i docs/PROJECT_STATE.md,
-docs/ACTIVE_TASK.md og docs/DECISIONS.md.
+Oprettelse og gennemgang af projektgrundlagsmigration
+(supabase-migration-projektgrundlag.sql).
 
-Dette er udelukkende en dokumentationsopgave. Ingen applikationskode,
-routes, API'er, database eller migrationer er ændret som en del af
-denne opgave.
+Dette er udelukkende et skema-forslag. Ingen API, routes eller UI er
+implementeret som en del af denne opgave. Migrationen er IKKE kørt.
 
-# Baggrund
+# Næste manuelle trin
 
-Efter et strategimøde er produktretningen udvidet med et pre-contract-flow
-(projektgrundlag, flere separate tilbud pr. projektgrundlag,
-tilbudssammenligning), principper for gennemskuelig og kildesporet
-AI-anbefaling, en fremtidig AI-vidensarkitektur og kildehierarki,
-rådgiveradgang, en mulig partnerintegration med Byggesagkyndig.nu, samt
-permanente UX/UI-kvalitetskrav for alle kommende funktioner. Se
-docs/DECISIONS.md for den fulde, kategoriserede liste (LOCKED / PLANNED /
-PARKED / OPEN).
+Kør migrationen i Supabase efter brugerens (Olivers) godkendelse —
+Dashboard → SQL Editor. Claude må ikke køre den.
 
-# Næste planlagte opgave
+# Næste kodeopgave efter bekræftet migration
 
-"Design og afgræns første implementerbare del af pre-contract-flowet:
-projektgrundlag før invitationer og tilbud."
+Implementér sikkert API og første professionelle bygherre-UI til
+oprettelse og redigering af projektgrundlag.
 
-Der må ikke implementeres database, routes eller UI for tilbudsfasen,
-før denne opgave er eksplicit godkendt. Den næste session skal først:
+Skal som minimum omfatte:
 
-1. læse CLAUDE.md og importerede statusfiler
-2. læse docs/DECISIONS.md's afsnit om pre-contract-flowet og AI
-3. gengive sin forståelse af det afgrænsede scope
-4. afvente udtrykkelig godkendelse, før nogen fil ændres
+- Bearer JWT + auth.getUser() på alle endpoints
+- verificeret projektejerskab (projekter.bygherre_id) som eneste
+  adgangskilde
+- GET læser, POST opretter, PATCH opdaterer — GET må aldrig oprette en
+  række (modsat det eksisterende mønster i GET /api/kontrakt)
+- UX/UI-principperne i docs/DECISIONS.md
 
-# Chat- og navigationsfasen (afsluttet)
+**Claude må ikke fortsætte automatisk til denne opgave.** Skal først
+igangsættes efter Oliver eksplicit har kørt og bekræftet migrationen i
+produktion.
 
-Global app-shell, bygherrens globale Chat-side og ulæst badge er
-implementeret, produktionsdeployet og browsertestet. Vandret
-mobiloverflow (global navigation, projektfaner, dashboardkort) er
-rettet og accepteret. Markering som læst findes fortsat kun som
-serverendpoint (POST /api/chat/laest) — ikke integreret i UI. Se
-docs/PROJECT_STATE.md, "Navigation og UI" og "Chatstatus", for detaljer
-og commit-historik. Denne fase kræver ikke yderligere opfølgning før
-pre-contract-arbejdet startes.
+# Chat-, navigations- og sikkerhedsfaser (afsluttet)
+
+Global app-shell, bygherrens globale Chat-side, ulæst badge og den
+mobile navigationsrettelse er implementeret, produktionsdeployet og
+browsertestet. Den tidligere email-query-baserede sikkerhedsrisiko i
+GET /api/haandvaerker/sager er lukket (commit d6c55ea), browsertestet
+og accepteret. Se docs/PROJECT_STATE.md for detaljer og commit-historik.
+Disse faser kræver ikke yderligere opfølgning før pre-contract-arbejdet
+fortsætter.

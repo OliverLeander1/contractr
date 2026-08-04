@@ -96,6 +96,20 @@ implementeret — se "Navigation og UI" nedenfor.)
 - Prisstrategien (herunder en foreslået model på 3-4 % af
   entreprisesummen) er fortsat åben og skal testes, ikke besluttet.
 
+# Projektgrundlag (pre-contract-flow, skema)
+
+- Migrationen supabase-migration-projektgrundlag.sql er oprettet som en
+  tracked fil, men er IKKE kørt i produktion endnu. Afventer manuel
+  kørsel i Supabase Dashboard efter godkendelse.
+- Opretter public.projektgrundlag: en selvstændig pre-contract-entitet,
+  ikke koblet til kontrakter. Ét projekt kan have 0..mange
+  projektgrundlag (ingen unik constraint på projekt_id).
+- Ingen API eller UI er implementeret endnu.
+- Næste trin efter en vellykket, bekræftet produktionsmigration er
+  sikkert API (Bearer JWT, verificeret projektejerskab, GET/POST/PATCH
+  uden sideeffekt-ved-læsning) og den første bygherre-UI til oprettelse
+  og redigering af projektgrundlag.
+
 # Produktion
 
 Kørt i produktion:
@@ -145,6 +159,13 @@ ef0d1d2
 - Service role må først bruges efter eksplicit autorisation.
 - public.notifikationer er ikke autoritativ chat-læsestatus.
 - Ingen DELETE, TRUNCATE, DROP eller nulstilling.
+- GET /api/haandvaerker/sager kræver nu Bearer JWT + auth.getUser();
+  entreprenørens email udledes udelukkende af den verificerede bruger,
+  aldrig af et klientsendt ?email=-parameter. Rollen verificeres mod
+  profiler.rolle = "haandvaerker" (commit d6c55ea). Browsertestet og
+  accepteret — entreprenøren kan fortsat se egne sager, og den
+  tidligere email-query-baserede adgang er lukket: et vilkårligt
+  ?email=-parameter påvirker ikke længere resultatet.
 
 # Parkeret
 

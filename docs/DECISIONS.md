@@ -96,11 +96,28 @@ ophæver eller ændrer ingen af dem.
   projektets data.
 - UX/UI-principperne nedenfor er permanente kvalitetskrav for alle
   kommende funktioner — ikke en enkeltstående opgave.
+- Et projekt kan have 0..mange projektgrundlag.
+- Et projektgrundlag tilhører præcis ét projekt.
+- Et projektgrundlag repræsenterer én afgrænset opgave eller entreprise,
+  fx malerarbejde.
+- Det samme projektgrundlag kan senere sendes til flere entreprenører.
+- Projektgrundlag er en selvstændig pre-contract-entitet.
+- Projektgrundlag må ikke gemmes i kontrakter.
+- Projektgrundlag må ikke automatisk oprette en kontrakt.
+- Kun et valgt tilbud kan senere føres videre mod aftalegrundlag.
+- GET må ikke oprette projektgrundlagsdata.
+- Ejerskab følger projektets bygherre som source of truth.
+- Direkte browseradgang til public.projektgrundlag er ikke tilladt i
+  første version.
 
 ## PLANNED
 
+- Sikkert projektgrundlags-API (Bearer JWT, auth.getUser, verificeret
+  projektejerskab; GET læser, POST opretter, PATCH opdaterer — GET må
+  aldrig oprette data).
+- Bygherres projektgrundlagsside (oprettelse og redigering).
 - Pre-contract-flowet (projektgrundlag, invitationer, tilbud,
-  sammenligning, valg).
+  tilbudsversioner, sammenligning, valg).
 - Struktureret udtræk af tilbud til brug for sammenligning.
 - Kontrolleret, versionsstyret AI-vidensbase og retrieval-arkitektur:
   kombinerer fast produktinstruks, strukturerede projektdata,
