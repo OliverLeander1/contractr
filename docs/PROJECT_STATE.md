@@ -24,8 +24,13 @@ Fungerer nu:
 - Den gamle usikre chatroute er deaktiveret.
 - Chat-navigation for bygherre forbliver aktiv på undersider.
 - POST /api/chat/laest og GET /api/chat/oversigt er implementeret
-  (commit 5481eb7). Ingen UI eller navigation bruger endnu disse
-  endpoints — de er kun server-side på nuværende tidspunkt.
+  (commit 5481eb7).
+- GET /api/chat/oversigt bruges nu af UI: den globale Chat-side (/chat)
+  og app-shellens ulæst badge (commits 9ee6e46, 66b02a7, 6efebb3,
+  d713b7d, de3b10e).
+- POST /api/chat/laest bruges endnu ikke af nogen UI — markering som
+  læst er fortsat kun implementeret server-side, ikke integreret i
+  den konkrete kontraktchat.
 - Manuelt produktionstestet med autentificerede bygherre- og
   entreprenørkonti. Verificeret:
   - GET /api/chat/oversigt returnerer HTTP 200 for begge roller.
@@ -47,14 +52,49 @@ Fungerer nu:
 
 Ikke implementeret endnu:
 
-- global Chat
 - seneste besked-preview på dashboards
 - seneste afsender og tidspunkt på dashboards
-- ulæst antal (UI)
 - markering som læst (UI)
-- global navigationsramme
 - polling eller realtime
 - email-, browser- eller pushnotifikationer
+
+(global Chat, ulæst antal i UI og den globale navigationsramme er
+implementeret — se "Navigation og UI" nedenfor.)
+
+# Navigation og UI
+
+- Global app-shell (AuthenticatedAppShell), bygherrens globale
+  Chat-side (/chat), ulæst badge og den ombyggede, kompakte
+  projektfanelinje (ProjektNav) er implementeret, produktionsdeployet
+  og browsertestet.
+- Vandret mobiloverflow — i den globale navigation, i projektfanerne
+  og på dashboardets aftalegrundlagskort — er rettet, browsertestet og
+  accepteret som afsluttet (commits d713b7d, de3b10e).
+- Et større visuelt redesign og den endelige branding er parkeret —
+  ikke igangsat (se "Parkeret").
+- Løbende UX/UI-kvalitet (informationshierarki, mobiladfærd,
+  tomtilstande, loading, fejl, feedback, bredde/overflow) er derimod
+  IKKE parkeret — det er et permanent krav til browsertesten for alle
+  nye opgaver fremover. Se docs/DECISIONS.md, "UX/UI-principper".
+
+# Næste produktområde: pre-contract-flow
+
+- Det næste større produktområde er pre-contract-flowet: projektgrundlag
+  → invitationer → separate tilbud → tilbudssammenligning → valg →
+  aftalegrundlag → aktiv byggesag. Den låste begrebsmodel står i
+  docs/DECISIONS.md.
+- AI-baseret tilbudssammenligning kan først implementeres, når en
+  korrekt data- og kildearkitektur er på plads (struktureret
+  tilbudsudtræk, kontrolleret vidensbase, kildehierarki for AI) — ikke
+  før, og ikke som en stor systemprompt alene.
+- Ingen database-, schema- eller anden implementeringsbeslutning for
+  tilbudsfasen er truffet endnu. Der findes endnu ingen kode, routes
+  eller UI for projektgrundlag, invitationer eller tilbud.
+- Byggesagkyndig.nu er identificeret som en mulig fremtidig
+  henvisnings- eller rådgiverpartner — ikke en bindende integration
+  eller eksklusiv aftale.
+- Prisstrategien (herunder en foreslået model på 3-4 % af
+  entreprisesummen) er fortsat åben og skal testes, ikke besluttet.
 
 # Produktion
 
@@ -113,6 +153,13 @@ ef0d1d2
 - endelig multi-kontraktmigration for betalinger, mangler og ekstraarbejde
 - email-, push- og browsernotifikationer
 - realtime-chat
+- større visuelt redesign / endelig branding (gælder kun det
+  overordnede grafiske redesign — løbende UX/UI-kvalitet i konkrete
+  funktioner er ikke parkeret, se "Navigation og UI")
+- faktisk RAG/retrieval-implementering for AI-vidensbasen (kun
+  principperne er låst, se docs/DECISIONS.md)
+- fuld partnerintegration med Byggesagkyndig.nu
+- native app
 
 # Beskyttede untracked filer
 
