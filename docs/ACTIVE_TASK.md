@@ -21,14 +21,17 @@ Efter læsning skal preview, afsender og tidspunkt fortsat vises. Kun ulæst-mar
 
 public.chat_laesestatus er oprettet og klar.
 
-Ingen API eller UI bruger tabellen endnu.
+POST /api/chat/laest og GET /api/chat/oversigt er implementeret og
+verificeret med tsc/eslint. Ingen UI eller navigation bruger endnu
+disse endpoints.
 
 # Næste mulige fase
 
-Kun sikre serverendpoints:
+Ingen implementering endnu. Kommende fase (ikke godkendt til
+implementering i en ny session uden eksplicit godkendelse):
 
-- POST /api/chat/laest
-- GET /api/chat/oversigt
+- fælles global app-shell/navigation
+- global Chat-side og besked-preview for bygherre
 
 Der må ikke implementeres automatisk i en ny session.
 

@@ -19,6 +19,41 @@ export function isUUID(s: unknown): s is string {
   return typeof s === "string" && UUID_RE.test(s);
 }
 
+export interface VerifiedUser {
+  id: string;
+  email: string | null;
+}
+
+// Verificerer kun Bearer JWT via auth.getUser() — udleder ingen kontraktadgang.
+// Bruges af endpoints der skal slå brugerens kontrakter op på tværs (fx oversigt),
+// hvor resolveAccess (som kræver en enkelt kontrakt_id) ikke passer.
+export async function verifyUser(
+  req: NextRequest
+): Promise<{ user: VerifiedUser } | { error: NextResponse }> {
+  const authHeader = req.headers.get("authorization") ?? "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  if (!token) {
+    return { error: NextResponse.json({ fejl: "Ikke godkendt" }, { status: 401 }) };
+  }
+
+  const supabase = createServiceClient();
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  if (authError || !user) {
+    return { error: NextResponse.json({ fejl: "Ikke godkendt" }, { status: 401 }) };
+  }
+
+  return { user: { id: user.id, email: user.email ?? null } };
+}
+
+// Samme regel som i resolveAccess: begge-match eller intet-match afvises.
+// Holdt som selvstændig, ren funktion så oversigtsendpointet kan genbruge
+// nøjagtig samme rolleregel uden at ændre resolveAccess.
+export function determineRolle(erBygherre: boolean, erHaandvaerker: boolean): ChatRole | null {
+  if (erBygherre === erHaandvaerker) return null;
+  return erBygherre ? "bygherre" : "haandvaerker";
+}
+
 export async function resolveAccess(
   req: NextRequest,
   kontraktId: string
