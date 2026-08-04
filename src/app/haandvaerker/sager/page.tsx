@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 
@@ -34,35 +34,60 @@ function sagStatusMærke(status: string): { label: string; klasse: string } {
   return { label: "Afventer", klasse: "bg-amber-100 text-amber-700" };
 }
 
+type Tilstand = "indlæser" | "login-krævet" | "ingen-adgang" | "fejl" | "klar";
+
 export default function HaandvaerkerSager() {
   const supabase = createClient();
   const [kontrakter, setKontrakter] = useState<Kontrakt[]>([]);
   const [navn, setNavn]   = useState("");
   const [firma, setFirma] = useState("");
   const [initials, setInitials] = useState("H");
-  const [indlæser, setIndlæser] = useState(true);
+  const [tilstand, setTilstand] = useState<Tilstand>("indlæser");
+  const [genindlæsning, setGenindlæsning] = useState(0);
 
-  const hentData = useCallback(async () => {
-    setIndlæser(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setIndlæser(false); return; }
+  useEffect(() => {
+    let annulleret = false;
 
-    const [{ data: profil }, sagerRes] = await Promise.all([
-      supabase.from("profiler").select("navn,firma").eq("id", user.id).maybeSingle(),
-      fetch(`/api/haandvaerker/sager?email=${encodeURIComponent(user.email ?? "")}`).then(r => r.json()),
-    ]);
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        if (!annulleret) setTilstand("login-krævet");
+        return;
+      }
 
-    if (profil) {
-      const n = profil.navn || "";
-      setNavn(n);
-      setFirma(profil.firma || "");
-      setInitials(n ? n.split(" ").map((x: string) => x[0]).join("").toUpperCase().slice(0, 2) : "E");
-    }
-    setKontrakter(Array.isArray(sagerRes) ? sagerRes : []);
-    setIndlæser(false);
-  }, []);
+      const [{ data: profil }, sagerRes] = await Promise.all([
+        supabase.from("profiler").select("navn,firma").eq("id", session.user.id).maybeSingle(),
+        fetch("/api/haandvaerker/sager", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        }),
+      ]);
 
-  useEffect(() => { hentData(); }, [hentData]);
+      if (annulleret) return;
+
+      if (profil) {
+        const n = profil.navn || "";
+        setNavn(n);
+        setFirma(profil.firma || "");
+        setInitials(n ? n.split(" ").map((x: string) => x[0]).join("").toUpperCase().slice(0, 2) : "E");
+      }
+
+      if (sagerRes.status === 401) { setTilstand("login-krævet"); return; }
+      if (sagerRes.status === 403) { setTilstand("ingen-adgang"); return; }
+      if (!sagerRes.ok) { setTilstand("fejl"); return; }
+
+      const data = await sagerRes.json().catch(() => null);
+      if (annulleret) return;
+      setKontrakter(Array.isArray(data) ? data : []);
+      setTilstand("klar");
+    })();
+
+    return () => { annulleret = true; };
+  }, [genindlæsning]);
+
+  function hentData() {
+    setTilstand("indlæser");
+    setGenindlæsning((n) => n + 1);
+  }
 
   const aktive     = kontrakter.filter(k => k.status !== "afsluttet");
   const afsluttede = kontrakter.filter(k => k.status === "afsluttet");
@@ -98,9 +123,27 @@ export default function HaandvaerkerSager() {
           {navn && <p className="text-sm text-gray-400 mt-1">{navn}{firma ? ` · ${firma}` : ""}</p>}
         </div>
 
-        {indlæser ? (
+        {tilstand === "indlæser" ? (
           <div className="flex justify-center py-16">
             <div className="w-6 h-6 border-2 border-gray-200 border-t-[#1e3a2a] rounded-full animate-spin" />
+          </div>
+        ) : tilstand === "login-krævet" ? (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+            <p className="font-semibold text-gray-800 mb-2">Log ind for at se dine sager</p>
+            <Link href="/login" className="text-sm text-[#1e3a2a] font-semibold hover:underline">
+              Gå til login
+            </Link>
+          </div>
+        ) : tilstand === "ingen-adgang" ? (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+            <p className="font-semibold text-gray-800">Denne konto har ikke adgang som entreprenør.</p>
+          </div>
+        ) : tilstand === "fejl" ? (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+            <p className="font-semibold text-gray-800 mb-2">Vi kunne ikke hente dine sager. Prøv at logge ind igen.</p>
+            <button onClick={hentData} className="text-sm text-[#1e3a2a] font-semibold hover:underline">
+              Prøv igen
+            </button>
           </div>
         ) : kontrakter.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
