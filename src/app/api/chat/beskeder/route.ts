@@ -23,11 +23,17 @@ export async function GET(req: NextRequest) {
 
   const { data: beskeder, error } = await supabase
     .from("chat_beskeder")
-    .select("id, afsender_id, afsender_navn, afsender_rolle, indhold, sendt_at")
+    .select("id, afsender_id, afsender_navn, indhold, sendt_at")
     .eq("samtale_id", samtale.id)
     .order("sendt_at", { ascending: true });
 
   if (error) {
+    console.error("[chat] Kunne ikke hente beskeder", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
     return NextResponse.json({ fejl: "Kunne ikke hente beskeder" }, { status: 500 });
   }
 
@@ -81,11 +87,16 @@ export async function POST(req: NextRequest) {
       samtale_id: samtale.id,
       afsender_id: result.ctx.userId,
       afsender_navn: afsenderNavn,
-      afsender_rolle: result.ctx.rolle,
       indhold,
     });
 
   if (insertError) {
+    console.error("[chat] Kunne ikke sende besked", {
+      code: insertError.code,
+      message: insertError.message,
+      details: insertError.details,
+      hint: insertError.hint,
+    });
     return NextResponse.json({ fejl: "Kunne ikke sende besked" }, { status: 500 });
   }
 
