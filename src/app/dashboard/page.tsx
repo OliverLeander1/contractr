@@ -357,7 +357,7 @@ export default function Dashboard() {
                       href={`/projekt/${a.projekt_id}/aftale`}
                       className="flex-1 bg-white rounded-2xl border border-[#e0ddd6] px-5 py-4 flex items-center justify-between hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group"
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
                         <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${besigtigelseUI?.prioritet === 1 ? "bg-amber-100" : "bg-[#1e3a2a]/5"}`}>
                           {besigtigelseUI?.prioritet === 1 ? (
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="1.8">
@@ -373,23 +373,23 @@ export default function Dashboard() {
                             </svg>
                           )}
                         </div>
-                        <div>
-                          <p className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors text-sm">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors text-sm break-words">
                             {a.titel || "Aftalegrundlag uden titel"}
                           </p>
-                          <p className="text-xs text-gray-400 mt-0.5">
+                          <p className="text-xs text-gray-400 mt-0.5 truncate">
                             {a.haandvaerker_navn || a.haandvaerker_email || "Ingen håndværker tilknyttet endnu"}
                           </p>
                           {secondaryTekst && (
-                            <p className={`text-xs font-medium mt-0.5 ${besigtigelseUI?.prioritet === 1 ? "text-amber-700" : "text-[#1e3a2a]"}`}>{secondaryTekst}</p>
+                            <p className={`text-xs font-medium mt-0.5 truncate ${besigtigelseUI?.prioritet === 1 ? "text-amber-700" : "text-[#1e3a2a]"}`}>{secondaryTekst}</p>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${statusKlasse}`}>
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <span className={`max-w-[7rem] text-center text-xs font-semibold px-2.5 py-1 rounded-full border ${statusKlasse}`}>
                           {statusTekst}
                         </span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2" className="flex-shrink-0"><polyline points="9 18 15 12 9 6"/></svg>
                       </div>
                     </Link>
                     {erUdkast && (
