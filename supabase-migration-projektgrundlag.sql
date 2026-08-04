@@ -36,25 +36,31 @@
 --   (src/app/api/projekt/[id]/slet/route.ts) sletter i stedet eksplicit i
 --   applikationskoden: ekstraarbejde, mangler, chat_beskeder og kontrakter
 --   slettes hver for sig, FØR selve projekter-rækken slettes — uden nogen
---   databaseCASCADE.
+--   database-cascade.
 --
 --   projekt_id er her krævet NOT NULL (jf. opgavens datamodel), hvilket
 --   udelukker ON DELETE SET NULL. Tilbage står reelt CASCADE eller
---   RESTRICT/NO ACTION (Postgres-standard):
---     - RESTRICT/NO ACTION ville få den eksisterende, urørte
---       sletteroute til at fejle med en foreign key-fejl, så snart et
---       projekt har mindst ét projektgrundlag — en reel regression af en
---       allerede fungerende funktion, som denne opgave ikke må ændre.
---     - CASCADE bryder ikke den eksisterende sletteroute (ingen fejl) og
---       er semantisk korrekt: et projektgrundlag kan strukturelt ikke
---       give mening uden sit projekt.
---   Valget er derfor ON DELETE CASCADE. Dette er IKKE en genbrugt,
---   tidligere anvendt konvention for projekter-børnetabeller specifikt —
---   det er den første database-FK af sin art til public.projekter i dette
---   repo, og valget er truffet for at undgå at indføre en ny, skjult fejl
---   i en eksisterende, urørt route. Bør revurderes eksplicit, hvis
---   sletteroutens logik senere opdateres til at eksplicit håndtere
---   projektgrundlag.
+--   RESTRICT/NO ACTION (Postgres-standard).
+--
+--   Valget er ON DELETE RESTRICT — en bevidst produktbeslutning, ikke en
+--   genbrugt, tidligere anvendt konvention (der findes ingen eksisterende
+--   cascade-konvention for projekter-børnetabeller i dette repo at læne
+--   sig op ad). RESTRICT betyder:
+--     - Sletning af et projekt må ikke automatisk slette projektgrundlag.
+--     - Et projekt med mindst ét eksisterende projektgrundlag er beskyttet
+--       mod utilsigtet sletning — databasen afviser sletningen med en
+--       foreign key-fejl, i stedet for stille at fjerne
+--       projektgrundlagsdata som en sideeffekt.
+--     - Den eksisterende, urørte sletteroute
+--       (src/app/api/projekt/[id]/slet/route.ts) vil derfor begynde at
+--       fejle, så snart et projekt har mindst ét projektgrundlag, fordi
+--       den route hverken kender til eller sletter projektgrundlag. Dette
+--       er en kendt, tilsigtet konsekvens af beskyttelsen — ikke en fejl.
+--       Et fremtidigt, eksplicit sletteflow (der fx kræver at
+--       projektgrundlag slettes eller flyttes først) skal designes og
+--       godkendes i en separat opgave, før denne konsekvens håndteres i
+--       applikationskoden.
+--     - Ingen DELETE-rettighed gives til service_role i denne migration.
 --
 -- Kør ikke denne fil uden særskilt godkendelse. Filen er kun oprettet som
 -- en tracked fil til senere manuel gennemgang og kørsel i Supabase
@@ -184,7 +190,7 @@ CREATE TABLE public.projektgrundlag (
   CONSTRAINT projektgrundlag_projekt_id_fkey
     FOREIGN KEY (projekt_id)
     REFERENCES public.projekter(id)
-    ON DELETE CASCADE,
+    ON DELETE RESTRICT,
 
   CONSTRAINT projektgrundlag_status_check
     CHECK (status IN ('udkast', 'klar_til_invitation'))
@@ -419,7 +425,7 @@ BEGIN
     RAISE EXCEPTION '[PO-10] Primary key dækker ikke præcis (id). Ruller tilbage.';
   END IF;
 
-  -- PO-11: FK projekt_id → public.projekter(id) ON DELETE CASCADE
+  -- PO-11: FK projekt_id → public.projekter(id) ON DELETE RESTRICT
   SELECT
     cn.nspname, ct.relname, ca.attname,
     fn.nspname, ft.relname, fa.attname,
@@ -450,8 +456,8 @@ BEGIN
     RAISE EXCEPTION '[PO-11] FK parent-endpoint er %.%.%, forventet public.projekter.id. Ruller tilbage.',
       v_parent_schema, v_parent_table, v_parent_col;
   END IF;
-  IF v_confdeltype != 'c' THEN
-    RAISE EXCEPTION '[PO-11] FK projekt_id har ON DELETE "%" — forventet CASCADE ("c"). Ruller tilbage.', v_confdeltype;
+  IF v_confdeltype != 'r' THEN
+    RAISE EXCEPTION '[PO-11] FK projekt_id har ON DELETE "%" — forventet RESTRICT ("r"). Ruller tilbage.', v_confdeltype;
   END IF;
 
   -- PO-12: ingen unique constraint på projekt_id (flere projektgrundlag pr. projekt skal kunne eksistere)
