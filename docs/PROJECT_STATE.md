@@ -26,6 +26,24 @@ Fungerer nu:
 - POST /api/chat/laest og GET /api/chat/oversigt er implementeret
   (commit 5481eb7). Ingen UI eller navigation bruger endnu disse
   endpoints — de er kun server-side på nuværende tidspunkt.
+- Manuelt produktionstestet med autentificerede bygherre- og
+  entreprenørkonti. Verificeret:
+  - GET /api/chat/oversigt returnerer HTTP 200 for begge roller.
+  - Kun autoriserede kontraktsamtaler returneres.
+  - Links er rollebestemte (bygherre- hhv. entreprenørrute).
+  - ulaest_samlet svarer til summen af samtalernes ulaest_antal.
+  - En besked fra bygherren tæller som ulæst for entreprenøren, og
+    entreprenørens svar tæller som ulæst for bygherren.
+  - Brugerens egne beskeder tæller ikke som ulæste.
+  - Læsestatus er individuel pr. bruger.
+  - POST /api/chat/laest returnerer HTTP 200 og opdaterer læsestatus;
+    preview, seneste afsender og seneste besked bevares efter læsning.
+  - En ældre læsemarkering kan ikke flytte markøren baglæns.
+  - Observerede 422-svar under testen skyldtes manuelt forkert
+    kopierede besked-id'er i testscriptet, ikke en endpointfejl.
+  - Legacy- og negativ adgangstest (fx forkert entreprenørs konto,
+    kontrakt uden adgang) er ikke fuldt udført endnu.
+  - Realtime og UI bruger endnu ikke endpointene.
 
 Ikke implementeret endnu:
 

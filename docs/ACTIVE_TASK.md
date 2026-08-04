@@ -21,17 +21,36 @@ Efter læsning skal preview, afsender og tidspunkt fortsat vises. Kun ulæst-mar
 
 public.chat_laesestatus er oprettet og klar.
 
-POST /api/chat/laest og GET /api/chat/oversigt er implementeret og
-verificeret med tsc/eslint. Ingen UI eller navigation bruger endnu
-disse endpoints.
+Serverendpointfasen er:
+
+- implementeret
+- typechecket
+- produktionstestet for kerneflowet (se docs/PROJECT_STATE.md for
+  detaljer og hvad der endnu mangler af negativ-/legacy-test)
+
+Ingen UI eller navigation bruger endnu disse endpoints.
 
 # Næste mulige fase
 
-Ingen implementering endnu. Kommende fase (ikke godkendt til
-implementering i en ny session uden eksplicit godkendelse):
+Den eneste aktive næste fase:
 
-- fælles global app-shell/navigation
-- global Chat-side og besked-preview for bygherre
+Fælles global app-shell/navigation og bygherrens globale Chat-visning.
+
+Denne fase skal indledes med produkt- og kodeanalyse før
+implementering og må ikke startes automatisk i en ny session.
+
+Fasen skal senere understøtte:
+
+- global navigation, der altid er synlig
+- samlet Chat på tværs af projekter og kontrakter
+- samlet ulæst badge
+- seneste afsender
+- besked-preview
+- tidspunkt
+- preview bevares efter læsning
+
+Den projektspecifikke navigation skal fortsat eksistere som et
+separat niveau.
 
 Der må ikke implementeres automatisk i en ny session.
 
