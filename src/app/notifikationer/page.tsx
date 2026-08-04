@@ -1,6 +1,5 @@
 "use client";
 
-import SimpleNav from "@/components/SimpleNav";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
 
@@ -65,7 +64,6 @@ export default function NotifikationerSide() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SimpleNav tilbage="/dashboard" tilbageLabel="Mit overblik" />
       <div className="max-w-2xl mx-auto px-6 py-10">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Notifikationer</h1>

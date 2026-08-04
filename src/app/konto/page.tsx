@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import SimpleNav from "@/components/SimpleNav";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 
@@ -169,16 +168,6 @@ export default function MinSide() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SimpleNav
-        tilbage="/dashboard"
-        tilbageLabel="Mit overblik"
-        højre={
-          <button onClick={logUd} className="text-sm font-medium text-gray-400 hover:text-gray-700 transition-colors">
-            Log ud
-          </button>
-        }
-      />
-
       <div className="max-w-4xl mx-auto px-6 py-10">
 
         {/* Profil */}

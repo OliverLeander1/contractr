@@ -262,37 +262,30 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Nav */}
-      <nav className="bg-[#f5f3ee] border-b border-[#e0ddd6] px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <span className="logo">nembyggestyring</span>
-          <div className="flex items-center gap-4">
-            <Link href="/opret/upload" className="text-sm font-semibold text-[#1e3a2a] hover:opacity-70 transition-opacity hidden sm:block">
-              Tjek tilbud
-            </Link>
-            <Link href="/konto" className="w-9 h-9 rounded-full bg-[#1e3a2a] flex items-center justify-center text-white font-bold text-sm hover:opacity-90 transition-opacity">
-              {fornavn?.[0]?.toUpperCase() || "?"}
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       <div className="max-w-3xl mx-auto px-6 py-10">
 
         {/* Velkomst */}
-        <div className="mb-8">
-          <p className="text-base text-gray-500 mb-1">
-            {hilsen}{fornavn ? `, ${fornavn}` : ""}
-          </p>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {ingenProjekter && aftaler.length === 0
-              ? "Hvad skal du bygge?"
-              : aftaler.length > 0 && ingenProjekter
-              ? aftaler.length === 1 ? "Du har ét aftalegrundlag" : `Du har ${aftaler.length} aftalegrundlag`
-              : aktiveProjekter.length === 1
-              ? "Du har ét aktivt projekt"
-              : `Du har ${aktiveProjekter.length} aktive projekter`}
-          </h1>
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-base text-gray-500 mb-1">
+              {hilsen}{fornavn ? `, ${fornavn}` : ""}
+            </p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {ingenProjekter && aftaler.length === 0
+                ? "Hvad skal du bygge?"
+                : aftaler.length > 0 && ingenProjekter
+                ? aftaler.length === 1 ? "Du har ét aftalegrundlag" : `Du har ${aftaler.length} aftalegrundlag`
+                : aktiveProjekter.length === 1
+                ? "Du har ét aktivt projekt"
+                : `Du har ${aktiveProjekter.length} aktive projekter`}
+            </h1>
+          </div>
+          <Link
+            href="/opret/upload"
+            className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-[#1e3a2a] hover:opacity-70 transition-opacity flex-shrink-0 mt-1"
+          >
+            Tjek tilbud
+          </Link>
         </div>
 
         {/* Ufærdiggjort udkast fra sessionStorage */}

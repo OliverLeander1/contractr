@@ -4,6 +4,7 @@ import "./globals.css";
 import CookieBanner from "@/components/CookieBanner";
 import PostHogProvider from "@/components/PostHogProvider";
 import IdleTimeout from "@/components/IdleTimeout";
+import AuthenticatedAppShell from "@/components/AuthenticatedAppShell";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -62,7 +63,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <PostHogProvider>
           <IdleTimeout />
-          {children}
+          <AuthenticatedAppShell>{children}</AuthenticatedAppShell>
           <CookieBanner />
         </PostHogProvider>
       </body>

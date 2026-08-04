@@ -43,7 +43,7 @@ export default function ProjektNav({ id }: { id: string }) {
   }
 
   return (
-    <nav className="bg-white border-b border-gray-100 px-6 py-3.5 sticky top-0 z-50">
+    <nav className="bg-white border-b border-gray-100 px-6 py-3.5 sticky top-[var(--shell-h)] z-40">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-6">
 
         {/* Logo + tilbage */}

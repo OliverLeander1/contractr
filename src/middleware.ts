@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 // Ruter der kræver login OG specifik rolle
-const KUN_BYGHERRE = ["/dashboard", "/projekt", "/konto", "/notifikationer", "/tilkoeb/book"];
+const KUN_BYGHERRE = ["/dashboard", "/projekt", "/konto", "/notifikationer", "/tilkoeb/book", "/chat"];
 const KUN_HAANDVAERKER = ["/haandvaerker/sager", "/haandvaerker/nyt-tilbud", "/haandvaerker/profil", "/haandvaerker/projekt"];
 const BESKYTTEDE = [...KUN_BYGHERRE, ...KUN_HAANDVAERKER];
 
