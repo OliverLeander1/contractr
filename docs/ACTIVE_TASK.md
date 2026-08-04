@@ -1,33 +1,32 @@
 # Aktiv opgave
 
-Oprettelse og gennemgang af projektgrundlagsmigration
-(supabase-migration-projektgrundlag.sql).
+Browsertest af projektgrundlags-API og bygherre-UI.
 
-Dette er udelukkende et skema-forslag. Ingen API, routes eller UI er
-implementeret som en del af denne opgave. Migrationen er IKKE kørt.
+Migrationen, API'et og UI'et er implementeret og kodegennemgået, men
+IKKE endnu manuelt browsertestet. Denne opgave er ikke dokumenteret som
+gennemført, før Oliver har udført og bekræftet testen.
 
-# Næste manuelle trin
+Browsertesten skal omfatte:
 
-Kør migrationen i Supabase efter brugerens (Olivers) godkendelse —
-Dashboard → SQL Editor. Claude må ikke køre den.
+- tomtilstand (projekt uden projektgrundlag)
+- oprettelse af mindst to projektgrundlag under samme projekt
+- redigering af et eksisterende projektgrundlag
+- status ændret til "Klar til invitation"
+- status ændret tilbage til "Under udarbejdelse"
+- mobilbredde (ingen vandret overflow, alle handlinger tilgængelige)
+- navigation (den nye "Projektgrundlag"-fane i ProjektNav, aktiv
+  tilstand, øvrige faner og "Book rådgiver" fortsat virkende)
+- bekræft at ingen kontrakt oprettes som sideeffekt af noget i dette
+  flow
 
-# Næste kodeopgave efter bekræftet migration
+# Næste planlagte opgave (efter godkendt browsertest)
 
-Implementér sikkert API og første professionelle bygherre-UI til
-oprettelse og redigering af projektgrundlag.
-
-Skal som minimum omfatte:
-
-- Bearer JWT + auth.getUser() på alle endpoints
-- verificeret projektejerskab (projekter.bygherre_id) som eneste
-  adgangskilde
-- GET læser, POST opretter, PATCH opdaterer — GET må aldrig oprette en
-  række (modsat det eksisterende mønster i GET /api/kontrakt)
-- UX/UI-principperne i docs/DECISIONS.md
+Afgræns sikker invitationsmodel til flere entreprenører pr.
+projektgrundlag.
 
 **Claude må ikke fortsætte automatisk til denne opgave.** Skal først
-igangsættes efter Oliver eksplicit har kørt og bekræftet migrationen i
-produktion.
+igangsættes efter Oliver eksplicit har gennemført og godkendt
+browsertesten af projektgrundlags-API og bygherre-UI.
 
 # Chat-, navigations- og sikkerhedsfaser (afsluttet)
 
@@ -36,5 +35,4 @@ mobile navigationsrettelse er implementeret, produktionsdeployet og
 browsertestet. Den tidligere email-query-baserede sikkerhedsrisiko i
 GET /api/haandvaerker/sager er lukket (commit d6c55ea), browsertestet
 og accepteret. Se docs/PROJECT_STATE.md for detaljer og commit-historik.
-Disse faser kræver ikke yderligere opfølgning før pre-contract-arbejdet
-fortsætter.
+Disse faser kræver ikke yderligere opfølgning.

@@ -96,19 +96,32 @@ implementeret — se "Navigation og UI" nedenfor.)
 - Prisstrategien (herunder en foreslået model på 3-4 % af
   entreprisesummen) er fortsat åben og skal testes, ikke besluttet.
 
-# Projektgrundlag (pre-contract-flow, skema)
+# Projektgrundlag (pre-contract-flow, skema + API + UI)
 
-- Migrationen supabase-migration-projektgrundlag.sql er oprettet som en
-  tracked fil, men er IKKE kørt i produktion endnu. Afventer manuel
-  kørsel i Supabase Dashboard efter godkendelse.
+- Migrationen supabase-migration-projektgrundlag.sql er kørt succesfuldt
+  i Supabase ("Success. No rows returned"). public.projektgrundlag
+  findes nu i produktion, med ON DELETE RESTRICT fra projekt_id mod
+  projekter(id) (commit c84a81e).
 - Opretter public.projektgrundlag: en selvstændig pre-contract-entitet,
   ikke koblet til kontrakter. Ét projekt kan have 0..mange
   projektgrundlag (ingen unik constraint på projekt_id).
-- Ingen API eller UI er implementeret endnu.
-- Næste trin efter en vellykket, bekræftet produktionsmigration er
-  sikkert API (Bearer JWT, verificeret projektejerskab, GET/POST/PATCH
-  uden sideeffekt-ved-læsning) og den første bygherre-UI til oprettelse
-  og redigering af projektgrundlag.
+- Sikkert bygherre-API implementeret:
+  - GET/POST /api/projekter/[id]/projektgrundlag — liste og oprettelse.
+  - PATCH /api/projektgrundlag/[grundlagId] — opdatering.
+  - Bearer JWT + auth.getUser(), ejerskab verificeret via
+    projekter.bygherre_id. GET har ingen sideeffekt. POST sætter altid
+    status til "udkast" og ignorerer projekt_id/status fra klienten.
+    PATCH ignorerer id/projekt_id/oprettet_at fra klienten og sætter
+    opdateret_at server-side.
+- Ny bygherre-side: /projekt/[id]/projektgrundlag, med tilhørende
+  "Projektgrundlag"-fane i ProjektNav (før "Aftale").
+- UI og API er implementeret og kodegennemgået, men IKKE endnu
+  browsertestet manuelt af Oliver.
+- Ingen kontrakter oprettes, læses eller ændres nogen steder i dette
+  flow.
+- Der findes fortsat ingen invitationer, tilbud, tilbudsversioner,
+  sammenligning, valg af tilbud, rådgiveradgang eller AI-funktionalitet
+  — kun projektgrundlags-laget er implementeret.
 
 # Produktion
 
