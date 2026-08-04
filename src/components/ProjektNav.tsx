@@ -39,7 +39,7 @@ export default function ProjektNav({ id }: { id: string }) {
   function erAktiv(href: string) {
     const fuld = `${base}${href}`;
     if (href === "") return pathname === base;
-    return pathname === fuld;
+    return pathname === fuld || pathname.startsWith(`${fuld}/`);
   }
 
   return (
