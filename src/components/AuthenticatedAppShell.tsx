@@ -21,12 +21,6 @@ function skalViseShell(pathname: string): boolean {
   return SHELL_PRÆFIKSER.some((base) => matcherPræfiks(pathname, base));
 }
 
-// "Book rådgiver" hørte oprindeligt til ProjektNav og er kun relevant i
-// projektkontekst — vises derfor kun på /projekt/*, ikke på hele shellen.
-function visBookRaadgiver(pathname: string): boolean {
-  return matcherPræfiks(pathname, "/projekt");
-}
-
 // Chat er aktiv både på de globale chatruter og på en konkret
 // kontraktchat under et projekt — segmentgrænse via (\/|$) forhindrer
 // at /projekt/x/chatbot fejlagtigt ville matche.
@@ -57,12 +51,6 @@ const IkonProfil = (
     <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
   </svg>
 );
-const IkonRaadgiver = (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
 
 interface NavItem {
   label: string;
@@ -73,7 +61,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Overblik", href: "/dashboard", aktiv: (p) => matcherPræfiks(p, "/dashboard"), ikon: IkonOverblik },
-  { label: "Chat", href: "/chat", aktiv: erChatAktiv, ikon: IkonChat },
+  { label: "Samtaler", href: "/chat", aktiv: erChatAktiv, ikon: IkonChat },
   { label: "Notifikationer", href: "/notifikationer", aktiv: (p) => matcherPræfiks(p, "/notifikationer"), ikon: IkonNotifikationer },
   { label: "Profil", href: "/konto", aktiv: (p) => p === "/konto", ikon: IkonProfil },
 ];
@@ -127,37 +115,27 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
           {/* Desktop — én kompakt vandret bar */}
           <div className="hidden md:flex items-center justify-between h-full max-w-6xl mx-auto px-6">
             <Link href="/dashboard" className="logo flex-shrink-0">nembyggestyring</Link>
-            <div className="flex items-center gap-3">
-              <nav className="flex items-center gap-1">
-                {NAV_ITEMS.map((item) => {
-                  const aktiv = item.aktiv(pathname);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                        aktiv ? "bg-[#1e3a2a]/10 text-[#1e3a2a] font-semibold" : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                      }`}
-                    >
-                      {item.label}
-                      {item.href === "/chat" && ulaestSamlet !== null && ulaestSamlet > 0 && (
-                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#1e3a2a] text-white text-[10px] font-bold flex items-center justify-center">
-                          {ulaestSamlet > 99 ? "99+" : ulaestSamlet}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </nav>
-              {visBookRaadgiver(pathname) && (
-                <Link
-                  href="/tilkoeb"
-                  className="flex-shrink-0 text-xs font-semibold bg-[#1e3a2a] text-white px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity"
-                >
-                  Book rådgiver
-                </Link>
-              )}
-            </div>
+            <nav className="flex items-center gap-1">
+              {NAV_ITEMS.map((item) => {
+                const aktiv = item.aktiv(pathname);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      aktiv ? "bg-[#1e3a2a]/10 text-[#1e3a2a]" : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                    }`}
+                  >
+                    {item.label}
+                    {item.href === "/chat" && ulaestSamlet !== null && ulaestSamlet > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#1e3a2a] text-white text-[10px] font-bold flex items-center justify-center">
+                        {ulaestSamlet > 99 ? "99+" : ulaestSamlet}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
 
           {/* Mobil — kompakt topnavigation i to rækker, ingen bundnavigation
@@ -165,27 +143,15 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
           <div className="md:hidden flex flex-col h-full">
             <div className="h-11 flex items-center justify-between px-4 flex-shrink-0">
               <Link href="/dashboard" className="logo">nembyggestyring</Link>
-              <div className="flex items-center gap-1">
-                {visBookRaadgiver(pathname) && (
-                  <Link
-                    href="/tilkoeb"
-                    aria-label="Book rådgiver"
-                    title="Book rådgiver"
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-gray-500 hover:text-[#1e3a2a] transition-colors"
-                  >
-                    {IkonRaadgiver}
-                  </Link>
-                )}
-                <Link
-                  href="/konto"
-                  aria-label="Profil"
-                  className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                    pathname === "/konto" ? "text-[#1e3a2a]" : "text-gray-500"
-                  }`}
-                >
-                  {IkonProfil}
-                </Link>
-              </div>
+              <Link
+                href="/konto"
+                aria-label="Profil"
+                className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                  pathname === "/konto" ? "text-[#1e3a2a]" : "text-gray-500"
+                }`}
+              >
+                {IkonProfil}
+              </Link>
             </div>
             <div className="h-11 flex items-center justify-around border-t border-gray-100 flex-shrink-0">
               {NAV_ITEMS.map((item) => {
