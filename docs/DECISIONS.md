@@ -1,0 +1,21 @@
+# Låste produktbeslutninger
+
+- Flere uafhængige kontrakter kan ligge under samme projekt.
+- Hver kontrakt har sin egen aftale, økonomi, chat og senere egne ændringer.
+- Én privat chatsamtale pr. kontrakt.
+- Samme entreprenør med to kontrakter har to separate chats.
+- Entreprenøren identificeres via verificeret login-email.
+- Global Chat skal altid være tilgængelig.
+- Global navigation og projektnavigation er to forskellige niveauer.
+- Global navigation må ikke bygges som tilfældige inline headers.
+- Den skal implementeres som en fælles, vedvarende app-shell eller layoutstruktur.
+- Projektfunktioner vises kun i konkret projektkontekst.
+- Samtaleoversigter viser altid seneste afsender, preview og tidspunkt.
+- Efter læsning forsvinder kun ulæst-markeringen.
+- Læsestatus er individuel pr. bruger og samtale.
+- public.notifikationer er ikke chat-læsestatus.
+- Legacy-chat kobles aldrig automatisk til kontrakter.
+- Ingen destruktiv SQL eller testdatanulstilling.
+- Navigationen er en kernefunktion og må ikke nedprioriteres.
+- Realtime er ikke nødvendigt i første version.
+- Email, push og browsernotifikationer er en senere fase.

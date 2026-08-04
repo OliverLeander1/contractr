@@ -715,3 +715,6 @@ dokumentindhold, private beskeder eller personoplysninger.
 - PostHog-events er meningsfulde og sender ikke følsomt indhold
 - Environment variables er dokumenterede
 - Migrationer er inkluderede hvor nødvendigt
+
+@docs/PROJECT_STATE.md
+@docs/ACTIVE_TASK.md
