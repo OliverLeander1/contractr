@@ -113,8 +113,7 @@ implementeret — se "Navigation og UI" nedenfor.)
     status til "udkast" og ignorerer projekt_id/status fra klienten.
     PATCH ignorerer id/projekt_id/oprettet_at fra klienten og sætter
     opdateret_at server-side.
-- Ny bygherre-side: /projekt/[id]/projektgrundlag, med tilhørende
-  "Projektgrundlag"-fane i ProjektNav (før "Aftale").
+- Ny bygherre-side: /projekt/[id]/projektgrundlag.
 - UI og API er implementeret og kodegennemgået, men IKKE endnu
   browsertestet manuelt af Oliver.
 - Ingen kontrakter oprettes, læses eller ændres nogen steder i dette
@@ -122,6 +121,21 @@ implementeret — se "Navigation og UI" nedenfor.)
 - Der findes fortsat ingen invitationer, tilbud, tilbudsversioner,
   sammenligning, valg af tilbud, rådgiveradgang eller AI-funktionalitet
   — kun projektgrundlags-laget er implementeret.
+- "Projektgrundlag"-menupunktet er skjult fra ProjektNav (commit: se
+  "fix: hide misplaced project brief navigation"), fordi den
+  eksisterende placering — som en fane under en allerede oprettet
+  sag/projekt — er produktmæssigt forkert. Projektgrundlaget skal i den
+  kommende korrekte model opstå globalt, før et projekt findes:
+  opgave/tilbudsforespørgsel → AI-genereret projektgrundlag → invitation
+  til én eller flere entreprenører → tilbud → valg → projekt og
+  aftalegrundlag. Samme kommende flow skal kunne sende grundlaget til
+  enten én kendt entreprenør eller flere entreprenører.
+  Siden (/projekt/[id]/projektgrundlag), API'et
+  (GET/POST /api/projekter/[id]/projektgrundlag,
+  PATCH /api/projektgrundlag/[grundlagId]) og tabellen
+  (public.projektgrundlag) findes fortsat urørt og frosset — kun
+  navigationsvejen er fjernet. Direkte URL-adgang til siden virker
+  fortsat. Eksisterende projekt- og aftalefunktionalitet er ikke ændret.
 
 # Produktion
 

@@ -1,41 +1,37 @@
 # Aktiv opgave
 
-Manuel browsertest af den sikrede kontraktlisteroute
-(GET/POST /api/projekter/[id]/kontrakter) og dens fire brugerflows.
+Manuel kontrol af, at Projektgrundlag ikke længere vises i
+projektmenuen på desktop og mobil.
 
-Sikringen er implementeret og kodegennemgået (typecheck, lint og lokale
-401-tests bestået), men IKKE endnu manuelt browsertestet med rigtige
-bygherre-/entreprenørkonti. Denne opgave er ikke dokumenteret som
-gennemført, før Oliver har udført og bekræftet testen.
+Navigationspunktet er fjernet fra ProjektNav (commit: se "fix: hide
+misplaced project brief navigation"), men siden, API'et og tabellen
+findes fortsat urørt og frosset. Denne opgave er ikke dokumenteret som
+gennemført, før Oliver har udført og bekræftet kontrollen.
 
-Browsertesten skal omfatte:
-
-- Aftale kan indlæse kontrakter
-- ekstra kontrakt kan oprettes
-- Chat kan indlæse kontraktsamtaler
-- Ekstraarbejde viser fortsat "Ny aftaleseddel"
-- godkendelse af aftaleseddel kan fortsat sende håndværkernotifikation
-- AI-genereret projektforslag kan fortsætte gennem
-  kontraktoprettelsestrinnet for en logget ind bygherre
-- logout eller udløbet session giver forståelig fejl
-- uautentificeret request får ingen kontraktdata eller token
-
-# Næste opgave efter godkendt browsertest
+# Næste opgave efter godkendelse
 
 Sikring af POST /api/projekter samt GET/POST /api/kontrakt og deres
-resterende call sites.
+call sites.
 
 **Claude må ikke fortsætte automatisk til denne opgave.** Skal først
-igangsættes efter Oliver eksplicit har gennemført og godkendt
-browsertesten af den sikrede kontraktlisteroute.
+igangsættes efter Oliver eksplicit har gennemført og godkendt kontrollen
+af den fjernede Projektgrundlag-navigation.
 
 # Efter dén opgave (uændret rækkefølge)
 
-Browsertest af projektgrundlags-API og bygherre-UI (tomtilstand,
-oprettelse af flere projektgrundlag, redigering, statusskift, mobil,
-navigation, ingen kontrakt oprettet som sideeffekt), herefter afgrænsning
-af en sikker invitationsmodel til flere entreprenører pr. projektgrundlag.
-Ingen af delene er igangsat.
+Afgrænsning af en global, projektuafhængig oplevelse for
+projektgrundlag (opgave/tilbudsforespørgsel → AI-genereret
+projektgrundlag → invitation til én eller flere entreprenører → tilbud
+→ valg → projekt og aftalegrundlag), samt en sikker invitationsmodel til
+flere entreprenører. Ingen af delene er igangsat.
+
+# Kontraktliste-sikkerhedsfase (afsluttet)
+
+GET/POST /api/projekter/[id]/kontrakter er sikret med Bearer JWT,
+rolle- og ejerskabsverificering (commit 467c6e2). Manuel browsertest af
+de fire brugerflows (Aftale, Ekstraarbejde, Chat, AI-oprettelsesflow) er
+gennemført og bekræftet af Oliver — de eksisterende flows fungerer
+fortsat. Denne fase kræver ikke yderligere opfølgning.
 
 # Chat-, navigations- og sikkerhedsfaser (afsluttet)
 

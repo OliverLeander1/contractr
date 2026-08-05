@@ -6,7 +6,6 @@ import { useState } from "react";
 
 const navLinks = [
   { label: "Oversigt",     href: "" },
-  { label: "Projektgrundlag", href: "/projektgrundlag" },
   { label: "Aftale",       href: "/aftale" },
   { label: "Logbog",       href: "/logbog" },
   { label: "Aftalesedler", href: "/ekstraarbejde" },
