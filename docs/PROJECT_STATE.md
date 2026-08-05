@@ -206,13 +206,61 @@ ef0d1d2
   og chat-siderne samt det ældre AI-oprettelsesflow
   (opret/udbud-resultat) sender nu alle Bearer-token på deres kald til
   denne route. Response shape er uændret for den autoriserede ejer.
-  (commit: se "fix: secure project contract listing"). De øvrige usikre
-  legacy-routes — POST /api/projekter samt GET/POST /api/kontrakt — er
-  IKKE sikret endnu og er planlagt som en separat, efterfølgende opgave.
-  Browsertest af den sikrede kontraktlisteroute mangler fortsat.
+  (commit: se "fix: secure project contract listing"). Manuel browsertest
+  af de fire brugerflows er gennemført og godkendt af Oliver.
+- POST /api/projekter samt GET og POST /api/kontrakt kræver nu Bearer
+  JWT + auth.getUser(); rollen verificeres mod profiler.rolle =
+  "bygherre" (commit: se "fix: secure legacy project and contract
+  writes"). Tidligere kunne begge routes kaldes helt uden login.
+  - POST /api/projekter bruger nu altid den verificerede user.id som
+    bygherre_id. body.bygherre_id læses ikke længere og kan ikke vælge
+    projektets ejer.
+  - GET /api/kontrakt?projekt_id=... henter nu projektet og verificerer
+    projekter.bygherre_id === den verificerede bruger, før noget læses.
+    En anden bruger eller en uautentificeret aktør kan ikke længere
+    læse eller udløse routens sideeffekt (se nedenfor).
+  - POST /api/kontrakt henter nu kontrakten, udleder dens faktiske
+    projekt_id, henter projektet og verificerer ejerskab, før nogen af
+    de eksisterende grene (feltopdatering, betalingsplan,
+    haandvaerker_email, forudsætnings- og tidsplansgodkendelse) kan
+    køre. body.bygherre_id bruges ikke længere som adgangsgrundlag
+    eller læses overhovedet — et kendt kontrakt_id giver ikke længere
+    skriveadgang uden verificeret ejerskab. Kun den verificerede
+    projektejer kan ændre haandvaerker_email og dermed omdirigere en
+    invitation.
+  - Den eksisterende GET-sideeffekt (routen opretter automatisk en
+    kontrakt, hvis projektet endnu ikke har en) er bevaret som kendt
+    teknisk gæld — det er fortsat ikke den korrekte langsigtede
+    arkitektur, men kan nu kun udløses af den verificerede projektejer.
+  - Det gamle tre-kalds-oprettelsesflow i opret/udbud-resultat (opret
+    projekt → opret kontrakt → udfyld kontrakt) sender nu Bearer-token
+    på alle tre kald, men er fortsat ikke atomisk. Et fejlet kald efter
+    et lykkedes kald kan stadig efterlade en delvist oprettet
+    projekt-/kontraktrække. Ingen rollback, transaktion eller
+    oprydningsroute er implementeret i denne opgave.
+  - Aftale-siden sender nu Bearer-token på alle kald til GET og POST
+    /api/kontrakt via en lokal hjælpefunktion (autentificeretFetch) i
+    samme fil. Eksisterende enkelt-entreprenørflow (generér
+    AI-projektforslag, gem som logget ind bygherre, invitér én kendt
+    entreprenør, redigér pris/tidsplan/forudsætninger/øvrigt
+    aftaleindhold) er bevaret uændret.
+  - Den fremtidige model skal understøtte både én invitation til en
+    kendt entreprenør og flere konkurrerende invitationer via den
+    kommende tilbudsforespørgselsmodel — ingen af delene er
+    implementeret i denne opgave.
+  - Pre-contract-modellen (tilbudsforespørgsel, invitationer, tilbud,
+    sammenligning) er fortsat ikke implementeret.
+  - Manuel browsertest af de sikrede routes mangler fortsat.
 
 # Parkeret
 
+- besigtigelsesflowet: bygherren kan i dag selv sende en
+  besigtigelsesanmodning fra projektets oversigt. Den ønskede
+  produktretning er, at entreprenøren anmoder om besigtigelse, og
+  bygherren godkender, afviser eller foreslår et andet tidspunkt.
+  Opdaget under browsertest af den sikrede kontraktlisteroute. Ikke
+  ændret i nogen sikkerhedsopgave — er en afgrænset, separat
+  produktrettelse.
 - nulstilling og sletning af testdata
 - tidsplan og kalender
 - endelig multi-kontraktmigration for betalinger, mangler og ekstraarbejde

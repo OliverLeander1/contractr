@@ -85,6 +85,33 @@ const feltLabels: Record<string, string> = {
   slutdato: "Slutdato",
 };
 
+// Fælles hjælper til autentificerede /api/kontrakt-kald: henter en frisk
+// session, sender den som Bearer-token, og oversætter 401/403 til en
+// fejltype, så kaldstedet ikke selv skal huske at tjekke det.
+async function autentificeretFetch(
+  url: string,
+  init?: RequestInit
+): Promise<{ res: Response } | { fejltype: "session" | "adgang" }> {
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    return { fejltype: "session" };
+  }
+  const res = await fetch(url, {
+    ...init,
+    headers: { ...(init?.headers as Record<string, string> | undefined), Authorization: `Bearer ${session.access_token}` },
+  });
+  if (res.status === 401) return { fejltype: "session" };
+  if (res.status === 403) return { fejltype: "adgang" };
+  return { res };
+}
+
+function skrivFejlTekst(fejltype: "session" | "adgang"): string {
+  return fejltype === "session"
+    ? "Din session er udløbet. Log ind igen for at fortsætte."
+    : "Du har ikke adgang til denne sag.";
+}
+
 export default function Forhandling({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -111,6 +138,8 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const [opretter, setOpretter] = useState(false);
   const [opretFejl, setOpretFejl] = useState("");
   const [besigtigelse, setBesigtigelse] = useState<Besigtigelse | null | "loading" | "error">("loading");
+  const [sideFejl, setSideFejl] = useState("");
+  const [skrivFejl, setSkrivFejl] = useState("");
 
   const hentKontrakt = useCallback(async (kontraktId?: string) => {
     const supabase = createClient();
@@ -118,13 +147,30 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
     if (!user) return;
 
     const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      setKontrakt(null);
+      setSideFejl(skrivFejlTekst("session"));
+      return;
+    }
 
     const url = kontraktId
       ? `/api/kontrakt?projekt_id=${id}&bygherre_id=${user.id}&kontrakt_id=${kontraktId}`
       : `/api/kontrakt?projekt_id=${id}&bygherre_id=${user.id}`;
-    const r = await fetch(url);
+    const r = await fetch(url, {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    if (r.status === 401) {
+      setKontrakt(null);
+      setSideFejl(skrivFejlTekst("session"));
+      return;
+    }
+    if (r.status === 403) {
+      setKontrakt(null);
+      setSideFejl(skrivFejlTekst("adgang"));
+      return;
+    }
     const d = await r.json();
-    if (!d.error) setKontrakt(d);
+    if (!d.error) { setKontrakt(d); setSideFejl(""); }
     else setKontrakt(null);
 
     if (session?.access_token) {
@@ -174,25 +220,32 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
     if (!kontrakt || typeof kontrakt !== "object") return;
     const gyldige = betalingsplanRækker.filter(r => r.milepæl.trim() && r.andel.trim());
     setGemmer(true);
+    setSkrivFejl("");
     try {
-      const r = await fetch("/api/kontrakt", {
+      const resultat = await autentificeretFetch("/api/kontrakt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ kontrakt_id: kontrakt.id, betalingsplan: gyldige }),
       });
-      const data = await r.json();
-      if (!data.error) setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, ...data } : prev);
+      if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
+      const data = await resultat.res.json();
+      if (!data.error) {
+        setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, ...data } : prev);
+        setRedigererBetalingsplan(false);
+      } else {
+        setSkrivFejl("Kunne ikke gemme betalingsplanen. Prøv igen.");
+      }
     } finally {
       setGemmer(false);
-      setRedigererBetalingsplan(false);
     }
   }
 
   async function gemFeltOpdatering(felt: string) {
     if (!kontrakt || typeof kontrakt !== "object") return;
     setGemmer(true);
+    setSkrivFejl("");
     try {
-      const r = await fetch("/api/kontrakt", {
+      const resultat = await autentificeretFetch("/api/kontrakt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -201,13 +254,16 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
           // startdato/slutdato sendes som ISO-streng direkte
         }),
       });
-      const data = await r.json();
+      if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
+      const data = await resultat.res.json();
       if (!data.error) {
         setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, ...data } : prev);
+        setRedigererFelt(null);
+      } else {
+        setSkrivFejl("Kunne ikke gemme ændringen. Prøv igen.");
       }
     } finally {
       setGemmer(false);
-      setRedigererFelt(null);
     }
   }
 
@@ -232,9 +288,10 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   async function sendInvitation() {
     if (!kontrakt || typeof kontrakt !== "object" || !inviterEmail.trim()) return;
     setSender(true);
+    setSkrivFejl("");
     try {
       // Gem håndværkerinfo + email på kontrakten
-      await fetch("/api/kontrakt", {
+      const resultat = await autentificeretFetch("/api/kontrakt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -244,6 +301,12 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
           ...(inviterCvr.replace(/\s/g, "").length === 8 ? { haandvaerker_cvr: inviterCvr.replace(/\s/g, "") } : {}),
         }),
       });
+      if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
+      const opdateretData = await resultat.res.json();
+      if (opdateretData.error) {
+        setSkrivFejl("Kunne ikke gemme håndværkerens oplysninger. Prøv igen.");
+        return;
+      }
 
       // Send e-mail til håndværker
       await fetch("/api/email", {
@@ -314,14 +377,17 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   async function godkendTidsplan() {
     if (!kontrakt || typeof kontrakt !== "object" || godkenderTidsplan) return;
     setGodkenderTidsplan(true);
+    setSkrivFejl("");
     try {
-      const r = await fetch("/api/kontrakt", {
+      const resultat = await autentificeretFetch("/api/kontrakt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ kontrakt_id: kontrakt.id, godkend_tidsplan: true }),
       });
-      const data = await r.json();
+      if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
+      const data = await resultat.res.json();
       if (!data.error) setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, tidsplan: data.tidsplan } : prev);
+      else setSkrivFejl("Kunne ikke godkende tidsplanen. Prøv igen.");
     } finally {
       setGodkenderTidsplan(false);
     }
@@ -330,14 +396,17 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   async function godkendForudsaetninger() {
     if (!kontrakt || typeof kontrakt !== "object" || godkenderForudsaetninger) return;
     setGodkenderForudsaetninger(true);
+    setSkrivFejl("");
     try {
-      const r = await fetch("/api/kontrakt", {
+      const resultat = await autentificeretFetch("/api/kontrakt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ kontrakt_id: kontrakt.id, godkend_forudsaetninger: true }),
       });
-      const data = await r.json();
+      if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
+      const data = await resultat.res.json();
       if (!data.error) setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, forudsaetninger_godkendt: true } : prev);
+      else setSkrivFejl("Kunne ikke godkende forudsætningerne. Prøv igen.");
     } finally {
       setGodkenderForudsaetninger(false);
     }
@@ -410,7 +479,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
       <div className="min-h-screen bg-gray-50">
         <ProjektNav id={id} />
         <div className="max-w-2xl mx-auto px-6 py-20 text-center">
-          <p className="text-gray-500">Kunne ikke hente kontraktdata.</p>
+          <p className="text-gray-500">{sideFejl || "Kunne ikke hente kontraktdata."}</p>
         </div>
       </div>
     );
@@ -505,6 +574,9 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
         )}
         {opretFejl && (
           <p className="text-xs text-red-600 mb-5 font-medium">{opretFejl}</p>
+        )}
+        {skrivFejl && (
+          <p className="text-xs text-red-600 mb-5 font-medium">{skrivFejl}</p>
         )}
 
         {/* Invitation-modal */}
@@ -838,17 +910,23 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                             onClick={async () => {
                               const nyBeskrivelse = beskrivelseHeader ? beskrivelseHeader + "\n" + feltVaerdi : feltVaerdi;
                               setGemmer(true);
+                              setSkrivFejl("");
                               try {
-                                const r = await fetch("/api/kontrakt", {
+                                const resultat = await autentificeretFetch("/api/kontrakt", {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
                                   body: JSON.stringify({ kontrakt_id: kontrakt.id, beskrivelse: nyBeskrivelse }),
                                 });
-                                const data = await r.json();
-                                if (!data.error) setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, ...data } : prev);
+                                if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
+                                const data = await resultat.res.json();
+                                if (!data.error) {
+                                  setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, ...data } : prev);
+                                  setRedigererFelt(null);
+                                } else {
+                                  setSkrivFejl("Kunne ikke gemme ændringen. Prøv igen.");
+                                }
                               } finally {
                                 setGemmer(false);
-                                setRedigererFelt(null);
                               }
                             }}
                             disabled={gemmer}
@@ -930,14 +1008,21 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       <button
                         onClick={async () => {
                           if (!kontrakt || typeof kontrakt !== "object") return;
-                          await fetch("/api/kontrakt", {
+                          setSkrivFejl("");
+                          const resultat = await autentificeretFetch("/api/kontrakt", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ kontrakt_id: kontrakt.id, afvis_forudsaetninger: true }),
                           });
-                          setKontrakt(prev => prev && typeof prev === "object"
-                            ? { ...prev, forudsaetninger: null, forudsaetninger_sendt_at: null, forudsaetninger_godkendt: null }
-                            : prev);
+                          if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
+                          const data = await resultat.res.json();
+                          if (!data.error) {
+                            setKontrakt(prev => prev && typeof prev === "object"
+                              ? { ...prev, forudsaetninger: null, forudsaetninger_sendt_at: null, forudsaetninger_godkendt: null }
+                              : prev);
+                          } else {
+                            setSkrivFejl("Kunne ikke afvise forudsætningerne. Prøv igen.");
+                          }
                         }}
                         className="flex-1 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                       >

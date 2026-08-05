@@ -4,17 +4,60 @@ import { sendNotifikation } from "@/lib/notifikationer";
 
 export const runtime = "nodejs";
 
+// Verificerer Bearer JWT og at brugeren har den autoritative rolle "bygherre".
+// Ejerskab af det konkrete projekt/kontrakt kontrolleres separat i hver
+// handler, da GET og POST har forskellige ressourcer at slå op.
+async function verificerBygherre(req: NextRequest) {
+  const authHeader = req.headers.get("authorization") ?? "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  if (!token) {
+    return { error: NextResponse.json({ error: "Ikke godkendt" }, { status: 401 }) } as const;
+  }
+
+  const db = createServiceClient();
+
+  const { data: { user }, error: authError } = await db.auth.getUser(token);
+  if (authError || !user) {
+    return { error: NextResponse.json({ error: "Ikke godkendt" }, { status: 401 }) } as const;
+  }
+
+  const { data: profil } = await db
+    .from("profiler")
+    .select("rolle")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profil?.rolle !== "bygherre") {
+    return { error: NextResponse.json({ error: "Adgang afvist" }, { status: 403 }) } as const;
+  }
+
+  return { db, userId: user.id } as const;
+}
+
 // GET /api/kontrakt?projekt_id=xxx  — hent eller opret kontrakt for projekt
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const projekt_id = searchParams.get("projekt_id");
-  const bygherre_id = searchParams.get("bygherre_id");
 
   if (!projekt_id) {
     return NextResponse.json({ error: "projekt_id mangler" }, { status: 400 });
   }
 
-  const db = createServiceClient();
+  const authResult = await verificerBygherre(req);
+  if ("error" in authResult) return authResult.error;
+  const { db, userId } = authResult;
+
+  const { data: projekt } = await db
+    .from("projekter")
+    .select("id, bygherre_id, adresse, projekttype, startdato, slutdato, budget")
+    .eq("id", projekt_id)
+    .maybeSingle();
+
+  if (!projekt) return NextResponse.json({ error: "Projekt ikke fundet" }, { status: 404 });
+  if (projekt.bygherre_id !== userId) {
+    return NextResponse.json({ error: "Adgang afvist" }, { status: 403 });
+  }
+
   const { data, error } = await db
     .from("kontrakter")
     .select("*, kontraktaendringer(*)")
@@ -29,15 +72,10 @@ export async function GET(req: NextRequest) {
 
   // Eksisterende kontrakt mangler dato — hent fra projekt og opdater
   if (data && (!data.startdato || !data.slutdato)) {
-    const { data: projekt } = await db
-      .from("projekter")
-      .select("startdato, slutdato")
-      .eq("id", projekt_id)
-      .single();
-    if (projekt?.startdato || projekt?.slutdato) {
+    if (projekt.startdato || projekt.slutdato) {
       const patch: Record<string, unknown> = {};
-      if (!data.startdato && projekt?.startdato) patch.startdato = projekt.startdato;
-      if (!data.slutdato && projekt?.slutdato) patch.slutdato = projekt.slutdato;
+      if (!data.startdato && projekt.startdato) patch.startdato = projekt.startdato;
+      if (!data.slutdato && projekt.slutdato) patch.slutdato = projekt.slutdato;
       if (Object.keys(patch).length > 0) {
         const { data: opdateret } = await db
           .from("kontrakter")
@@ -51,28 +89,20 @@ export async function GET(req: NextRequest) {
   }
 
   if (!data) {
-    // Hent projektdata for at præ-udfylde kontrakten
-    const { data: projekt } = await db
-      .from("projekter")
-      .select("adresse, projekttype, startdato, slutdato, budget")
-      .eq("id", projekt_id)
-      .single();
-
+    // Præ-udfyld kontrakten fra det allerede verificerede projekt
     const oprettet = new Date().toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
-    const titel = projekt
-      ? `${projekt.projekttype || "Byggeprojekt"}${projekt.adresse ? ` – ${projekt.adresse}` : ""}`
-      : null;
+    const titel = `${projekt.projekttype || "Byggeprojekt"}${projekt.adresse ? ` – ${projekt.adresse}` : ""}`;
 
     const { data: ny, error: opretFejl } = await db
       .from("kontrakter")
       .insert({
         projekt_id,
-        bygherre_id: bygherre_id || null,
+        bygherre_id: projekt.bygherre_id,
         status: "udkast",
         titel: titel || null,
-        startdato: projekt?.startdato || null,
-        slutdato: projekt?.slutdato || null,
-        total_pris: projekt?.budget || null,
+        startdato: projekt.startdato || null,
+        slutdato: projekt.slutdato || null,
+        total_pris: projekt.budget || null,
         vilkaar: "AB-Forbruger 2012 er gældende for denne aftale i sin helhed.",
         beskrivelse: titel ? `NEMBYGGESTYRING\nnembyggestyring.dk\n\nDato\n${oprettet}\n\nUDBUDSDOKUMENT\n\n${titel}\n\nBYGHERRE\n` : null,
       })
@@ -91,14 +121,39 @@ export async function GET(req: NextRequest) {
 
 // POST /api/kontrakt — opdater kontraktindhold
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { kontrakt_id, bygherre_id, titel, beskrivelse, total_pris, betalingsplan, vilkaar, startdato, slutdato, haandvaerker_navn, haandvaerker_email, haandvaerker_firma, haandvaerker_cvr, godkend_tidsplan, godkend_forudsaetninger, afvis_forudsaetninger } = body;
+  const body = await req.json().catch(() => ({}));
+  const { kontrakt_id, titel, beskrivelse, total_pris, betalingsplan, vilkaar, startdato, slutdato, haandvaerker_navn, haandvaerker_email, haandvaerker_firma, haandvaerker_cvr, godkend_tidsplan, godkend_forudsaetninger, afvis_forudsaetninger } = body;
 
   if (!kontrakt_id) {
     return NextResponse.json({ error: "kontrakt_id mangler" }, { status: 400 });
   }
 
-  const db = createServiceClient();
+  const authResult = await verificerBygherre(req);
+  if ("error" in authResult) return authResult.error;
+  const { db, userId } = authResult;
+
+  const { data: eksisterendeKontrakt } = await db
+    .from("kontrakter")
+    .select("id, projekt_id")
+    .eq("id", kontrakt_id)
+    .maybeSingle();
+
+  if (!eksisterendeKontrakt) {
+    return NextResponse.json({ error: "Kontrakt ikke fundet" }, { status: 404 });
+  }
+
+  const { data: projekt } = await db
+    .from("projekter")
+    .select("bygherre_id")
+    .eq("id", eksisterendeKontrakt.projekt_id)
+    .maybeSingle();
+
+  if (!projekt) {
+    return NextResponse.json({ error: "Projekt ikke fundet" }, { status: 404 });
+  }
+  if (projekt.bygherre_id !== userId) {
+    return NextResponse.json({ error: "Adgang afvist" }, { status: 403 });
+  }
 
   const opdatering: Record<string, unknown> = { opdateret_at: new Date().toISOString() };
   if (titel !== undefined) opdatering.titel = titel;
@@ -168,13 +223,10 @@ export async function POST(req: NextRequest) {
     opdatering.haandvaerker_godkendt_at = null;
   }
 
-  const where: Record<string, unknown> = { id: kontrakt_id };
-  if (bygherre_id) where.bygherre_id = bygherre_id;
-
   const { data, error } = await db
     .from("kontrakter")
     .update(opdatering)
-    .match(where)
+    .eq("id", kontrakt_id)
     .select()
     .single();
 

@@ -87,9 +87,17 @@ export default function UdbudResultat() {
       // 1. Opret projekt i databasen
       const rProjekt = await fetch("/api/projekter", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bygherre_id: user.id, projekttype, adresse, navn, kontakt, startdato: data.opstart || null, slutdato: data.slutdato || null }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ projekttype, adresse, navn, kontakt, startdato: data.opstart || null, slutdato: data.slutdato || null }),
       });
+      if (rProjekt.status === 401) {
+        setOpretFejl("Din session er udløbet. Log ind igen for at oprette aftalegrundlaget.");
+        return;
+      }
+      if (rProjekt.status === 403) {
+        setOpretFejl("Du har ikke adgang til at oprette et projekt.");
+        return;
+      }
       const projekt = await rProjekt.json();
       if (projekt.error || !projekt.id) {
         setOpretFejl(`Projekt fejl: ${projekt.error || "ukendt fejl"}`);
@@ -118,9 +126,9 @@ export default function UdbudResultat() {
       }
 
       // 3. Fyld kontrakt med AI-dokument og evt. håndværkeroplysninger
-      await fetch("/api/kontrakt", {
+      const rOpdater = await fetch("/api/kontrakt", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({
           kontrakt_id: k.id,
           titel: data.titel,
@@ -128,6 +136,19 @@ export default function UdbudResultat() {
           ...(haandvaerkerEmail ? { haandvaerker_email: haandvaerkerEmail } : {}),
         }),
       });
+      if (rOpdater.status === 401) {
+        setOpretFejl("Din session er udløbet. Log ind igen for at fortsætte.");
+        return;
+      }
+      if (rOpdater.status === 403) {
+        setOpretFejl("Du har ikke adgang til at opdatere dette aftalegrundlag.");
+        return;
+      }
+      const opdateretKontrakt = await rOpdater.json();
+      if (opdateretKontrakt.error) {
+        setOpretFejl("Kunne ikke gemme aftalegrundlaget. Prøv igen.");
+        return;
+      }
 
       // 4. Send invitations-email til håndværker
       if (haandvaerkerEmail && k.haandvaerker_token) {
