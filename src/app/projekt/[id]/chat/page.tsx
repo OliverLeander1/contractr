@@ -20,17 +20,30 @@ export default function ChatLanding() {
   const [kontrakter, setKontrakter] = useState<Kontrakt[]>([]);
   const [indlæser, setIndlæser] = useState(true);
   const [ikkeLoggetInd, setIkkeLoggetInd] = useState(false);
+  const [ikkeAdgang, setIkkeAdgang] = useState(false);
 
   useEffect(() => {
     async function hent() {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
         setIkkeLoggetInd(true);
         setIndlæser(false);
         return;
       }
-      const res = await fetch(`/api/projekter/${id}/kontrakter`);
+      const res = await fetch(`/api/projekter/${id}/kontrakter`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.status === 401) {
+        setIkkeLoggetInd(true);
+        setIndlæser(false);
+        return;
+      }
+      if (res.status === 403) {
+        setIkkeAdgang(true);
+        setIndlæser(false);
+        return;
+      }
       const data = await res.json();
       if (Array.isArray(data)) setKontrakter(data);
       setIndlæser(false);
@@ -44,6 +57,17 @@ export default function ChatLanding() {
         <ProjektNav id={id} />
         <div className="max-w-2xl mx-auto px-6 py-20 text-center">
           <p className="text-sm text-gray-500">Log ind for at se dine samtaler.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!indlæser && ikkeAdgang) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <ProjektNav id={id} />
+        <div className="max-w-2xl mx-auto px-6 py-20 text-center">
+          <p className="text-sm text-gray-500">Du har ikke adgang til denne sag.</p>
         </div>
       </div>
     );

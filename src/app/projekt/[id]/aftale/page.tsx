@@ -109,12 +109,15 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const [godkenderForudsaetninger, setGodkenderForudsaetninger] = useState(false);
   const [alleKontrakter, setAlleKontrakter] = useState<{ id: string; titel: string | null; status: string; oprettet_at: string }[]>([]);
   const [opretter, setOpretter] = useState(false);
+  const [opretFejl, setOpretFejl] = useState("");
   const [besigtigelse, setBesigtigelse] = useState<Besigtigelse | null | "loading" | "error">("loading");
 
   const hentKontrakt = useCallback(async (kontraktId?: string) => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
+
+    const { data: { session } } = await supabase.auth.getSession();
 
     const url = kontraktId
       ? `/api/kontrakt?projekt_id=${id}&bygherre_id=${user.id}&kontrakt_id=${kontraktId}`
@@ -124,13 +127,18 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
     if (!d.error) setKontrakt(d);
     else setKontrakt(null);
 
-    const alleR = await fetch(`/api/projekter/${id}/kontrakter`);
-    const alleD = await alleR.json();
-    if (Array.isArray(alleD)) setAlleKontrakter(alleD);
+    if (session?.access_token) {
+      const alleR = await fetch(`/api/projekter/${id}/kontrakter`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (alleR.ok) {
+        const alleD = await alleR.json();
+        if (Array.isArray(alleD)) setAlleKontrakter(alleD);
+      }
+    }
 
     // Hent besigtigelse for den aktuelle kontrakt
     if (d && !d.error && d.id) {
-      const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
         setBesigtigelse("loading");
         const bRes = await fetch(`/api/besigtigelse?kontrakt_id=${d.id}`, {
@@ -263,14 +271,40 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   async function opretNyKontrakt() {
     if (opretter) return;
     setOpretter(true);
+    setOpretFejl("");
     try {
-      const r = await fetch(`/api/projekter/${id}/kontrakter`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setOpretFejl("Din session er udløbet. Log ind igen for at oprette en ny sag.");
+        return;
+      }
+
+      const r = await fetch(`/api/projekter/${id}/kontrakter`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({}),
+      });
+      if (r.status === 401) {
+        setOpretFejl("Din session er udløbet. Log ind igen for at oprette en ny sag.");
+        return;
+      }
+      if (r.status === 403) {
+        setOpretFejl("Du har ikke adgang til denne sag.");
+        return;
+      }
       const d = await r.json();
       if (!d.error) {
         setKontrakt({ ...d });
-        const alleR = await fetch(`/api/projekter/${id}/kontrakter`);
-        const alleD = await alleR.json();
-        if (Array.isArray(alleD)) setAlleKontrakter(alleD);
+        const alleR = await fetch(`/api/projekter/${id}/kontrakter`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (alleR.ok) {
+          const alleD = await alleR.json();
+          if (Array.isArray(alleD)) setAlleKontrakter(alleD);
+        }
+      } else {
+        setOpretFejl("Kunne ikke oprette ny sag. Prøv igen.");
       }
     } finally {
       setOpretter(false);
@@ -468,6 +502,9 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               </button>
             ))}
           </div>
+        )}
+        {opretFejl && (
+          <p className="text-xs text-red-600 mb-5 font-medium">{opretFejl}</p>
         )}
 
         {/* Invitation-modal */}

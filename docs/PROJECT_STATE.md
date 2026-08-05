@@ -179,6 +179,23 @@ ef0d1d2
   accepteret — entreprenøren kan fortsat se egne sager, og den
   tidligere email-query-baserede adgang er lukket: et vilkårligt
   ?email=-parameter påvirker ikke længere resultatet.
+- GET og POST /api/projekter/[id]/kontrakter kræver nu Bearer JWT +
+  auth.getUser(); rollen verificeres mod profiler.rolle = "bygherre",
+  og projektejerskab kontrolleres server-side via projekter.bygherre_id
+  === den verificerede bruger, før noget læses eller oprettes. Tidligere
+  var routen helt uden auth-tjek og eksponerede alle et projekts
+  kontrakter, inkl. haandvaerker_token (invitationsnøglen bag
+  /kontrakt/[token]), for enhver der kendte eller gættede et projekt-id.
+  haandvaerker_token returneres fortsat i GET-responsen, men kun til den
+  verificerede projektejer — feltet er dokumenteret genuint nødvendigt
+  af ekstraarbejde-flowets håndværkernotifikation. Aftale-, ekstraarbejde-
+  og chat-siderne samt det ældre AI-oprettelsesflow
+  (opret/udbud-resultat) sender nu alle Bearer-token på deres kald til
+  denne route. Response shape er uændret for den autoriserede ejer.
+  (commit: se "fix: secure project contract listing"). De øvrige usikre
+  legacy-routes — POST /api/projekter samt GET/POST /api/kontrakt — er
+  IKKE sikret endnu og er planlagt som en separat, efterfølgende opgave.
+  Browsertest af den sikrede kontraktlisteroute mangler fortsat.
 
 # Parkeret
 

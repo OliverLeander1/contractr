@@ -56,6 +56,7 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
   const [visOpret, setVisOpret]     = useState(false);
   const [gemmer, setGemmer]         = useState(false);
   const [godkender, setGodkender]   = useState<string | null>(null);
+  const [sessionsfejl, setSessionsfejl] = useState<string | null>(null);
 
   // Opret-formular
   const [beskrivelse, setBeskrivelse]               = useState("");
@@ -78,10 +79,30 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
 
   const hentData = useCallback(async () => {
     setIndlæser(true);
+    setSessionsfejl(null);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      setSessionsfejl("Din session er udløbet. Log ind igen for at se aftalesedler.");
+      setIndlæser(false);
+      return;
+    }
+
     const [kontraktRes, { data: e }] = await Promise.all([
-      fetch(`/api/projekter/${id}/kontrakter`).then(r => r.json()),
+      fetch(`/api/projekter/${id}/kontrakter`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      }).then(r => {
+        if (r.status === 401) { setSessionsfejl("Din session er udløbet. Log ind igen for at se aftalesedler."); return null; }
+        if (r.status === 403) { setSessionsfejl("Du har ikke adgang til denne sag."); return null; }
+        return r.json();
+      }),
       supabase.from("ekstraarbejde").select("*").eq("projekt_id", id).order("oprettet_at", { ascending: false }),
     ]);
+
+    if (kontraktRes === null) {
+      setIndlæser(false);
+      return;
+    }
     if (!Array.isArray(kontraktRes)) {
       console.error("API fejl fra /kontrakter:", JSON.stringify(kontraktRes));
     }
@@ -364,6 +385,10 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
         {indlæser ? (
           <div className="flex justify-center py-16">
             <div className="w-6 h-6 border-2 border-gray-200 border-t-[#1e3a2a] rounded-full animate-spin" />
+          </div>
+        ) : sessionsfejl ? (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center mb-6">
+            <p className="text-sm text-gray-500">{sessionsfejl}</p>
           </div>
         ) : kontrakter.length === 0 && !erHaandvaerker ? (
           <div className="bg-white rounded-2xl border border-amber-200 p-10 text-center mb-6">

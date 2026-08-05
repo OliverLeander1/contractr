@@ -72,6 +72,12 @@ export default function UdbudResultat() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push("/login?next=/opret/udbud-resultat"); return; }
 
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setOpretFejl("Din session er udløbet. Log ind igen for at oprette aftalegrundlaget.");
+        return;
+      }
+
       // Læs projektoplysninger fra sessionStorage (udfyldt i trin 1)
       const projekttype = sessionStorage.getItem("screening_projekttype") || "andet";
       const adresse = sessionStorage.getItem("screening_adresse") || null;
@@ -94,9 +100,17 @@ export default function UdbudResultat() {
       // 2. Opret kontrakt for projektet
       const rKontrakt = await fetch(`/api/projekter/${projekt_id}/kontrakter`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({}),
       });
+      if (rKontrakt.status === 401) {
+        setOpretFejl("Din session er udløbet. Log ind igen for at oprette aftalegrundlaget.");
+        return;
+      }
+      if (rKontrakt.status === 403) {
+        setOpretFejl("Du har ikke adgang til at oprette dette aftalegrundlag.");
+        return;
+      }
       const k = await rKontrakt.json();
       if (k.error || !k.id) {
         setOpretFejl("Kunne ikke oprette aftalegrundlag. Prøv igen.");

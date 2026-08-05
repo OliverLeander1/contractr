@@ -1,32 +1,41 @@
 # Aktiv opgave
 
-Browsertest af projektgrundlags-API og bygherre-UI.
+Manuel browsertest af den sikrede kontraktlisteroute
+(GET/POST /api/projekter/[id]/kontrakter) og dens fire brugerflows.
 
-Migrationen, API'et og UI'et er implementeret og kodegennemgået, men
-IKKE endnu manuelt browsertestet. Denne opgave er ikke dokumenteret som
+Sikringen er implementeret og kodegennemgået (typecheck, lint og lokale
+401-tests bestået), men IKKE endnu manuelt browsertestet med rigtige
+bygherre-/entreprenørkonti. Denne opgave er ikke dokumenteret som
 gennemført, før Oliver har udført og bekræftet testen.
 
 Browsertesten skal omfatte:
 
-- tomtilstand (projekt uden projektgrundlag)
-- oprettelse af mindst to projektgrundlag under samme projekt
-- redigering af et eksisterende projektgrundlag
-- status ændret til "Klar til invitation"
-- status ændret tilbage til "Under udarbejdelse"
-- mobilbredde (ingen vandret overflow, alle handlinger tilgængelige)
-- navigation (den nye "Projektgrundlag"-fane i ProjektNav, aktiv
-  tilstand, øvrige faner og "Book rådgiver" fortsat virkende)
-- bekræft at ingen kontrakt oprettes som sideeffekt af noget i dette
-  flow
+- Aftale kan indlæse kontrakter
+- ekstra kontrakt kan oprettes
+- Chat kan indlæse kontraktsamtaler
+- Ekstraarbejde viser fortsat "Ny aftaleseddel"
+- godkendelse af aftaleseddel kan fortsat sende håndværkernotifikation
+- AI-genereret projektforslag kan fortsætte gennem
+  kontraktoprettelsestrinnet for en logget ind bygherre
+- logout eller udløbet session giver forståelig fejl
+- uautentificeret request får ingen kontraktdata eller token
 
-# Næste planlagte opgave (efter godkendt browsertest)
+# Næste opgave efter godkendt browsertest
 
-Afgræns sikker invitationsmodel til flere entreprenører pr.
-projektgrundlag.
+Sikring af POST /api/projekter samt GET/POST /api/kontrakt og deres
+resterende call sites.
 
 **Claude må ikke fortsætte automatisk til denne opgave.** Skal først
 igangsættes efter Oliver eksplicit har gennemført og godkendt
-browsertesten af projektgrundlags-API og bygherre-UI.
+browsertesten af den sikrede kontraktlisteroute.
+
+# Efter dén opgave (uændret rækkefølge)
+
+Browsertest af projektgrundlags-API og bygherre-UI (tomtilstand,
+oprettelse af flere projektgrundlag, redigering, statusskift, mobil,
+navigation, ingen kontrakt oprettet som sideeffekt), herefter afgrænsning
+af en sikker invitationsmodel til flere entreprenører pr. projektgrundlag.
+Ingen af delene er igangsat.
 
 # Chat-, navigations- og sikkerhedsfaser (afsluttet)
 
