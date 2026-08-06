@@ -252,6 +252,83 @@ ef0d1d2
     sammenligning) er fortsat ikke implementeret.
   - Manuel browsertest af de sikrede routes mangler fortsat.
 
+# Aftaledokumentets struktur — V2-format (commit: se "fix: protect
+document structure and dates")
+
+- Nye AI-genererede aftaler gemmes nu i kontrakter.beskrivelse i et
+  stabilt, versioneret internt format med markøren
+  [[NEMBYG_DOKUMENT_V2]] som første linje, efterfulgt af entydige
+  sektionsmarkører ([INTRO], [ARBEJDSOMFANG], [KRAV_OG_OENSKER],
+  [PRAKTISKE_FORHOLD]). Parsing sker udelukkende ud fra disse præcise
+  markørstrenge — ikke den tidligere upålidelige regex-heuristik, der
+  gættede en opdeling ud fra AI'ens formatering.
+- Eksisterende aftaler (uden V2-markøren) er urørte og forbliver
+  legacy-format: uændret visning, uændret redigeringsadfærd, ingen
+  automatisk konvertering, ingen skjult normalisering. Dette er en
+  bevidst, permanent undtagelse — ikke en midlertidig tilstand, der
+  forventes ryddet op senere.
+- For V2-dokumenter er følgende nu systemstyret og ikke redigerbart
+  inde i selve dokumentet: sektionsoverskrifter, projekttitel (vises fra
+  kontrakter.titel), adresse (vises fra projekter.adresse, tilføjet
+  additivt som projekt_adresse i GET /api/kontrakt-responsen),
+  bygherre, dokumentdato (vises fra kontrakter.oprettet_at — ikke
+  længere new Date()), samt start-, slut- og alle øvrige
+  projektdatoer (vises fra de eksisterende tidsplansfelter). Den korte
+  AI-genererede projektopsummering (INTRO, afledt af AI'ens
+  resumé-felt) er ligeledes read-only.
+- Kun tre narrative sektioner kan redigeres for V2-dokumenter, hver for
+  sig: Arbejdsomfang, Krav og ønsker, Praktiske forhold. Projekttitel
+  ændres fortsat kun i det eksisterende separate titelfelt; datoer
+  ændres fortsat kun i Tidsplan.
+- Klient- og servervalidering afviser konkrete kalenderdatoer
+  (numerisk eller med dansk månedsnavn) i disse tre sektioner ved gem —
+  serveren returnerer 400 "Datoer ændres i Tidsplan." før
+  kontrakter.beskrivelse opdateres. Testeksempler som "AB-Forbruger
+  2012", "BR18", "DS/EN 12464-1" og "Produktserie 2024" bekræfter kun,
+  at årstal og standardnumre ikke fejlagtigt blokeres som datoer — ikke
+  at noget af dette dermed er gældende for aftalen (kun konkrete datoer
+  blokeres, ikke bare årstal). Legacy-dokumenter rammes ikke af denne
+  kontrol.
+- AI-prompten i /api/udbud er justeret til ikke længere at nævne
+  adressen eller konkrete datoer i de frie tekstfelter, og en snæver,
+  case-insensitiv normalisering retter nu deterministisk kendte
+  stavevarianter ("entrepreneuren" → "entreprenøren", "entrepreneur" →
+  "entreprenør") i AI-outputtet, uafhængigt af om prompten alene
+  virker.
+- Bindende produktregel om AB 18, BR18 og DS/DS-EN-standarder — tre
+  begreber, der ikke må sammenblandes:
+  - AB-Forbruger er fortsat Nembyggestyrings normale aftalegrundlag for
+    private bygherrer. AB 18 er et separat kontraktuelt regelsæt for
+    større/professionelle sager. AI-prompten forbyder nu eksplicit, at
+    AB 18 nogensinde indsættes automatisk, foreslås som standard,
+    erklæres som aftalegrundlag, eller blandes sammen med AB-Forbruger.
+    AB 18 må kun komme i betragtning efter et senere, særskilt og
+    eksplicit bevidst valg i en relevant sag — ikke implementeret
+    endnu.
+  - BR18 (Bygningsreglementet) er noget andet end AB 18 og behandles
+    IKKE som et valgfrit kontraktvilkår. AI'en må og skal fortsat
+    kunne omtale relevante BR18-krav og entreprenørens pligt til at
+    overholde gældende lovgivning, men må ikke påstå at samtlige
+    BR18-krav gælder for enhver opgave.
+  - AI'en må og skal fortsat kunne omtale relevante DS- og
+    DS/EN-standarder, men må ikke opfinde standardnumre, påstå at alle
+    DS-standarder er obligatoriske, indsætte en irrelevant standard,
+    eller foretage en skjult juridisk/teknisk vurdering uden
+    kildegrundlag.
+  - Ved juridisk eller teknisk usikkerhed (herunder hvilke BR18-krav
+    eller standarder der reelt er relevante) skal AI'en markere
+    forholdet som noget der bør afklares, frem for at opfinde et krav
+    eller en gældende regel.
+  - Testeksemplerne "AB-Forbruger 2012", "BR18", "DS/EN 12464-1" og
+    "Produktserie 2024" i datovalideringen er alene regex-testtekst,
+    der bekræfter at årstal og standardnumre ikke fejlblokeres som
+    datoer — de erklærer ikke i sig selv noget som gældende.
+- Ingen databaseændring eller migration er foretaget — alle
+  autoritative felter (projekter.adresse, kontrakter.startdato,
+  kontrakter.slutdato, kontrakter.oprettet_at, kontrakter.titel)
+  fandtes allerede.
+- Manuel browsertest mangler fortsat (se docs/ACTIVE_TASK.md).
+
 # Parkeret
 
 - besigtigelsesflowet: bygherren kan i dag selv sende en

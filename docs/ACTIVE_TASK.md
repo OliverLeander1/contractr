@@ -1,18 +1,42 @@
 # Aktiv opgave
 
-Manuel browsertest af de resterende sikrede projekt- og kontraktroutes
-(POST /api/projekter, GET/POST /api/kontrakt).
+Manuel browsertest af det nye V2-dokumentformat (sektionsoverskrifter,
+INTRO, adresse, dokumentdato og datovalidering), samt af de tidligere
+sikrede projekt- og kontraktroutes (POST /api/projekter, GET/POST
+/api/kontrakt), som stadig afventer bekræftelse.
 
-Sikringen er implementeret og kodegennemgået (typecheck og lint
-bestået), men IKKE endnu manuelt browsertestet med en rigtig
-bygherrekonto. Live 401-tests mod endepunkterne er bevidst ikke
-udført i denne opgave, fordi GET /api/kontrakt har en kendt
-oprettelses-sideeffekt, og localhost kan være forbundet til
-produktionsdatabasen — auth-rækkefølgen er i stedet verificeret ved
-kodegennemgang. Denne opgave er ikke dokumenteret som gennemført, før
-Oliver har udført og bekræftet testen.
+Begge dele er implementeret og kodegennemgået (typecheck og lint
+bestået, lokal read-only regex-test af datovalideringen bekræftet, samt
+en klientside-røgtest af V2-visning og -redigering udført lokalt uden
+login). Ingen af delene er dokumenteret som gennemført, før Oliver har
+udført og bekræftet testen.
 
-Browsertesten skal omfatte:
+Browsertesten skal omfatte (V2-dokumentformat):
+
+- opret nyt AI-genereret testprojekt
+- bekræft V2-visning (faste sektionsoverskrifter, ingen synlige
+  markører)
+- bekræft at INTRO (projektopsummering) og overskrifter ikke kan
+  redigeres
+- bekræft at Arbejdsomfang kan redigeres
+- bekræft at Krav og ønsker og Praktiske forhold kan redigeres separat
+- forsøg at gemme "arbejdet afsluttes 4. september 2026" i en af de tre
+  narrative sektioner og forvent afvisning med "Datoer ændres i
+  Tidsplan."
+- gem hver af de neutrale testeksempler "AB-Forbruger 2012", "BR18",
+  "DS/EN 12464-1" og "Produktserie 2024" enkeltvis i en narrativ
+  sektion og forvent succes for hver (testen bekræfter kun, at
+  årstal/standardnumre ikke fejlagtigt blokeres som datoer — ikke at
+  nogen af delene dermed er gældende for aftalen)
+- ændr slutdato i Tidsplan og bekræft at dokumentvisningen følger med
+  automatisk
+- kontrollér at adresse (fra projekter.adresse) og dokumentdato (fra
+  kontrakter.oprettet_at) vises korrekt i dokumentheaderen
+- åbn en eksisterende legacy-aftale (oprettet før denne opgave) og
+  bekræft uændret visning og redigeringsadfærd
+
+Browsertesten skal fortsat omfatte (tidligere, endnu ubekræftede
+routes):
 
 - logget ind bygherre kan generere et AI-projektforslag
 - projektet kan oprettes
@@ -36,7 +60,7 @@ foreslår et andet tidspunkt.
 
 **Claude må ikke fortsætte automatisk til denne opgave.** Skal først
 igangsættes efter Oliver eksplicit har gennemført og godkendt
-browsertesten af de sikrede projekt- og kontraktroutes.
+browsertesten ovenfor.
 
 # Efter dén opgave (uændret rækkefølge)
 

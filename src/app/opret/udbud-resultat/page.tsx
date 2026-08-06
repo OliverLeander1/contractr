@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import FlowLayout from "@/components/FlowLayout";
 import { createClient } from "@/lib/supabase";
 import { track } from "@/lib/analytics";
-import DokumentRenderer from "@/components/DokumentRenderer";
+import DokumentRenderer, { byggV2Dokument, indeholderKonkretDato } from "@/components/DokumentRenderer";
 
 interface UdbudResultat {
   titel: string;
@@ -23,22 +23,18 @@ interface UdbudResultat {
 export default function UdbudResultat() {
   const router = useRouter();
   const [data, setData] = useState<UdbudResultat | null>(null);
-  const [tekst, setTekst] = useState("");
   const [kopieret, setKopieret] = useState(false);
   const [opretter, setOpretter] = useState(false);
   const [opretFejl, setOpretFejl] = useState("");
   const [redigerer, setRedigerer] = useState(false);
 
-  // Splitter dokumentet i fast header og redigerbar body
-  const splitDokument = (t: string) => {
-    const linjer = t.split("\n");
-    const bodyStart = linjer.findIndex(l => /^\d+\.\s+[A-ZÆØÅ]/.test(l.trim()) && l.trim().length > 3);
-    if (bodyStart === -1) return { header: "", body: t };
-    return { header: linjer.slice(0, bodyStart).join("\n"), body: linjer.slice(bodyStart).join("\n") };
-  };
-
-  const { header: dokumentHeader, body: redigerbarBody } = splitDokument(tekst);
-  const [bodyTekst, setBodyTekst] = useState("");
+  // De fire AI-felter holdes adskilt fra start — INTRO (fra resumé) er
+  // aldrig redigerbar. Kun de tre narrative felter kan redigeres.
+  const [intro, setIntro] = useState("");
+  const [arbejdsomfang, setArbejdsomfang] = useState("");
+  const [kravOgOensker, setKravOgOensker] = useState("");
+  const [praktiskeForhold, setPraktiskeForhold] = useState("");
+  const [valideringsFejl, setValideringsFejl] = useState("");
 
   // Invite-step state
   const [visInvite, setVisInvite] = useState(false);
@@ -51,13 +47,10 @@ export default function UdbudResultat() {
       try {
         const parsed = JSON.parse(raw);
         setData(parsed);
-        // Sammensæt tekst med sektionsmarkører
-        const dele = [parsed.dokument || ""];
-        if (parsed.kravOgOensker?.trim()) dele.push("[KRAV OG ØNSKER]\n" + parsed.kravOgOensker.trim());
-        if (parsed.praktiskeForhold?.trim()) dele.push("[PRAKTISKE FORHOLD]\n" + parsed.praktiskeForhold.trim());
-        const samletTekst = dele.join("\n\n");
-        setTekst(samletTekst);
-        setBodyTekst(samletTekst);
+        setIntro(parsed.resumé || "");
+        setArbejdsomfang(parsed.dokument || "");
+        setKravOgOensker(parsed.kravOgOensker || "");
+        setPraktiskeForhold(parsed.praktiskeForhold || "");
         track("document_generated", { titel: parsed.titel });
       } catch { /* ignore */ }
     }
@@ -67,7 +60,13 @@ export default function UdbudResultat() {
     if (!data) return;
     setOpretter(true);
     setOpretFejl("");
+    setValideringsFejl("");
     try {
+      if (indeholderKonkretDato([arbejdsomfang, kravOgOensker, praktiskeForhold].join("\n"))) {
+        setValideringsFejl("Datoer ændres i Tidsplan.");
+        return;
+      }
+
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push("/login?next=/opret/udbud-resultat"); return; }
@@ -125,14 +124,15 @@ export default function UdbudResultat() {
         return;
       }
 
-      // 3. Fyld kontrakt med AI-dokument og evt. håndværkeroplysninger
+      // 3. Fyld kontrakt med AI-dokument (V2-format) og evt. håndværkeroplysninger
+      const beskrivelse = byggV2Dokument({ intro, arbejdsomfang, kravOgOensker, praktiskeForhold });
       const rOpdater = await fetch("/api/kontrakt", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({
           kontrakt_id: k.id,
           titel: data.titel,
-          beskrivelse: tekst,
+          beskrivelse,
           ...(haandvaerkerEmail ? { haandvaerker_email: haandvaerkerEmail } : {}),
         }),
       });
@@ -146,7 +146,7 @@ export default function UdbudResultat() {
       }
       const opdateretKontrakt = await rOpdater.json();
       if (opdateretKontrakt.error) {
-        setOpretFejl("Kunne ikke gemme aftalegrundlaget. Prøv igen.");
+        setOpretFejl(opdateretKontrakt.error);
         return;
       }
 
@@ -174,8 +174,15 @@ export default function UdbudResultat() {
     }
   }
 
+  function byggLæsbarKopi(): string {
+    const dele = [intro.trim(), arbejdsomfang.trim()].filter(Boolean);
+    if (kravOgOensker.trim()) dele.push(`Krav og ønsker:\n${kravOgOensker.trim()}`);
+    if (praktiskeForhold.trim()) dele.push(`Praktiske forhold:\n${praktiskeForhold.trim()}`);
+    return dele.join("\n\n");
+  }
+
   function kopier() {
-    navigator.clipboard.writeText(tekst).then(() => {
+    navigator.clipboard.writeText(byggLæsbarKopi()).then(() => {
       setKopieret(true);
       setTimeout(() => setKopieret(false), 2500);
     });
@@ -203,12 +210,12 @@ export default function UdbudResultat() {
           Klar til udsendelse
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{data.titel}</h1>
-        <p className="text-gray-500">{data.resumé}</p>
+        <p className="text-gray-500">{intro}</p>
       </div>
 
       {/* Toolbar */}
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs text-gray-400">{redigerer ? "Redigerer råtekst" : "Forhåndsvisning"}</p>
+        <p className="text-xs text-gray-400">{redigerer ? "Redigerer indhold" : "Forhåndsvisning"}</p>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setRedigerer(r => !r)}
@@ -231,24 +238,45 @@ export default function UdbudResultat() {
       {/* Selve dokumentet */}
       <div className="mb-6">
         {redigerer ? (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-            <p className="text-xs text-gray-400 mb-4 pb-3 border-b border-gray-100">
-              Overskrift og bygherre-oplysninger i toppen redigeres ikke her. Rediger selve indholdet nedenfor.
-            </p>
-            <textarea
-              value={bodyTekst}
-              onChange={(e) => {
-                setBodyTekst(e.target.value);
-                setTekst(dokumentHeader ? dokumentHeader + "\n" + e.target.value : e.target.value);
-              }}
-              rows={Math.max(30, bodyTekst.split("\n").length + 2)}
-              className="w-full text-sm text-gray-700 leading-relaxed resize-none focus:outline-none border-0 bg-transparent font-mono"
-              autoFocus
-            />
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Projektopsummering (redigeres ikke her)</p>
+              <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2.5 leading-relaxed">{intro}</p>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Arbejdsomfang</label>
+              <textarea
+                value={arbejdsomfang}
+                onChange={(e) => setArbejdsomfang(e.target.value)}
+                rows={Math.max(14, arbejdsomfang.split("\n").length + 2)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed resize-none focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Krav og ønsker</label>
+              <textarea
+                value={kravOgOensker}
+                onChange={(e) => setKravOgOensker(e.target.value)}
+                rows={Math.max(4, kravOgOensker.split("\n").length + 2)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed resize-none focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Praktiske forhold</label>
+              <textarea
+                value={praktiskeForhold}
+                onChange={(e) => setPraktiskeForhold(e.target.value)}
+                rows={Math.max(4, praktiskeForhold.split("\n").length + 2)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed resize-none focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
+              />
+            </div>
+            {valideringsFejl && (
+              <p className="text-xs text-red-600 font-medium">{valideringsFejl}</p>
+            )}
           </div>
         ) : (
           <DokumentRenderer
-            tekst={tekst}
+            tekst={byggV2Dokument({ intro, arbejdsomfang, kravOgOensker, praktiskeForhold })}
             titel={data.titel}
             bygherreNavn={data.bygherreNavn}
             bygherreKontakt={data.bygherreKontakt}
@@ -328,8 +356,8 @@ export default function UdbudResultat() {
           {!haandvaerkerEmail && (
             <p className="text-xs text-gray-400 text-center mt-3">Du kan tilføje håndværkeroplysninger inde i aftalen bagefter.</p>
           )}
-          {opretFejl && (
-            <p className="text-xs text-red-600 text-center mt-2 font-medium">{opretFejl}</p>
+          {(opretFejl || valideringsFejl) && (
+            <p className="text-xs text-red-600 text-center mt-2 font-medium">{opretFejl || valideringsFejl}</p>
           )}
         </div>
       )}

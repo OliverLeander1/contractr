@@ -1,11 +1,11 @@
 ﻿"use client";
 
-import { use, useEffect, useState, useCallback } from "react";
+import { use, useEffect, useState, useCallback, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ProjektNav from "@/components/ProjektNav";
 import { createClient } from "@/lib/supabase";
-import DokumentRenderer from "@/components/DokumentRenderer";
+import DokumentRenderer, { erV2Dokument, parseV2Sektioner, byggV2Dokument, indeholderKonkretDato } from "@/components/DokumentRenderer";
 import { fmtBesigtigelseDatoLang, erBesigtigelsePasseret } from "@/lib/besigtigelse";
 
 interface Besigtigelse {
@@ -71,6 +71,7 @@ interface Kontrakt {
   forudsaetninger: string | null;
   forudsaetninger_sendt_at: string | null;
   forudsaetninger_godkendt: boolean | null;
+  oprettet_at: string;
 }
 
 const fmtKr = (n: number) =>
@@ -140,6 +141,8 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const [besigtigelse, setBesigtigelse] = useState<Besigtigelse | null | "loading" | "error">("loading");
   const [sideFejl, setSideFejl] = useState("");
   const [skrivFejl, setSkrivFejl] = useState("");
+  const [projektAdresse, setProjektAdresse] = useState<string | null>(null);
+  const [v2Fejl, setV2Fejl] = useState("");
 
   const hentKontrakt = useCallback(async (kontraktId?: string) => {
     const supabase = createClient();
@@ -170,7 +173,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
       return;
     }
     const d = await r.json();
-    if (!d.error) { setKontrakt(d); setSideFejl(""); }
+    if (!d.error) { setKontrakt(d); setProjektAdresse(d.projekt_adresse ?? null); setSideFejl(""); }
     else setKontrakt(null);
 
     if (session?.access_token) {
@@ -865,21 +868,124 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               );
             })}
 
-            {/* Arbejdets omfang — vises som professionelt dokument */}
+            {/* Arbejdets omfang — vises som professionelt dokument.
+                V2-dokumenter (ny, stabil struktur) og legacy-dokumenter
+                (gammel, sammenhængende fritekst) redigeres forskelligt. */}
             {(() => {
               const beskrivelse = kontrakt.beskrivelse;
-              const erAktiv = redigererFelt === "beskrivelse";
               const afventende = kontrakt.kontraktaendringer.filter(a => a.felt === "beskrivelse" && a.status === "afventer");
+              const erV2 = erV2Dokument(beskrivelse);
 
-              // Splitter i header og body til redigering
-              const linjer = (beskrivelse || "").split("\n");
-              const bodyStart = linjer.findIndex(l => /^\d+\.\s+[A-ZÆØÅ]/.test(l.trim()) && l.trim().length > 3);
-              const beskrivelseBody = bodyStart === -1 ? (beskrivelse || "") : linjer.slice(bodyStart).join("\n");
-              const beskrivelseHeader = bodyStart === -1 ? "" : linjer.slice(0, bodyStart).join("\n");
+              let indhold: ReactNode;
 
-              return (
-                <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${afventende.length > 0 ? "border-amber-200" : "border-gray-100"}`}>
-                  <div className="px-5 py-4">
+              if (erV2) {
+                const v2 = parseV2Sektioner(beskrivelse || "");
+                const redigererV2 = redigererFelt === "v2_arbejdsomfang" || redigererFelt === "v2_krav" || redigererFelt === "v2_praktisk";
+
+                const gemV2Sektion = async () => {
+                  if (indeholderKonkretDato(feltVaerdi)) {
+                    setV2Fejl("Datoer ændres i Tidsplan.");
+                    return;
+                  }
+                  const nyBeskrivelse = byggV2Dokument({
+                    intro: v2.intro,
+                    arbejdsomfang: redigererFelt === "v2_arbejdsomfang" ? feltVaerdi : v2.arbejdsomfang,
+                    kravOgOensker: redigererFelt === "v2_krav" ? feltVaerdi : v2.kravOgOensker,
+                    praktiskeForhold: redigererFelt === "v2_praktisk" ? feltVaerdi : v2.praktiskeForhold,
+                  });
+                  setGemmer(true);
+                  setSkrivFejl("");
+                  setV2Fejl("");
+                  try {
+                    const resultat = await autentificeretFetch("/api/kontrakt", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ kontrakt_id: kontrakt.id, beskrivelse: nyBeskrivelse }),
+                    });
+                    if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
+                    const data = await resultat.res.json();
+                    if (!data.error) {
+                      setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, ...data } : prev);
+                      setRedigererFelt(null);
+                    } else {
+                      setV2Fejl(data.error);
+                    }
+                  } finally {
+                    setGemmer(false);
+                  }
+                };
+
+                indhold = (
+                  <>
+                    <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Aftaledokument</p>
+                      {!erBeggeGodkendt && !redigererV2 && !kontrakt.haandvaerker_email && (
+                        <div className="flex gap-3 flex-wrap">
+                          <button onClick={() => { setRedigererFelt("v2_arbejdsomfang"); setFeltVaerdi(v2.arbejdsomfang); setV2Fejl(""); }} className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors">Rediger arbejdsomfang</button>
+                          <button onClick={() => { setRedigererFelt("v2_krav"); setFeltVaerdi(v2.kravOgOensker); setV2Fejl(""); }} className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors">Rediger krav og ønsker</button>
+                          <button onClick={() => { setRedigererFelt("v2_praktisk"); setFeltVaerdi(v2.praktiskeForhold); setV2Fejl(""); }} className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors">Rediger praktiske forhold</button>
+                        </div>
+                      )}
+                    </div>
+
+                    {redigererV2 ? (
+                      <div>
+                        <p className="text-xs text-gray-400 mb-3 pb-3 border-b border-gray-100">
+                          {redigererFelt === "v2_arbejdsomfang" && "Du redigerer arbejdsomfanget. "}
+                          {redigererFelt === "v2_krav" && "Du redigerer krav og ønsker. "}
+                          {redigererFelt === "v2_praktisk" && "Du redigerer praktiske forhold. "}
+                          Projektopsummering, overskrifter og datoer redigeres ikke her — datoer ændres i Tidsplan.
+                        </p>
+                        <textarea
+                          rows={Math.max(10, feltVaerdi.split("\n").length + 2)}
+                          value={feltVaerdi}
+                          onChange={e => setFeltVaerdi(e.target.value)}
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none"
+                          autoFocus
+                        />
+                        {v2Fejl && <p className="text-xs text-red-600 mt-2 font-medium">{v2Fejl}</p>}
+                        <div className="flex gap-2 mt-2">
+                          <button onClick={() => { setRedigererFelt(null); setV2Fejl(""); }} className="flex-1 py-2 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50">Annuller</button>
+                          <button
+                            onClick={gemV2Sektion}
+                            disabled={gemmer}
+                            className="flex-1 py-2 bg-[#1e3a2a] text-white text-xs font-bold rounded-lg hover:opacity-90 disabled:bg-gray-200 disabled:text-gray-400"
+                          >
+                            {gemmer ? "Gemmer..." : "Gem"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <DokumentRenderer
+                        tekst={beskrivelse || undefined}
+                        titel={kontrakt.titel || undefined}
+                        adresse={projektAdresse || undefined}
+                        oprettetAt={kontrakt.oprettet_at || undefined}
+                        bygherreNavn={brugerNavn}
+                        totalPris={kontrakt.total_pris}
+                        startdato={kontrakt.startdato}
+                        slutdato={kontrakt.slutdato}
+                        betalingsplan={kontrakt.betalingsplan}
+                        forudsaetninger={kontrakt.forudsaetninger}
+                        tidsplan={kontrakt.tidsplan}
+                        vilkaar={kontrakt.vilkaar}
+                        haandvaerkerNavn={kontrakt.haandvaerker_navn}
+                        haandvaerkerFirma={kontrakt.haandvaerker_firma}
+                        erAftaleEndeligtGodkendt={erBeggeGodkendt}
+                      />
+                    )}
+                  </>
+                );
+              } else {
+                // ---- Legacy (uændret adfærd) ----
+                const erAktiv = redigererFelt === "beskrivelse";
+                const linjer = (beskrivelse || "").split("\n");
+                const bodyStart = linjer.findIndex(l => /^\d+\.\s+[A-ZÆØÅ]/.test(l.trim()) && l.trim().length > 3);
+                const beskrivelseBody = bodyStart === -1 ? (beskrivelse || "") : linjer.slice(bodyStart).join("\n");
+                const beskrivelseHeader = bodyStart === -1 ? "" : linjer.slice(0, bodyStart).join("\n");
+
+                indhold = (
+                  <>
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Arbejdets omfang</p>
                       {!erBeggeGodkendt && !erAktiv && !kontrakt.haandvaerker_email && (
@@ -953,6 +1059,14 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         erAftaleEndeligtGodkendt={erBeggeGodkendt}
                       />
                     )}
+                  </>
+                );
+              }
+
+              return (
+                <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${afventende.length > 0 ? "border-amber-200" : "border-gray-100"}`}>
+                  <div className="px-5 py-4">
+                    {indhold}
                   </div>
 
                   {afventende.map(a => (

@@ -15,6 +15,8 @@ interface Tidsplan {
 interface Props {
   tekst?: string;
   titel?: string;
+  adresse?: string | null;
+  oprettetAt?: string | null;
   bygherreNavn?: string;
   bygherreKontakt?: string;
   // Live felter fra kontrakt
@@ -36,7 +38,90 @@ const fmtKr = (n: number) =>
 const fmtDato = (iso: string) =>
   new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
 
-function SektionsOverskrift({ nr, label }: { nr: number; label: string }) {
+// ---------------------------------------------------------------------------
+// V2-dokumentformat — stabile, interne strukturmarkører til nye AI-genererede
+// aftaler. Erstatter den upålidelige regex-baserede opdeling af ældre
+// dokumenter. Eksporteres herfra så både klientsider og serverruten, der
+// gemmer/validerer kontrakter.beskrivelse, kan genbruge samme, ene
+// implementering uden at duplikere parsing-logikken.
+// ---------------------------------------------------------------------------
+
+export const V2_MARKØR = "[[NEMBYG_DOKUMENT_V2]]";
+
+const V2_SEKTIONSMARKØRER = {
+  intro: "[INTRO]",
+  arbejdsomfang: "[ARBEJDSOMFANG]",
+  kravOgOensker: "[KRAV_OG_OENSKER]",
+  praktiskeForhold: "[PRAKTISKE_FORHOLD]",
+} as const;
+
+export interface V2Sektioner {
+  intro: string;
+  arbejdsomfang: string;
+  kravOgOensker: string;
+  praktiskeForhold: string;
+}
+
+export function erV2Dokument(tekst?: string | null): boolean {
+  return !!tekst && tekst.trimStart().startsWith(V2_MARKØR);
+}
+
+// Deterministisk parsing ud fra præcise, kontrollerede markørstrenge — ikke
+// et gæt ud fra AI-formatering. Rækkefølgen af markører i den gemte tekst
+// har ingen betydning; hver sektions indhold afgrænses af den næstnærmeste
+// markør, uanset hvilken.
+export function parseV2Sektioner(raa: string): V2Sektioner {
+  const tekst = raa ?? "";
+  const positioner = (Object.entries(V2_SEKTIONSMARKØRER) as [keyof V2Sektioner, string][])
+    .map(([nøgle, markør]) => ({ nøgle, markør, index: tekst.indexOf(markør) }))
+    .filter((p) => p.index !== -1)
+    .sort((a, b) => a.index - b.index);
+
+  const resultat: V2Sektioner = { intro: "", arbejdsomfang: "", kravOgOensker: "", praktiskeForhold: "" };
+
+  positioner.forEach((p, i) => {
+    const indholdStart = p.index + p.markør.length;
+    const indholdSlut = i + 1 < positioner.length ? positioner[i + 1].index : tekst.length;
+    resultat[p.nøgle] = tekst.slice(indholdStart, indholdSlut).trim();
+  });
+
+  return resultat;
+}
+
+export function byggV2Dokument(sektioner: V2Sektioner): string {
+  return [
+    V2_MARKØR,
+    V2_SEKTIONSMARKØRER.intro,
+    sektioner.intro.trim(),
+    "",
+    V2_SEKTIONSMARKØRER.arbejdsomfang,
+    sektioner.arbejdsomfang.trim(),
+    "",
+    V2_SEKTIONSMARKØRER.kravOgOensker,
+    sektioner.kravOgOensker.trim(),
+    "",
+    V2_SEKTIONSMARKØRER.praktiskeForhold,
+    sektioner.praktiskeForhold.trim(),
+  ].join("\n");
+}
+
+// Deterministisk, snæver datodetektion til brug i klient- og servervalidering
+// af de redigerbare V2-sektioner. Blokerer konkrete kalenderdatoer (numerisk
+// eller med dansk månedsnavn), men ikke bare årstal eller standard-/produktnumre
+// (fx "AB-Forbruger 2012", "BR18", "DS/EN 12464-1", "Produktserie 2024") eller
+// beløb. Disse eksempler bruges udelukkende til at teste, at årstal og
+// standardnumre ikke fejlagtigt tolkes som datoer — ikke som en erklæring om,
+// at noget af dette er gældende for en konkret aftale.
+const NUMERISK_DATO_MØNSTER = /\b\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}\b|\b\d{4}-\d{1,2}-\d{1,2}\b/;
+const DANSKE_MÅNEDER = "januar|februar|marts|april|maj|juni|juli|august|september|oktober|november|december";
+const MÅNEDSNAVN_DATO_MØNSTER = new RegExp(`\\b(den\\s+)?\\d{1,2}\\.?\\s*(?:${DANSKE_MÅNEDER})\\b`, "i");
+
+export function indeholderKonkretDato(tekst: string): boolean {
+  if (!tekst) return false;
+  return NUMERISK_DATO_MØNSTER.test(tekst) || MÅNEDSNAVN_DATO_MØNSTER.test(tekst);
+}
+
+function SektionsOverskrift({ nr, label, badge }: { nr: number; label: string; badge?: string }) {
   return (
     <div className="pt-8 pb-3">
       <div className="flex items-center gap-3">
@@ -44,6 +129,12 @@ function SektionsOverskrift({ nr, label }: { nr: number; label: string }) {
           {nr}
         </span>
         <p className="font-bold text-gray-900 text-sm uppercase tracking-wide">{label}</p>
+        {badge && (
+          <span className="flex items-center gap-1 text-[10px] font-semibold text-[#1e3a2a] bg-[#1e3a2a]/8 px-1.5 py-0.5 rounded">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            {badge}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -58,9 +149,28 @@ function DataRække({ label, værdi }: { label: string; værdi: string }) {
   );
 }
 
+// Linjeopdeling til V2's narrative sektioner — ingen boilerplate at filtrere
+// fra (dokumenthoved, dato, titel osv. renderes nu udelukkende af selve
+// komponenten), kun tomme linjer fjernes.
+const v2NarrativLinjer = (t: string) => t.split("\n").map((l) => l.trim()).filter(Boolean);
+
+function V2NarrativLinje({ linje }: { linje: string }) {
+  if (linje.startsWith("- ")) {
+    return (
+      <div className="flex items-start gap-3 py-1 pl-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-[#1e3a2a] flex-shrink-0 mt-2" />
+        <span className="text-sm text-gray-700 leading-relaxed">{linje.slice(2).replace(/\s*—\s*/g, ", ")}</span>
+      </div>
+    );
+  }
+  return <p className="text-sm text-gray-700 leading-[1.8] py-0.5">{linje.replace(/\s*—\s*/g, ", ")}</p>;
+}
+
 export default function DokumentRenderer({
   tekst,
   titel,
+  adresse,
+  oprettetAt,
   bygherreNavn,
   bygherreKontakt,
   totalPris,
@@ -74,9 +184,17 @@ export default function DokumentRenderer({
   haandvaerkerFirma,
   erAftaleEndeligtGodkendt = false,
 }: Props) {
-  const dato = new Date().toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
+  const erV2 = erV2Dokument(tekst);
 
-  // Udled sektioner fra rå tekst via markører sat af udbud-flow
+  // V2-dokumenter viser altid deres autoritative oprettelsesdato, aldrig
+  // "nu". Legacy-dokumenter bevarer uændret den hidtidige adfærd.
+  const dato = erV2 && oprettetAt
+    ? fmtDato(oprettetAt)
+    : new Date().toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
+
+  const v2 = erV2 ? parseV2Sektioner(tekst || "") : null;
+
+  // ---- Legacy-parsing (uændret) — bruges kun når dokumentet IKKE er V2 ----
   const udledSektioner = (rå: string) => {
     const kravIdx = rå.indexOf("[KRAV OG ØNSKER]");
     const praktiskIdx = rå.indexOf("[PRAKTISKE FORHOLD]");
@@ -88,7 +206,9 @@ export default function DokumentRenderer({
     return { hoved, krav, praktisk };
   };
 
-  const { hoved: hovedTekst, krav: kravTekst, praktisk: praktiskTekst } = udledSektioner(tekst || "");
+  const { hoved: hovedTekst, krav: kravTekst, praktisk: praktiskTekst } = erV2
+    ? { hoved: "", krav: null, praktisk: null }
+    : udledSektioner(tekst || "");
 
   const filtrerLinjer = (t: string) =>
     t.split("\n").filter(l => {
@@ -108,12 +228,12 @@ export default function DokumentRenderer({
       return true;
     });
 
-  const beskrivelsesLinjer = filtrerLinjer(hovedTekst);
-  const kravLinjer = kravTekst ? filtrerLinjer(kravTekst) : [];
-  const praktiskLinjer = praktiskTekst ? filtrerLinjer(praktiskTekst) : [];
+  const beskrivelsesLinjer = erV2 ? [] : filtrerLinjer(hovedTekst);
+  const kravLinjer = !erV2 && kravTekst ? filtrerLinjer(kravTekst) : [];
+  const praktiskLinjer = !erV2 && praktiskTekst ? filtrerLinjer(praktiskTekst) : [];
 
-  const harKravSektion = kravLinjer.length > 0;
-  const harPraktiskSektion = praktiskLinjer.length > 0;
+  const harKravSektion = erV2 ? !!v2?.kravOgOensker : kravLinjer.length > 0;
+  const harPraktiskSektion = erV2 ? !!v2?.praktiskeForhold : praktiskLinjer.length > 0;
   const harPrisSektion = !!(totalPris || (betalingsplan && betalingsplan.length > 0));
   const harBetalingsplan = !!(betalingsplan && betalingsplan.length > 0);
   const harTidsplan = !!(startdato || slutdato || tidsplan);
@@ -142,6 +262,9 @@ export default function DokumentRenderer({
           {titel && (
             <h1 className="text-xl font-bold text-gray-900 leading-snug">{titel}</h1>
           )}
+          {erV2 && adresse && (
+            <p className="text-sm text-gray-500 mt-1">{adresse}</p>
+          )}
         </div>
 
         <div className="mt-5 flex gap-8">
@@ -165,91 +288,135 @@ export default function DokumentRenderer({
       {/* Dokument-indhold */}
       <div className="px-10 py-8">
 
-        {/* 1. Projektbeskrivelse */}
-        {beskrivelsesLinjer.length > 0 && (
-          <div>
-            <SektionsOverskrift nr={sektionsNr++} label="Projektbeskrivelse" />
-            <div className="space-y-0.5">
-              {beskrivelsesLinjer.map((linje, i) => {
-                const trimmet = linje.trim();
-                // Nummererede overskrifter fra AI-dokument — f.eks. "1. PROJEKTBESKRIVELSE"
-                if (/^\d+\.\s+[A-ZÆØÅ]/.test(trimmet)) {
-                  const tekst = trimmet.replace(/^\d+\.\s+/, "");
-                  return (
-                    <p key={i} className="text-xs font-bold text-gray-500 uppercase tracking-wider pt-5 pb-1">
-                      {tekst}
-                    </p>
-                  );
-                }
-                if (trimmet.startsWith("- ")) {
-                  return (
-                    <div key={i} className="flex items-start gap-3 py-1 pl-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#1e3a2a] flex-shrink-0 mt-2" />
-                      <span className="text-sm text-gray-700 leading-relaxed">{trimmet.slice(2).replace(/\s*—\s*/g, ", ")}</span>
-                    </div>
-                  );
-                }
-                if (/^[A-ZÆØÅ][a-zæøåA-ZÆØÅ\s]+:\s+\S/.test(trimmet)) {
-                  const kolon = trimmet.indexOf(":");
-                  return (
-                    <div key={i} className="flex gap-4 py-1.5 border-b border-gray-50 last:border-0">
-                      <span className="text-xs font-semibold text-gray-500 w-40 flex-shrink-0 pt-0.5">{trimmet.slice(0, kolon).trim()}</span>
-                      <span className="text-sm text-gray-800 flex-1">{trimmet.slice(kolon + 1).trim().replace(/\s*—\s*/g, ", ")}</span>
-                    </div>
-                  );
-                }
-                return (
-                  <p key={i} className="text-sm text-gray-700 leading-[1.8] py-0.5">{trimmet.replace(/\s*—\s*/g, ", ")}</p>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {erV2 ? (
+          <>
+            {/* Projektopsummering — read-only, systemgenereret */}
+            {v2!.intro && (
+              <div>
+                <SektionsOverskrift nr={sektionsNr++} label="Projektopsummering" badge="Ikke redigerbar" />
+                <p className="text-sm text-gray-700 leading-[1.8]">{v2!.intro}</p>
+              </div>
+            )}
 
-        {/* 2. Krav og ønsker */}
-        {harKravSektion && (
-          <div>
-            <SektionsOverskrift nr={sektionsNr++} label="Krav og ønsker" />
-            <div className="space-y-0.5">
-              {kravLinjer.map((linje, i) => {
-                const trimmet = linje.trim();
-                if (trimmet.startsWith("- ")) {
-                  return (
-                    <div key={i} className="flex items-start gap-3 py-1 pl-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#1e3a2a] flex-shrink-0 mt-2" />
-                      <span className="text-sm text-gray-700 leading-relaxed">{trimmet.slice(2).replace(/\s*—\s*/g, ", ")}</span>
-                    </div>
-                  );
-                }
-                return (
-                  <p key={i} className="text-sm text-gray-700 leading-[1.8] py-0.5">{trimmet.replace(/\s*—\s*/g, ", ")}</p>
-                );
-              })}
-            </div>
-          </div>
-        )}
+            {/* Arbejdsomfang */}
+            {v2!.arbejdsomfang && (
+              <div>
+                <SektionsOverskrift nr={sektionsNr++} label="Arbejdsomfang" />
+                <div className="space-y-0.5">
+                  {v2NarrativLinjer(v2!.arbejdsomfang).map((linje, i) => <V2NarrativLinje key={i} linje={linje} />)}
+                </div>
+              </div>
+            )}
 
-        {/* 3. Praktiske forhold */}
-        {harPraktiskSektion && (
-          <div>
-            <SektionsOverskrift nr={sektionsNr++} label="Praktiske forhold" />
-            <div className="space-y-0.5">
-              {praktiskLinjer.map((linje, i) => {
-                const trimmet = linje.trim();
-                if (trimmet.startsWith("- ")) {
-                  return (
-                    <div key={i} className="flex items-start gap-3 py-1 pl-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#1e3a2a] flex-shrink-0 mt-2" />
-                      <span className="text-sm text-gray-700 leading-relaxed">{trimmet.slice(2).replace(/\s*—\s*/g, ", ")}</span>
-                    </div>
-                  );
-                }
-                return (
-                  <p key={i} className="text-sm text-gray-700 leading-[1.8] py-0.5">{trimmet.replace(/\s*—\s*/g, ", ")}</p>
-                );
-              })}
-            </div>
-          </div>
+            {/* Krav og ønsker */}
+            {harKravSektion && (
+              <div>
+                <SektionsOverskrift nr={sektionsNr++} label="Krav og ønsker" />
+                <div className="space-y-0.5">
+                  {v2NarrativLinjer(v2!.kravOgOensker).map((linje, i) => <V2NarrativLinje key={i} linje={linje} />)}
+                </div>
+              </div>
+            )}
+
+            {/* Praktiske forhold */}
+            {harPraktiskSektion && (
+              <div>
+                <SektionsOverskrift nr={sektionsNr++} label="Praktiske forhold" />
+                <div className="space-y-0.5">
+                  {v2NarrativLinjer(v2!.praktiskeForhold).map((linje, i) => <V2NarrativLinje key={i} linje={linje} />)}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            {/* 1. Projektbeskrivelse */}
+            {beskrivelsesLinjer.length > 0 && (
+              <div>
+                <SektionsOverskrift nr={sektionsNr++} label="Projektbeskrivelse" />
+                <div className="space-y-0.5">
+                  {beskrivelsesLinjer.map((linje, i) => {
+                    const trimmet = linje.trim();
+                    // Nummererede overskrifter fra AI-dokument — f.eks. "1. PROJEKTBESKRIVELSE"
+                    if (/^\d+\.\s+[A-ZÆØÅ]/.test(trimmet)) {
+                      const tekst = trimmet.replace(/^\d+\.\s+/, "");
+                      return (
+                        <p key={i} className="text-xs font-bold text-gray-500 uppercase tracking-wider pt-5 pb-1">
+                          {tekst}
+                        </p>
+                      );
+                    }
+                    if (trimmet.startsWith("- ")) {
+                      return (
+                        <div key={i} className="flex items-start gap-3 py-1 pl-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#1e3a2a] flex-shrink-0 mt-2" />
+                          <span className="text-sm text-gray-700 leading-relaxed">{trimmet.slice(2).replace(/\s*—\s*/g, ", ")}</span>
+                        </div>
+                      );
+                    }
+                    if (/^[A-ZÆØÅ][a-zæøåA-ZÆØÅ\s]+:\s+\S/.test(trimmet)) {
+                      const kolon = trimmet.indexOf(":");
+                      return (
+                        <div key={i} className="flex gap-4 py-1.5 border-b border-gray-50 last:border-0">
+                          <span className="text-xs font-semibold text-gray-500 w-40 flex-shrink-0 pt-0.5">{trimmet.slice(0, kolon).trim()}</span>
+                          <span className="text-sm text-gray-800 flex-1">{trimmet.slice(kolon + 1).trim().replace(/\s*—\s*/g, ", ")}</span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <p key={i} className="text-sm text-gray-700 leading-[1.8] py-0.5">{trimmet.replace(/\s*—\s*/g, ", ")}</p>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 2. Krav og ønsker */}
+            {harKravSektion && (
+              <div>
+                <SektionsOverskrift nr={sektionsNr++} label="Krav og ønsker" />
+                <div className="space-y-0.5">
+                  {kravLinjer.map((linje, i) => {
+                    const trimmet = linje.trim();
+                    if (trimmet.startsWith("- ")) {
+                      return (
+                        <div key={i} className="flex items-start gap-3 py-1 pl-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#1e3a2a] flex-shrink-0 mt-2" />
+                          <span className="text-sm text-gray-700 leading-relaxed">{trimmet.slice(2).replace(/\s*—\s*/g, ", ")}</span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <p key={i} className="text-sm text-gray-700 leading-[1.8] py-0.5">{trimmet.replace(/\s*—\s*/g, ", ")}</p>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 3. Praktiske forhold */}
+            {harPraktiskSektion && (
+              <div>
+                <SektionsOverskrift nr={sektionsNr++} label="Praktiske forhold" />
+                <div className="space-y-0.5">
+                  {praktiskLinjer.map((linje, i) => {
+                    const trimmet = linje.trim();
+                    if (trimmet.startsWith("- ")) {
+                      return (
+                        <div key={i} className="flex items-start gap-3 py-1 pl-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#1e3a2a] flex-shrink-0 mt-2" />
+                          <span className="text-sm text-gray-700 leading-relaxed">{trimmet.slice(2).replace(/\s*—\s*/g, ", ")}</span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <p key={i} className="text-sm text-gray-700 leading-[1.8] py-0.5">{trimmet.replace(/\s*—\s*/g, ", ")}</p>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* 4. Entreprisesum og betalingsplan */}

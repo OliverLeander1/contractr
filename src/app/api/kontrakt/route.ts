@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
 import { sendNotifikation } from "@/lib/notifikationer";
+import { erV2Dokument, parseV2Sektioner, indeholderKonkretDato } from "@/components/DokumentRenderer";
 
 export const runtime = "nodejs";
 
@@ -83,7 +84,7 @@ export async function GET(req: NextRequest) {
           .eq("id", data.id)
           .select("*, kontraktaendringer(*)")
           .single();
-        if (opdateret) return NextResponse.json(opdateret);
+        if (opdateret) return NextResponse.json({ ...opdateret, projekt_adresse: projekt.adresse });
       }
     }
   }
@@ -113,10 +114,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: opretFejl.message }, { status: 500 });
     }
 
-    return NextResponse.json({ ...ny, kontraktaendringer: [] });
+    return NextResponse.json({ ...ny, kontraktaendringer: [], projekt_adresse: projekt.adresse });
   }
 
-  return NextResponse.json(data);
+  return NextResponse.json({ ...data, projekt_adresse: projekt.adresse });
 }
 
 // POST /api/kontrakt — opdater kontraktindhold
@@ -170,6 +171,18 @@ export async function POST(req: NextRequest) {
   if (haandvaerker_navn !== undefined) opdatering.haandvaerker_navn = haandvaerker_navn;
   if (haandvaerker_firma !== undefined) opdatering.haandvaerker_firma = haandvaerker_firma;
   if (haandvaerker_cvr !== undefined) opdatering.haandvaerker_cvr = haandvaerker_cvr;
+
+  // Servervalidering af V2-dokumenter: konkrete kalenderdatoer må ikke gemmes
+  // i de redigerbare narrative sektioner. Ligger bevidst før enhver
+  // opdatering af kontrakter.beskrivelse. Legacy-dokumenter (uden
+  // V2-markøren) rammes ikke af denne kontrol.
+  if (typeof beskrivelse === "string" && erV2Dokument(beskrivelse)) {
+    const sektioner = parseV2Sektioner(beskrivelse);
+    const redigerbartIndhold = [sektioner.arbejdsomfang, sektioner.kravOgOensker, sektioner.praktiskeForhold].join("\n");
+    if (indeholderKonkretDato(redigerbartIndhold)) {
+      return NextResponse.json({ error: "Datoer ændres i Tidsplan." }, { status: 400 });
+    }
+  }
 
   // Bygherre godkender forudsætninger fra håndværker
   if (godkend_forudsaetninger === true) {
