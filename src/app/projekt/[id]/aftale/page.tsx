@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ProjektNav from "@/components/ProjektNav";
 import { createClient } from "@/lib/supabase";
-import DokumentRenderer, { erV2Dokument, parseV2Sektioner, byggV2Dokument, indeholderKonkretDato } from "@/components/DokumentRenderer";
+import DokumentRenderer from "@/components/DokumentRenderer";
+import { erV2Dokument, parseV2Sektioner, byggV2Dokument, indeholderKonkretDato } from "@/lib/dokumentV2";
 import { fmtBesigtigelseDatoLang, erBesigtigelsePasseret } from "@/lib/besigtigelse";
 
 interface Besigtigelse {

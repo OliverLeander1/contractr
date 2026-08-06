@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import FlowLayout from "@/components/FlowLayout";
 import { createClient } from "@/lib/supabase";
 import { track } from "@/lib/analytics";
-import DokumentRenderer, { byggV2Dokument, indeholderKonkretDato } from "@/components/DokumentRenderer";
+import DokumentRenderer from "@/components/DokumentRenderer";
+import { byggV2Dokument, indeholderKonkretDato } from "@/lib/dokumentV2";
 
 interface UdbudResultat {
   titel: string;

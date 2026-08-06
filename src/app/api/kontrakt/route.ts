@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
 import { sendNotifikation } from "@/lib/notifikationer";
-import { erV2Dokument, parseV2Sektioner, indeholderKonkretDato } from "@/components/DokumentRenderer";
+import { erV2Dokument, parseV2Sektioner, indeholderKonkretDato } from "@/lib/dokumentV2";
 
 export const runtime = "nodejs";
 

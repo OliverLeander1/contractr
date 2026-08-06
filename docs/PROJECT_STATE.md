@@ -327,6 +327,19 @@ document structure and dates")
   autoritative felter (projekter.adresse, kontrakter.startdato,
   kontrakter.slutdato, kontrakter.oprettet_at, kontrakter.titel)
   fandtes allerede.
+- Rettelse (commit: se "fix: share v2 document utilities safely"): de
+  rene V2-funktioner (erV2Dokument, parseV2Sektioner, byggV2Dokument,
+  indeholderKonkretDato) lå oprindeligt i DokumentRenderer.tsx ("use
+  client"). POST /api/kontrakt importerede dem derfra, hvilket i
+  produktion gav en serverfejl ("Attempted to call erV2Dokument() from
+  the server"), da en server-route ikke må kalde funktioner importeret
+  fra en client component — GET/POST /api/kontrakt kunne derfor ikke
+  gemme eller validere V2-dokumenter. Funktionerne er flyttet til det
+  neutrale, framework-uafhængige modul src/lib/dokumentV2.ts (ingen
+  "use client", React, JSX eller server-only kode), som både
+  DokumentRenderer, klientsiderne og /api/kontrakt nu importerer fra.
+  V2-formatet, markørerne, datovalideringen og legacy-visningen er
+  uændrede.
 - Manuel browsertest mangler fortsat (se docs/ACTIVE_TASK.md).
 
 # Parkeret
