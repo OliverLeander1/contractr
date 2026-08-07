@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createServiceClient } from "@/lib/supabase-server";
 
 // Kørende AB-Forbruger notifikationsmotor
 // Tjek om projekter har manglende eller forfaldne AB-forpligtelser og indsæt notifikationer
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+type ServiceClient = ReturnType<typeof createServiceClient>;
 
 interface Projekt {
   id: string;
@@ -22,6 +19,7 @@ interface Projekt {
 }
 
 async function harNyligNotifikation(
+  supabase: ServiceClient,
   bruger_id: string,
   projekt_id: string,
   type: string,
@@ -42,6 +40,7 @@ async function harNyligNotifikation(
 }
 
 async function opretNotifikation(
+  supabase: ServiceClient,
   bruger_id: string,
   projekt_id: string,
   titel: string,
@@ -66,6 +65,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const supabase = createServiceClient();
+
   const { data: projekter } = await supabase
     .from("projekter")
     .select("id, bruger_id, titel, budget, status, startdato, slutdato, oprettet_at, levering_dato")
@@ -86,9 +87,9 @@ export async function POST(req: NextRequest) {
     if (!slutdato && startdato) {
       const start = new Date(startdato);
       const dageEfterStart = Math.floor((nu.getTime() - start.getTime()) / 86400000);
-      if (dageEfterStart >= 3 && !(await harNyligNotifikation(bruger_id, id, "§12", 14))) {
+      if (dageEfterStart >= 3 && !(await harNyligNotifikation(supabase, bruger_id, id, "§12", 14))) {
         await opretNotifikation(
-          bruger_id, id,
+          supabase, bruger_id, id,
           `${titel}: Tidsplan mangler`,
           "Ifølge AB-Forbruger § 12 bør start- og slutdato fremgå af aftalen. Vi anbefaler at du beder håndværkeren om en skriftlig tidsplan.",
           "§ 12"
@@ -107,9 +108,9 @@ export async function POST(req: NextRequest) {
 
     for (const ekstra of gamleEkstra || []) {
       const age = Math.floor((nu.getTime() - new Date(ekstra.oprettet_at).getTime()) / 86400000);
-      if (age >= 3 && !(await harNyligNotifikation(bruger_id, id, "§23", 7))) {
+      if (age >= 3 && !(await harNyligNotifikation(supabase, bruger_id, id, "§23", 7))) {
         await opretNotifikation(
-          bruger_id, id,
+          supabase, bruger_id, id,
           `${titel}: Ekstraarbejde afventer svar`,
           "Du har en aftaleseddel om ekstraarbejde der stadig afventer håndværkerens udfyldelse. AB-Forbruger § 23 anbefaler skriftlig aftale inden opstart.",
           "§ 23"
@@ -124,9 +125,9 @@ export async function POST(req: NextRequest) {
     if (slutdato && !levering_dato) {
       const slut = new Date(slutdato);
       const dageEfterSlut = Math.floor((nu.getTime() - slut.getTime()) / 86400000);
-      if (dageEfterSlut >= 0 && !(await harNyligNotifikation(bruger_id, id, "§38", 7))) {
+      if (dageEfterSlut >= 0 && !(await harNyligNotifikation(supabase, bruger_id, id, "§38", 7))) {
         await opretNotifikation(
-          bruger_id, id,
+          supabase, bruger_id, id,
           `${titel}: Afleveringsforretning bør gennemføres`,
           "Projektets slutdato er passeret. AB-Forbruger § 38 anbefaler en formel afleveringsforretning, hvor mangler registreres skriftligt inden du overtager arbejdet.",
           "§ 38"
@@ -145,9 +146,9 @@ export async function POST(req: NextRequest) {
       if (budget && budget >= 500000) {
         // Påmind 30 dage FØR 1-årsfristen (dvs. dag 335)
         if (dageEfterLevering >= 335 && dageEfterLevering <= 365 &&
-          !(await harNyligNotifikation(bruger_id, id, "§58", 14))) {
+          !(await harNyligNotifikation(supabase, bruger_id, id, "§58", 14))) {
           await opretNotifikation(
-            bruger_id, id,
+            supabase, bruger_id, id,
             `${titel}: 1-års eftersyn nærmer sig (obligatorisk)`,
             `Dit projekt er over 500.000 kr. og 1-årseftersynet er obligatorisk ifølge AB-Forbruger § 58. Fristen udløber om ca. ${365 - dageEfterLevering} dage — book eftersynet nu.`,
             "§ 58"
@@ -157,9 +158,9 @@ export async function POST(req: NextRequest) {
       } else {
         // Under 500.000 kr. = valgfrit, men bygherre skal informeres inden 1 år
         if (dageEfterLevering >= 300 && dageEfterLevering <= 365 &&
-          !(await harNyligNotifikation(bruger_id, id, "§58", 30))) {
+          !(await harNyligNotifikation(supabase, bruger_id, id, "§58", 30))) {
           await opretNotifikation(
-            bruger_id, id,
+            supabase, bruger_id, id,
             `${titel}: Mulighed for 1-års eftersyn`,
             `Dit projekt er under 500.000 kr., så 1-årseftersynet er valgfrit. Men du kan kræve det inden for ét år fra afleveringen (AB-Forbruger § 58). Fristen udløber om ca. ${365 - dageEfterLevering} dage.`,
             "§ 58"

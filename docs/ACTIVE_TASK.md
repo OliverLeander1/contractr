@@ -98,3 +98,21 @@ browsertestet. Den tidligere email-query-baserede sikkerhedsrisiko i
 GET /api/haandvaerker/sager er lukket (commit d6c55ea), browsertestet
 og accepteret. Se docs/PROJECT_STATE.md for detaljer og commit-historik.
 Disse faser kræver ikke yderligere opfølgning.
+
+# Debug-lækfjernelse og AB-notifikations-klient (kodeændring afsluttet, valgfri manuel kontrol)
+
+GET /api/debug er lukket (svarer nu 404), og POST /api/ab-notifikationer
+bruger nu det fælles createServiceClient()-mønster (se
+docs/PROJECT_STATE.md). Typecheck, lint, git diff --check og npm run
+build er alle bekræftet grønne, og "supabaseKey is required" er
+bekræftet væk fra build-outputtet. Ingen produktadfærd, database eller
+schema er ændret, og cronjobbet er ikke kørt live.
+
+Valgfri manuel kontrol i produktion efter deploy (ikke blokerende for
+andet arbejde):
+
+- GET /api/debug svarer 404
+- POST /api/ab-notifikationer med korrekt Authorization: Bearer
+  <CRON_SECRET> svarer fortsat 200 (bekræfter at den rettede
+  Supabase-klient rent faktisk virker med produktionens
+  miljøvariabler, ikke kun i build)

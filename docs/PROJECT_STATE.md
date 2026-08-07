@@ -13,6 +13,26 @@
 - Én privat chatsamtale pr. kontrakt.
 - Legacy-samtaler med kontrakt_id = NULL må ikke gættes koblet til en kontrakt.
 
+# Sikkerhed og drift (commit: se "fix: close debug leak and repair notification client")
+
+- Det tidligere uautentificerede GET /api/debug, som eksponerede dele af
+  ANTHROPIC_API_KEY (længde og de første tegn) samt relaterede
+  miljøvariabelnavne, er lukket. Endpointet svarer nu 404 uden nogen
+  følsom information. Ingen kendte kaldssteder fandtes i tracked kode.
+- POST /api/ab-notifikationer opretter nu sin Supabase-klient med det
+  fælles createServiceClient()-mønster fra src/lib/supabase-server.ts
+  (samme SUPABASE_SECRET_KEY som resten af kodebasen), oprettet inde i
+  request-handleren i stedet for på modulniveau. Der er ikke tilføjet
+  noget nyt secret-navn. CRON_SECRET-beskyttelsen, AB-Forbruger-logikken
+  (§12/§23/§38/§58), hvilke data der læses, og response-formen er
+  uændrede.
+- Build-fejlen "supabaseKey is required" ved /api/ab-notifikationer
+  (opstået fordi routen tidligere brugte det ikke-eksisterende
+  SUPABASE_SERVICE_ROLE_KEY) er bekræftet væk: npm run build
+  gennemførte fuldt ("Compiled successfully", "Finished TypeScript")
+  uden fejl for nogen route.
+- Cronjobbet er ikke kørt live i forbindelse med denne opgave.
+
 # Chatstatus
 
 Fungerer nu:

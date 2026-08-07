@@ -2,12 +2,9 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
+// Ingen kendte kaldssteder i tracked kode. Endpointet eksponerede tidligere
+// dele af ANTHROPIC_API_KEY og relaterede miljøvariabelnavne — lukket helt
+// i stedet for at bygge et separat auth-lag til en enkelt debug-route.
 export async function GET() {
-  const key = process.env.ANTHROPIC_API_KEY;
-  return NextResponse.json({
-    harNøgle: !!key,
-    længde: key?.length ?? 0,
-    starter: key?.substring(0, 10) ?? "ikke sat",
-    allKeys: Object.keys(process.env).filter(k => k.includes("ANTHROP")),
-  });
+  return NextResponse.json({ error: "Not found" }, { status: 404 });
 }
