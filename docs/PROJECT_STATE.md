@@ -258,10 +258,12 @@ document structure and dates")
 - Nye AI-genererede aftaler gemmes nu i kontrakter.beskrivelse i et
   stabilt, versioneret internt format med markøren
   [[NEMBYG_DOKUMENT_V2]] som første linje, efterfulgt af entydige
-  sektionsmarkører ([INTRO], [ARBEJDSOMFANG], [KRAV_OG_OENSKER],
+  sektionsmarkører ([ARBEJDSOMFANG], [KRAV_OG_OENSKER],
   [PRAKTISKE_FORHOLD]). Parsing sker udelukkende ud fra disse præcise
   markørstrenge — ikke den tidligere upålidelige regex-heuristik, der
-  gættede en opdeling ud fra AI'ens formatering.
+  gættede en opdeling ud fra AI'ens formatering. ([INTRO] var oprindeligt
+  også en sektionsmarkør her; se "Fjernelse af Projektopsummering fra
+  aftaledokumentet" nedenfor for den bindende ændring.)
 - Eksisterende aftaler (uden V2-markøren) er urørte og forbliver
   legacy-format: uændret visning, uændret redigeringsadfærd, ingen
   automatisk konvertering, ingen skjult normalisering. Dette er en
@@ -340,6 +342,36 @@ document structure and dates")
   DokumentRenderer, klientsiderne og /api/kontrakt nu importerer fra.
   V2-formatet, markørerne, datovalideringen og legacy-visningen er
   uændrede.
+- Manuel browsertest mangler fortsat (se docs/ACTIVE_TASK.md).
+
+## Fjernelse af Projektopsummering fra aftaledokumentet (commit: se "fix: remove duplicate project summary")
+
+- Bindende produktregel: Aftalegrundlaget har én autoritativ beskrivelse af
+  det aftalte arbejde: Arbejdsomfang. Projektopsummering/resumé er ikke en
+  del af selve aftaledokumentet og må ikke kunne skabe en parallel
+  beskrivelse.
+- Dokumentets V2-struktur er nu: dokumenthoved (projekttitel, adresse,
+  bygherre, dokumentdato) → 1. Arbejdsomfang → 2. Krav og ønsker →
+  3. Praktiske forhold → øvrige eksisterende sektioner. Der er ikke længere
+  et separat "Projektopsummering"-afsnit mellem dokumenthoved og
+  Arbejdsomfang.
+- [INTRO] er fjernet fra V2_SEKTIONSMARKØRER i src/lib/dokumentV2.ts.
+  byggV2Dokument() gemmer ikke længere en [INTRO]-sektion for nye eller
+  genindsendte dokumenter. parseV2Sektioner() ignorerer stiltiende en
+  eventuel [INTRO]-blok i ældre gemte dokumenter (teksten tildeles ingen
+  sektion og vises derfor ikke) — dette sker udelukkende ved parsing/visning
+  og ved fremtidige, brugerinitierede gem-handlinger på det pågældende
+  dokument, ikke som en automatisk baggrundsmigrering. Ingen eksisterende
+  databaserække er masseændret eller migreret.
+- AI-feltet `resumé` (fra POST /api/udbud) findes fortsat og bruges på
+  opret/udbud-resultat-siden udelukkende som UX-tekst uden for selve
+  dokumentvisningen (sidehovedets undertekst). Resuméet indgår ikke længere
+  i det gemte V2-dokument og ikke i den kopierbare tekst ("Kopiér dokument
+  og send manuelt"). Feltet kan senere genbruges som UX-metadata på fx
+  dashboardkort, invitationsoverblik og tilbudssammenligning — det er ikke
+  en del af aftalens autoritative arbejdsbeskrivelse.
+- Legacy-dokumenter (uden [[NEMBYG_DOKUMENT_V2]]-markøren) er urørte og
+  upåvirkede af denne opgave.
 - Manuel browsertest mangler fortsat (se docs/ACTIVE_TASK.md).
 
 # Parkeret

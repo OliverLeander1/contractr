@@ -1,39 +1,49 @@
 # Aktiv opgave
 
-Manuel browsertest af det nye V2-dokumentformat (sektionsoverskrifter,
-INTRO, adresse, dokumentdato og datovalidering), samt af de tidligere
-sikrede projekt- og kontraktroutes (POST /api/projekter, GET/POST
-/api/kontrakt), som stadig afventer bekræftelse.
+Manuel browsertest af fjernelsen af Projektopsummering fra selve
+aftaledokumentet, af det nye V2-dokumentformat i øvrigt
+(sektionsoverskrifter, adresse, dokumentdato og datovalidering), samt af
+de tidligere sikrede projekt- og kontraktroutes (POST /api/projekter,
+GET/POST /api/kontrakt), som stadig afventer bekræftelse.
 
-Begge dele er implementeret og kodegennemgået (typecheck og lint
-bestået, lokal read-only regex-test af datovalideringen bekræftet, samt
-en klientside-røgtest af V2-visning og -redigering udført lokalt uden
-login). Ingen af delene er dokumenteret som gennemført, før Oliver har
-udført og bekræftet testen.
+Alle dele er implementeret og kodegennemgået (typecheck og lint bestået
+for de ændrede linjer — to allerede eksisterende, urelaterede
+lint-fejl/advarsler i uændrede linjer i udbud-resultat/page.tsx og
+aftale/page.tsx er upåvirkede af denne opgave). Ingen af delene er
+dokumenteret som gennemført, før Oliver har udført og bekræftet testen.
 
-Browsertesten skal omfatte (V2-dokumentformat):
+Browsertesten skal omfatte (fjernelse af Projektopsummering):
 
-- opret nyt AI-genereret testprojekt
-- bekræft V2-visning (faste sektionsoverskrifter, ingen synlige
-  markører)
-- bekræft at INTRO (projektopsummering) og overskrifter ikke kan
-  redigeres
-- bekræft at Arbejdsomfang kan redigeres
-- bekræft at Krav og ønsker og Praktiske forhold kan redigeres separat
+- opret nyt AI-genereret aftalegrundlag og bekræft, at der ikke vises
+  et separat "Projektopsummering"-afsnit i selve dokumentet
+- bekræft at dokumentet går direkte fra dokumenthovedet
+  (projekttitel/adresse/bygherre/dokumentdato) til "1. Arbejdsomfang"
+- bekræft at Arbejdsomfang kan redigeres og gemmes
+- bekræft at Krav og ønsker og Praktiske forhold fortsat kan redigeres
+  separat
 - forsøg at gemme "arbejdet afsluttes 4. september 2026" i en af de tre
-  narrative sektioner og forvent afvisning med "Datoer ændres i
+  narrative sektioner og forvent fortsat afvisning med "Datoer ændres i
   Tidsplan."
-- gem hver af de neutrale testeksempler "AB-Forbruger 2012", "BR18",
-  "DS/EN 12464-1" og "Produktserie 2024" enkeltvis i en narrativ
-  sektion og forvent succes for hver (testen bekræfter kun, at
-  årstal/standardnumre ikke fejlagtigt blokeres som datoer — ikke at
-  nogen af delene dermed er gældende for aftalen)
-- ændr slutdato i Tidsplan og bekræft at dokumentvisningen følger med
-  automatisk
+- åbn et eksisterende V2-testdokument, der blev oprettet før denne
+  opgave og derfor stadig indeholder en gemt [INTRO]-blok i databasen,
+  og bekræft at Projektopsummering ikke længere vises for det —
+  bekræft samtidig at ingen rå V2-markører (fx "[ARBEJDSOMFANG]") er
+  synlige i visningen
+- gem en ny sektion (fx Arbejdsomfang) på det samme eksisterende
+  testdokument og bekræft, at dokumentet fortsat gemmes og vises
+  korrekt bagefter
+- bekræft at nummereringen er korrekt (Arbejdsomfang = 1, Krav og
+  ønsker = 2, Praktiske forhold = 3, efterfølgende sektioner fortsætter
+  logisk uden hul)
+- kontrollér på opret/udbud-resultat-siden, at AI-resuméet fortsat vises
+  som sidetekst uden for selve dokumentet, men ikke længere som en
+  "Projektopsummering (redigeres ikke her)"-boks i redigeringsvisningen,
+  og at "Kopiér dokument"-teksten starter med Arbejdsomfang, ikke
+  resuméet
 - kontrollér at adresse (fra projekter.adresse) og dokumentdato (fra
-  kontrakter.oprettet_at) vises korrekt i dokumentheaderen
-- åbn en eksisterende legacy-aftale (oprettet før denne opgave) og
-  bekræft uændret visning og redigeringsadfærd
+  kontrakter.oprettet_at) fortsat vises korrekt i dokumentheaderen
+- åbn en eksisterende legacy-aftale (uden V2-markøren, oprettet før
+  denne opgave) og bekræft uændret visning og redigeringsadfærd
 
 Browsertesten skal fortsat omfatte (tidligere, endnu ubekræftede
 routes):

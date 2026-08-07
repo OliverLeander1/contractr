@@ -9,15 +9,20 @@
 
 export const V2_MARKØR = "[[NEMBYG_DOKUMENT_V2]]";
 
+// [INTRO] er bevidst ikke en sektionsmarkør her. Arbejdsomfang er den ene
+// autoritative arbejdsbeskrivelse i aftalegrundlaget — der findes ikke
+// længere en separat, systemgenereret "Projektopsummering" i selve
+// dokumentet. Ældre gemte dokumenter kan stadig indeholde en [INTRO]-blok;
+// da markøren ikke indgår nedenfor, bliver dens tekst blot ikke tildelt
+// nogen sektion og forsvinder derfor fra parsing og visning uden at nogen
+// databaseværdi omskrives.
 const V2_SEKTIONSMARKØRER = {
-  intro: "[INTRO]",
   arbejdsomfang: "[ARBEJDSOMFANG]",
   kravOgOensker: "[KRAV_OG_OENSKER]",
   praktiskeForhold: "[PRAKTISKE_FORHOLD]",
 } as const;
 
 export interface V2Sektioner {
-  intro: string;
   arbejdsomfang: string;
   kravOgOensker: string;
   praktiskeForhold: string;
@@ -38,7 +43,7 @@ export function parseV2Sektioner(raa: string): V2Sektioner {
     .filter((p) => p.index !== -1)
     .sort((a, b) => a.index - b.index);
 
-  const resultat: V2Sektioner = { intro: "", arbejdsomfang: "", kravOgOensker: "", praktiskeForhold: "" };
+  const resultat: V2Sektioner = { arbejdsomfang: "", kravOgOensker: "", praktiskeForhold: "" };
 
   positioner.forEach((p, i) => {
     const indholdStart = p.index + p.markør.length;
@@ -52,9 +57,6 @@ export function parseV2Sektioner(raa: string): V2Sektioner {
 export function byggV2Dokument(sektioner: V2Sektioner): string {
   return [
     V2_MARKØR,
-    V2_SEKTIONSMARKØRER.intro,
-    sektioner.intro.trim(),
-    "",
     V2_SEKTIONSMARKØRER.arbejdsomfang,
     sektioner.arbejdsomfang.trim(),
     "",

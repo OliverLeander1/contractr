@@ -889,7 +889,6 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                     return;
                   }
                   const nyBeskrivelse = byggV2Dokument({
-                    intro: v2.intro,
                     arbejdsomfang: redigererFelt === "v2_arbejdsomfang" ? feltVaerdi : v2.arbejdsomfang,
                     kravOgOensker: redigererFelt === "v2_krav" ? feltVaerdi : v2.kravOgOensker,
                     praktiskeForhold: redigererFelt === "v2_praktisk" ? feltVaerdi : v2.praktiskeForhold,
@@ -935,7 +934,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                           {redigererFelt === "v2_arbejdsomfang" && "Du redigerer arbejdsomfanget. "}
                           {redigererFelt === "v2_krav" && "Du redigerer krav og ønsker. "}
                           {redigererFelt === "v2_praktisk" && "Du redigerer praktiske forhold. "}
-                          Projektopsummering, overskrifter og datoer redigeres ikke her — datoer ændres i Tidsplan.
+                          Overskrifter og datoer redigeres ikke her — datoer ændres i Tidsplan.
                         </p>
                         <textarea
                           rows={Math.max(10, feltVaerdi.split("\n").length + 2)}

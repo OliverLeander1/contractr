@@ -29,8 +29,9 @@ export default function UdbudResultat() {
   const [opretFejl, setOpretFejl] = useState("");
   const [redigerer, setRedigerer] = useState(false);
 
-  // De fire AI-felter holdes adskilt fra start — INTRO (fra resumé) er
-  // aldrig redigerbar. Kun de tre narrative felter kan redigeres.
+  // AI's resumé er ikke en del af selve aftaledokumentet (kun de tre
+  // narrative felter er det) — det bruges udelukkende som UX-tekst her på
+  // resultatsiden, uden for dokumentvisningen.
   const [intro, setIntro] = useState("");
   const [arbejdsomfang, setArbejdsomfang] = useState("");
   const [kravOgOensker, setKravOgOensker] = useState("");
@@ -126,7 +127,7 @@ export default function UdbudResultat() {
       }
 
       // 3. Fyld kontrakt med AI-dokument (V2-format) og evt. håndværkeroplysninger
-      const beskrivelse = byggV2Dokument({ intro, arbejdsomfang, kravOgOensker, praktiskeForhold });
+      const beskrivelse = byggV2Dokument({ arbejdsomfang, kravOgOensker, praktiskeForhold });
       const rOpdater = await fetch("/api/kontrakt", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
@@ -176,7 +177,7 @@ export default function UdbudResultat() {
   }
 
   function byggLæsbarKopi(): string {
-    const dele = [intro.trim(), arbejdsomfang.trim()].filter(Boolean);
+    const dele = [arbejdsomfang.trim()].filter(Boolean);
     if (kravOgOensker.trim()) dele.push(`Krav og ønsker:\n${kravOgOensker.trim()}`);
     if (praktiskeForhold.trim()) dele.push(`Praktiske forhold:\n${praktiskeForhold.trim()}`);
     return dele.join("\n\n");
@@ -241,10 +242,6 @@ export default function UdbudResultat() {
         {redigerer ? (
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
             <div>
-              <p className="text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Projektopsummering (redigeres ikke her)</p>
-              <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2.5 leading-relaxed">{intro}</p>
-            </div>
-            <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Arbejdsomfang</label>
               <textarea
                 value={arbejdsomfang}
@@ -277,7 +274,7 @@ export default function UdbudResultat() {
           </div>
         ) : (
           <DokumentRenderer
-            tekst={byggV2Dokument({ intro, arbejdsomfang, kravOgOensker, praktiskeForhold })}
+            tekst={byggV2Dokument({ arbejdsomfang, kravOgOensker, praktiskeForhold })}
             titel={data.titel}
             bygherreNavn={data.bygherreNavn}
             bygherreKontakt={data.bygherreKontakt}

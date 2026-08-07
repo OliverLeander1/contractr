@@ -209,15 +209,9 @@ export default function DokumentRenderer({
 
         {erV2 ? (
           <>
-            {/* Projektopsummering — read-only, systemgenereret */}
-            {v2!.intro && (
-              <div>
-                <SektionsOverskrift nr={sektionsNr++} label="Projektopsummering" badge="Ikke redigerbar" />
-                <p className="text-sm text-gray-700 leading-[1.8]">{v2!.intro}</p>
-              </div>
-            )}
-
-            {/* Arbejdsomfang */}
+            {/* Arbejdsomfang — eneste autoritative arbejdsbeskrivelse.
+                Der er bevidst ingen "Projektopsummering"-sektion her:
+                dokumentet går direkte fra dokumenthovedet til Arbejdsomfang. */}
             {v2!.arbejdsomfang && (
               <div>
                 <SektionsOverskrift nr={sektionsNr++} label="Arbejdsomfang" />
