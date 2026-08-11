@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
-import { erBesigtigelsePasseret } from "@/lib/besigtigelse";
+import { erBesigtigelsePasseret, hentEffektivDatoTid } from "@/lib/besigtigelse";
 
 type SupabaseUser = Awaited<ReturnType<ReturnType<typeof createServiceClient>["auth"]["getUser"]>>["data"]["user"];
 
@@ -11,18 +11,120 @@ interface KontraktRad {
   haandvaerker_email: string | null;
 }
 
+interface BesigtigelseTidspunktRad {
+  id: string;
+  besigtigelse_id: string;
+  dato: string;
+  tidspunkt: string;
+  sortering: number;
+  oprettet_at: string;
+}
+
 interface BesigtigelseRad {
   id: string;
   kontrakt_id: string;
   projekt_id: string;
-  dato: string;
+  dato: string | null;
   tidspunkt: string | null;
+  varighed_minutter: number | null;
+  valgt_tidspunkt_id: string | null;
   kommentar_bygherre: string | null;
   kommentar_haandvaerker: string | null;
   status: string;
   foreslaaet_af: string;
   oprettet_at: string;
   opdateret_at: string;
+}
+
+interface BesigtigelseRadMedTidspunkter extends BesigtigelseRad {
+  besigtigelse_tidspunkter: BesigtigelseTidspunktRad[];
+}
+
+// -----------------------------------------------------------------------------
+// Input-validering — Next.js validerer først for gode brugerfejl. RPC'en
+// validerer det samme igen server-side/database-side som endelig kontrol;
+// dette er ikke en erstatning for det, kun en hurtigere, pænere fejlbesked.
+// -----------------------------------------------------------------------------
+
+const DATO_REGEX = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+const TIDSPUNKT_REGEX = /^([0-1][0-9]|2[0-3]):(00|15|30|45)$/;
+const VARIGHED_ALLOWLIST = [30, 45, 60, 90, 120] as const;
+
+interface TidspunktInput {
+  dato: string;
+  tidspunkt: string;
+}
+
+function validerTidspunkter(
+  raw: unknown,
+): { ok: true; tidspunkter: TidspunktInput[] } | { ok: false; error: string } {
+  if (!Array.isArray(raw) || raw.length < 1 || raw.length > 3) {
+    return { ok: false, error: "Der skal foreslås mellem 1 og 3 tidspunkter." };
+  }
+
+  const tidspunkter: TidspunktInput[] = [];
+  for (const item of raw) {
+    if (typeof item !== "object" || item === null) {
+      return { ok: false, error: "Ugyldigt tidspunktselement." };
+    }
+    const dato = (item as Record<string, unknown>).dato;
+    const tidspunkt = (item as Record<string, unknown>).tidspunkt;
+
+    if (typeof dato !== "string" || !DATO_REGEX.test(dato)) {
+      return { ok: false, error: "Ugyldigt datoformat. Brug ÅÅÅÅ-MM-DD." };
+    }
+    if (typeof tidspunkt !== "string" || !TIDSPUNKT_REGEX.test(tidspunkt)) {
+      return {
+        ok: false,
+        error: "Tidspunkt skal være på hele, kvarte, halve eller tre-kvarte timer (fx 08:00, 08:15, 08:30, 08:45).",
+      };
+    }
+    tidspunkter.push({ dato, tidspunkt });
+  }
+
+  const unikke = new Set(tidspunkter.map((t) => `${t.dato}T${t.tidspunkt}`));
+  if (unikke.size !== tidspunkter.length) {
+    return { ok: false, error: "Samme dato og tidspunkt er foreslået to gange." };
+  }
+
+  return { ok: true, tidspunkter };
+}
+
+function validerVarighed(raw: unknown): { ok: true; varighed: number } | { ok: false; error: string } {
+  if (raw === undefined || raw === null || raw === "") {
+    return { ok: true, varighed: 60 };
+  }
+  const varighed = Number(raw);
+  if (!VARIGHED_ALLOWLIST.includes(varighed as (typeof VARIGHED_ALLOWLIST)[number])) {
+    return { ok: false, error: "Ugyldig varighed. Vælg 30 min., 45 min., 1 time, 1½ time eller 2 timer." };
+  }
+  return { ok: true, varighed };
+}
+
+// Oversætter en RPC/database-fejl til en forståelig dansk fejlbesked.
+// Ingen rå Postgres-fejltekst vises nogensinde direkte til brugeren.
+function mapRpcFejl(error: { message?: string; code?: string }): string {
+  if (error.code === "23505") {
+    return "Samme dato og tidspunkt er foreslået to gange.";
+  }
+  if (error.code === "23503") {
+    return "Der opstod en fejl med det valgte tidspunkt. Prøv igen.";
+  }
+  const kendteValideringsfejl = [
+    "Ugyldig foreslaaet_af",
+    "Ugyldig varighed",
+    "p_tidspunkter skal være et JSON-array",
+    "Der skal foreslås mellem 1 og 3 tidspunkter",
+    "Hvert tidspunktselement skal være et JSON-objekt",
+    "Mangler eller ugyldig",
+    "dato/tidspunkt må ikke være null",
+    "Ugyldigt datoformat",
+    "Tidspunkt skal være på hele",
+  ];
+  if (error.message && kendteValideringsfejl.some((k) => error.message!.includes(k))) {
+    return "Et af de indtastede tidspunkter er ugyldigt. Kontrollér dato og klokkeslæt.";
+  }
+  return "Der opstod en fejl. Prøv igen.";
 }
 
 // Trin 1: verificer JWT — returnerer verified user og db-klient
@@ -83,7 +185,10 @@ async function bestemRolle(
   return { ok: false, response: NextResponse.json({ error: "Du har ikke adgang til denne kontrakt" }, { status: 403 }) };
 }
 
-// GET — hent besigtigelse for en kontrakt
+// GET — hent besigtigelse for en kontrakt (aktuel runde + read-only historik).
+// Hver runde inkluderer sine 1-3 tidspunkter (tomt array for legacy-rækker uden
+// child-data). dato/tidspunkt på selve runden er legacy-parent-felter og er
+// null for alle runder oprettet via det nye multi-tids-flow.
 export async function GET(req: NextRequest) {
   // 1. Verificer JWT
   const jwt = await verificerJWT(req);
@@ -100,19 +205,35 @@ export async function GET(req: NextRequest) {
   const rolle = await bestemRolle(user, kontraktId, db);
   if (!rolle.ok) return rolle.response;
 
-  // 4. Hent besigtigelse
-  const { data } = await db
+  // 4. Hent alle besigtigelsesrunder for kontrakten, nyeste først, hver med
+  // sine tidspunkter sorteret efter sortering.
+  const { data: rækker } = await db
     .from("besigtigelse")
-    .select("*")
+    .select("*, besigtigelse_tidspunkter(*)")
     .eq("kontrakt_id", kontraktId)
     .order("oprettet_at", { ascending: false })
-    .limit(1)
-    .single();
+    .order("sortering", { foreignTable: "besigtigelse_tidspunkter", ascending: true });
 
-  return NextResponse.json(data ?? null);
+  if (!rækker || rækker.length === 0) {
+    return NextResponse.json(null);
+  }
+
+  const formatRunde = (r: BesigtigelseRadMedTidspunkter) => {
+    const { besigtigelse_tidspunkter, ...felter } = r;
+    return { ...felter, tidspunkter: besigtigelse_tidspunkter ?? [] };
+  };
+
+  const [nyesteRaw, ...historikRaw] = rækker as unknown as BesigtigelseRadMedTidspunkter[];
+  const nyeste = formatRunde(nyesteRaw);
+  const historik = historikRaw.map(formatRunde);
+
+  return NextResponse.json({ ...nyeste, historik });
 }
 
-// POST — opret besigtigelsesanmodning
+// POST — opret første besigtigelsesrunde (eller genåbn efter afvisning/passeret godkendelse).
+// Skriver ALDRIG direkte til besigtigelse — al oprettelse sker atomart via
+// RPC'en opret_besigtigelsesrunde, som opretter parent-runden og dens 1-3
+// tidspunkter i én transaktion.
 export async function POST(req: NextRequest) {
   // 1. Verificer JWT
   const jwt = await verificerJWT(req);
@@ -121,14 +242,19 @@ export async function POST(req: NextRequest) {
 
   // 2. Læs body
   const body = await req.json();
-  const { kontrakt_id, dato, tidspunkt, kommentar } = body;
+  const { kontrakt_id, tidspunkter, varighed_minutter, kommentar } = body;
 
   // 3. Valider påkrævede felter
   if (!kontrakt_id) {
     return NextResponse.json({ error: "Mangler kontrakt_id" }, { status: 400 });
   }
-  if (!dato) {
-    return NextResponse.json({ error: "Mangler dato" }, { status: 400 });
+  const tidspunkterRes = validerTidspunkter(tidspunkter);
+  if (!tidspunkterRes.ok) {
+    return NextResponse.json({ error: tidspunkterRes.error }, { status: 400 });
+  }
+  const varighedRes = validerVarighed(varighed_minutter);
+  if (!varighedRes.ok) {
+    return NextResponse.json({ error: varighedRes.error }, { status: 400 });
   }
 
   // 4. Hent kontrakt og bestem rolle
@@ -136,14 +262,14 @@ export async function POST(req: NextRequest) {
   if (!rolleRes.ok) return rolleRes.response;
   const { rolle, kontrakt } = rolleRes;
 
-  // 5. Kontrollér eksisterende besigtigelse (nyeste pr. kontrakt)
+  // 5. Kontrollér eksisterende besigtigelse (nyeste runde pr. kontrakt)
   const { data: eksisterende } = await db
     .from("besigtigelse")
-    .select("id, status, dato, tidspunkt")
+    .select("id, status, dato, tidspunkt, valgt_tidspunkt_id, besigtigelse_tidspunkter(id, dato, tidspunkt)")
     .eq("kontrakt_id", kontrakt_id)
     .order("oprettet_at", { ascending: false })
     .limit(1)
-    .single() as { data: { id: string; status: string; dato: string; tidspunkt: string | null } | null };
+    .single();
 
   if (eksisterende) {
     if (eksisterende.status === "foreslaaet") {
@@ -153,66 +279,62 @@ export async function POST(req: NextRequest) {
       );
     }
     if (eksisterende.status === "godkendt") {
-      if (!erBesigtigelsePasseret(eksisterende.dato, eksisterende.tidspunkt)) {
+      const effektiv = hentEffektivDatoTid({
+        dato: eksisterende.dato,
+        tidspunkt: eksisterende.tidspunkt,
+        valgt_tidspunkt_id: eksisterende.valgt_tidspunkt_id,
+        tidspunkter: eksisterende.besigtigelse_tidspunkter ?? [],
+      });
+      if (!effektiv || !erBesigtigelsePasseret(effektiv.dato, effektiv.tidspunkt)) {
         return NextResponse.json(
           { error: "Der er allerede aftalt en besigtigelse." },
           { status: 409 },
         );
       }
-      // Godkendt men tidspunktet er passeret — kun haandvaerker må oprette ny anmodning
+      // Godkendt men tidspunktet er passeret — kun haandvaerker må oprette ny anmodning.
+      // Den passerede godkendte runde bevares urørt som historik.
       if (rolle !== "haandvaerker") {
         return NextResponse.json(
           { error: "Ny besigtigelsesanmodning skal komme fra entreprenøren." },
           { status: 403 },
         );
       }
-      // Falder igennem til INSERT nedenfor — den passerede godkendte række bevares som historik
     } else {
-      // status = "afvist" — genbrug rækken via UPDATE, ingen DELETE
-      const genbrugOpdatering: Record<string, unknown> = {
-        dato,
-        tidspunkt: tidspunkt || null,
-        status: "foreslaaet",
-        foreslaaet_af: rolle,
-        opdateret_at: new Date().toISOString(),
-        // Nulstil begge kommentarfelter, sæt derefter kun den verificerede brugers
-        kommentar_bygherre: null,
-        kommentar_haandvaerker: null,
-      };
-      if (rolle === "bygherre") genbrugOpdatering.kommentar_bygherre = kommentar || null;
-      if (rolle === "haandvaerker") genbrugOpdatering.kommentar_haandvaerker = kommentar || null;
-
-      const { data, error } = await db
-        .from("besigtigelse")
-        .update(genbrugOpdatering)
-        .eq("id", eksisterende.id)
-        .select()
-        .single();
-
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-      return NextResponse.json(data);
+      // status = "afvist" — kun haandvaerker må starte et nyt forslag.
+      // Den afviste runde røres ikke: en helt ny runde oprettes via RPC nedenfor.
+      if (rolle !== "haandvaerker") {
+        return NextResponse.json(
+          { error: "Ny besigtigelsesanmodning skal komme fra entreprenøren." },
+          { status: 403 },
+        );
+      }
+    }
+  } else {
+    // Ingen eksisterende besigtigelse — kun haandvaerker må starte det første forslag
+    if (rolle !== "haandvaerker") {
+      return NextResponse.json(
+        { error: "Besigtigelse skal anmodes af entreprenøren." },
+        { status: 403 },
+      );
     }
   }
 
-  // 6. Ingen eksisterende ELLER godkendt+passeret+haandvaerker — INSERT nyt forslag
-  const indsæt: Record<string, unknown> = {
-    kontrakt_id,
-    projekt_id: kontrakt.projekt_id,
-    dato,
-    tidspunkt: tidspunkt || null,
-    status: "foreslaaet",
-    foreslaaet_af: rolle,
-    kommentar_bygherre: rolle === "bygherre" ? (kommentar || null) : null,
-    kommentar_haandvaerker: rolle === "haandvaerker" ? (kommentar || null) : null,
-  };
+  // 6. Atomar oprettelse af runde + 1-3 tidspunkter via RPC. rolle er her altid
+  // "haandvaerker" — alle andre veje er afvist med 403/409 ovenfor. Alle
+  // parametre sendes eksplicit — ingen afhængighed af RPC-defaults.
+  const { data, error } = await db.rpc("opret_besigtigelsesrunde", {
+    p_kontrakt_id: kontrakt_id,
+    p_projekt_id: kontrakt.projekt_id,
+    p_foreslaaet_af: rolle,
+    p_varighed_minutter: varighedRes.varighed,
+    p_kommentar_bygherre: null,
+    p_kommentar_haandvaerker: kommentar || null,
+    p_tidspunkter: tidspunkterRes.tidspunkter,
+  });
 
-  const { data, error } = await db
-    .from("besigtigelse")
-    .insert(indsæt)
-    .select()
-    .single();
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json({ error: mapRpcFejl(error) }, { status: 500 });
+  }
   return NextResponse.json(data);
 }
 
@@ -225,23 +347,23 @@ export async function PATCH(req: NextRequest) {
 
   // 2. Læs body og valider påkrævede felter
   const body = await req.json();
-  const { id, action, kommentar, ny_dato, ny_tidspunkt } = body;
+  const { id, action, kommentar } = body;
 
   if (!id) return NextResponse.json({ error: "Mangler id" }, { status: 400 });
   if (!action) return NextResponse.json({ error: "Mangler action" }, { status: 400 });
 
-  const TILLADTE_ACTIONS = ["accept", "counter"] as const;
+  const TILLADTE_ACTIONS = ["accept", "counter", "reject"] as const;
   type Action = (typeof TILLADTE_ACTIONS)[number];
   if (!TILLADTE_ACTIONS.includes(action as Action)) {
     return NextResponse.json({ error: "Ugyldig action" }, { status: 400 });
   }
 
-  // 3. Hent besigtigelsesrækken
+  // 3. Hent besigtigelsesrunden med dens tidspunkter
   const { data: besigtigelse } = await db
     .from("besigtigelse")
-    .select("*")
+    .select("*, besigtigelse_tidspunkter(id, dato, tidspunkt, besigtigelse_id)")
     .eq("id", id)
-    .single() as { data: BesigtigelseRad | null };
+    .single();
 
   if (!besigtigelse) {
     return NextResponse.json({ error: "Besigtigelse ikke fundet" }, { status: 404 });
@@ -277,8 +399,27 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
+    const { valgt_tidspunkt_id } = body;
+    if (!valgt_tidspunkt_id) {
+      return NextResponse.json({ error: "Mangler valgt_tidspunkt_id" }, { status: 400 });
+    }
+
+    // Server-side verificering: det valgte tidspunkt skal faktisk tilhøre
+    // DENNE besigtigelsesrunde — stol aldrig alene på klientens id. Databasens
+    // composite FK (besigtigelse_valgt_tidspunkt_samme_runde_fk) håndhæver det
+    // samme som ekstra defense-in-depth ved selve UPDATE'et nedenfor.
+    const tidspunkter = (besigtigelse.besigtigelse_tidspunkter ?? []) as { id: string }[];
+    const valgtTidspunkt = tidspunkter.find((t) => t.id === valgt_tidspunkt_id);
+    if (!valgtTidspunkt) {
+      return NextResponse.json(
+        { error: "Det valgte tidspunkt tilhører ikke denne besigtigelse." },
+        { status: 400 },
+      );
+    }
+
     const opdatering: Record<string, unknown> = {
       status: "godkendt",
+      valgt_tidspunkt_id: valgtTidspunkt.id,
       opdateret_at: new Date().toISOString(),
     };
     if (kommentar !== undefined) {
@@ -293,38 +434,70 @@ export async function PATCH(req: NextRequest) {
       .select()
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: mapRpcFejl(error) }, { status: 500 });
     return NextResponse.json(data);
   }
 
-  // action === "counter"
+  if (action === "reject") {
+    if (erForslagsstiller) {
+      return NextResponse.json(
+        { error: "Du kan ikke afvise dit eget forslag." },
+        { status: 403 },
+      );
+    }
+
+    const opdatering: Record<string, unknown> = {
+      status: "afvist",
+      opdateret_at: new Date().toISOString(),
+    };
+    if (kommentar !== undefined) {
+      if (rolle === "bygherre") opdatering.kommentar_bygherre = kommentar || null;
+      if (rolle === "haandvaerker") opdatering.kommentar_haandvaerker = kommentar || null;
+    }
+
+    const { data, error } = await db
+      .from("besigtigelse")
+      .update(opdatering)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) return NextResponse.json({ error: mapRpcFejl(error) }, { status: 500 });
+    return NextResponse.json(data);
+  }
+
+  // action === "counter" — "Ingen af tiderne passer". Opretter en HELT NY
+  // runde atomart via samme RPC som POST. Den eksisterende (aktuelle) runde
+  // røres ikke: intet UPDATE, intet DELETE. Historikken bevares dermed urørt.
   if (erForslagsstiller) {
     return NextResponse.json(
       { error: "Du kan ikke fremsætte modforslag på dit eget forslag." },
       { status: 403 },
     );
   }
-  if (!ny_dato) {
-    return NextResponse.json({ error: "Mangler ny_dato til modforslag" }, { status: 400 });
+
+  const { tidspunkter: nyeTidspunkter, varighed_minutter } = body;
+  const tidspunkterRes = validerTidspunkter(nyeTidspunkter);
+  if (!tidspunkterRes.ok) {
+    return NextResponse.json({ error: tidspunkterRes.error }, { status: 400 });
+  }
+  const varighedRes = validerVarighed(varighed_minutter);
+  if (!varighedRes.ok) {
+    return NextResponse.json({ error: varighedRes.error }, { status: 400 });
   }
 
-  const opdatering: Record<string, unknown> = {
-    dato: ny_dato,
-    tidspunkt: ny_tidspunkt || null,
-    status: "foreslaaet",
-    foreslaaet_af: rolle,
-    opdateret_at: new Date().toISOString(),
-  };
-  if (rolle === "bygherre") opdatering.kommentar_bygherre = kommentar || null;
-  if (rolle === "haandvaerker") opdatering.kommentar_haandvaerker = kommentar || null;
+  const { data, error } = await db.rpc("opret_besigtigelsesrunde", {
+    p_kontrakt_id: besigtigelse.kontrakt_id,
+    p_projekt_id: besigtigelse.projekt_id,
+    p_foreslaaet_af: rolle,
+    p_varighed_minutter: varighedRes.varighed,
+    p_kommentar_bygherre: rolle === "bygherre" ? (kommentar || null) : null,
+    p_kommentar_haandvaerker: rolle === "haandvaerker" ? (kommentar || null) : null,
+    p_tidspunkter: tidspunkterRes.tidspunkter,
+  });
 
-  const { data, error } = await db
-    .from("besigtigelse")
-    .update(opdatering)
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json({ error: mapRpcFejl(error) }, { status: 500 });
+  }
   return NextResponse.json(data);
 }

@@ -2,16 +2,43 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase";
-import { fmtBesigtigelseDatoLang, erBesigtigelsePasseret } from "@/lib/besigtigelse";
+import {
+  fmtBesigtigelseDatoLang,
+  fmtBesigtigelseDatoKort,
+  fmtTidspunkt,
+  fmtTidsinterval,
+  fmtVarighed,
+  erBesigtigelsePasseret,
+  hentEffektivDatoTid,
+  getBesigtigelseHistorikLabel,
+  VARIGHED_OPTIONS,
+  VARIGHED_DEFAULT,
+  TIDSPUNKT_OPTIONS,
+} from "@/lib/besigtigelse";
 
-interface Besigtigelse {
+interface BesigtigelseTidspunkt {
   id: string;
   dato: string;
+  tidspunkt: string;
+  sortering: number;
+}
+
+interface BesigtigelseRunde {
+  id: string;
+  dato: string | null;
   tidspunkt: string | null;
+  varighed_minutter: number | null;
+  valgt_tidspunkt_id: string | null;
   kommentar_bygherre: string | null;
   kommentar_haandvaerker: string | null;
   status: string;
   foreslaaet_af: string;
+  oprettet_at: string;
+  tidspunkter: BesigtigelseTidspunkt[];
+}
+
+interface Besigtigelse extends BesigtigelseRunde {
+  historik?: BesigtigelseRunde[];
 }
 
 interface Props {
@@ -21,6 +48,11 @@ interface Props {
   legacyBesigtigelseDato?: string | null;
   legacyBesigtigelseTid?: string | null;
   legacyBesigtigelseBekraeftet?: boolean | null;
+}
+
+interface TidForslag {
+  dato: string;
+  tidspunkt: string;
 }
 
 async function hentToken(): Promise<string | null> {
@@ -44,6 +76,165 @@ async function autentificeretFetch(
   });
 }
 
+// Fælles GET-hentning + parsing, genbrugt ved første indlæsning og efter enhver
+// skrivehandling. Sikrer at "historik" og "tidspunkter" altid er med —
+// skrive-endpointernes eget svar indeholder kun den skrevne runde.
+async function hentBesigtigelseData(
+  kontraktId: string,
+  token: string,
+): Promise<{ ok: true; data: Besigtigelse | null } | { ok: false; error: string }> {
+  const res = await autentificeretFetch(`/api/besigtigelse?kontrakt_id=${kontraktId}`, token);
+  const d = await res.json().catch(() => null);
+  if (res.ok) return { ok: true, data: d };
+  return { ok: false, error: typeof d?.error === "string" ? d.error : "Kunne ikke hente besigtigelse." };
+}
+
+// Delt formular til 1-3 alternative tidspunkter + varighed + kommentar.
+// Bruges både til førstegangsforslag (entreprenør) og til "Ingen af tiderne
+// passer"-modforslag (modparten) — samme regler, samme UI, ingen duplikeret logik.
+function TidspunktFormular({
+  tider,
+  setTider,
+  varighed,
+  setVarighed,
+  kommentar,
+  setKommentar,
+  kommentarPlaceholder,
+  onAnnuller,
+  onSend,
+  sender,
+  sendLabel,
+}: {
+  tider: TidForslag[];
+  setTider: (t: TidForslag[]) => void;
+  varighed: number;
+  setVarighed: (v: number) => void;
+  kommentar: string;
+  setKommentar: (k: string) => void;
+  kommentarPlaceholder: string;
+  onAnnuller: () => void;
+  onSend: () => void;
+  sender: boolean;
+  sendLabel: string;
+}) {
+  const idagIso = new Date().toISOString().slice(0, 10);
+  const kanTilfoeje = tider.length < 3;
+  const gyldig = tider.length >= 1 && tider.every((t) => t.dato && t.tidspunkt);
+
+  function opdaterTid(index: number, felt: "dato" | "tidspunkt", værdi: string) {
+    setTider(tider.map((t, i) => (i === index ? { ...t, [felt]: værdi } : t)));
+  }
+  function tilføjMulighed() {
+    if (tider.length >= 3) return;
+    setTider([...tider, { dato: "", tidspunkt: "" }]);
+  }
+  function fjernMulighed(index: number) {
+    setTider(tider.filter((_, i) => i !== index));
+  }
+
+  return (
+    <div className="space-y-4">
+      {tider.map((t, i) => (
+        <div key={i}>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-sm font-medium text-gray-700">
+              Mulighed {i + 1} {i === 0 && <span className="text-red-400">*</span>}
+            </label>
+            {i > 0 && (
+              <button
+                type="button"
+                onClick={() => fjernMulighed(i)}
+                className="text-xs text-gray-400 hover:text-red-600 transition-colors"
+              >
+                Fjern
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <input
+              type="date"
+              value={t.dato}
+              min={idagIso}
+              onChange={(e) => opdaterTid(i, "dato", e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+            />
+            <select
+              value={t.tidspunkt}
+              onChange={(e) => opdaterTid(i, "tidspunkt", e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+            >
+              <option value="">Vælg tid</option>
+              {TIDSPUNKT_OPTIONS.map((tid) => (
+                <option key={tid} value={tid}>{tid}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      ))}
+
+      {kanTilfoeje && (
+        <button
+          type="button"
+          onClick={tilføjMulighed}
+          className="text-xs font-semibold text-[#1e3a2a] hover:underline"
+        >
+          + Tilføj tidspunkt
+        </button>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Varighed</label>
+        <select
+          value={varighed}
+          onChange={(e) => setVarighed(Number(e.target.value))}
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+        >
+          {VARIGHED_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {tider.some((t) => t.dato && t.tidspunkt) && (
+        <div className="text-xs text-gray-400 space-y-0.5">
+          {tider.map((t, i) => (
+            t.dato && t.tidspunkt ? (
+              <p key={i}>Mulighed {i + 1}: {fmtTidsinterval(t.tidspunkt, varighed)}</p>
+            ) : null
+          ))}
+        </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Kommentar (valgfrit)</label>
+        <textarea
+          rows={3}
+          value={kommentar}
+          onChange={(e) => setKommentar(e.target.value)}
+          placeholder={kommentarPlaceholder}
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none transition-all"
+        />
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          onClick={onAnnuller}
+          className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all"
+        >
+          Annuller
+        </button>
+        <button
+          onClick={onSend}
+          disabled={sender || !gyldig}
+          className="flex-1 py-3 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-all"
+        >
+          {sender ? "Sender..." : sendLabel}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function BesigtigelseKort({
   kontraktId,
   rolle,
@@ -55,21 +246,28 @@ export default function BesigtigelseKort({
   const [indlæser, setIndlæser] = useState(true);
   const [sessionFejl, setSessionFejl] = useState(false);
   const [getSucceeded, setGetSucceeded] = useState(false);
-  const [visForum, setVisForum] = useState(false);
   const [fejl, setFejl] = useState<string | null>(null);
 
-  // Opret-form
-  const [dato, setDato] = useState("");
-  const [tidspunkt, setTidspunkt] = useState("");
+  // Opret-formular (entreprenørens førstegangsforslag / genåbning)
+  const [visForum, setVisForum] = useState(false);
+  const [tider, setTider] = useState<TidForslag[]>([{ dato: "", tidspunkt: "" }]);
+  const [varighed, setVarighed] = useState(VARIGHED_DEFAULT);
   const [kommentar, setKommentar] = useState("");
   const [sender, setSender] = useState(false);
 
-  // Svar-form
+  // Svar — accept/modforslag/afvis
+  const [valgtTidspunktId, setValgtTidspunktId] = useState<string | null>(null);
   const [svarKommentar, setSvarKommentar] = useState("");
-  const [nyDato, setNyDato] = useState("");
-  const [nyTidspunkt, setNyTidspunkt] = useState("");
-  const [visNyDato, setVisNyDato] = useState(false);
   const [svarer, setSvarer] = useState(false);
+  const [visNyForslagForm, setVisNyForslagForm] = useState(false);
+  const [nyeTider, setNyeTider] = useState<TidForslag[]>([{ dato: "", tidspunkt: "" }]);
+  const [nyVarighed, setNyVarighed] = useState(VARIGHED_DEFAULT);
+
+  // Nulstil svar-relateret state når den aktuelle runde skifter. Justeres
+  // under render (React-anbefalet mønster for at nulstille state ved en
+  // ændret afhængighed) i stedet for i en useEffect, for at undgå en
+  // ekstra kaskaderende render.
+  const [svarStateForRundeId, setSvarStateForRundeId] = useState<string | null>(null);
 
   useEffect(() => {
     let aktiv = true;
@@ -80,18 +278,13 @@ export default function BesigtigelseKort({
         return;
       }
       try {
-        const res = await autentificeretFetch(
-          `/api/besigtigelse?kontrakt_id=${kontraktId}`,
-          token,
-        );
+        const res = await hentBesigtigelseData(kontraktId, token);
         if (!aktiv) return;
         if (res.ok) {
-          const d = await res.json();
           setGetSucceeded(true);
-          setBesigtigelse(d);
+          setBesigtigelse(res.data);
         } else {
-          const d = await res.json().catch(() => null);
-          setFejl(typeof d?.error === "string" ? d.error : "Kunne ikke hente besigtigelse.");
+          setFejl(res.error);
         }
       } catch {
         if (aktiv) setFejl("Der opstod en netværksfejl. Prøv igen.");
@@ -102,8 +295,29 @@ export default function BesigtigelseKort({
     return () => { aktiv = false; };
   }, [kontraktId]);
 
-  async function opret() {
-    if (!dato) return;
+  // Nulstil svar-relateret state når den aktuelle runde skifter (render-time
+  // state-justering, jf. kommentar ved useState-deklarationen ovenfor).
+  // Begge sider normaliseres til "id eller null", ellers ville undefined
+  // (besigtigelse === null) aldrig blive lig svarStateForRundeIds null og
+  // udløse en uendelig render-loop.
+  const aktuelRundeId = besigtigelse?.id ?? null;
+  if (aktuelRundeId !== svarStateForRundeId) {
+    setSvarStateForRundeId(aktuelRundeId);
+    setValgtTidspunktId(null);
+    setSvarKommentar("");
+    setVisNyForslagForm(false);
+    setNyeTider([{ dato: "", tidspunkt: "" }]);
+    setNyVarighed(VARIGHED_DEFAULT);
+  }
+
+  async function genopfrisk(token: string) {
+    const res = await hentBesigtigelseData(kontraktId, token);
+    if (res.ok) { setGetSucceeded(true); setBesigtigelse(res.data); }
+    else setFejl(res.error);
+  }
+
+  async function send() {
+    if (tider.length === 0 || tider.some((t) => !t.dato || !t.tidspunkt)) return;
     setFejl(null);
     setSender(true);
     try {
@@ -112,17 +326,22 @@ export default function BesigtigelseKort({
 
       const res = await autentificeretFetch("/api/besigtigelse", token, {
         method: "POST",
-        body: JSON.stringify({ kontrakt_id: kontraktId, dato, tidspunkt, kommentar }),
+        body: JSON.stringify({
+          kontrakt_id: kontraktId,
+          tidspunkter: tider,
+          varighed_minutter: varighed,
+          kommentar,
+        }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         setFejl(typeof data?.error === "string" ? data.error : "Kunne ikke oprette besigtigelse.");
         return;
       }
-      setBesigtigelse(data);
+      await genopfrisk(token);
       setVisForum(false);
-      setDato("");
-      setTidspunkt("");
+      setTider([{ dato: "", tidspunkt: "" }]);
+      setVarighed(VARIGHED_DEFAULT);
       setKommentar("");
     } catch {
       setFejl("Der opstod en netværksfejl. Prøv igen.");
@@ -131,39 +350,31 @@ export default function BesigtigelseKort({
     }
   }
 
-  async function svar(action: "accept" | "counter") {
+  async function sendModforslag() {
     if (!besigtigelse) return;
-    if (action === "counter" && !nyDato) return;
+    if (nyeTider.length === 0 || nyeTider.some((t) => !t.dato || !t.tidspunkt)) return;
     setFejl(null);
     setSvarer(true);
     try {
       const token = await hentToken();
       if (!token) { setFejl("Din session er udløbet. Log ind igen."); return; }
 
-      const body: Record<string, unknown> = {
-        id: besigtigelse.id,
-        action,
-        kommentar: svarKommentar || undefined,
-      };
-      if (action === "counter") {
-        body.ny_dato = nyDato;
-        body.ny_tidspunkt = nyTidspunkt || null;
-      }
-
       const res = await autentificeretFetch("/api/besigtigelse", token, {
         method: "PATCH",
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          id: besigtigelse.id,
+          action: "counter",
+          tidspunkter: nyeTider,
+          varighed_minutter: nyVarighed,
+          kommentar: svarKommentar || undefined,
+        }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setFejl(typeof data?.error === "string" ? data.error : "Kunne ikke sende svar.");
+        setFejl(typeof data?.error === "string" ? data.error : "Kunne ikke sende modforslag.");
         return;
       }
-      setBesigtigelse(data);
-      setSvarKommentar("");
-      setVisNyDato(false);
-      setNyDato("");
-      setNyTidspunkt("");
+      await genopfrisk(token);
     } catch {
       setFejl("Der opstod en netværksfejl. Prøv igen.");
     } finally {
@@ -171,10 +382,73 @@ export default function BesigtigelseKort({
     }
   }
 
+  async function accepterValgt() {
+    if (!besigtigelse || !valgtTidspunktId) return;
+    setFejl(null);
+    setSvarer(true);
+    try {
+      const token = await hentToken();
+      if (!token) { setFejl("Din session er udløbet. Log ind igen."); return; }
+
+      const res = await autentificeretFetch("/api/besigtigelse", token, {
+        method: "PATCH",
+        body: JSON.stringify({
+          id: besigtigelse.id,
+          action: "accept",
+          valgt_tidspunkt_id: valgtTidspunktId,
+          kommentar: svarKommentar || undefined,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setFejl(typeof data?.error === "string" ? data.error : "Kunne ikke godkende tidspunktet.");
+        return;
+      }
+      await genopfrisk(token);
+    } catch {
+      setFejl("Der opstod en netværksfejl. Prøv igen.");
+    } finally {
+      setSvarer(false);
+    }
+  }
+
+  async function afvisRunde() {
+    if (!besigtigelse) return;
+    setFejl(null);
+    setSvarer(true);
+    try {
+      const token = await hentToken();
+      if (!token) { setFejl("Din session er udløbet. Log ind igen."); return; }
+
+      const res = await autentificeretFetch("/api/besigtigelse", token, {
+        method: "PATCH",
+        body: JSON.stringify({
+          id: besigtigelse.id,
+          action: "reject",
+          kommentar: svarKommentar || undefined,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setFejl(typeof data?.error === "string" ? data.error : "Kunne ikke afvise besigtigelsen.");
+        return;
+      }
+      await genopfrisk(token);
+    } catch {
+      setFejl("Der opstod en netværksfejl. Prøv igen.");
+    } finally {
+      setSvarer(false);
+    }
+  }
+
+  const tidspunkter = besigtigelse?.tidspunkter ?? [];
+  const effektiv = besigtigelse ? hentEffektivDatoTid(besigtigelse) : null;
+
   // Tidspunkt passeret i Europe/Copenhagen — beregnes kun én gang pr. render
   const erPasseret =
-    besigtigelse?.status === "godkendt" &&
-    erBesigtigelsePasseret(besigtigelse.dato, besigtigelse.tidspunkt);
+    besigtigelse?.status === "godkendt" && effektiv
+      ? erBesigtigelsePasseret(effektiv.dato, effektiv.tidspunkt)
+      : false;
 
   const statusUI: Record<string, { label: string; klasse: string }> = {
     foreslaaet: { label: "Afventer godkendelse", klasse: "bg-amber-100 text-amber-700" },
@@ -193,20 +467,23 @@ export default function BesigtigelseKort({
   const kanSvare =
     besigtigelse?.status === "foreslaaet" && besigtigelse.foreslaaet_af !== rolle;
 
-  // Legacy-fallback: GET lykkedes med null, og legacy-flaget er sat
+  // Legacy-fallback: GET lykkedes med null, og legacy-flaget (fra kontrakter-tabellen,
+  // fra før besigtigelse-tabellen overhovedet fandtes) er sat
   const erLegacyFallback =
     getSucceeded && besigtigelse === null && !!legacyBesigtigelseBekraeftet;
 
-  // Ny anmodning kan startes:
-  // — ingen eksisterende selvstændig række, eller
+  // Ny anmodning kan startes — kun af entreprenøren, og kun når:
+  // — ingen eksisterende selvstændig runde, eller
   // — eksisterende er afvist, eller
-  // — eksisterende er godkendt og tidspunkt er passeret (kun haandvaerker)
+  // — eksisterende er godkendt og tidspunkt er passeret
+  // Bygherren må aldrig starte en besigtigelsesanmodning (produktbeslutning).
   const kanOpretteNy =
     getSucceeded &&
+    rolle === "haandvaerker" &&
     (
       !besigtigelse ||
       besigtigelse.status === "afvist" ||
-      (erPasseret && rolle === "haandvaerker")
+      erPasseret
     ) &&
     !erLegacyFallback;
 
@@ -254,9 +531,19 @@ export default function BesigtigelseKort({
         <div>
           <div className="flex items-start justify-between gap-3 mb-4">
             <div>
-              <p className="text-sm font-semibold text-gray-900">{fmtBesigtigelseDatoLang(besigtigelse.dato)}</p>
-              {besigtigelse.tidspunkt && (
-                <p className="text-xs text-gray-500 mt-0.5">Kl. {besigtigelse.tidspunkt.slice(0, 5)}</p>
+              {effektiv ? (
+                <>
+                  <p className="text-sm font-semibold text-gray-900">{fmtBesigtigelseDatoLang(effektiv.dato)}</p>
+                  {effektiv.tidspunkt && (
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Kl. {fmtTidsinterval(effektiv.tidspunkt, besigtigelse.varighed_minutter)}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm font-semibold text-gray-900">
+                  {tidspunkter.length} {tidspunkter.length === 1 ? "tidspunkt" : "tidspunkter"} foreslået
+                </p>
               )}
               <p className="text-xs text-gray-400 mt-1">
                 Foreslået af {besigtigelse.foreslaaet_af === "bygherre" ? "bygherre" : "entreprenøren"}
@@ -300,59 +587,137 @@ export default function BesigtigelseKort({
           )}
 
           {/* Modpartens svarmuligheder */}
-          {kanSvare && (
+          {kanSvare && !visNyForslagForm && (
             <div className="border-t border-gray-100 pt-4">
-              <p className="text-xs font-semibold text-gray-500 mb-3">Dit svar</p>
+              <p className="text-sm font-semibold text-gray-900 mb-3">
+                {besigtigelse.foreslaaet_af === "haandvaerker" ? "Entreprenøren foreslår disse tider" : "Bygherren foreslår disse tider"}
+              </p>
+
+              {tidspunkter.length > 0 && (
+                <div className="space-y-2 mb-4">
+                  {tidspunkter.map((t) => (
+                    <label
+                      key={t.id}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${
+                        valgtTidspunktId === t.id ? "border-[#1e3a2a] bg-[#1e3a2a]/5" : "border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="valgt-tidspunkt"
+                        checked={valgtTidspunktId === t.id}
+                        onChange={() => setValgtTidspunktId(t.id)}
+                        className="accent-[#1e3a2a] w-4 h-4 flex-shrink-0"
+                      />
+                      <span className="text-sm text-gray-900">
+                        {fmtBesigtigelseDatoLang(t.dato)} · {fmtTidsinterval(t.tidspunkt, besigtigelse.varighed_minutter)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+
               <textarea
                 rows={2}
                 placeholder="Tilføj en kommentar (valgfrit)"
                 value={svarKommentar}
-                onChange={e => setSvarKommentar(e.target.value)}
+                onChange={(e) => setSvarKommentar(e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none transition-all mb-3"
               />
 
-              {!visNyDato ? (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => svar("accept")}
-                    disabled={svarer}
-                    className="flex-1 py-2.5 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50"
-                  >
-                    {svarer ? "Gemmer..." : "Bekræft dato"}
-                  </button>
-                  <button
-                    onClick={() => setVisNyDato(true)}
-                    className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all"
-                  >
-                    Foreslå anden dato
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1.5">Ny dato</label>
-                      <input type="date" value={nyDato} onChange={e => setNyDato(e.target.value)}
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1.5">Tidspunkt (valgfrit)</label>
-                      <input type="time" value={nyTidspunkt} onChange={e => setNyTidspunkt(e.target.value)}
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => setVisNyDato(false)}
-                      className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all">
-                      Annuller
-                    </button>
-                    <button onClick={() => svar("counter")} disabled={svarer || !nyDato}
-                      className="flex-1 py-2.5 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-all">
-                      {svarer ? "Sender..." : "Send forslag"}
-                    </button>
-                  </div>
-                </div>
+              {tidspunkter.length > 0 && (
+                <button
+                  onClick={accepterValgt}
+                  disabled={svarer || !valgtTidspunktId}
+                  className="w-full py-2.5 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50 mb-2"
+                >
+                  {svarer ? "Gemmer..." : "Godkend valgt tidspunkt"}
+                </button>
               )}
+
+              <button
+                onClick={() => setVisNyForslagForm(true)}
+                className="w-full py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all"
+              >
+                Ingen af tiderne passer
+              </button>
+
+              <button
+                onClick={afvisRunde}
+                disabled={svarer}
+                className="w-full mt-3 py-1 text-xs text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+              >
+                Afvis besigtigelse
+              </button>
+            </div>
+          )}
+
+          {kanSvare && visNyForslagForm && (
+            <div className="border-t border-gray-100 pt-4">
+              <TidspunktFormular
+                tider={nyeTider}
+                setTider={setNyeTider}
+                varighed={nyVarighed}
+                setVarighed={setNyVarighed}
+                kommentar={svarKommentar}
+                setKommentar={setSvarKommentar}
+                kommentarPlaceholder="F.eks. hvorfor de foreslåede tider ikke passer..."
+                onAnnuller={() => setVisNyForslagForm(false)}
+                onSend={sendModforslag}
+                sender={svarer}
+                sendLabel="Send forslag"
+              />
+            </div>
+          )}
+
+          {/* Tidligere forslag — read-only historik, altid synlig for begge parter */}
+          {besigtigelse.historik && besigtigelse.historik.length > 0 && (
+            <div className="border-t border-gray-100 pt-4 mt-4">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Tidligere forslag</p>
+              <div className="space-y-2">
+                {besigtigelse.historik.map((h) => {
+                  const hTider = h.tidspunkter ?? [];
+                  const hEffektiv = hentEffektivDatoTid(h);
+                  return (
+                    <div key={h.id} className="bg-[#f5f3ee] rounded-xl px-4 py-3">
+                      <div className="flex items-start justify-between gap-3 mb-1.5">
+                        <p className="text-xs font-semibold text-gray-500">
+                          {h.foreslaaet_af === "bygherre" ? "Bygherre" : "Entreprenøren"} · {fmtBesigtigelseDatoKort(h.oprettet_at.slice(0, 10))}
+                        </p>
+                        <span className="text-xs font-medium text-gray-500 flex-shrink-0 text-right">
+                          {getBesigtigelseHistorikLabel(h.status)}
+                        </span>
+                      </div>
+                      <div className="space-y-0.5">
+                        {hTider.length > 0 ? (
+                          hTider.map((t) => (
+                            <p
+                              key={t.id}
+                              className={`text-sm ${h.status === "godkendt" && h.valgt_tidspunkt_id === t.id ? "text-gray-900 font-semibold" : "text-gray-600"}`}
+                            >
+                              {fmtBesigtigelseDatoLang(t.dato)} · {fmtTidsinterval(t.tidspunkt, h.varighed_minutter)}
+                              {h.status === "godkendt" && h.valgt_tidspunkt_id === t.id ? " — valgt" : ""}
+                            </p>
+                          ))
+                        ) : hEffektiv ? (
+                          <p className="text-sm text-gray-600">
+                            {fmtBesigtigelseDatoLang(hEffektiv.dato)}
+                            {hEffektiv.tidspunkt ? ` kl. ${fmtTidspunkt(hEffektiv.tidspunkt)}` : ""}
+                          </p>
+                        ) : null}
+                      </div>
+                      {fmtVarighed(h.varighed_minutter) && (
+                        <p className="text-xs text-gray-400 mt-1">Varighed: {fmtVarighed(h.varighed_minutter)}</p>
+                      )}
+                      {(h.kommentar_bygherre || h.kommentar_haandvaerker) && (
+                        <p className="text-xs text-gray-500 mt-2 italic">
+                          &ldquo;{h.kommentar_bygherre || h.kommentar_haandvaerker}&rdquo;
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
@@ -392,46 +757,26 @@ export default function BesigtigelseKort({
 
       {/* Opret-formular — ny anmodning eller genåbning efter afvisning */}
       {visForum && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Dato <span className="text-red-400">*</span></label>
-              <input type="date" value={dato} onChange={e => setDato(e.target.value)}
-                min={new Date().toISOString().slice(0, 10)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Tidspunkt (valgfrit)</label>
-              <input type="time" value={tidspunkt} onChange={e => setTidspunkt(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Kommentar (valgfrit)</label>
-            <textarea rows={3} value={kommentar} onChange={e => setKommentar(e.target.value)}
-              placeholder={rolle === "bygherre"
-                ? "F.eks. adgangsforhold, vejarbejde foran huset, hvornår du er hjemme..."
-                : "F.eks. hvad du gerne vil se nærmere på, hvad der skal til for at give pris..."}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none transition-all" />
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => { setVisForum(false); setFejl(null); }}
-              className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all">
-              Annuller
-            </button>
-            <button onClick={opret} disabled={sender || !dato}
-              className="flex-1 py-3 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-all">
-              {sender ? "Sender..." : "Send besigtigelsesanmodning"}
-            </button>
-          </div>
-        </div>
+        <TidspunktFormular
+          tider={tider}
+          setTider={setTider}
+          varighed={varighed}
+          setVarighed={setVarighed}
+          kommentar={kommentar}
+          setKommentar={setKommentar}
+          kommentarPlaceholder="F.eks. hvad du gerne vil se nærmere på, hvad der skal til for at give pris..."
+          onAnnuller={() => { setVisForum(false); setFejl(null); }}
+          onSend={send}
+          sender={sender}
+          sendLabel="Send forslag"
+        />
       )}
 
       {/* Ingen besigtigelse endnu og formular ikke vist — kun når GET lykkedes, ingen legacy-anmodning */}
       {getSucceeded && !besigtigelse && !visForum && !erLegacyFallback && (
         <p className="text-sm text-gray-400">
           {rolle === "bygherre"
-            ? "Entreprenøren kan anmode om at besigtige opgaven inden pris afgives."
+            ? "Entreprenøren har endnu ikke anmodet om besigtigelse."
             : "Du kan anmode om at besigtige opgaven inden du afgiver pris."}
         </p>
       )}

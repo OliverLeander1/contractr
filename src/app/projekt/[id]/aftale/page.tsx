@@ -7,17 +7,26 @@ import ProjektNav from "@/components/ProjektNav";
 import { createClient } from "@/lib/supabase";
 import DokumentRenderer from "@/components/DokumentRenderer";
 import { erV2Dokument, parseV2Sektioner, byggV2Dokument, indeholderKonkretDato } from "@/lib/dokumentV2";
-import { fmtBesigtigelseDatoLang, erBesigtigelsePasseret } from "@/lib/besigtigelse";
+import { fmtBesigtigelseDatoLang, erBesigtigelsePasseret, hentEffektivDatoTid, fmtTidsinterval } from "@/lib/besigtigelse";
+
+interface BesigtigelseTidspunktRad {
+  id: string;
+  dato: string;
+  tidspunkt: string;
+}
 
 interface Besigtigelse {
   id: string;
   kontrakt_id: string;
-  dato: string;
+  dato: string | null;
   tidspunkt: string | null;
+  varighed_minutter: number | null;
+  valgt_tidspunkt_id: string | null;
   status: string;
   foreslaaet_af: string;
   kommentar_haandvaerker: string | null;
   kommentar_bygherre: string | null;
+  tidspunkter?: BesigtigelseTidspunktRad[];
 }
 
 interface Aendring {
@@ -668,6 +677,15 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
           </p>
         )}
         {besigtigelse !== "loading" && besigtigelse !== null && besigtigelse !== "error" && (() => {
+          // Ingen enkelt dato for en aktiv multi-tids-runde (1-3 ligeværdige
+          // alternativer, intet valgt endnu) — vis i stedet et antal. Aldrig
+          // "Mulighed 1" fremstillet som en aftalt dato. For legacy-rækker
+          // (uden tidspunkter-array) vises den oprindelige dato/tid uændret.
+          const antalTider = besigtigelse.tidspunkter?.length ?? 0;
+          const forslagTekst = antalTider > 0
+            ? `${antalTider} ${antalTider === 1 ? "tidspunkt" : "tidspunkter"} foreslået`
+            : null;
+
           if (besigtigelse.status === "foreslaaet" && besigtigelse.foreslaaet_af === "haandvaerker") {
             return (
               <div className="mb-5 bg-amber-50 border border-amber-200 rounded-2xl p-5">
@@ -681,8 +699,12 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                   <div className="flex-1">
                     <p className="text-sm font-bold text-amber-900">Entreprenøren har foreslået en besigtigelse</p>
                     <p className="text-xs text-amber-700 mt-0.5">
-                      {fmtBesigtigelseDatoLang(besigtigelse.dato)}
-                      {besigtigelse.tidspunkt && <span className="ml-2 font-semibold">kl. {besigtigelse.tidspunkt.slice(0, 5)}</span>}
+                      {antalTider > 0 ? forslagTekst : (
+                        <>
+                          {besigtigelse.dato && fmtBesigtigelseDatoLang(besigtigelse.dato)}
+                          {besigtigelse.tidspunkt && <span className="ml-2 font-semibold">kl. {besigtigelse.tidspunkt.slice(0, 5)}</span>}
+                        </>
+                      )}
                     </p>
                     {besigtigelse.kommentar_haandvaerker && (
                       <p className="text-xs text-amber-700 mt-1.5 italic">&ldquo;{besigtigelse.kommentar_haandvaerker}&rdquo;</p>
@@ -712,8 +734,12 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 <div>
                   <p className="text-sm font-bold text-blue-900">Dit forslag til besigtigelse afventer entreprenørens svar</p>
                   <p className="text-xs text-blue-700 mt-0.5">
-                    {fmtBesigtigelseDatoLang(besigtigelse.dato)}
-                    {besigtigelse.tidspunkt && <span className="ml-2 font-semibold">kl. {besigtigelse.tidspunkt.slice(0, 5)}</span>}
+                    {antalTider > 0 ? forslagTekst : (
+                      <>
+                        {besigtigelse.dato && fmtBesigtigelseDatoLang(besigtigelse.dato)}
+                        {besigtigelse.tidspunkt && <span className="ml-2 font-semibold">kl. {besigtigelse.tidspunkt.slice(0, 5)}</span>}
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
@@ -721,8 +747,11 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
           }
 
           if (besigtigelse.status === "godkendt") {
-            // Passeret tidspunkt vises ikke som aktuel kommende begivenhed
-            if (erBesigtigelsePasseret(besigtigelse.dato, besigtigelse.tidspunkt)) return null;
+            // Den aftalte tid: valgt_tidspunkt_id → child for nye runder, ellers
+            // parentens egne dato/tidspunkt for legacy-rækker. Passeret tidspunkt
+            // vises ikke som aktuel kommende begivenhed.
+            const effektiv = hentEffektivDatoTid(besigtigelse);
+            if (!effektiv || erBesigtigelsePasseret(effektiv.dato, effektiv.tidspunkt)) return null;
             return (
               <div className="mb-5 bg-green-50 border border-green-200 rounded-2xl p-5 flex items-start gap-3">
                 <div className="w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -731,8 +760,10 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 <div>
                   <p className="text-sm font-bold text-green-900">Besigtigelse aftalt</p>
                   <p className="text-xs text-green-700 mt-0.5">
-                    {fmtBesigtigelseDatoLang(besigtigelse.dato)}
-                    {besigtigelse.tidspunkt && <span className="ml-2 font-semibold">kl. {besigtigelse.tidspunkt.slice(0, 5)}</span>}
+                    {fmtBesigtigelseDatoLang(effektiv.dato)}
+                    {effektiv.tidspunkt && (
+                      <span className="ml-2 font-semibold">kl. {fmtTidsinterval(effektiv.tidspunkt, besigtigelse.varighed_minutter)}</span>
+                    )}
                   </p>
                 </div>
               </div>

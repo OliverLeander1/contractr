@@ -1,4 +1,47 @@
-# Aktiv opgave
+# Aktiv opgave — besigtigelse: entreprenørinitieret flow med 1-3 tidsforslag (kodeændring afsluttet, browsertest mangler)
+
+Besigtigelse er udvidet fra ét dato/tidspunkt pr. forslag til 1-3
+alternative tidsforslag pr. forhandlingsrunde, oven på den nu manuelt
+kørte og read-only verificerede migration
+supabase-migration-besigtigelse-multitider.sql.
+
+Endelig model:
+
+- Entreprenøren starter altid første runde. Kun rolle = "haandvaerker"
+  må oprette et førstegangsforslag, genåbne efter en afvisning, eller
+  starte et nyt forløb efter en passeret godkendt besigtigelse.
+- En runde indeholder 1-3 alternative dato/tid-forslag (kvartersvalgt,
+  00/15/30/45), én forslagsstiller, én varighed (30/45/60/90/120 min.,
+  default 60) og en valgfri kommentar.
+- Bygherren kan: vælge ét af de foreslåede tidspunkter og godkende,
+  vælge "Ingen af tiderne passer" og foreslå 1-3 nye tider, eller vælge
+  "Afvis besigtigelse" som en mindre fremtrædende, separat terminal
+  handling. Samme tre muligheder gælder entreprenøren, når bygherren har
+  foreslået nye tider.
+- Databasemodel: public.besigtigelse (runde) + ny child-tabel
+  public.besigtigelse_tidspunkter (1-3 alternativer pr. runde), atomart
+  oprettet via RPC'en public.opret_besigtigelsesrunde. Godkendelse
+  peger via valgt_tidspunkt_id på ét af rundens egne alternativer,
+  håndhævet med en composite foreign key. Modforslag opretter altid en
+  helt ny runde via samme RPC — den gamle runde røres aldrig.
+- Legacy-fallback er bevaret og verificeret mod to reelle
+  produktionsrækker: én uden for kvartersreglen (12:52) vises fortsat
+  med sit oprindelige, upræcise klokkeslæt; én med et kvartersgyldigt
+  tidspunkt blev korrekt backfillet.
+- Autorisation forbliver udelukkende i Next.js (Bearer JWT →
+  auth.getUser() → bestemRolle()) — RPC'en har kun EXECUTE for
+  service_role og er ikke selv autoritativ.
+
+Se docs/PROJECT_STATE.md, "Besigtigelsesflow (entreprenørinitieret,
+1-3 tidsforslag pr. runde)" for fuld detaljering. Typecheck, lint,
+git diff --check og npm run build er alle bekræftet grønne. Migrationen
+er allerede kørt i produktion (ikke en del af denne kodeopgave) —
+migrationsfilen skal committes sammen med denne feature-kode. Ingen ny
+database-, schema- eller RLS-ændring i denne opgave. Ingen commit/push.
+Manuel browsertest mangler fortsat — se testplanen i seneste opgavesvar
+til Oliver.
+
+# Tidligere aktiv opgave
 
 Manuel browsertest af fjernelsen af Projektopsummering fra selve
 aftaledokumentet, af det nye V2-dokumentformat i øvrigt
@@ -63,16 +106,6 @@ routes):
 - uautentificerede requests kan ikke læse, oprette eller ændre data
 
 # Næste opgave efter godkendt browsertest
-
-Afgrænset produktrettelse af besigtigelsesflowet, så entreprenøren
-anmoder om besigtigelse, og bygherren godkender, afviser eller
-foreslår et andet tidspunkt.
-
-**Claude må ikke fortsætte automatisk til denne opgave.** Skal først
-igangsættes efter Oliver eksplicit har gennemført og godkendt
-browsertesten ovenfor.
-
-# Efter dén opgave (uændret rækkefølge)
 
 Afgrænsning af en global, projektuafhængig oplevelse for
 projektgrundlag (opgave/tilbudsforespørgsel → AI-genereret

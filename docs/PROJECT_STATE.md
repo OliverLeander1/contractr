@@ -13,6 +13,108 @@
 - Én privat chatsamtale pr. kontrakt.
 - Legacy-samtaler med kontrakt_id = NULL må ikke gættes koblet til en kontrakt.
 
+# Besigtigelsesflow (entreprenørinitieret, 1-3 tidsforslag pr. runde)
+
+Endelig, faktisk model efter den kørte migration
+supabase-migration-besigtigelse-multitider.sql (manuelt kørt og read-only
+verificeret af Oliver i produktion).
+
+- Besigtigelse initieres udelukkende af entreprenøren. POST
+  /api/besigtigelse kræver rolle = "haandvaerker" for at oprette et
+  førstegangsforslag, for at starte et nyt forslag efter en afvisning,
+  og for at starte et nyt forløb efter en passeret godkendt besigtigelse.
+  Bygherren får 403 ved forsøg på at oprette. Bygherren kan derimod
+  acceptere ét af de foreslåede tidspunkter, foreslå 1-3 nye tidspunkter
+  ("Ingen af tiderne passer"), eller afvise besigtigelsen helt via PATCH.
+- Databasemodel (nu live): public.besigtigelse er én forhandlingsrunde
+  (kontrakt_id, projekt_id, foreslaaet_af, status, varighed_minutter,
+  valgt_tidspunkt_id, kommentarer, timestamps). En ny child-tabel
+  public.besigtigelse_tidspunkter rummer 1-3 alternative dato/tid-rækker
+  pr. runde (id, besigtigelse_id, dato, tidspunkt, sortering). En
+  accepteret runde peger via valgt_tidspunkt_id på præcis ét af sine
+  egne tilbudte alternativer — håndhævet i databasen med en composite
+  foreign key (valgt_tidspunkt_id, id) → besigtigelse_tidspunkter(id,
+  besigtigelse_id), så et valg fra en ANDEN runde er umuligt at gemme.
+  besigtigelse.dato/besigtigelse.tidspunkt er nu legacy parent-felter:
+  nye runder skriver aldrig til dem (de forbliver NULL på parent-niveau
+  for alt oprettet efter migrationen) — al ny data ligger udelukkende i
+  besigtigelse_tidspunkter.
+- Atomar oprettelse via RPC: public.opret_besigtigelsesrunde(...) opretter
+  parent-runden og dens 1-3 tidspunkter i én transaktion (INSERT parent
+  → validér og INSERT hvert tidspunkt, alt inden for funktionskaldets
+  egen implicitte transaktion). Kaldes fra /api/besigtigelse via
+  createServiceClient().rpc(...), først EFTER at Bearer JWT,
+  auth.getUser() og bestemRolle() har autoriseret handlingen — RPC'en er
+  ikke selv den autoritative autorisation. RPC'en har kun EXECUTE for
+  service_role (PUBLIC/anon/authenticated er eksplicit revoked), så den
+  kan ikke kaldes uden om Next.js-routens autorisation.
+- Modforslag (PATCH action="counter", "Ingen af tiderne passer") opretter
+  altid en HELT NY runde via samme RPC. Den eksisterende (aktuelle) runde
+  røres aldrig — hverken parent-rækken eller dens tidspunkter opdateres
+  eller slettes. Kun accept (status → godkendt + valgt_tidspunkt_id) og
+  reject (status → afvist) opdaterer den aktuelle rundes egen række.
+- PATCH action="reject" ("Afvis besigtigelse") er en selvstændig,
+  terminal handling, adskilt fra "Ingen af tiderne passer": kun modparten
+  til det aktuelle forslag kan afvise, hvilket sætter status = "afvist"
+  på kun den aktuelle runde (ingen ny runde). Semantisk forskel:
+  "Afvis besigtigelse" = ønsker ikke besigtigelsen; "Ingen af tiderne
+  passer" = ønsker fortsat besigtigelsen, men de foreslåede tider passer
+  ikke og efterfølges altid af 1-3 nye tidsforslag.
+- Tidspunkter er begrænset til 15-minutters intervaller (00/15/30/45) og
+  varighed til 30/45/60/90/120 minutter (default 60) — håndhævet i tre
+  lag: klient-select (ingen fri indtastning), Next.js-servervalidering
+  (gode brugerfejl), og RPC'en/databasens CHECK-constraints (endelig
+  kontrol, uafhængig af klienten).
+- GET /api/besigtigelse er udvidet: hver runde (den aktuelle og alle i
+  historikken) inkluderer nu sine tidspunkter, sorteret efter sortering.
+  Ingen kunstige dato/tid-felter er tilføjet på parent-niveau for nye
+  runder — parent.dato/tidspunkt forbliver null, den reelle data ligger
+  i tidspunkter-arrayet.
+- hentEffektivDatoTid() (src/lib/besigtigelse.ts) er den fælles,
+  genbrugte funktion, der finder "den faktiske dato/tid" for en runde,
+  uanset om den stammer fra det nye multi-tids-flow (via
+  valgt_tidspunkt_id → et element i tidspunkter) eller er en legacy-
+  række (via parent.dato/tidspunkt direkte). Bruges af BesigtigelseKort,
+  aftale-siden og getBesigtigelseStatusUI (dashboard), så ingen af dem
+  duplikerer denne logik. erBesigtigelsePasseret() er uændret
+  (Europe/Copenhagen), men kaldes nu altid med det effektivt fundne
+  dato/tidspunkt.
+- Legacy-fallback er et reelt, verificeret krav, ikke en teoretisk
+  edge case: to eksisterende produktionsrækker forud for migrationen
+  blev kontrolleret. Én med dato+tidspunkt uden for kvartersreglen
+  (2026-08-03 12:52) fik bevidst INGEN child-række og vises fortsat med
+  sit oprindelige, upræcise klokkeslæt uændret (ingen afrunding). Én med
+  et kvartersgyldigt tidspunkt (2026-08-05 16:30) blev backfillet til én
+  child-række, og dens valgt_tidspunkt_id peger nu på den. Begge
+  tilfælde læses korrekt af hentEffektivDatoTid() uden ændringskode i
+  UI'et ud over selve helperen.
+- BesigtigelseKort.tsx viser nu op til 3 alternative tidspunkter som
+  radio-valg for modparten ("Godkend valgt tidspunkt"), en delt
+  TidspunktFormular-underkomponent (genbrugt til både førstegangsforslag
+  og modforslag) med kvarters-select og varighedsvælger, samt en
+  selvstændig, visuelt tilbagetrukket "Afvis besigtigelse"-handling
+  adskilt fra "Ingen af tiderne passer". "Tidligere forslag"-historikken
+  viser nu alle 1-3 alternativer pr. tidligere runde, hvem der foreslog,
+  hvornår, og et afledt resultat ("Besigtigelse aftalt" / "Afvist" /
+  "Ingen af tiderne passede" — ren UI-aflæsning, ingen ny databasestatus).
+- /api/bruger/besigtigelser (dashboard) og den selvstændige
+  besigtigelse-forhåndsvisning på projekt/[id]/aftale/page.tsx er begge
+  tilpasset minimalt: en aktiv, endnu ubesvaret multi-tids-runde viser
+  nu et antal ("3 tider foreslået") i stedet for at fremstille "Mulighed
+  1" som en aftalt dato. Ingen redesign af dashboardet.
+- Besigtigelse skriver fortsat udelukkende til besigtigelse- og
+  besigtigelse_tidspunkter-tabellerne. Aftaledokument, revision,
+  godkendelsestimestamps, pris, betalingsplan og start-/slutdato er ikke
+  påvirket.
+- Ingen nye mails eller notifikationer er tilføjet.
+- Migrationsfilen supabase-migration-besigtigelse-multitider.sql er
+  kørt og read-only verificeret i produktion (RLS enabled på
+  besigtigelse_tidspunkter, ingen policies, korrekte RPC-privileges,
+  composite FK, øvrige constraints). Den skal committes sammen med
+  denne feature-kode.
+- Manuel browsertest af det fulde multi-tids-flow mangler fortsat (se
+  docs/ACTIVE_TASK.md).
+
 # Sikkerhed og drift (commit: se "fix: close debug leak and repair notification client")
 
 - Det tidligere uautentificerede GET /api/debug, som eksponerede dele af
@@ -396,13 +498,6 @@ document structure and dates")
 
 # Parkeret
 
-- besigtigelsesflowet: bygherren kan i dag selv sende en
-  besigtigelsesanmodning fra projektets oversigt. Den ønskede
-  produktretning er, at entreprenøren anmoder om besigtigelse, og
-  bygherren godkender, afviser eller foreslår et andet tidspunkt.
-  Opdaget under browsertest af den sikrede kontraktlisteroute. Ikke
-  ændret i nogen sikkerhedsopgave — er en afgrænset, separat
-  produktrettelse.
 - nulstilling og sletning af testdata
 - tidsplan og kalender
 - endelig multi-kontraktmigration for betalinger, mangler og ekstraarbejde

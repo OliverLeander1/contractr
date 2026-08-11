@@ -31,9 +31,15 @@ export async function GET(req: NextRequest) {
 
   const kontraktIds = kontrakter.map((k) => k.id);
 
+  // varighed_minutter/valgt_tidspunkt_id/besigtigelse_tidspunkter er nødvendige for,
+  // at dashboardets statustekst kan afgøre en aftalt tid (via valgt_tidspunkt_id) eller
+  // vise et antal foreslåede tider — uden nogensinde at fremstille "Mulighed 1" som en
+  // aftalt dato for en aktiv, endnu ikke besvaret multi-tids-runde.
   const { data: besigtigelser, error: besigtigelserFejl } = await db
     .from("besigtigelse")
-    .select("id, kontrakt_id, projekt_id, dato, tidspunkt, status, foreslaaet_af, kommentar_haandvaerker, kommentar_bygherre")
+    .select(
+      "id, kontrakt_id, projekt_id, dato, tidspunkt, varighed_minutter, valgt_tidspunkt_id, status, foreslaaet_af, kommentar_haandvaerker, kommentar_bygherre, besigtigelse_tidspunkter(id, dato, tidspunkt)",
+    )
     .in("kontrakt_id", kontraktIds)
     .order("oprettet_at", { ascending: false });
 
@@ -50,5 +56,12 @@ export async function GET(req: NextRequest) {
     return true;
   });
 
-  return NextResponse.json(unikke);
+  // Fladgør nested besigtigelse_tidspunkter til det fælles feltnavn "tidspunkter",
+  // så BesigtigelseData-formen matches uden en separat type i dashboardet.
+  const resultat = unikke.map(({ besigtigelse_tidspunkter, ...felter }) => ({
+    ...felter,
+    tidspunkter: besigtigelse_tidspunkter ?? [],
+  }));
+
+  return NextResponse.json(resultat);
 }
