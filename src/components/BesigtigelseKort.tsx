@@ -13,8 +13,7 @@ import {
   getBesigtigelseHistorikLabel,
   VARIGHED_OPTIONS,
   VARIGHED_DEFAULT,
-  TIDSPUNKT_ARBEJDSTID,
-  TIDSPUNKT_UDEN_FOR_ARBEJDSTID,
+  TIDSPUNKT_OPTIONS,
 } from "@/lib/besigtigelse";
 
 interface BesigtigelseTidspunkt {
@@ -206,16 +205,9 @@ function TidspunktFormular({
                 className="w-full border border-gray-200 bg-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
               >
                 <option value="">Vælg tidspunkt</option>
-                <optgroup label="Arbejdstid">
-                  {TIDSPUNKT_ARBEJDSTID.map((tid) => (
-                    <option key={tid} value={tid}>{tid}</option>
-                  ))}
-                </optgroup>
-                <optgroup label="Uden for arbejdstid">
-                  {TIDSPUNKT_UDEN_FOR_ARBEJDSTID.map((tid) => (
-                    <option key={tid} value={tid}>{tid}</option>
-                  ))}
-                </optgroup>
+                {TIDSPUNKT_OPTIONS.map((tid) => (
+                  <option key={tid} value={tid}>{tid}</option>
+                ))}
               </select>
             </div>
             {t.dato && t.tidspunkt && (
@@ -249,13 +241,16 @@ function TidspunktFormular({
         </select>
       </div>
 
-      <textarea
-        rows={2}
-        value={kommentar}
-        onChange={(e) => setKommentar(e.target.value)}
-        placeholder={kommentarPlaceholder}
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none transition-all"
-      />
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Bemærkning til besigtigelsen (valgfri)</label>
+        <textarea
+          rows={2}
+          value={kommentar}
+          onChange={(e) => setKommentar(e.target.value)}
+          placeholder={kommentarPlaceholder}
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none transition-all"
+        />
+      </div>
 
       <div className="flex gap-2 pt-1">
         <button
@@ -731,7 +726,7 @@ export default function BesigtigelseKort({
               setVarighed={setNyVarighed}
               kommentar={svarKommentar}
               setKommentar={setSvarKommentar}
-              kommentarPlaceholder="F.eks. hvorfor de foreslåede tider ikke passer..."
+              kommentarPlaceholder="Fx adgangsforhold, parkering eller noget særligt, der er vigtigt at vide..."
               onAnnuller={() => setVisNyForslagForm(false)}
               onSend={sendModforslag}
               sender={svarer}
@@ -831,7 +826,7 @@ export default function BesigtigelseKort({
           setVarighed={setVarighed}
           kommentar={kommentar}
           setKommentar={setKommentar}
-          kommentarPlaceholder="F.eks. hvad du gerne vil se nærmere på, hvad der skal til for at give pris..."
+          kommentarPlaceholder="Fx adgangsforhold, parkering eller noget særligt, der er vigtigt at vide..."
           onAnnuller={() => { setVisForum(false); setFejl(null); }}
           onSend={send}
           sender={sender}

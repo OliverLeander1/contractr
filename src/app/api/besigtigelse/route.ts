@@ -79,6 +79,12 @@ function validerTidspunkter(
         error: "Tidspunkt skal være på hele, kvarte, halve eller tre-kvarte timer (fx 08:00, 08:15, 08:30, 08:45).",
       };
     }
+    // Reel produktregel (ikke kun UX): besigtigelser kan kun foreslås mellem
+    // 07:00 og 18:00. tidspunkt er her allerede verificeret til gyldigt
+    // "HH:MM"-format, så en almindelig strengsammenligning er korrekt og nok.
+    if (tidspunkt < "07:00" || tidspunkt > "18:00") {
+      return { ok: false, error: "Tidspunkt skal ligge mellem 07:00 og 18:00." };
+    }
     tidspunkter.push({ dato, tidspunkt });
   }
 
@@ -120,6 +126,7 @@ function mapRpcFejl(error: { message?: string; code?: string }): string {
     "dato/tidspunkt må ikke være null",
     "Ugyldigt datoformat",
     "Tidspunkt skal være på hele",
+    "Tidspunkt skal ligge mellem",
   ];
   if (error.message && kendteValideringsfejl.some((k) => error.message!.includes(k))) {
     return "Et af de indtastede tidspunkter er ugyldigt. Kontrollér dato og klokkeslæt.";

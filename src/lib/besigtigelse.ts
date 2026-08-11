@@ -68,26 +68,18 @@ export const VARIGHED_OPTIONS: { value: number; label: string }[] = [
 ];
 export const VARIGHED_DEFAULT = 60;
 
-// Kontrollerede 15-minutters tidspunktsvalg til <select> — 00:00 til 23:45.
-// Ingen fri tekstindtastning, hverken her eller server-side.
-export const TIDSPUNKT_OPTIONS: string[] = Array.from({ length: 24 * 4 }, (_, i) => {
-  const hh = Math.floor(i / 4);
-  const mm = (i % 4) * 15;
+// Kontrollerede 15-minutters tidspunktsvalg til <select> — 07:00 til 18:00.
+// Dette er nu en reel produktregel (håndhævet server-side og i RPC/database,
+// ikke kun her): en besigtigelse kan kun foreslås med starttid i dette
+// interval, så listen her er den FULDE, eneste gyldige mængde af valgbare
+// tidspunkter — ikke et udsnit af en større liste. Ingen fri tekstindtastning
+// noget sted.
+export const TIDSPUNKT_OPTIONS: string[] = Array.from({ length: 45 }, (_, i) => {
+  const totalMin = 7 * 60 + i * 15; // 07:00 + i kvarter, op til 18:00
+  const hh = Math.floor(totalMin / 60);
+  const mm = totalMin % 60;
   return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
 });
-
-// Ren UX-gruppering af TIDSPUNKT_OPTIONS til visning: normal arbejdstid
-// (07:00–18:00) først, så brugeren ikke skal scrolle forbi midnat for at nå
-// de mest almindelige tider. Dette er UDELUKKENDE en visningsrækkefølge —
-// enhver kvarterstid i døgnet er fortsat lige gyldig og vælgbar, og
-// server-/RPC-validering af 15-minutters-reglen er helt uændret og uafhængig
-// af denne gruppering.
-export const TIDSPUNKT_ARBEJDSTID: string[] = TIDSPUNKT_OPTIONS.filter(
-  (t) => t >= "07:00" && t <= "18:00",
-);
-export const TIDSPUNKT_UDEN_FOR_ARBEJDSTID: string[] = TIDSPUNKT_OPTIONS.filter(
-  (t) => t < "07:00" || t > "18:00",
-);
 
 // Formatteret varighedstekst til visning, eller null hvis varigheden er ukendt
 // (legacy-rækker fra før varighedsbegrebet fandtes) — viser ALDRIG en opdigtet værdi.
