@@ -55,6 +55,43 @@ interface TidForslag {
   tidspunkt: string;
 }
 
+// Rent præsentationslag: farvetone + ikon for statusblokken. Genbruger samme
+// amber/blå/grøn/rød-konvention som allerede findes i getBesigtigelseStatusUI
+// (dashboard) og aftale-sidens handlingsbokse — ingen ny statuslogik, kun en
+// lokal visuel oversættelse af den eksisterende status/rolle-tilstand.
+type StatusTone = "amber" | "blue" | "green" | "red" | "gray";
+
+const TONE_KLASSER: Record<StatusTone, { boks: string; ikon: string; titel: string }> = {
+  amber: { boks: "bg-amber-50 border border-amber-100", ikon: "text-amber-600", titel: "text-amber-900" },
+  blue:  { boks: "bg-blue-50 border border-blue-100",   ikon: "text-blue-600",  titel: "text-blue-900" },
+  green: { boks: "bg-green-50 border border-green-100", ikon: "text-green-600", titel: "text-green-900" },
+  red:   { boks: "bg-red-50 border border-red-100",     ikon: "text-red-500",   titel: "text-red-900" },
+  gray:  { boks: "bg-gray-50 border border-gray-100",   ikon: "text-gray-400",  titel: "text-gray-600" },
+};
+
+function StatusIkon({ tone }: { tone: StatusTone }) {
+  const klasse = `w-4 h-4 flex-shrink-0 ${TONE_KLASSER[tone].ikon}`;
+  if (tone === "green") {
+    return (
+      <svg className={klasse} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+    );
+  }
+  if (tone === "red") {
+    return (
+      <svg className={klasse} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    );
+  }
+  return (
+    <svg className={klasse} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+}
+
 async function hentToken(): Promise<string | null> {
   const supabase = createClient();
   const { data: { session } } = await supabase.auth.getSession();
@@ -133,44 +170,52 @@ function TidspunktFormular({
   }
 
   return (
-    <div className="space-y-4">
-      {tider.map((t, i) => (
-        <div key={i}>
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="block text-sm font-medium text-gray-700">
-              Mulighed {i + 1} {i === 0 && <span className="text-red-400">*</span>}
-            </label>
-            {i > 0 && (
-              <button
-                type="button"
-                onClick={() => fjernMulighed(i)}
-                className="text-xs text-gray-400 hover:text-red-600 transition-colors"
+    <div className="space-y-3">
+      <div className="space-y-2">
+        {tider.map((t, i) => (
+          // Hver mulighed er ét selvstændigt, letvægts tonet felt (baggrund uden
+          // ekstra kant), så det opleves som én tydelig blok uden at stable en
+          // ny kant oven i inputfelternes egne kanter.
+          <div key={i} className="bg-gray-50 rounded-xl p-3">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-gray-500">
+                Mulighed {i + 1} {i === 0 && <span className="text-red-400">*</span>}
+              </p>
+              {i > 0 && (
+                <button
+                  type="button"
+                  onClick={() => fjernMulighed(i)}
+                  className="text-xs text-gray-400 hover:text-red-600 transition-colors"
+                >
+                  Fjern
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="date"
+                value={t.dato}
+                min={idagIso}
+                onChange={(e) => opdaterTid(i, "dato", e.target.value)}
+                className="w-full border border-gray-200 bg-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+              />
+              <select
+                value={t.tidspunkt}
+                onChange={(e) => opdaterTid(i, "tidspunkt", e.target.value)}
+                className="w-full border border-gray-200 bg-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
               >
-                Fjern
-              </button>
+                <option value="">Vælg tid</option>
+                {TIDSPUNKT_OPTIONS.map((tid) => (
+                  <option key={tid} value={tid}>{tid}</option>
+                ))}
+              </select>
+            </div>
+            {t.dato && t.tidspunkt && (
+              <p className="text-xs text-gray-400 mt-1.5">{fmtTidsinterval(t.tidspunkt, varighed)}</p>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              type="date"
-              value={t.dato}
-              min={idagIso}
-              onChange={(e) => opdaterTid(i, "dato", e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
-            />
-            <select
-              value={t.tidspunkt}
-              onChange={(e) => opdaterTid(i, "tidspunkt", e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
-            >
-              <option value="">Vælg tid</option>
-              {TIDSPUNKT_OPTIONS.map((tid) => (
-                <option key={tid} value={tid}>{tid}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {kanTilfoeje && (
         <button
@@ -182,12 +227,13 @@ function TidspunktFormular({
         </button>
       )}
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Varighed</label>
+      {/* Varighed og kommentar vejer visuelt mindre end selve tidsforslagene ovenfor */}
+      <div className="flex items-center gap-2 pt-1">
+        <label className="text-xs font-medium text-gray-500 flex-shrink-0">Varighed</label>
         <select
           value={varighed}
           onChange={(e) => setVarighed(Number(e.target.value))}
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+          className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-600 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
         >
           {VARIGHED_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -195,38 +241,25 @@ function TidspunktFormular({
         </select>
       </div>
 
-      {tider.some((t) => t.dato && t.tidspunkt) && (
-        <div className="text-xs text-gray-400 space-y-0.5">
-          {tider.map((t, i) => (
-            t.dato && t.tidspunkt ? (
-              <p key={i}>Mulighed {i + 1}: {fmtTidsinterval(t.tidspunkt, varighed)}</p>
-            ) : null
-          ))}
-        </div>
-      )}
+      <textarea
+        rows={2}
+        value={kommentar}
+        onChange={(e) => setKommentar(e.target.value)}
+        placeholder={kommentarPlaceholder}
+        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none transition-all"
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Kommentar (valgfrit)</label>
-        <textarea
-          rows={3}
-          value={kommentar}
-          onChange={(e) => setKommentar(e.target.value)}
-          placeholder={kommentarPlaceholder}
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none transition-all"
-        />
-      </div>
-
-      <div className="flex gap-2">
+      <div className="flex gap-2 pt-1">
         <button
           onClick={onAnnuller}
-          className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all"
+          className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all"
         >
           Annuller
         </button>
         <button
           onClick={onSend}
           disabled={sender || !gyldig}
-          className="flex-1 py-3 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-all"
+          className="flex-1 py-2.5 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-all"
         >
           {sender ? "Sender..." : sendLabel}
         </button>
@@ -450,15 +483,6 @@ export default function BesigtigelseKort({
       ? erBesigtigelsePasseret(effektiv.dato, effektiv.tidspunkt)
       : false;
 
-  const statusUI: Record<string, { label: string; klasse: string }> = {
-    foreslaaet: { label: "Afventer godkendelse", klasse: "bg-amber-100 text-amber-700" },
-    godkendt:   {
-      label: erPasseret ? "Tidspunkt passeret" : "Bekræftet",
-      klasse: erPasseret ? "bg-gray-100 text-gray-500" : "bg-green-100 text-green-700",
-    },
-    afvist:     { label: "Afvist",               klasse: "bg-red-100 text-red-700" },
-  };
-
   // Forslagsstiller afventer svar — ingen handlinger
   const erForslagsstillerAfventer =
     besigtigelse?.status === "foreslaaet" && besigtigelse.foreslaaet_af === rolle;
@@ -488,7 +512,32 @@ export default function BesigtigelseKort({
     !erLegacyFallback;
 
   const afventerTekst =
-    rolle === "haandvaerker" ? "Afventer bygherrens svar." : "Afventer entreprenørens svar.";
+    rolle === "haandvaerker" ? "Afventer bygherrens svar" : "Afventer entreprenørens svar";
+  const modpartNavn = besigtigelse?.foreslaaet_af === "haandvaerker" ? "Entreprenøren" : "Bygherren";
+
+  // Ren præsentation: hvilken farvetone og overskrift statusblokken øverst i
+  // kortet skal have. Udledes direkte af de eksisterende, uændrede tilstande
+  // ovenfor — ingen ny statuslogik.
+  let statusTone: StatusTone = "gray";
+  let statusTitel = "";
+  if (besigtigelse) {
+    if (besigtigelse.status === "godkendt") {
+      statusTone = erPasseret ? "gray" : "green";
+      statusTitel = erPasseret ? "Tidspunkt passeret" : "Besigtigelse aftalt";
+    } else if (besigtigelse.status === "afvist") {
+      statusTone = "red";
+      statusTitel = "Besigtigelsen er afvist";
+    } else if (erForslagsstillerAfventer) {
+      statusTone = "blue";
+      statusTitel = afventerTekst;
+    } else if (kanSvare) {
+      statusTone = "amber";
+      statusTitel = tidspunkter.length > 0
+        ? `${modpartNavn} foreslår ${tidspunkter.length} ${tidspunkter.length === 1 ? "tid" : "tider"}`
+        : `${modpartNavn} har foreslået en tid`;
+    }
+  }
+  const tone = TONE_KLASSER[statusTone];
 
   if (indlæser) return null;
 
@@ -501,7 +550,7 @@ export default function BesigtigelseKort({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 mb-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-[#1e3a2a]/8 flex items-center justify-center">
@@ -528,77 +577,87 @@ export default function BesigtigelseKort({
 
       {/* Eksisterende besigtigelse */}
       {besigtigelse && !visForum && (
-        <div>
-          <div className="flex items-start justify-between gap-3 mb-4">
-            <div>
-              {effektiv ? (
-                <>
-                  <p className="text-sm font-semibold text-gray-900">{fmtBesigtigelseDatoLang(effektiv.dato)}</p>
-                  {effektiv.tidspunkt && (
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Kl. {fmtTidsinterval(effektiv.tidspunkt, besigtigelse.varighed_minutter)}
-                    </p>
-                  )}
-                </>
-              ) : (
-                <p className="text-sm font-semibold text-gray-900">
-                  {tidspunkter.length} {tidspunkter.length === 1 ? "tidspunkt" : "tidspunkter"} foreslået
-                </p>
-              )}
-              <p className="text-xs text-gray-400 mt-1">
-                Foreslået af {besigtigelse.foreslaaet_af === "bygherre" ? "bygherre" : "entreprenøren"}
-              </p>
+        <div className="space-y-3">
+          {/* Samlet statusblok: status, tider/dato og varighed hører visuelt sammen ét sted */}
+          <div className={`rounded-xl p-4 ${tone.boks}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <StatusIkon tone={statusTone} />
+              <p className={`text-sm font-bold ${tone.titel}`}>{statusTitel}</p>
             </div>
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${statusUI[besigtigelse.status]?.klasse || "bg-gray-100 text-gray-600"}`}>
-              {statusUI[besigtigelse.status]?.label || besigtigelse.status}
-            </span>
+
+            {besigtigelse.status === "godkendt" && effektiv ? (
+              <>
+                <p className="text-base font-semibold text-gray-900">{fmtBesigtigelseDatoLang(effektiv.dato)}</p>
+                {effektiv.tidspunkt && (
+                  <p className="text-sm text-gray-600 mt-0.5">
+                    {fmtTidsinterval(effektiv.tidspunkt, besigtigelse.varighed_minutter)}
+                  </p>
+                )}
+                <p className="text-xs text-gray-400 mt-2">
+                  Foreslået af {besigtigelse.foreslaaet_af === "bygherre" ? "bygherre" : "entreprenøren"}
+                </p>
+              </>
+            ) : besigtigelse.status === "afvist" ? null : (
+              <>
+                {(erForslagsstillerAfventer || kanSvare) && (
+                  <p className="text-xs font-medium text-gray-500 mb-1.5">
+                    {erForslagsstillerAfventer
+                      ? `Du har foreslået ${tidspunkter.length || 1} ${(tidspunkter.length || 1) === 1 ? "tid" : "tider"}`
+                      : "Vælg en af de foreslåede tider"}
+                  </p>
+                )}
+                {tidspunkter.length > 0 ? (
+                  <div className="space-y-1">
+                    {tidspunkter.map((t) => (
+                      <p key={t.id} className="text-sm text-gray-800">
+                        {fmtBesigtigelseDatoKort(t.dato)} · {fmtTidsinterval(t.tidspunkt, besigtigelse.varighed_minutter)}
+                      </p>
+                    ))}
+                  </div>
+                ) : effektiv ? (
+                  <p className="text-sm text-gray-800">
+                    {fmtBesigtigelseDatoLang(effektiv.dato)}
+                    {effektiv.tidspunkt ? ` kl. ${fmtTidspunkt(effektiv.tidspunkt)}` : ""}
+                  </p>
+                ) : null}
+                {fmtVarighed(besigtigelse.varighed_minutter) && (
+                  <p className="text-xs text-gray-400 mt-2">Varighed · {fmtVarighed(besigtigelse.varighed_minutter)}</p>
+                )}
+              </>
+            )}
+
+            {erPasseret && besigtigelse.status === "godkendt" && (
+              <p className="text-xs text-gray-400 mt-2">Det aftalte tidspunkt er passeret.</p>
+            )}
           </div>
 
           {/* Kommentarer */}
           {(besigtigelse.kommentar_bygherre || besigtigelse.kommentar_haandvaerker) && (
-            <div className="space-y-2 mb-4">
+            <div className="space-y-2">
               {besigtigelse.kommentar_bygherre && (
-                <div className="bg-[#f5f3ee] rounded-xl px-4 py-3">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Bygherre</p>
+                <div className="bg-[#f5f3ee] rounded-xl px-4 py-2.5">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Bygherre</p>
                   <p className="text-sm text-gray-700">{besigtigelse.kommentar_bygherre}</p>
                 </div>
               )}
               {besigtigelse.kommentar_haandvaerker && (
-                <div className="bg-[#f5f3ee] rounded-xl px-4 py-3">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Entreprenør</p>
+                <div className="bg-[#f5f3ee] rounded-xl px-4 py-2.5">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Entreprenør</p>
                   <p className="text-sm text-gray-700">{besigtigelse.kommentar_haandvaerker}</p>
                 </div>
               )}
             </div>
           )}
 
-          {/* Passeret godkendt besigtigelse — historiktekst */}
-          {erPasseret && (
-            <div className="border-t border-gray-100 pt-3">
-              <p className="text-xs text-gray-400">Det aftalte tidspunkt for besigtigelsen er passeret.</p>
-            </div>
-          )}
-
-          {/* Forslagsstiller afventer — ingen handlinger */}
-          {erForslagsstillerAfventer && (
-            <div className="border-t border-gray-100 pt-3">
-              <p className="text-xs text-gray-400">{afventerTekst}</p>
-            </div>
-          )}
-
-          {/* Modpartens svarmuligheder */}
+          {/* Modpartens svarmuligheder — lige under statusblokken, samme visuelle enhed */}
           {kanSvare && !visNyForslagForm && (
-            <div className="border-t border-gray-100 pt-4">
-              <p className="text-sm font-semibold text-gray-900 mb-3">
-                {besigtigelse.foreslaaet_af === "haandvaerker" ? "Entreprenøren foreslår disse tider" : "Bygherren foreslår disse tider"}
-              </p>
-
+            <div className="space-y-3">
               {tidspunkter.length > 0 && (
-                <div className="space-y-2 mb-4">
+                <div className="space-y-2">
                   {tidspunkter.map((t) => (
                     <label
                       key={t.id}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${
+                      className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border cursor-pointer transition-all ${
                         valgtTidspunktId === t.id ? "border-[#1e3a2a] bg-[#1e3a2a]/5" : "border-gray-200 hover:bg-gray-50"
                       }`}
                     >
@@ -622,59 +681,67 @@ export default function BesigtigelseKort({
                 placeholder="Tilføj en kommentar (valgfrit)"
                 value={svarKommentar}
                 onChange={(e) => setSvarKommentar(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none transition-all mb-3"
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none transition-all"
               />
 
-              {tidspunkter.length > 0 && (
+              <div className="space-y-2">
+                {tidspunkter.length > 0 && (
+                  <button
+                    onClick={accepterValgt}
+                    disabled={svarer || !valgtTidspunktId}
+                    className="w-full py-2.5 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50"
+                  >
+                    {svarer ? "Gemmer..." : "Godkend valgt tidspunkt"}
+                  </button>
+                )}
                 <button
-                  onClick={accepterValgt}
-                  disabled={svarer || !valgtTidspunktId}
-                  className="w-full py-2.5 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50 mb-2"
+                  onClick={() => setVisNyForslagForm(true)}
+                  className="w-full py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all"
                 >
-                  {svarer ? "Gemmer..." : "Godkend valgt tidspunkt"}
+                  Ingen af tiderne passer
                 </button>
-              )}
-
-              <button
-                onClick={() => setVisNyForslagForm(true)}
-                className="w-full py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all"
-              >
-                Ingen af tiderne passer
-              </button>
-
-              <button
-                onClick={afvisRunde}
-                disabled={svarer}
-                className="w-full mt-3 py-1 text-xs text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
-              >
-                Afvis besigtigelse
-              </button>
+                <button
+                  onClick={afvisRunde}
+                  disabled={svarer}
+                  className="w-full py-1 text-xs text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                >
+                  Afvis besigtigelse
+                </button>
+              </div>
             </div>
           )}
 
           {kanSvare && visNyForslagForm && (
-            <div className="border-t border-gray-100 pt-4">
-              <TidspunktFormular
-                tider={nyeTider}
-                setTider={setNyeTider}
-                varighed={nyVarighed}
-                setVarighed={setNyVarighed}
-                kommentar={svarKommentar}
-                setKommentar={setSvarKommentar}
-                kommentarPlaceholder="F.eks. hvorfor de foreslåede tider ikke passer..."
-                onAnnuller={() => setVisNyForslagForm(false)}
-                onSend={sendModforslag}
-                sender={svarer}
-                sendLabel="Send forslag"
-              />
-            </div>
+            <TidspunktFormular
+              tider={nyeTider}
+              setTider={setNyeTider}
+              varighed={nyVarighed}
+              setVarighed={setNyVarighed}
+              kommentar={svarKommentar}
+              setKommentar={setSvarKommentar}
+              kommentarPlaceholder="F.eks. hvorfor de foreslåede tider ikke passer..."
+              onAnnuller={() => setVisNyForslagForm(false)}
+              onSend={sendModforslag}
+              sender={svarer}
+              sendLabel="Send forslag"
+            />
           )}
 
-          {/* Tidligere forslag — read-only historik, altid synlig for begge parter */}
+          {/* Tidligere forslag — sammenklappet som standard, konkurrerer ikke med den aktuelle handling */}
           {besigtigelse.historik && besigtigelse.historik.length > 0 && (
-            <div className="border-t border-gray-100 pt-4 mt-4">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Tidligere forslag</p>
-              <div className="space-y-2">
+            <details className="group border-t border-gray-100 pt-3">
+              <summary className="flex items-center justify-between cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                  Tidligere forslag ({besigtigelse.historik.length})
+                </span>
+                <svg
+                  className="w-3.5 h-3.5 text-gray-400 transition-transform group-open:rotate-180"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </summary>
+              <div className="space-y-2 mt-3">
                 {besigtigelse.historik.map((h) => {
                   const hTider = h.tidspunkter ?? [];
                   const hEffektiv = hentEffektivDatoTid(h);
@@ -718,40 +785,28 @@ export default function BesigtigelseKort({
                   );
                 })}
               </div>
-            </div>
+            </details>
           )}
         </div>
       )}
 
       {/* Legacy-fallback — read-only overgangsvisning når GET returnerede null og legacy-flag er sat */}
       {erLegacyFallback && !visForum && (
-        <div>
-          <div className="flex items-start justify-between gap-3 mb-4">
-            <div>
-              <p className="text-sm font-semibold text-gray-900">
-                {legacyBesigtigelseDato ? fmtBesigtigelseDatoLang(legacyBesigtigelseDato) : "Dato ikke angivet"}
-              </p>
-              {legacyBesigtigelseTid && (
-                <p className="text-xs text-gray-500 mt-0.5">Kl. {legacyBesigtigelseTid.slice(0, 5)}</p>
-              )}
-            </div>
-            {rolle === "haandvaerker" ? (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 bg-amber-100 text-amber-700">
-                Afventer bygherre
-              </span>
-            ) : (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 bg-blue-100 text-blue-700">
-                Besigtigelsesanmodning modtaget
-              </span>
-            )}
-          </div>
-          <div className="border-t border-gray-100 pt-3">
-            {rolle === "haandvaerker" ? (
-              <p className="text-xs text-gray-400">Besigtigelsesanmodningen er sendt og afventer bygherrens svar.</p>
-            ) : (
-              <p className="text-xs text-gray-400">Denne anmodning blev oprettet i det tidligere besigtigelsesflow. Ændringer til tidspunktet skal aftales direkte med entreprenøren.</p>
-            )}
-          </div>
+        <div className={`rounded-xl p-4 ${rolle === "haandvaerker" ? TONE_KLASSER.blue.boks : TONE_KLASSER.amber.boks}`}>
+          <p className={`text-sm font-bold mb-2 ${rolle === "haandvaerker" ? TONE_KLASSER.blue.titel : TONE_KLASSER.amber.titel}`}>
+            {rolle === "haandvaerker" ? "Afventer bygherre" : "Besigtigelsesanmodning modtaget"}
+          </p>
+          <p className="text-sm text-gray-800">
+            {legacyBesigtigelseDato ? fmtBesigtigelseDatoLang(legacyBesigtigelseDato) : "Dato ikke angivet"}
+          </p>
+          {legacyBesigtigelseTid && (
+            <p className="text-sm text-gray-600 mt-0.5">Kl. {legacyBesigtigelseTid.slice(0, 5)}</p>
+          )}
+          <p className="text-xs text-gray-400 mt-2">
+            {rolle === "haandvaerker"
+              ? "Besigtigelsesanmodningen er sendt og afventer bygherrens svar."
+              : "Denne anmodning blev oprettet i det tidligere besigtigelsesflow. Ændringer til tidspunktet skal aftales direkte med entreprenøren."}
+          </p>
         </div>
       )}
 
