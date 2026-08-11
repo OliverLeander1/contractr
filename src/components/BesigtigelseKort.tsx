@@ -13,7 +13,8 @@ import {
   getBesigtigelseHistorikLabel,
   VARIGHED_OPTIONS,
   VARIGHED_DEFAULT,
-  TIDSPUNKT_OPTIONS,
+  TIDSPUNKT_ARBEJDSTID,
+  TIDSPUNKT_UDEN_FOR_ARBEJDSTID,
 } from "@/lib/besigtigelse";
 
 interface BesigtigelseTidspunkt {
@@ -204,10 +205,17 @@ function TidspunktFormular({
                 onChange={(e) => opdaterTid(i, "tidspunkt", e.target.value)}
                 className="w-full border border-gray-200 bg-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
               >
-                <option value="">Vælg tid</option>
-                {TIDSPUNKT_OPTIONS.map((tid) => (
-                  <option key={tid} value={tid}>{tid}</option>
-                ))}
+                <option value="">Vælg tidspunkt</option>
+                <optgroup label="Arbejdstid">
+                  {TIDSPUNKT_ARBEJDSTID.map((tid) => (
+                    <option key={tid} value={tid}>{tid}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Uden for arbejdstid">
+                  {TIDSPUNKT_UDEN_FOR_ARBEJDSTID.map((tid) => (
+                    <option key={tid} value={tid}>{tid}</option>
+                  ))}
+                </optgroup>
               </select>
             </div>
             {t.dato && t.tidspunkt && (

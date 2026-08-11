@@ -76,6 +76,19 @@ export const TIDSPUNKT_OPTIONS: string[] = Array.from({ length: 24 * 4 }, (_, i)
   return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
 });
 
+// Ren UX-gruppering af TIDSPUNKT_OPTIONS til visning: normal arbejdstid
+// (07:00–18:00) først, så brugeren ikke skal scrolle forbi midnat for at nå
+// de mest almindelige tider. Dette er UDELUKKENDE en visningsrækkefølge —
+// enhver kvarterstid i døgnet er fortsat lige gyldig og vælgbar, og
+// server-/RPC-validering af 15-minutters-reglen er helt uændret og uafhængig
+// af denne gruppering.
+export const TIDSPUNKT_ARBEJDSTID: string[] = TIDSPUNKT_OPTIONS.filter(
+  (t) => t >= "07:00" && t <= "18:00",
+);
+export const TIDSPUNKT_UDEN_FOR_ARBEJDSTID: string[] = TIDSPUNKT_OPTIONS.filter(
+  (t) => t < "07:00" || t > "18:00",
+);
+
 // Formatteret varighedstekst til visning, eller null hvis varigheden er ukendt
 // (legacy-rækker fra før varighedsbegrebet fandtes) — viser ALDRIG en opdigtet værdi.
 export function fmtVarighed(minutter: number | null | undefined): string | null {
