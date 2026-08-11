@@ -35,10 +35,19 @@ export async function GET(req: NextRequest) {
   // at dashboardets statustekst kan afgøre en aftalt tid (via valgt_tidspunkt_id) eller
   // vise et antal foreslåede tider — uden nogensinde at fremstille "Mulighed 1" som en
   // aftalt dato for en aktiv, endnu ikke besvaret multi-tids-runde.
+  //
+  // besigtigelse_tidspunkter!besigtigelse_id — det eksplicitte FK-hint er PÅKRÆVET:
+  // migrationen opretter to foreign keys mellem besigtigelse og
+  // besigtigelse_tidspunkter (den almindelige child→parent besigtigelse_id-FK, samt
+  // den composite valgt_tidspunkt_id-FK for "valgt tidspunkt tilhører samme runde").
+  // Med to FK'er mellem samme tabelpar kan PostgREST ikke længere selv afgøre hvilken
+  // relation et ukvalificeret besigtigelse_tidspunkter(...)-embed skal bruge, og
+  // returnerer i stedet en fejl ("more than one relationship was found") — det var
+  // den faktiske årsag til, at denne route fejlede i produktion.
   const { data: besigtigelser, error: besigtigelserFejl } = await db
     .from("besigtigelse")
     .select(
-      "id, kontrakt_id, projekt_id, dato, tidspunkt, varighed_minutter, valgt_tidspunkt_id, status, foreslaaet_af, kommentar_haandvaerker, kommentar_bygherre, besigtigelse_tidspunkter(id, dato, tidspunkt)",
+      "id, kontrakt_id, projekt_id, dato, tidspunkt, varighed_minutter, valgt_tidspunkt_id, status, foreslaaet_af, kommentar_haandvaerker, kommentar_bygherre, besigtigelse_tidspunkter!besigtigelse_id(id, dato, tidspunkt)",
     )
     .in("kontrakt_id", kontraktIds)
     .order("oprettet_at", { ascending: false });
