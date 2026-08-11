@@ -209,7 +209,7 @@ export async function GET(req: NextRequest) {
   // sine tidspunkter sorteret efter sortering.
   const { data: rækker } = await db
     .from("besigtigelse")
-    .select("*, besigtigelse_tidspunkter(*)")
+    .select("*, besigtigelse_tidspunkter!besigtigelse_id(*)")
     .eq("kontrakt_id", kontraktId)
     .order("oprettet_at", { ascending: false })
     .order("sortering", { foreignTable: "besigtigelse_tidspunkter", ascending: true });
@@ -265,7 +265,7 @@ export async function POST(req: NextRequest) {
   // 5. Kontrollér eksisterende besigtigelse (nyeste runde pr. kontrakt)
   const { data: eksisterende } = await db
     .from("besigtigelse")
-    .select("id, status, dato, tidspunkt, valgt_tidspunkt_id, besigtigelse_tidspunkter(id, dato, tidspunkt)")
+    .select("id, status, dato, tidspunkt, valgt_tidspunkt_id, besigtigelse_tidspunkter!besigtigelse_id(id, dato, tidspunkt)")
     .eq("kontrakt_id", kontrakt_id)
     .order("oprettet_at", { ascending: false })
     .limit(1)
@@ -361,7 +361,7 @@ export async function PATCH(req: NextRequest) {
   // 3. Hent besigtigelsesrunden med dens tidspunkter
   const { data: besigtigelse } = await db
     .from("besigtigelse")
-    .select("*, besigtigelse_tidspunkter(id, dato, tidspunkt, besigtigelse_id)")
+    .select("*, besigtigelse_tidspunkter!besigtigelse_id(id, dato, tidspunkt, besigtigelse_id)")
     .eq("id", id)
     .single();
 
