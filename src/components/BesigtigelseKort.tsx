@@ -593,8 +593,12 @@ export default function BesigtigelseKort({
                     {fmtTidsinterval(effektiv.tidspunkt, besigtigelse.varighed_minutter)}
                   </p>
                 )}
+                {/* På den aktuelle godkendte besigtigelse er det vigtigste, hvem der
+                    GODKENDTE tidspunktet — ikke hvem der oprindeligt foreslog det (det
+                    fremgår fortsat af "Tidligere forslag"). Godkenderen er altid modparten
+                    til forslagsstilleren, udledt direkte af det eksisterende foreslaaet_af. */}
                 <p className="text-xs text-gray-400 mt-2">
-                  Foreslået af {besigtigelse.foreslaaet_af === "bygherre" ? "bygherre" : "entreprenøren"}
+                  Godkendt af {besigtigelse.foreslaaet_af === "haandvaerker" ? "bygherren" : "entreprenøren"}
                 </p>
               </>
             ) : besigtigelse.status === "afvist" ? null : (
