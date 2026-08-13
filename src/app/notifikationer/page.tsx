@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 
 interface Notifikation {
@@ -21,7 +22,18 @@ const TYPE_IKON: Record<string, { ikon: string; cls: string }> = {
   betaling_markeret:       { ikon: "💰", cls: "bg-purple-50 border-purple-200" },
   mangel_opdateret:        { ikon: "🔧", cls: "bg-orange-50 border-orange-200" },
   ab_forbruger:            { ikon: "⚖️", cls: "bg-[#1e3a2a]/5 border-[#1e3a2a]/20" },
+  besigtigelse_ny:         { ikon: "📅", cls: "bg-amber-50 border-amber-200" },
+  besigtigelse_modforslag: { ikon: "📅", cls: "bg-amber-50 border-amber-200" },
+  besigtigelse_godkendt:   { ikon: "✅", cls: "bg-green-50 border-green-200" },
+  besigtigelse_afvist:     { ikon: "❌", cls: "bg-red-50 border-red-200" },
 };
+
+// Notifikationstyper der linker videre til besigtigelsen på det relevante
+// projekt. Den korrekte destination afhænger af brugerens rolle — bygherre
+// og entreprenør har hver deres projektside.
+function erBesigtigelseType(type: string): boolean {
+  return type.startsWith("besigtigelse_");
+}
 
 const fmtDato = (iso: string) => {
   const d = new Date(iso);
@@ -36,20 +48,29 @@ const fmtDato = (iso: string) => {
 
 export default function NotifikationerSide() {
   const supabase = createClient();
+  const router = useRouter();
   const [notifikationer, setNotifikationer] = useState<Notifikation[]>([]);
   const [indlæser, setIndlæser] = useState(true);
+  // Egen rolle hentes én gang og bruges til at afgøre den korrekte
+  // rolle-specifikke destination for besigtigelsesnotifikationer — bygherre
+  // og entreprenør har hver deres projektside.
+  const [egenRolle, setEgenRolle] = useState<"bygherre" | "haandvaerker" | null>(null);
 
   useEffect(() => {
     const hent = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase
-        .from("notifikationer")
-        .select("*")
-        .eq("bruger_id", user.id)
-        .order("oprettet_at", { ascending: false })
-        .limit(50);
+      const [{ data }, { data: profil }] = await Promise.all([
+        supabase
+          .from("notifikationer")
+          .select("*")
+          .eq("bruger_id", user.id)
+          .order("oprettet_at", { ascending: false })
+          .limit(50),
+        supabase.from("profiler").select("rolle").eq("id", user.id).single(),
+      ]);
       setNotifikationer(data || []);
+      setEgenRolle(profil?.rolle === "haandvaerker" ? "haandvaerker" : "bygherre");
       setIndlæser(false);
       await supabase
         .from("notifikationer")
@@ -61,6 +82,16 @@ export default function NotifikationerSide() {
   }, []);
 
   const ulæste = notifikationer.filter(n => !n.laest).length;
+
+  // Rolle-specifik destination for en besigtigelsesnotifikation, eller null
+  // hvis notifikationen ikke skal være klikbar (ukendt type eller intet
+  // projekt at linke til).
+  function linkTil(n: Notifikation): string | null {
+    if (!n.projekt_id || !erBesigtigelseType(n.type)) return null;
+    return egenRolle === "haandvaerker"
+      ? `/haandvaerker/projekt/${n.projekt_id}?fane=besigtigelse`
+      : `/projekt/${n.projekt_id}#besigtigelse`;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -88,8 +119,16 @@ export default function NotifikationerSide() {
           <div className="space-y-2">
             {notifikationer.map(n => {
               const style = TYPE_IKON[n.type] || { ikon: "🔔", cls: "bg-gray-50 border-gray-100" };
+              const link = linkTil(n);
               return (
-                <div key={n.id} className={`rounded-2xl border p-4 flex gap-4 ${style.cls} ${!n.laest ? "ring-1 ring-[#1e3a2a]/20" : ""}`}>
+                <div
+                  key={n.id}
+                  onClick={link ? () => router.push(link) : undefined}
+                  role={link ? "button" : undefined}
+                  tabIndex={link ? 0 : undefined}
+                  onKeyDown={link ? (e) => { if (e.key === "Enter") router.push(link); } : undefined}
+                  className={`rounded-2xl border p-4 flex gap-4 ${style.cls} ${!n.laest ? "ring-1 ring-[#1e3a2a]/20" : ""} ${link ? "cursor-pointer hover:opacity-90 transition-opacity" : ""}`}
+                >
                   <div className="text-xl flex-shrink-0 mt-0.5">{style.ikon}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
@@ -103,6 +142,11 @@ export default function NotifikationerSide() {
                       </span>
                     )}
                   </div>
+                  {link && (
+                    <svg className="w-4 h-4 flex-shrink-0 self-center text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="9 6 15 12 9 18" />
+                    </svg>
+                  )}
                 </div>
               );
             })}

@@ -70,38 +70,53 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
   const pathname = usePathname();
   const visShell = skalViseShell(pathname);
   const [ulaestSamlet, setUlaestSamlet] = useState<number | null>(null);
+  // Genbruger samme skema/read-state som /notifikationer/page.tsx (laest-
+  // feltet på public.notifikationer) — intet nyt system, kun endnu et
+  // client-side count-opslag, RLS-scopet til brugerens egne rækker.
+  const [ulaestNotifikationer, setUlaestNotifikationer] = useState<number | null>(null);
 
   useEffect(() => {
     if (!visShell) return;
     let annulleret = false;
 
     (async () => {
-      // Ingen synkron nulstilling her (undgår cascading renders) — badge
+      // Ingen synkron nulstilling her (undgår cascading renders) — badges
       // sættes eksplicit til enten et tal eller null i alle grene nedenfor,
       // så et forkert/gammelt tal fra en tidligere rute aldrig bliver stående.
+      // Genhentes ved hvert routeskift (samme mønster som chat-badgen), så
+      // begge tæl naturligt opdaterer sig, når brugeren fx forlader
+      // /notifikationer efter at siden selv har markeret alt som læst.
       try {
         const supabase = createClient();
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.access_token) {
-          if (!annulleret) setUlaestSamlet(null); // udløbet/manglende session — aldrig et falsk 0
+        if (!session?.access_token || !session.user) {
+          if (!annulleret) { setUlaestSamlet(null); setUlaestNotifikationer(null); } // udløbet/manglende session — aldrig et falsk 0
           return;
         }
 
-        const res = await fetch("/api/chat/oversigt", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-        if (!res.ok) {
-          if (!annulleret) setUlaestSamlet(null);
-          return;
-        }
+        const [chatRes, notifikationerRes] = await Promise.all([
+          fetch("/api/chat/oversigt", {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          }),
+          supabase
+            .from("notifikationer")
+            .select("id", { count: "exact", head: true })
+            .eq("bruger_id", session.user.id)
+            .eq("laest", false),
+        ]);
 
-        const body = await res.json();
         if (!annulleret) {
-          setUlaestSamlet(typeof body?.ulaest_samlet === "number" ? body.ulaest_samlet : null);
+          if (chatRes.ok) {
+            const body = await chatRes.json();
+            setUlaestSamlet(typeof body?.ulaest_samlet === "number" ? body.ulaest_samlet : null);
+          } else {
+            setUlaestSamlet(null);
+          }
+          setUlaestNotifikationer(notifikationerRes.error ? null : (notifikationerRes.count ?? 0));
         }
       } catch {
-        // Badgefejl må aldrig skjule eller deaktivere navigationen — badge skjules blot.
-        if (!annulleret) setUlaestSamlet(null);
+        // Badgefejl må aldrig skjule eller deaktivere navigationen — badges skjules blot.
+        if (!annulleret) { setUlaestSamlet(null); setUlaestNotifikationer(null); }
       }
     })();
 
@@ -131,6 +146,9 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
                       <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#1e3a2a] text-white text-[10px] font-bold flex items-center justify-center">
                         {ulaestSamlet > 99 ? "99+" : ulaestSamlet}
                       </span>
+                    )}
+                    {item.href === "/notifikationer" && ulaestNotifikationer !== null && ulaestNotifikationer > 0 && (
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#1e3a2a]" />
                     )}
                   </Link>
                 );
@@ -174,6 +192,9 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
                       {item.label}
                     </span>
                     {item.href === "/chat" && ulaestSamlet !== null && ulaestSamlet > 0 && (
+                      <span className="absolute top-0 right-1.5 w-2 h-2 rounded-full bg-[#1e3a2a]" />
+                    )}
+                    {item.href === "/notifikationer" && ulaestNotifikationer !== null && ulaestNotifikationer > 0 && (
                       <span className="absolute top-0 right-1.5 w-2 h-2 rounded-full bg-[#1e3a2a]" />
                     )}
                   </Link>

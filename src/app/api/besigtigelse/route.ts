@@ -134,6 +134,116 @@ function mapRpcFejl(error: { message?: string; code?: string }): string {
   return "Der opstod en fejl. Prøv igen.";
 }
 
+// -----------------------------------------------------------------------------
+// Notifikationer — genbruger den eksisterende public.notifikationer-tabel
+// (samme skema som ab-notifikationer/ekstraarbejde skriver til i dag). Ingen ny
+// tabel, ingen nye kolonner. Modtageren udledes ALTID her, server-side, af den
+// allerede autoritative kontrakt-/rolledata (kontrakt.bygherre_id /
+// kontrakt.haandvaerker_email) — aldrig af klientinput.
+// -----------------------------------------------------------------------------
+
+// Slår entreprenørens profiler.id op ud fra kontraktens haandvaerker_email.
+// bygherre_id kendes allerede direkte via kontrakten og kræver intet opslag.
+// Returnerer null, hvis entreprenøren endnu ikke har oprettet en konto med
+// den e-mail — i så fald findes intet gyldigt notifikationsmål, og der
+// oprettes bevidst ingen notifikation.
+async function findBrugerIdVedEmail(
+  db: ReturnType<typeof createServiceClient>,
+  email: string,
+): Promise<string | null> {
+  const { data } = await db
+    .from("profiler")
+    .select("id")
+    .ilike("email", email.trim())
+    .maybeSingle();
+  return data?.id ?? null;
+}
+
+// Simpel dublet-beskyttelse — samme grundmønster som harNyligNotifikation() i
+// /api/ab-notifikationer: spring oprettelse over, hvis en identisk
+// notifikation (samme bruger/projekt/type) allerede blev oprettet inden for
+// de seneste 10 sekunder. Beskytter mod dobbelt-indsendte requests uden en ny
+// idempotensarkitektur.
+async function harNyligBesigtigelseNotifikation(
+  db: ReturnType<typeof createServiceClient>,
+  brugerId: string,
+  projektId: string,
+  type: string,
+): Promise<boolean> {
+  const cutoff = new Date(Date.now() - 10_000).toISOString();
+  const { data } = await db
+    .from("notifikationer")
+    .select("id")
+    .eq("bruger_id", brugerId)
+    .eq("projekt_id", projektId)
+    .eq("type", type)
+    .gte("oprettet_at", cutoff)
+    .limit(1);
+  return !!data && data.length > 0;
+}
+
+// Opretter en besigtigelses-notifikation til modparten. Kaldes ALTID først
+// efter en allerede bekræftet, vellykket besigtigelsesskrivning — aldrig før,
+// og aldrig hvis skrivningen fejlede. Fejler denne funktion selv (fx intet
+// opslag fundet, eller en databasefejl), sluges fejlen bevidst over for
+// KLIENTEN — den kaldende route svarer altid succes for selve
+// besigtigelseshandlingen uanset notifikationsudfaldet, så brugeren aldrig
+// fejlagtigt tror handlingen slog fejl og forsøger at gentage den. Fejlen
+// logges derimod altid server-side (console.error), så et reelt
+// notifikationsproblem ikke forsvinder sporløst.
+async function opretBesigtigelseNotifikation(
+  db: ReturnType<typeof createServiceClient>,
+  params: {
+    modtagerRolle: "bygherre" | "haandvaerker";
+    kontrakt: { bygherre_id: string | null; haandvaerker_email: string | null };
+    projektId: string;
+    type: string;
+    titel: string;
+    besked: string;
+  },
+): Promise<void> {
+  try {
+    const brugerId = params.modtagerRolle === "bygherre"
+      ? params.kontrakt.bygherre_id
+      : params.kontrakt.haandvaerker_email
+        ? await findBrugerIdVedEmail(db, params.kontrakt.haandvaerker_email)
+        : null;
+
+    if (!brugerId) return;
+    if (await harNyligBesigtigelseNotifikation(db, brugerId, params.projektId, params.type)) return;
+
+    const { error } = await db.from("notifikationer").insert({
+      bruger_id: brugerId,
+      projekt_id: params.projektId,
+      type: params.type,
+      titel: params.titel,
+      besked: params.besked,
+      laest: false,
+    });
+
+    if (error) {
+      // Supabase-js kaster ikke ved en almindelig forespørgselsfejl — den
+      // returneres i stedet i "error" og skal derfor tjekkes eksplicit for
+      // overhovedet at blive logget.
+      console.error(
+        `[besigtigelse-notifikation] Kunne ikke oprette notifikation (type=${params.type}, projekt=${params.projektId}):`,
+        error.message,
+      );
+    }
+  } catch (fejl) {
+    console.error(
+      `[besigtigelse-notifikation] Uventet fejl ved oprettelse af notifikation (type=${params.type}, projekt=${params.projektId}):`,
+      fejl,
+    );
+  }
+}
+
+// Kort dansk datoformat til notifikationstekst, fx "13. august" — bevidst
+// uden årstal og uden ugedag for at holde beskeden kort og konkret.
+function fmtKortDato(dato: string): string {
+  return new Date(dato + "T00:00:00").toLocaleDateString("da-DK", { day: "numeric", month: "long" });
+}
+
 // Trin 1: verificer JWT — returnerer verified user og db-klient
 async function verificerJWT(req: NextRequest): Promise<
   | { ok: true; user: NonNullable<SupabaseUser>; db: ReturnType<typeof createServiceClient> }
@@ -342,6 +452,18 @@ export async function POST(req: NextRequest) {
   if (error) {
     return NextResponse.json({ error: mapRpcFejl(error) }, { status: 500 });
   }
+
+  // Notifikation kun EFTER bekræftet vellykket oprettelse. rolle er her altid
+  // "haandvaerker" (se gates ovenfor), så modparten er altid bygherren.
+  await opretBesigtigelseNotifikation(db, {
+    modtagerRolle: "bygherre",
+    kontrakt,
+    projektId: kontrakt.projekt_id,
+    type: "besigtigelse_ny",
+    titel: "Ny besigtigelsesanmodning",
+    besked: "Entreprenøren har foreslået tider til besigtigelse.",
+  });
+
   return NextResponse.json(data);
 }
 
@@ -379,7 +501,7 @@ export async function PATCH(req: NextRequest) {
   // 4. Hent kontrakt og bestem rolle ud fra den allerede verificerede user
   const rolleRes = await bestemRolle(user, besigtigelse.kontrakt_id, db);
   if (!rolleRes.ok) return rolleRes.response;
-  const { rolle } = rolleRes;
+  const { rolle, kontrakt } = rolleRes;
 
   // 5. Terminale tilstande
   if (besigtigelse.status === "godkendt") {
@@ -415,7 +537,7 @@ export async function PATCH(req: NextRequest) {
     // DENNE besigtigelsesrunde — stol aldrig alene på klientens id. Databasens
     // composite FK (besigtigelse_valgt_tidspunkt_samme_runde_fk) håndhæver det
     // samme som ekstra defense-in-depth ved selve UPDATE'et nedenfor.
-    const tidspunkter = (besigtigelse.besigtigelse_tidspunkter ?? []) as { id: string }[];
+    const tidspunkter = (besigtigelse.besigtigelse_tidspunkter ?? []) as { id: string; dato: string; tidspunkt: string }[];
     const valgtTidspunkt = tidspunkter.find((t) => t.id === valgt_tidspunkt_id);
     if (!valgtTidspunkt) {
       return NextResponse.json(
@@ -442,6 +564,19 @@ export async function PATCH(req: NextRequest) {
       .single();
 
     if (error) return NextResponse.json({ error: mapRpcFejl(error) }, { status: 500 });
+
+    // Modtager = den oprindelige forslagsstiller (garanteret modparten til den
+    // der accepterer, jf. erForslagsstiller-tjekket ovenfor). Besked bruger den
+    // faktiske valgte dato/tid, ikke en generisk tekst.
+    await opretBesigtigelseNotifikation(db, {
+      modtagerRolle: besigtigelse.foreslaaet_af as "bygherre" | "haandvaerker",
+      kontrakt,
+      projektId: besigtigelse.projekt_id,
+      type: "besigtigelse_godkendt",
+      titel: "Besigtigelse godkendt",
+      besked: `Besigtigelsen er godkendt til ${fmtKortDato(valgtTidspunkt.dato)} kl. ${valgtTidspunkt.tidspunkt.slice(0, 5)}.`,
+    });
+
     return NextResponse.json(data);
   }
 
@@ -470,6 +605,18 @@ export async function PATCH(req: NextRequest) {
       .single();
 
     if (error) return NextResponse.json({ error: mapRpcFejl(error) }, { status: 500 });
+
+    // Modtager = "den anden part", dvs. den oprindelige forslagsstiller
+    // (garanteret modparten til den der afviser, jf. erForslagsstiller-tjekket).
+    await opretBesigtigelseNotifikation(db, {
+      modtagerRolle: besigtigelse.foreslaaet_af as "bygherre" | "haandvaerker",
+      kontrakt,
+      projektId: besigtigelse.projekt_id,
+      type: "besigtigelse_afvist",
+      titel: "Besigtigelse afvist",
+      besked: "Besigtigelsen er blevet afvist.",
+    });
+
     return NextResponse.json(data);
   }
 
@@ -506,5 +653,17 @@ export async function PATCH(req: NextRequest) {
   if (error) {
     return NextResponse.json({ error: mapRpcFejl(error) }, { status: 500 });
   }
+
+  // Modtager = modparten til den, der fremsætter modforslaget (garanteret
+  // forskellig fra rolle, jf. erForslagsstiller-tjekket ovenfor).
+  await opretBesigtigelseNotifikation(db, {
+    modtagerRolle: rolle === "haandvaerker" ? "bygherre" : "haandvaerker",
+    kontrakt,
+    projektId: besigtigelse.projekt_id,
+    type: "besigtigelse_modforslag",
+    titel: "Nye tider foreslået",
+    besked: "Der er foreslået nye tider til besigtigelse.",
+  });
+
   return NextResponse.json(data);
 }

@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import BesigtigelseKort from "@/components/BesigtigelseKort";
 import DokumentRenderer from "@/components/DokumentRenderer";
@@ -74,7 +75,14 @@ const mangelStatus: Record<string, { label: string; klasse: string }> = {
 
 export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [fane, setFane] = useState<Fane>("aftale");
+  const searchParams = useSearchParams();
+  // Kommer brugeren fra en notifikation med ?fane=besigtigelse, skal siden
+  // lande direkte på den relevante fane frem for altid at starte på "aftale".
+  const initialFane = searchParams.get("fane");
+  const GYLDIGE_FANER: Fane[] = ["aftale", "tidsplan", "sedler", "mangler", "besigtigelse"];
+  const [fane, setFane] = useState<Fane>(
+    GYLDIGE_FANER.includes(initialFane as Fane) ? (initialFane as Fane) : "aftale",
+  );
   const [kontrakt, setKontrakt] = useState<Kontrakt | null>(null);
   const [sedler, setSedler] = useState<Sedel[]>([]);
   const [mangler, setMangler] = useState<Mangel[]>([]);
