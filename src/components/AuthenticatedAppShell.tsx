@@ -79,13 +79,10 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
     if (!visShell) return;
     let annulleret = false;
 
-    (async () => {
-      // Ingen synkron nulstilling her (undgår cascading renders) — badges
-      // sættes eksplicit til enten et tal eller null i alle grene nedenfor,
-      // så et forkert/gammelt tal fra en tidligere rute aldrig bliver stående.
-      // Genhentes ved hvert routeskift (samme mønster som chat-badgen), så
-      // begge tæl naturligt opdaterer sig, når brugeren fx forlader
-      // /notifikationer efter at siden selv har markeret alt som læst.
+    // Ingen synkron nulstilling her (undgår cascading renders) — badges
+    // sættes eksplicit til enten et tal eller null i alle grene nedenfor,
+    // så et forkert/gammelt tal fra en tidligere rute aldrig bliver stående.
+    const hentBadges = async () => {
       try {
         const supabase = createClient();
         const { data: { session } } = await supabase.auth.getSession();
@@ -118,9 +115,30 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
         // Badgefejl må aldrig skjule eller deaktivere navigationen — badges skjules blot.
         if (!annulleret) { setUlaestSamlet(null); setUlaestNotifikationer(null); }
       }
-    })();
+    };
 
-    return () => { annulleret = true; };
+    // Genhentes ved hvert routeskift (effektens egne deps), når fanen får
+    // fokus igen, når fanen bliver synlig igen, og med let polling — så
+    // badgen ikke kræver en manuel genindlæsning for at vise nye tal.
+    hentBadges();
+    window.addEventListener("focus", hentBadges);
+    const handleSynlighed = () => { if (document.visibilityState === "visible") hentBadges(); };
+    document.addEventListener("visibilitychange", handleSynlighed);
+    const interval = setInterval(hentBadges, 30_000);
+
+    // /notifikationer dispatcher denne straks efter selv at have markeret
+    // alt som læst, så badgen nulstilles øjeblikkeligt uden at vente på et
+    // routeskift eller pollingintervallet.
+    const handleLaest = () => { if (!annulleret) setUlaestNotifikationer(0); };
+    window.addEventListener("nembyg:notifikationer-laest", handleLaest);
+
+    return () => {
+      annulleret = true;
+      window.removeEventListener("focus", hentBadges);
+      document.removeEventListener("visibilitychange", handleSynlighed);
+      window.removeEventListener("nembyg:notifikationer-laest", handleLaest);
+      clearInterval(interval);
+    };
   }, [pathname, visShell]);
 
   return (
@@ -148,7 +166,9 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
                       </span>
                     )}
                     {item.href === "/notifikationer" && ulaestNotifikationer !== null && ulaestNotifikationer > 0 && (
-                      <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#1e3a2a]" />
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#9c3b3b] text-white text-[10px] font-bold flex items-center justify-center">
+                        {ulaestNotifikationer > 9 ? "9+" : ulaestNotifikationer}
+                      </span>
                     )}
                   </Link>
                 );
@@ -195,7 +215,9 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
                       <span className="absolute top-0 right-1.5 w-2 h-2 rounded-full bg-[#1e3a2a]" />
                     )}
                     {item.href === "/notifikationer" && ulaestNotifikationer !== null && ulaestNotifikationer > 0 && (
-                      <span className="absolute top-0 right-1.5 w-2 h-2 rounded-full bg-[#1e3a2a]" />
+                      <span className="absolute -top-0.5 right-2.5 min-w-[16px] h-[16px] px-1 rounded-full bg-[#9c3b3b] text-white text-[9px] font-bold flex items-center justify-center leading-none">
+                        {ulaestNotifikationer > 9 ? "9+" : ulaestNotifikationer}
+                      </span>
                     )}
                   </Link>
                 );

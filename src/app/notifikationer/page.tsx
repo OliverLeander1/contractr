@@ -35,6 +35,23 @@ function erBesigtigelseType(type: string): boolean {
   return type.startsWith("besigtigelse_");
 }
 
+// Samme label-sæt som dashboard/konto/rapport bruger til at vise en
+// menneskelig projekttype, når projektet ikke har en fri adresse endnu.
+// Ikke ekstraheret til en delt helper i denne opgave (kosmetisk visning,
+// UX-finish med begrænset scope) — kandidat til samling, hvis en 5. bruger
+// tilføjes senere.
+const PROJEKTTYPE_LABELS: Record<string, string> = {
+  badevarelse: "Badeværelse", kokken: "Køkken", tag: "Tag",
+  tilbygning: "Tilbygning", totalrenovering: "Totalrenovering",
+  vinduer: "Vinduer og facade", maler: "Maler og gips",
+  carport: "Carport og garage", vaadrum: "Vådrum", andet: "Generel renovering",
+};
+
+interface ProjektInfo {
+  adresse: string | null;
+  projekttype: string | null;
+}
+
 const fmtDato = (iso: string) => {
   const d = new Date(iso);
   const nu = new Date();
@@ -55,6 +72,9 @@ export default function NotifikationerSide() {
   // rolle-specifikke destination for besigtigelsesnotifikationer — bygherre
   // og entreprenør har hver deres projektside.
   const [egenRolle, setEgenRolle] = useState<"bygherre" | "haandvaerker" | null>(null);
+  // Sagsnavn pr. projekt_id, hentet i ét batched opslag (ikke pr. kort) ud
+  // fra de projekt_id'er, notifikationerne allerede refererer.
+  const [projektMap, setProjektMap] = useState<Record<string, ProjektInfo>>({});
 
   useEffect(() => {
     const hent = async () => {
@@ -72,11 +92,35 @@ export default function NotifikationerSide() {
       setNotifikationer(data || []);
       setEgenRolle(profil?.rolle === "haandvaerker" ? "haandvaerker" : "bygherre");
       setIndlæser(false);
+
+      const projektIder = Array.from(
+        new Set((data || []).map(n => n.projekt_id).filter((id): id is string => !!id))
+      );
+      if (projektIder.length > 0) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          // Server-side, verificeret opslag (bygherre-ejerskab hhv.
+          // entreprenørens egen kontrakt-email) — ikke et direkte
+          // client-side RLS-opslag, da entreprenørens læseadgang til
+          // projekter ikke er dokumenteret sikkert i produktion.
+          const res = await fetch(`/api/bruger/projekter?ids=${encodeURIComponent(projektIder.join(","))}`, {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
+          if (res.ok) {
+            const map: Record<string, ProjektInfo> = await res.json();
+            setProjektMap(map);
+          }
+        }
+      }
+
       await supabase
         .from("notifikationer")
         .update({ laest: true })
         .eq("bruger_id", user.id)
         .eq("laest", false);
+      // Navigationens badge lytter efter denne og nulstiller sig øjeblikkeligt
+      // — uden at vente på et routeskift eller pollingintervallet.
+      window.dispatchEvent(new Event("nembyg:notifikationer-laest"));
     };
     hent();
   }, []);
@@ -91,6 +135,17 @@ export default function NotifikationerSide() {
     return egenRolle === "haandvaerker"
       ? `/haandvaerker/projekt/${n.projekt_id}?fane=besigtigelse`
       : `/projekt/${n.projekt_id}#besigtigelse`;
+  }
+
+  // Diskret sekundær linje ("hvilken sag?") for enhver projekt-relateret
+  // notifikation — ikke kun besigtigelse. Viser intet, hvis projektet ikke
+  // (endnu) er hentet, så layoutet altid forbliver konsistent.
+  function fmtSagsnavn(projektId: string | null): string | null {
+    if (!projektId) return null;
+    const p = projektMap[projektId];
+    if (!p) return null;
+    const label = (p.projekttype && PROJEKTTYPE_LABELS[p.projekttype]) || "Byggeprojekt";
+    return p.adresse ? `${label}, ${p.adresse}` : label;
   }
 
   return (
@@ -135,6 +190,9 @@ export default function NotifikationerSide() {
                       <p className="text-sm font-semibold text-gray-900">{n.titel}</p>
                       <span className="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">{fmtDato(n.oprettet_at)}</span>
                     </div>
+                    {n.projekt_id && fmtSagsnavn(n.projekt_id) && (
+                      <p className="text-xs text-gray-500 font-medium mt-0.5 truncate">{fmtSagsnavn(n.projekt_id)}</p>
+                    )}
                     {n.besked && <p className="text-sm text-gray-600 mt-0.5 leading-relaxed">{n.besked}</p>}
                     {n.ab_paragraf && (
                       <span className="inline-block mt-2 text-[10px] font-bold uppercase tracking-wide bg-[#1e3a2a]/10 text-[#1e3a2a] px-2 py-0.5 rounded-full">

@@ -109,7 +109,10 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
       setNavn(n);
       setInitials(n.split(" ").map((x: string) => x[0]).join("").toUpperCase().slice(0, 2) || "H");
 
-      const res = await fetch(`/api/haandvaerker/projekt/${id}?email=${encodeURIComponent(user.email)}`);
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`/api/haandvaerker/projekt/${id}`, {
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      });
       const data = await res.json();
       if (data.error) { setFejl(data.error); setIndlæser(false); return; }
       setKontrakt(data.kontrakt);
@@ -136,7 +139,10 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
         haandvaerker_email: user?.email,
       }),
     });
-    const res = await fetch(`/api/haandvaerker/projekt/${id}?email=${encodeURIComponent(user?.email ?? "")}`);
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch(`/api/haandvaerker/projekt/${id}`, {
+      headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+    });
     const data = await res.json();
     setSedler(data.sedler);
     setÅbnSedel(null);
