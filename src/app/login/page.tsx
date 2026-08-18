@@ -308,7 +308,7 @@ function LoginInner() {
                     placeholder={rolle === "haandvaerker" ? "F.eks. Thomas Madsen" : "F.eks. Mette Hansen"}
                     value={navn}
                     onChange={e => setNavn(e.target.value)}
-                    className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+                    className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                   />
                 </div>
                 {rolle === "bygherre" && (
@@ -321,7 +321,7 @@ function LoginInner() {
                       onChange={e => { setAdresse(e.target.value); setVisAdresseForslag(true); }}
                       onBlur={() => setTimeout(() => setVisAdresseForslag(false), 150)}
                       autoComplete="off"
-                      className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+                      className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                     />
                     {visAdresseForslag && adresseForslag.length > 0 && (
                       <ul className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
@@ -347,7 +347,7 @@ function LoginInner() {
                         <div className="relative">
                           <input type="text" placeholder="8 cifre" value={cvr} maxLength={8}
                             onChange={e => { setCvr(e.target.value); setCvrVerificeret(false); }}
-                            className={`w-full border rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 transition-all pr-8 ${cvrVerificeret ? "border-green-400 focus:border-green-500 focus:ring-green-500/10" : "border-gray-200 focus:border-[#1e3a2a] focus:ring-[#1e3a2a]/10"}`} />
+                            className={`w-full border rounded-xl px-4 py-3 text-base md:text-sm bg-white focus:outline-none focus:ring-2 transition-all pr-8 ${cvrVerificeret ? "border-green-400 focus:border-green-500 focus:ring-green-500/10" : "border-gray-200 focus:border-[#1e3a2a] focus:ring-[#1e3a2a]/10"}`} />
                           {cvrSoeger && <div className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-gray-300 border-t-[#1e3a2a] rounded-full animate-spin" />}
                           {cvrVerificeret && !cvrSoeger && <svg className="absolute right-3 top-1/2 -translate-y-1/2" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
                         </div>
@@ -357,13 +357,13 @@ function LoginInner() {
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">Virksomhed</label>
                         <input type="text" placeholder="Firmanavn" value={virksomhed}
                           onChange={e => setVirksomhed(e.target.value)}
-                          className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
+                          className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all" />
                       </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">Fagområde <span className="text-red-500">*</span></label>
                       <select value={fag} onChange={e => setFag(e.target.value)}
-                        className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all">
+                        className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all">
                         <option value="">Vælg fagområde...</option>
                         {FAGS.map(f => <option key={f} value={f}>{f}</option>)}
                       </select>
@@ -380,7 +380,7 @@ function LoginInner() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handleSubmit()}
-                className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+                className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
               />
             </div>
             <div>
@@ -407,7 +407,7 @@ function LoginInner() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && handleSubmit()}
-                  className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
+                  className="w-full border border-gray-200 bg-white rounded-xl px-4 py-3 pr-11 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 transition-all"
                 />
                 <button
                   type="button"

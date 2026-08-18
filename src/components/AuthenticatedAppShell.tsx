@@ -97,7 +97,11 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
   return (
     <div className="flex-1 flex flex-col [--shell-h:88px] md:[--shell-h:64px]">
       {visShell && (
-        <header className="sticky top-0 z-50 bg-white border-b border-gray-100 h-[var(--shell-h)] flex-shrink-0 overflow-x-hidden">
+        // fixed på mobil, ikke sticky: iOS Safari kan lade et sticky element
+        // inde i en flex-kolonne glide med op under momentum-scroll, mens
+        // fixed er upåvirket af det og altid forbliver i toppen af viewporten.
+        // Fra md er det uændret sticky, som hidtil.
+        <header className="fixed md:sticky top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 h-[var(--shell-h)] flex-shrink-0 overflow-x-hidden">
           {/* Desktop — én kompakt vandret bar */}
           <div className="hidden md:flex items-center justify-between h-full max-w-6xl mx-auto px-6">
             <Link href={overblikHref} className="logo flex-shrink-0">nembyggestyring</Link>
@@ -179,7 +183,13 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
           </div>
         </header>
       )}
-      {children}
+      {/* Header er fixed på mobil (ude af normal flow) — kompenser med
+          samme top-afstand, så intet indhold starter skjult bag den.
+          Fra md er header fortsat sticky og optager selv sin plads i flowet,
+          så der skal ikke lægges ekstra padding til der. */}
+      <div className={visShell ? "pt-[var(--shell-h)] md:pt-0" : undefined}>
+        {children}
+      </div>
     </div>
   );
 }
