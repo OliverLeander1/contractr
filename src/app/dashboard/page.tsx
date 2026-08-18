@@ -526,8 +526,8 @@ export default function Dashboard() {
                   {synligeHandlinger.map((h, i) => (
                     <div key={h.aftaleId} className={`px-6 md:px-10 py-7 md:py-9 ${i > 0 ? "border-t md:border-t-0 md:border-l border-white/10" : ""}`}>
                       <p className="text-[11px] font-semibold text-[#a9b3a5] uppercase tracking-wider mb-2.5">{h.label}</p>
-                      <p className="text-lg md:text-xl font-medium text-white mb-2.5">{h.titel}</p>
-                      {h.beskrivelse && <p className="text-sm text-[#8f9b8d] mb-3">{h.beskrivelse}</p>}
+                      <p className="text-lg md:text-xl font-medium text-white mb-2.5 break-words">{h.titel}</p>
+                      {h.beskrivelse && <p className="text-sm text-[#8f9b8d] mb-3 break-words">{h.beskrivelse}</p>}
                       <Link
                         href={`/projekt/${h.projektId}/aftale`}
                         className="inline-flex items-center gap-1.5 text-sm font-medium text-[#dfe8dc] border-b border-[#dfe8dc]/50 pb-0.5 hover:opacity-75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#dfe8dc] focus-visible:outline-offset-4 transition-opacity min-h-11"
@@ -578,7 +578,7 @@ export default function Dashboard() {
                         href={`/projekt/${s.projektId}/aftale`}
                         className="hidden md:grid grid-cols-[2fr_120px_1.6fr_auto] items-center gap-4 py-5 border-b border-[#e6e3da] focus-visible:outline-none focus-visible:bg-black/[0.02]"
                       >
-                        <p className="text-[15px] text-[#16241c]">{s.titel}</p>
+                        <p className="text-[15px] text-[#16241c] min-w-0 truncate">{s.titel}</p>
                         <span className="text-[13px] font-medium text-[#1e3a2a] text-center">{s.statusTekst}</span>
                         <span className="text-[13px] text-gray-500">{s.datoTekst}</span>
                         <span className="text-[13px] font-medium text-[#1e3a2a] text-right">Åbn sag →</span>
@@ -591,7 +591,7 @@ export default function Dashboard() {
 
             {/* Afventer og Udkast — separate, kompakte sektioner */}
             {(afventer.length > 0 || udkast.length > 0) && (
-              <div className="grid md:grid-cols-2 gap-x-14 mb-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-14 mb-10">
                 {afventer.length > 0 && (
                   <div>
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1.5">Afventer · {afventer.length}</p>

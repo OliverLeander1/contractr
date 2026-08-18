@@ -100,7 +100,12 @@ function KontraktMockup() {
           </div>
         </div>
       </div>
-      <div className="absolute -z-10 -bottom-6 -right-6 w-full h-full bg-[#1e3a2a]/6 rounded-2xl" />
+      {/* Dekorativt lag bag kortet. Uden en fast bredde ville -right-6/-bottom-6
+          strække sig ud over det relative wrapper-elements fulde bredde (som
+          på mobil er hele grid-cellen, ikke selve kortet) og skabe horisontal
+          overflow. Fra md, hvor grid'en bliver 2-kolonne og der er plads, får
+          effekten sit oprindelige offset igen. */}
+      <div className="absolute -z-10 inset-0 md:inset-auto md:w-full md:h-full md:-bottom-6 md:-right-6 bg-[#1e3a2a]/6 rounded-2xl" />
     </div>
   );
 }
@@ -358,11 +363,11 @@ function Bygherre() {
               { ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, titel: "Dansk platform", tekst: "Bygget til danske regler, danske håndværkere og det danske marked." },
               { ikon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>, titel: "GDPR-compliant", tekst: "Dine data behandles fortroligt og opbevares sikkert i overensstemmelse med GDPR." },
             ].map(s => (
-              <div key={s.titel} className="flex gap-3 items-start">
+              <div key={s.titel} className="flex gap-3 items-start min-w-0">
                 <div className="w-9 h-9 bg-white rounded-xl border border-[#e0ddd6] flex items-center justify-center flex-shrink-0">{s.ikon}</div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900 mb-0.5">{s.titel}</p>
-                  <p className="text-xs text-gray-500 leading-relaxed">{s.tekst}</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 mb-0.5 break-words">{s.titel}</p>
+                  <p className="text-xs text-gray-500 leading-relaxed break-words">{s.tekst}</p>
                 </div>
               </div>
             ))}
