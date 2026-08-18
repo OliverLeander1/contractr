@@ -24,7 +24,7 @@ aftalt, før arbejdet går i gang, og så dyre overraskelser kan undgås.
 **Brand i UI:** contractr er brandet i brugerrettet UI-copy.
 nembyggestyring.dk er primært domæne og projektnavn, medmindre andet
 aftales. Begge skrives altid med lowercase.
-**Live URL:** https://contractr.dk (Vercel, auto-deploy fra `main`)
+**Live URL:** https://nembyggestyring.dk (Vercel, auto-deploy fra `main`)
 
 ## Ejer og kontekst
 
