@@ -48,7 +48,12 @@ export default function ProjektNav({ id }: { id: string }) {
   const aktivtPunkt = navLinks.find((link) => erAktiv(link.href)) ?? navLinks[0];
 
   return (
-    <nav className="bg-[#f0f7f3] border-b border-[#1e3a2a]/10 sticky top-[var(--shell-h)] z-40 overflow-x-hidden">
+    // top-0 på mobil: topheaderen i AuthenticatedAppShell er ikke længere
+    // fastgjort der (den scroller væk som almindeligt sideindhold), så denne
+    // sticky-fane skal klæbe direkte i toppen af viewporten uden at reservere
+    // dens højde. Fra md er topheaderen fortsat sticky og optager sin egen
+    // plads, så uændret top-[var(--shell-h)] der.
+    <nav className="bg-[#f0f7f3] border-b border-[#1e3a2a]/10 sticky top-0 md:top-[var(--shell-h)] z-40 overflow-x-hidden">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
 
         {/* Desktop — uændret: label, skillelinje, vandret fanerække, Book rådgiver */}
