@@ -9,6 +9,10 @@ import {
   getBesigtigelseStatusUI,
   type BesigtigelseData,
 } from "@/lib/besigtigelse";
+import {
+  FileText, Calendar, ChevronRight, Trash2, ArrowRight, ClipboardList,
+  MessageSquare, AlertCircle, LayoutGrid, Shield, Plus, Home, Package, Users,
+} from "lucide-react";
 
 interface Projekt {
   id: string;
@@ -236,6 +240,10 @@ export default function Dashboard() {
   const igangProjekter = projekter.filter(p => p.status === "igang" || p.status === "accepteret");
   const andreProjekter = projekter.filter(p => p.status !== "igang" && p.status !== "accepteret");
 
+  // Sidepanelet ("Status og påmindelser") vises kun, hvis der reelt er noget
+  // at vise — ingen tom widget udelukkende for at fylde 1/3-kolonnen.
+  const visSidepanel = harProblemer || igangProjekter.length > 0;
+
   if (indlæser) {
     return (
       <div className="min-h-screen bg-[#f5f3ee] flex items-center justify-center">
@@ -262,15 +270,15 @@ export default function Dashboard() {
         />
       )}
 
-      <div className="max-w-3xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-6 py-10">
 
         {/* Velkomst */}
-        <div className="mb-8 flex items-start justify-between gap-4">
+        <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <p className="text-base text-gray-500 mb-1">
               {hilsen}{fornavn ? `, ${fornavn}` : ""}
             </p>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight">
               {ingenProjekter && aftaler.length === 0
                 ? "Hvad skal du bygge?"
                 : aftaler.length > 0 && ingenProjekter
@@ -282,475 +290,453 @@ export default function Dashboard() {
           </div>
           <Link
             href="/opret/upload"
-            className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-[#1e3a2a] hover:opacity-70 transition-opacity flex-shrink-0 mt-1"
+            className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-[#1e3a2a] hover:opacity-70 transition-opacity flex-shrink-0 mt-1 min-h-11 px-2 -mx-2"
           >
             Tjek tilbud
           </Link>
         </div>
 
-        {/* Ufærdiggjort udkast fra sessionStorage */}
-        {pendingUdkast && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 mb-6 flex items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" className="flex-shrink-0 mt-0.5">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-              </svg>
-              <div>
-                <p className="text-sm font-semibold text-amber-900">Du har et udkast klar</p>
-                <p className="text-xs text-amber-700 mt-0.5">{pendingUdkast.titel}</p>
-              </div>
-            </div>
-            <button
-              onClick={() => router.push("/opret/udbud-resultat")}
-              className="flex-shrink-0 bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-amber-700 transition-colors"
-            >
-              Fortsæt her
-            </button>
-          </div>
-        )}
+        <div className={`grid grid-cols-1 ${visSidepanel ? "lg:grid-cols-3" : ""} gap-6`}>
+          {/* Hovedkolonne (2/3 på desktop) */}
+          <div className={visSidepanel ? "lg:col-span-2" : ""}>
 
-        {/* Aktive aftaler fra kontrakter-tabellen */}
-        {aftaler.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Dine aftalegrundlag</h2>
-            {besigtigelserFejl && (
-              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-3">
-                Besigtigelsesstatus kunne ikke hentes. Opdater siden for at prøve igen.
-              </p>
-            )}
-            <div className="space-y-3">
-              {aftaler.map(a => {
-                const beggeGodkendt = a.status === "begge_godkendt";
-                const afventerHaandvaerker = a.bygherre_godkendt_at && !a.haandvaerker_godkendt_at;
-                const underForhandling = a.status === "forhandling";
-                const kontraktStatus = getContractorUpdateStatus(a);
-                const erUdkast = !a.haandvaerker_email;
-
-                // Besigtigelse-status (selvstændig tabel — højeste prioritet)
-                const aktivBesigtigelse = besigtigelser.find(b => b.kontrakt_id === a.id);
-                const besigtigelseUI = aktivBesigtigelse ? getBesigtigelseStatusUI(aktivBesigtigelse) : null;
-
-                // Prioritet: 1 = bygherre skal svare, 2 = konkret kontrakthandling, 3 = bygherre afventer, 4 = godkendt, 5 = generel
-                const visBesigtigelseBadge = besigtigelseUI !== null && (
-                  besigtigelseUI.prioritet === 1 ||
-                  (!kontraktStatus.badgeText && besigtigelseUI.prioritet <= 4)
-                );
-
-                const statusTekst = visBesigtigelseBadge
-                  ? besigtigelseUI!.badge
-                  : (kontraktStatus.badgeText ?? (beggeGodkendt ? "Godkendt af begge" : afventerHaandvaerker ? "Afventer håndværker" : underForhandling ? "Under forhandling" : a.haandvaerker_email ? "Invitation sendt" : "Udkast"));
-                const statusKlasse = visBesigtigelseBadge
-                  ? besigtigelseUI!.klasse
-                  : (kontraktStatus.badgeKlasse || (beggeGodkendt ? "bg-green-100 text-green-700 border-green-200" : afventerHaandvaerker ? "bg-blue-100 text-blue-700 border-blue-200" : underForhandling ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-gray-100 text-gray-500 border-gray-200"));
-
-                // Sekundær linje: vis generel kontrakt-info hvis besigtigelse tager badge, eller vis besigtigelse som supplement
-                const secondaryTekst = visBesigtigelseBadge && besigtigelseUI!.tekst
-                  ? besigtigelseUI!.tekst
-                  : (kontraktStatus.secondaryText ?? (besigtigelseUI?.tekst || null));
-
-                return (
-                  <div key={a.id} className="flex items-center gap-2">
-                    <Link
-                      href={`/projekt/${a.projekt_id}/aftale`}
-                      className="flex-1 bg-white rounded-2xl border border-[#e0ddd6] px-5 py-4 flex items-center justify-between hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group"
-                    >
-                      <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${besigtigelseUI?.prioritet === 1 ? "bg-amber-100" : "bg-[#1e3a2a]/5"}`}>
-                          {besigtigelseUI?.prioritet === 1 ? (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="1.8">
-                              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-                              <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                            </svg>
-                          ) : (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
-                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                              <polyline points="14 2 14 8 20 8"/>
-                              <line x1="16" y1="13" x2="8" y2="13"/>
-                              <line x1="16" y1="17" x2="8" y2="17"/>
-                            </svg>
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors text-sm break-words">
-                            {a.titel || "Aftalegrundlag uden titel"}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-0.5 truncate">
-                            {a.haandvaerker_navn || a.haandvaerker_email || "Ingen håndværker tilknyttet endnu"}
-                          </p>
-                          {secondaryTekst && (
-                            <p className={`text-xs font-medium mt-0.5 truncate ${besigtigelseUI?.prioritet === 1 ? "text-amber-700" : "text-[#1e3a2a]"}`}>{secondaryTekst}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 flex-shrink-0">
-                        <span className={`max-w-[7rem] text-center text-xs font-semibold px-2.5 py-1 rounded-full border ${statusKlasse}`}>
-                          {statusTekst}
-                        </span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2" className="flex-shrink-0"><polyline points="9 18 15 12 9 6"/></svg>
-                      </div>
-                    </Link>
-                    {erUdkast && (
-                      <button
-                        title="Slet udkast"
-                        disabled={sletterProjekt === a.projekt_id}
-                        onClick={() => sletProjekt(a.projekt_id, a.titel || "Aftalegrundlag uden titel")}
-                        className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0 disabled:opacity-40"
-                      >
-                        {sletterProjekt === a.projekt_id
-                          ? <div className="w-4 h-4 border-2 border-red-300 border-t-red-500 rounded-full animate-spin" />
-                          : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-                        }
-                      </button>
-                    )}
+            {/* Ufærdiggjort udkast fra sessionStorage */}
+            {pendingUdkast && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 mb-6 flex items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <FileText size={20} strokeWidth={1.75} className="flex-shrink-0 mt-0.5 text-amber-600" />
+                  <div>
+                    <p className="text-sm font-semibold text-amber-900">Du har et udkast klar</p>
+                    <p className="text-xs text-amber-700 mt-0.5">{pendingUdkast.titel}</p>
                   </div>
-                );
-              })}
-            </div>
-            <button
-              onClick={opretNyAftale}
-              disabled={opretter}
-              className="mt-3 w-full flex items-center justify-center gap-2 bg-white border border-dashed border-[#1e3a2a]/30 rounded-2xl py-4 text-sm font-semibold text-[#1e3a2a] hover:border-[#1e3a2a]/60 hover:bg-[#1e3a2a]/5 transition-all disabled:opacity-50"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              {opretter ? "Opretter..." : "Nyt aftalegrundlag"}
-            </button>
-          </div>
-        )}
-
-        {/* Tvist-advarsel */}
-        {harProblemer && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl px-5 py-4 mb-6 flex items-start gap-3">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" className="flex-shrink-0 mt-0.5">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-            <div>
-              <p className="text-sm font-semibold text-red-800 mb-0.5">Et projekt har en aktiv tvist</p>
-              <p className="text-xs text-red-600">Vi anbefaler kontakt til en byggesagkyndig. <Link href="/tilkoeb" className="font-semibold underline">Se rådgiverydelser</Link></p>
-            </div>
-          </div>
-        )}
-
-        {/* Tom tilstand — ny bruger */}
-        {ingenProjekter && aftaler.length === 0 && (
-          <div className="space-y-4 mb-8">
-            {/* Primær CTA */}
-            <div className="bg-[#1e3a2a] rounded-2xl p-8 text-white">
-              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-5">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
+                </div>
+                <button
+                  onClick={() => router.push("/opret/udbud-resultat")}
+                  className="flex-shrink-0 bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-amber-700 transition-colors min-h-11"
+                >
+                  Fortsæt her
+                </button>
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">Kom i gang med dit projekt</h2>
-              <p className="text-white/70 text-sm leading-relaxed mb-6">
-                Beskriv dit projekt, og vi samler et aftalegrundlag du kan sende til din håndværker. Eller upload et tilbud du allerede har modtaget.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3">
+            )}
+
+            {/* Aktive aftaler fra kontrakter-tabellen */}
+            {aftaler.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Dine aftalegrundlag</h2>
+                {besigtigelserFejl && (
+                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-3">
+                    Besigtigelsesstatus kunne ikke hentes. Opdater siden for at prøve igen.
+                  </p>
+                )}
+                <div className="space-y-3">
+                  {aftaler.map(a => {
+                    const beggeGodkendt = a.status === "begge_godkendt";
+                    const afventerHaandvaerker = a.bygherre_godkendt_at && !a.haandvaerker_godkendt_at;
+                    const underForhandling = a.status === "forhandling";
+                    const kontraktStatus = getContractorUpdateStatus(a);
+                    const erUdkast = !a.haandvaerker_email;
+
+                    // Besigtigelse-status (selvstændig tabel — højeste prioritet)
+                    const aktivBesigtigelse = besigtigelser.find(b => b.kontrakt_id === a.id);
+                    const besigtigelseUI = aktivBesigtigelse ? getBesigtigelseStatusUI(aktivBesigtigelse) : null;
+
+                    // Prioritet: 1 = bygherre skal svare, 2 = konkret kontrakthandling, 3 = bygherre afventer, 4 = godkendt, 5 = generel
+                    const visBesigtigelseBadge = besigtigelseUI !== null && (
+                      besigtigelseUI.prioritet === 1 ||
+                      (!kontraktStatus.badgeText && besigtigelseUI.prioritet <= 4)
+                    );
+
+                    const statusTekst = visBesigtigelseBadge
+                      ? besigtigelseUI!.badge
+                      : (kontraktStatus.badgeText ?? (beggeGodkendt ? "Godkendt af begge" : afventerHaandvaerker ? "Afventer håndværker" : underForhandling ? "Under forhandling" : a.haandvaerker_email ? "Invitation sendt" : "Udkast"));
+                    const statusKlasse = visBesigtigelseBadge
+                      ? besigtigelseUI!.klasse
+                      : (kontraktStatus.badgeKlasse || (beggeGodkendt ? "bg-green-100 text-green-700 border-green-200" : afventerHaandvaerker ? "bg-blue-100 text-blue-700 border-blue-200" : underForhandling ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-gray-100 text-gray-500 border-gray-200"));
+
+                    // Sekundær linje: vis generel kontrakt-info hvis besigtigelse tager badge, eller vis besigtigelse som supplement
+                    const secondaryTekst = visBesigtigelseBadge && besigtigelseUI!.tekst
+                      ? besigtigelseUI!.tekst
+                      : (kontraktStatus.secondaryText ?? (besigtigelseUI?.tekst || null));
+
+                    return (
+                      <div key={a.id} className="flex items-center gap-2">
+                        <Link
+                          href={`/projekt/${a.projekt_id}/aftale`}
+                          className="flex-1 bg-white rounded-2xl border border-[#e0ddd6] px-5 py-4 flex items-center justify-between hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a2a]/40 focus-visible:ring-offset-2"
+                        >
+                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${besigtigelseUI?.prioritet === 1 ? "bg-amber-100" : "bg-[#1e3a2a]/5"}`}>
+                              {besigtigelseUI?.prioritet === 1 ? (
+                                <Calendar size={20} strokeWidth={1.75} className="text-amber-800" />
+                              ) : (
+                                <FileText size={20} strokeWidth={1.75} className="text-[#1e3a2a]" />
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors text-sm break-words">
+                                {a.titel || "Aftalegrundlag uden titel"}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-0.5 truncate">
+                                {a.haandvaerker_navn || a.haandvaerker_email || "Ingen håndværker tilknyttet endnu"}
+                              </p>
+                              {secondaryTekst && (
+                                <p className={`text-xs font-medium mt-0.5 truncate ${besigtigelseUI?.prioritet === 1 ? "text-amber-700" : "text-[#1e3a2a]"}`}>{secondaryTekst}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            <span className={`max-w-[7rem] text-center text-xs font-semibold px-2.5 py-1 rounded-full border ${statusKlasse}`}>
+                              {statusTekst}
+                            </span>
+                            <ChevronRight size={16} strokeWidth={2} className="flex-shrink-0 text-gray-300" />
+                          </div>
+                        </Link>
+                        {erUdkast && (
+                          <button
+                            title="Slet udkast"
+                            aria-label="Slet udkast"
+                            disabled={sletterProjekt === a.projekt_id}
+                            onClick={() => sletProjekt(a.projekt_id, a.titel || "Aftalegrundlag uden titel")}
+                            className="w-11 h-11 flex items-center justify-center rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a2a]/40"
+                          >
+                            {sletterProjekt === a.projekt_id
+                              ? <div className="w-4 h-4 border-2 border-red-300 border-t-red-500 rounded-full animate-spin" />
+                              : <Trash2 size={16} strokeWidth={1.75} />
+                            }
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
                 <button
                   onClick={opretNyAftale}
                   disabled={opretter}
-                  className="inline-flex items-center gap-2 bg-white text-[#1e3a2a] font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-opacity text-sm disabled:opacity-50"
+                  className="mt-3 w-full flex items-center justify-center gap-2 bg-white border border-dashed border-[#1e3a2a]/30 rounded-2xl py-4 min-h-11 text-sm font-semibold text-[#1e3a2a] hover:border-[#1e3a2a]/60 hover:bg-[#1e3a2a]/5 transition-all disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a2a]/40"
                 >
-                  {opretter ? "Opretter..." : "Start aftalegrundlag"}
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  <Plus size={16} strokeWidth={2} />
+                  {opretter ? "Opretter..." : "Nyt aftalegrundlag"}
                 </button>
+              </div>
+            )}
+
+            {/* Tom tilstand — ny bruger. Lys tonal flade (ikke mørk) — det
+                mørke hero-kort er forbeholdt et faktisk aktivt projekt. */}
+            {ingenProjekter && aftaler.length === 0 && (
+              <div className="space-y-4 mb-8">
+                <div className="bg-[#f0f7f3] border border-[#1e3a2a]/10 rounded-2xl p-8">
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-5 shadow-sm">
+                    <FileText size={24} strokeWidth={1.75} className="text-[#1e3a2a]" />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Kom i gang med dit projekt</h2>
+                  <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                    Beskriv dit projekt, og vi samler et aftalegrundlag du kan sende til din håndværker. Eller upload et tilbud du allerede har modtaget.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                      onClick={opretNyAftale}
+                      disabled={opretter}
+                      className="inline-flex items-center justify-center gap-2 bg-[#1e3a2a] text-white font-bold px-6 py-3 min-h-11 rounded-xl hover:opacity-90 transition-opacity text-sm disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a2a]/40 focus-visible:ring-offset-2"
+                    >
+                      {opretter ? "Opretter..." : "Start aftalegrundlag"}
+                      <ArrowRight size={16} strokeWidth={2} />
+                    </button>
+                    <Link
+                      href="/opret/upload"
+                      className="inline-flex items-center justify-center gap-2 bg-white text-[#1e3a2a] font-semibold px-6 py-3 min-h-11 rounded-xl hover:bg-white/70 transition-colors text-sm border border-[#1e3a2a]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a2a]/40 focus-visible:ring-offset-2"
+                    >
+                      Tjek et tilbud
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Tre trin */}
+                <div className="bg-white rounded-2xl border border-[#e0ddd6] p-6">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-5">Sådan virker det</p>
+                  <div className="space-y-5">
+                    {[
+                      { nr: "1", titel: "Upload dit tilbud", desc: "PDF, billede eller tekst fra en mail" },
+                      { nr: "2", titel: "Vi screener dokumentet", desc: "Mod AB-Forbruger 2012 og centrale aftalepunkter" },
+                      { nr: "3", titel: "Du ved hvad du mangler", desc: "Konkrete spørgsmål du kan stille håndværkeren" },
+                    ].map(t => (
+                      <div key={t.nr} className="flex items-start gap-4">
+                        <div className="w-7 h-7 rounded-full bg-[#1e3a2a] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                          {t.nr}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">{t.titel}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">{t.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Aktive projekter — fuldt overblik. Mørkt hero-kort er
+                fortsat det primære brandelement på siden. */}
+            {igangProjekter.map(p => {
+              const k = aktivKontrakt(p.id);
+              const idag = new Date().toISOString();
+              const dageТilSlut = k?.slutdato ? dageImellem(idag, k.slutdato) : null;
+              const dageSidenStart = k?.startdato ? dageImellem(k.startdato, idag) : null;
+              const totalDage = (k?.startdato && k?.slutdato) ? dageImellem(k.startdato, k.slutdato) : null;
+              const fremdriftPct = (dageSidenStart !== null && totalDage && totalDage > 0)
+                ? Math.min(100, Math.max(0, Math.round((dageSidenStart / totalDage) * 100)))
+                : null;
+
+              return (
+                <div key={p.id} className="mb-6">
+                  {/* Header-kort (variant A — hero) */}
+                  <div className="bg-[#111c17] rounded-3xl overflow-hidden shadow-lg">
+                    <div className="px-6 pt-6 pb-5">
+                      <div className="flex items-start justify-between gap-3 mb-5">
+                        <div>
+                          <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.15em] mb-1">
+                            {projekttypeLabels[p.projekttype] || "Byggeprojekt"}
+                          </p>
+                          <h2 className="text-xl font-bold text-white leading-snug">
+                            {k?.titel || p.adresse || projekttypeLabels[p.projekttype] || "Dit byggeprojekt"}
+                          </h2>
+                        </div>
+                        <span className="flex-shrink-0 text-[10px] font-bold px-2.5 py-1.5 rounded-full bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/20 uppercase tracking-wide">
+                          I gang
+                        </span>
+                      </div>
+
+                      {/* Nøgletal — 2-3 kolonner */}
+                      <div className="grid grid-cols-3 gap-3 mb-5">
+                        {k?.haandvaerker_navn && (
+                          <div className="bg-white/5 rounded-2xl px-3 py-3">
+                            <p className="text-[10px] text-white/40 mb-1">Håndværker</p>
+                            <p className="text-sm font-bold text-white leading-snug truncate">{k.haandvaerker_navn}</p>
+                            {k.haandvaerker_firma && <p className="text-[10px] text-white/40 mt-0.5 truncate">{k.haandvaerker_firma}</p>}
+                          </div>
+                        )}
+                        {k?.total_pris && (
+                          <div className="bg-white/5 rounded-2xl px-3 py-3">
+                            <p className="text-[10px] text-white/40 mb-1">Entreprisesum</p>
+                            <p className="text-sm font-bold text-white">{fmtKr(k.total_pris)}</p>
+                            <p className="text-[10px] text-white/40 mt-0.5">inkl. moms</p>
+                          </div>
+                        )}
+                        {dageТilSlut !== null && (
+                          <div className="bg-white/5 rounded-2xl px-3 py-3">
+                            <p className="text-[10px] text-white/40 mb-1">Aflevering</p>
+                            <p className={`text-sm font-bold ${dageТilSlut < 7 ? "text-amber-400" : "text-white"}`}>
+                              {dageТilSlut <= 0 ? "I dag" : `${dageТilSlut} dage`}
+                            </p>
+                            {k?.slutdato && <p className="text-[10px] text-white/40 mt-0.5">{fmtDato(k.slutdato)}</p>}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Tidslinje-bar */}
+                      {fremdriftPct !== null && (
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <p className="text-[10px] text-white/40">
+                              {k?.startdato ? fmtDato(k.startdato) : "Opstart"}
+                            </p>
+                            <p className="text-[10px] font-semibold text-white/60">{fremdriftPct}% af tidsplanen</p>
+                            <p className="text-[10px] text-white/40">
+                              {k?.slutdato ? fmtDato(k.slutdato) : "Aflevering"}
+                            </p>
+                          </div>
+                          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-[#4ade80] rounded-full transition-all"
+                              style={{ width: `${fremdriftPct}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Hurtige handlinger */}
+                    <div className="grid grid-cols-3 border-t border-white/10">
+                      {[
+                        { href: `/projekt/${p.id}/ekstraarbejde`, Ikon: ClipboardList, label: "Ekstraarbejde" },
+                        { href: `/projekt/${p.id}/chat`, Ikon: MessageSquare, label: "Besked" },
+                        { href: `/projekt/${p.id}/mangler`, Ikon: AlertCircle, label: "Mangel" },
+                      ].map((a, i) => (
+                        <Link
+                          key={i}
+                          href={a.href}
+                          className="flex flex-col items-center justify-center gap-1.5 py-4 min-h-11 text-white/60 hover:text-white hover:bg-white/5 transition-all focus-visible:outline-none focus-visible:bg-white/10"
+                        >
+                          <a.Ikon size={16} strokeWidth={1.75} />
+                          <span className="text-[10px] font-semibold">{a.label}</span>
+                        </Link>
+                      ))}
+                    </div>
+
+                    {/* Se fuldt projektrum — nu en linje i hero-kortet i
+                        stedet for et separat hvidt kort */}
+                    <Link
+                      href={`/projekt/${p.id}`}
+                      className="flex items-center justify-between px-6 py-3.5 border-t border-white/10 text-white/70 hover:text-white hover:bg-white/5 transition-all group focus-visible:outline-none focus-visible:bg-white/10"
+                    >
+                      <span className="flex items-center gap-2 text-sm font-semibold">
+                        <LayoutGrid size={16} strokeWidth={1.75} />
+                        Åbn projektrum
+                      </span>
+                      <ChevronRight size={16} strokeWidth={2} className="text-white/40 group-hover:text-white/70 transition-colors" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Øvrige projekter — kompakt liste */}
+            {andreProjekter.length > 0 && (
+              <div className="mb-6">
+                {igangProjekter.length > 0 && (
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest">Andre projekter</h2>
+                    <Link href="/opret" className="flex items-center gap-1.5 text-sm font-semibold text-[#1e3a2a] hover:underline min-h-11 px-2 -mx-2">
+                      <Plus size={16} strokeWidth={2.5} />
+                      Nyt
+                    </Link>
+                  </div>
+                )}
+                {igangProjekter.length === 0 && (
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest">Dine projekter</h2>
+                    <Link href="/opret" className="flex items-center gap-1.5 text-sm font-semibold text-[#1e3a2a] hover:underline min-h-11 px-2 -mx-2">
+                      <Plus size={16} strokeWidth={2.5} />
+                      Nyt projekt
+                    </Link>
+                  </div>
+                )}
+                <div className="space-y-3">
+                  {andreProjekter.map(p => {
+                    const kanSlettes = p.status === "dialog" || p.status === "ingen-tilbud";
+                    const projektLabel = p.adresse || projekttypeLabels[p.projekttype] || "Byggeprojekt";
+                    return (
+                      <div key={p.id} className="flex items-center gap-2">
+                        <Link
+                          href={`/projekt/${p.id}`}
+                          className="flex-1 bg-white rounded-2xl border border-[#e0ddd6] px-5 py-4 flex items-center justify-between hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a2a]/40 focus-visible:ring-offset-2"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-11 h-11 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0">
+                              <Home size={20} strokeWidth={1.75} className="text-[#1e3a2a]" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors text-sm">
+                                {projektLabel}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                {new Date(p.oprettet_at).toLocaleDateString("da-DK", { day: "numeric", month: "long" })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${statusFarve[p.status] || "bg-gray-100 text-gray-500 border-gray-200"}`}>
+                              {statusLabel[p.status] || p.status}
+                            </span>
+                            <ChevronRight size={16} strokeWidth={2} className="text-gray-300" />
+                          </div>
+                        </Link>
+                        {kanSlettes && (
+                          <button
+                            title="Slet projekt"
+                            aria-label="Slet projekt"
+                            disabled={sletterProjekt === p.id}
+                            onClick={() => sletProjekt(p.id, projektLabel)}
+                            className="w-11 h-11 flex items-center justify-center rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a2a]/40"
+                          >
+                            {sletterProjekt === p.id
+                              ? <div className="w-4 h-4 border-2 border-red-300 border-t-red-500 rounded-full animate-spin" />
+                              : <Trash2 size={16} strokeWidth={1.75} />
+                            }
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
                 <Link
                   href="/opret/upload"
-                  className="inline-flex items-center gap-2 bg-white/20 text-white font-semibold px-6 py-3 rounded-xl hover:bg-white/30 transition-colors text-sm border border-white/30"
+                  className="mt-4 flex items-center justify-center gap-2 bg-white border border-dashed border-[#1e3a2a]/30 rounded-2xl py-4 min-h-11 text-sm font-semibold text-[#1e3a2a] hover:border-[#1e3a2a]/60 hover:bg-[#1e3a2a]/5 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a2a]/40"
                 >
-                  Tjek et tilbud
+                  <Plus size={16} strokeWidth={2} />
+                  Tjek nyt tilbud
                 </Link>
               </div>
+            )}
+
+            {/* Bund — genveje */}
+            <div className="grid sm:grid-cols-2 gap-3 mt-2">
+              {!projekter.some(p => p.pakke_betalt) && (
+                <Link
+                  href="/pakke"
+                  className="bg-white rounded-2xl border border-[#e0ddd6] p-5 hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group flex items-start gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a2a]/40 focus-visible:ring-offset-2"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0 group-hover:bg-[#1e3a2a]/10 transition-colors">
+                    <Package size={20} strokeWidth={1.75} className="text-[#1e3a2a]" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm mb-0.5">Vælg en pakke</p>
+                    <p className="text-xs text-gray-400 leading-relaxed">Se hvad der er inkluderet i de forskellige løsninger</p>
+                  </div>
+                </Link>
+              )}
+              <Link
+                href="/tilkoeb"
+                className="bg-white rounded-2xl border border-[#e0ddd6] p-5 hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group flex items-start gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a2a]/40 focus-visible:ring-offset-2"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0 group-hover:bg-[#1e3a2a]/10 transition-colors">
+                  <Users size={20} strokeWidth={1.75} className="text-[#1e3a2a]" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm mb-0.5">Book en rådgiver</p>
+                  <p className="text-xs text-gray-400 leading-relaxed">Få en byggesagkyndig til at kigge med</p>
+                </div>
+              </Link>
             </div>
 
-            {/* Tre trin */}
-            <div className="bg-white rounded-2xl border border-[#e0ddd6] p-6">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-5">Sådan virker det</p>
-              <div className="space-y-5">
-                {[
-                  { nr: "1", titel: "Upload dit tilbud", desc: "PDF, billede eller tekst fra en mail" },
-                  { nr: "2", titel: "Vi screener dokumentet", desc: "Mod AB-Forbruger 2012 og centrale aftalepunkter" },
-                  { nr: "3", titel: "Du ved hvad du mangler", desc: "Konkrete spørgsmål du kan stille håndværkeren" },
-                ].map(t => (
-                  <div key={t.nr} className="flex items-start gap-4">
-                    <div className="w-7 h-7 rounded-full bg-[#1e3a2a] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {t.nr}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{t.titel}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{t.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
-        )}
 
-        {/* Aktive projekter — fuldt overblik */}
-        {igangProjekter.map(p => {
-          const k = aktivKontrakt(p.id);
-          const idag = new Date().toISOString();
-          const dageТilSlut = k?.slutdato ? dageImellem(idag, k.slutdato) : null;
-          const dageSidenStart = k?.startdato ? dageImellem(k.startdato, idag) : null;
-          const totalDage = (k?.startdato && k?.slutdato) ? dageImellem(k.startdato, k.slutdato) : null;
-          const fremdriftPct = (dageSidenStart !== null && totalDage && totalDage > 0)
-            ? Math.min(100, Math.max(0, Math.round((dageSidenStart / totalDage) * 100)))
-            : null;
-
-          return (
-            <div key={p.id} className="mb-6">
-              {/* Header-kort */}
-              <div className="bg-[#111c17] rounded-3xl overflow-hidden shadow-lg mb-3">
-                <div className="px-6 pt-6 pb-5">
-                  <div className="flex items-start justify-between gap-3 mb-5">
-                    <div>
-                      <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.15em] mb-1">
-                        {projekttypeLabels[p.projekttype] || "Byggeprojekt"}
-                      </p>
-                      <h2 className="text-xl font-bold text-white leading-snug">
-                        {k?.titel || p.adresse || projekttypeLabels[p.projekttype] || "Dit byggeprojekt"}
-                      </h2>
-                    </div>
-                    <span className="flex-shrink-0 text-[10px] font-bold px-2.5 py-1.5 rounded-full bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/20 uppercase tracking-wide">
-                      I gang
-                    </span>
-                  </div>
-
-                  {/* Nøgletal — 2-3 kolonner */}
-                  <div className="grid grid-cols-3 gap-3 mb-5">
-                    {k?.haandvaerker_navn && (
-                      <div className="bg-white/5 rounded-2xl px-3 py-3">
-                        <p className="text-[10px] text-white/40 mb-1">Håndværker</p>
-                        <p className="text-sm font-bold text-white leading-snug truncate">{k.haandvaerker_navn}</p>
-                        {k.haandvaerker_firma && <p className="text-[10px] text-white/40 mt-0.5 truncate">{k.haandvaerker_firma}</p>}
-                      </div>
-                    )}
-                    {k?.total_pris && (
-                      <div className="bg-white/5 rounded-2xl px-3 py-3">
-                        <p className="text-[10px] text-white/40 mb-1">Entreprisesum</p>
-                        <p className="text-sm font-bold text-white">{fmtKr(k.total_pris)}</p>
-                        <p className="text-[10px] text-white/40 mt-0.5">inkl. moms</p>
-                      </div>
-                    )}
-                    {dageТilSlut !== null && (
-                      <div className="bg-white/5 rounded-2xl px-3 py-3">
-                        <p className="text-[10px] text-white/40 mb-1">Aflevering</p>
-                        <p className={`text-sm font-bold ${dageТilSlut < 7 ? "text-amber-400" : "text-white"}`}>
-                          {dageТilSlut <= 0 ? "I dag" : `${dageТilSlut} dage`}
+          {/* Sidekolonne (1/3 på desktop) — kun status/påmindelser der reelt
+              er relevante. Renderes slet ikke, hvis der intet er (se
+              visSidepanel ovenfor), i stedet for en tom hvid boks. */}
+          {visSidepanel && (
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-2xl border border-[#e0ddd6] p-5">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">Status og påmindelser</p>
+                <div className="divide-y divide-gray-50">
+                  {harProblemer && (
+                    <div className="py-3 first:pt-0 flex items-start gap-3">
+                      <Shield size={20} strokeWidth={1.75} className="flex-shrink-0 mt-0.5 text-red-600" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-red-800">Et projekt har en aktiv tvist</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Vi anbefaler kontakt til en byggesagkyndig.{" "}
+                          <Link href="/tilkoeb" className="font-semibold text-[#1e3a2a] hover:underline">Se rådgiverydelser</Link>
                         </p>
-                        {k?.slutdato && <p className="text-[10px] text-white/40 mt-0.5">{fmtDato(k.slutdato)}</p>}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Tidslinje-bar */}
-                  {fremdriftPct !== null && (
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <p className="text-[10px] text-white/40">
-                          {k?.startdato ? fmtDato(k.startdato) : "Opstart"}
-                        </p>
-                        <p className="text-[10px] font-semibold text-white/60">{fremdriftPct}% af tidsplanen</p>
-                        <p className="text-[10px] text-white/40">
-                          {k?.slutdato ? fmtDato(k.slutdato) : "Aflevering"}
-                        </p>
-                      </div>
-                      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-[#4ade80] rounded-full transition-all"
-                          style={{ width: `${fremdriftPct}%` }}
-                        />
                       </div>
                     </div>
                   )}
-                </div>
-
-                {/* Hurtige handlinger */}
-                <div className="grid grid-cols-3 border-t border-white/10">
-                  {[
-                    {
-                      href: `/projekt/${p.id}/ekstraarbejde`,
-                      ikon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>,
-                      label: "Ekstraarbejde"
-                    },
-                    {
-                      href: `/projekt/${p.id}/chat`,
-                      ikon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
-                      label: "Besked"
-                    },
-                    {
-                      href: `/projekt/${p.id}/mangler`,
-                      ikon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
-                      label: "Mangel"
-                    },
-                  ].map((a, i) => (
-                    <Link
-                      key={i}
-                      href={a.href}
-                      className="flex flex-col items-center gap-1.5 py-4 text-white/60 hover:text-white hover:bg-white/5 transition-all"
-                    >
-                      {a.ikon}
-                      <span className="text-[10px] font-semibold">{a.label}</span>
-                    </Link>
+                  {igangProjekter.map(p => (
+                    <div key={p.id} className="py-3 first:pt-0 flex items-start gap-3">
+                      <Shield size={20} strokeWidth={1.75} className="flex-shrink-0 mt-0.5 text-[#1e3a2a]/70" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-700">Husk: ekstraarbejde aftales skriftligt inden opstart</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">AB-Forbruger § 23 · {p.adresse || projekttypeLabels[p.projekttype] || "dit projekt"}</p>
+                        <Link href={`/projekt/${p.id}/ekstraarbejde`} className="text-[10px] font-bold text-[#1e3a2a] hover:underline mt-1 inline-block">
+                          Opret seddel
+                        </Link>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
-
-              {/* Se fuldt projektrum */}
-              <Link
-                href={`/projekt/${p.id}`}
-                className="flex items-center justify-between bg-white rounded-2xl border border-[#e0ddd6] px-5 py-3.5 hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                  </div>
-                  <p className="text-sm font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors">Åbn projektrum</p>
-                </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-              </Link>
-
-              {/* AB-Forbruger påminding */}
-              <div className="mt-3 bg-white rounded-2xl border border-[#e0ddd6] px-5 py-3.5">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-lg bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold text-gray-700">Husk: ekstraarbejde aftales skriftligt inden opstart</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">AB-Forbruger § 23</p>
-                  </div>
-                  <Link href={`/projekt/${p.id}/ekstraarbejde`} className="text-[10px] font-bold text-[#1e3a2a] whitespace-nowrap hover:underline">
-                    Opret seddel
-                  </Link>
-                </div>
-              </div>
             </div>
-          );
-        })}
-
-        {/* Øvrige projekter — kompakt liste */}
-        {andreProjekter.length > 0 && (
-          <div className="mb-6">
-            {igangProjekter.length > 0 && (
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest">Andre projekter</h2>
-                <Link href="/opret" className="flex items-center gap-1.5 text-sm font-semibold text-[#1e3a2a] hover:underline">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  Nyt
-                </Link>
-              </div>
-            )}
-            {igangProjekter.length === 0 && (
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest">Dine projekter</h2>
-                <Link href="/opret" className="flex items-center gap-1.5 text-sm font-semibold text-[#1e3a2a] hover:underline">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  Nyt projekt
-                </Link>
-              </div>
-            )}
-            <div className="space-y-3">
-              {andreProjekter.map(p => {
-                const kanSlettes = p.status === "dialog" || p.status === "ingen-tilbud";
-                const projektLabel = p.adresse || projekttypeLabels[p.projekttype] || "Byggeprojekt";
-                return (
-                  <div key={p.id} className="flex items-center gap-2">
-                    <Link
-                      href={`/projekt/${p.id}`}
-                      className="flex-1 bg-white rounded-2xl border border-[#e0ddd6] px-5 py-4 flex items-center justify-between hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                            <polyline points="9 22 9 12 15 12 15 22"/>
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900 group-hover:text-[#1e3a2a] transition-colors text-sm">
-                            {projektLabel}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-0.5">
-                            {new Date(p.oprettet_at).toLocaleDateString("da-DK", { day: "numeric", month: "long" })}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${statusFarve[p.status] || "bg-gray-100 text-gray-500 border-gray-200"}`}>
-                          {statusLabel[p.status] || p.status}
-                        </span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-                      </div>
-                    </Link>
-                    {kanSlettes && (
-                      <button
-                        title="Slet projekt"
-                        disabled={sletterProjekt === p.id}
-                        onClick={() => sletProjekt(p.id, projektLabel)}
-                        className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0 disabled:opacity-40"
-                      >
-                        {sletterProjekt === p.id
-                          ? <div className="w-4 h-4 border-2 border-red-300 border-t-red-500 rounded-full animate-spin" />
-                          : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-                        }
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <Link
-              href="/opret/upload"
-              className="mt-4 flex items-center justify-center gap-2 bg-white border border-dashed border-[#1e3a2a]/30 rounded-2xl py-4 text-sm font-semibold text-[#1e3a2a] hover:border-[#1e3a2a]/60 hover:bg-[#1e3a2a]/5 transition-all"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Tjek nyt tilbud
-            </Link>
-          </div>
-        )}
-
-        {/* Bund — genveje */}
-        <div className="grid sm:grid-cols-2 gap-3 mt-2">
-          {!projekter.some(p => p.pakke_betalt) && (
-            <Link
-              href="/pakke"
-              className="bg-white rounded-2xl border border-[#e0ddd6] p-5 hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group flex items-start gap-4"
-            >
-              <div className="w-10 h-10 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0 group-hover:bg-[#1e3a2a]/10 transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
-                  <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-                </svg>
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900 text-sm mb-0.5">Vælg en pakke</p>
-                <p className="text-xs text-gray-400 leading-relaxed">Se hvad der er inkluderet i de forskellige løsninger</p>
-              </div>
-            </Link>
           )}
-          <Link
-            href="/tilkoeb"
-            className="bg-white rounded-2xl border border-[#e0ddd6] p-5 hover:border-[#1e3a2a]/40 hover:shadow-sm transition-all group flex items-start gap-4"
-          >
-            <div className="w-10 h-10 rounded-xl bg-[#1e3a2a]/5 flex items-center justify-center flex-shrink-0 group-hover:bg-[#1e3a2a]/10 transition-colors">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="1.8">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900 text-sm mb-0.5">Book en rådgiver</p>
-              <p className="text-xs text-gray-400 leading-relaxed">Få en byggesagkyndig til at kigge med</p>
-            </div>
-          </Link>
         </div>
 
       </div>
