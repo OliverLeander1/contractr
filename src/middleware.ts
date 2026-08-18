@@ -3,9 +3,16 @@ import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 // Ruter der kræver login OG specifik rolle
-const KUN_BYGHERRE = ["/dashboard", "/projekt", "/konto", "/notifikationer", "/tilkoeb/book", "/chat"];
+const KUN_BYGHERRE = ["/dashboard", "/projekt", "/konto", "/tilkoeb/book"];
 const KUN_HAANDVAERKER = ["/haandvaerker/sager", "/haandvaerker/nyt-tilbud", "/haandvaerker/profil", "/haandvaerker/projekt"];
-const BESKYTTEDE = [...KUN_BYGHERRE, ...KUN_HAANDVAERKER];
+// Kræver login, men er delt mellem begge roller — må IKKE rolle-gates.
+// /notifikationer og /chat er begge allerede rolle-bevidste i deres eget
+// indhold (egenRolle/linkTil hhv. rollebestemte links fra /api/chat/oversigt).
+// Stod tidligere fejlagtigt i KUN_BYGHERRE, hvilket sendte en entreprenør,
+// der klikkede på Notifikationer/Samtaler, tilbage til /haandvaerker/sager
+// igen — set fra brugeren som "der sker ingenting" ved klik.
+const DELT_AUTH = ["/notifikationer", "/chat"];
+const BESKYTTEDE = [...KUN_BYGHERRE, ...KUN_HAANDVAERKER, ...DELT_AUTH];
 
 // Ruter der altid er tilgængelige selv under vedligeholdelse
 const VEDLIGEHOLDELSE_UNDTAGET = ["/under-vedligeholdelse", "/api/maintenance", "/kontrakt", "/auth"];
@@ -84,30 +91,30 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Hentes for enhver beskyttet, autentificeret rute (ikke kun rolle-
+  // specifikke), så "konto planlagt til sletning"-gaten fortsat gælder
+  // /notifikationer og /chat, selvom de ikke længere er rolle-låst.
+  const { data: profil } = await supabase
+    .from("profiler")
+    .select("rolle, slettet_planlagt_at")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  // Konto er planlagt til sletning — send til gendanningsside
+  if (profil?.slettet_planlagt_at && !pathname.startsWith("/konto/gendan")) {
+    return NextResponse.redirect(new URL("/konto/gendan", request.url));
+  }
+
   // Tjek rolle hvis ruten er rolle-specifik
   const erKunBygherre = KUN_BYGHERRE.some(p => pathname.startsWith(p));
   const erKunHaandvaerker = KUN_HAANDVAERKER.some(p => pathname.startsWith(p));
+  const rolle = profil?.rolle;
 
-  if (erKunBygherre || erKunHaandvaerker) {
-    const { data: profil } = await supabase
-      .from("profiler")
-      .select("rolle, slettet_planlagt_at")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    // Konto er planlagt til sletning — send til gendanningsside
-    if (profil?.slettet_planlagt_at && !pathname.startsWith("/konto/gendan")) {
-      return NextResponse.redirect(new URL("/konto/gendan", request.url));
-    }
-
-    const rolle = profil?.rolle;
-
-    if (erKunBygherre && rolle === "haandvaerker") {
-      return NextResponse.redirect(new URL("/haandvaerker/sager", request.url));
-    }
-    if (erKunHaandvaerker && rolle !== "haandvaerker") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
+  if (erKunBygherre && rolle === "haandvaerker") {
+    return NextResponse.redirect(new URL("/haandvaerker/sager", request.url));
+  }
+  if (erKunHaandvaerker && rolle !== "haandvaerker") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return response;
