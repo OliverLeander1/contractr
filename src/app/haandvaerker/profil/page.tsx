@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import SimpleNav from "@/components/SimpleNav";
+import HaandvaerkerBadgeLinks from "@/components/HaandvaerkerBadgeLinks";
 import { createClient } from "@/lib/supabase";
 
 const FAGS = [
@@ -146,7 +147,7 @@ export default function HaandvaerkerProfil() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SimpleNav tilbage="/haandvaerker/sager" tilbageLabel="Mine sager" />
+      <SimpleNav tilbage="/haandvaerker/sager" tilbageLabel="Mine sager" højre={<HaandvaerkerBadgeLinks />} />
 
       <div className="max-w-3xl mx-auto px-6 py-10">
 

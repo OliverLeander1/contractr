@@ -144,19 +144,52 @@ function mapRpcFejl(error: { message?: string; code?: string }): string {
 
 // Slår entreprenørens profiler.id op ud fra kontraktens haandvaerker_email.
 // bygherre_id kendes allerede direkte via kontrakten og kræver intet opslag.
-// Returnerer null, hvis entreprenøren endnu ikke har oprettet en konto med
-// den e-mail — i så fald findes intet gyldigt notifikationsmål, og der
-// oprettes bevidst ingen notifikation.
+//
+// profiler.email er IKKE en fuldt autoritativ, altid-opdateret kilde: den
+// sættes kun ved profiloprettelse (handle_new_user-triggeren) og
+// synkroniseres aldrig igen, hvis brugeren senere skifter email i Supabase
+// Auth — dokumenteret risiko, ikke en antagelse. kontrakt.haandvaerker_email
+// er til gengæld allerede den kilde, hele resten af sikkerhedsmodellen
+// (bestemRolle) bruger til at autorisere entreprenøren, så det er fortsat
+// det korrekte opslagsgrundlag her; problemet ligger i selve matchingen mod
+// profiler, ikke i hvilken email der slås op på.
+//
+// 0 eller >1 matchende rækker er begge reelle, forskellige fejltilstande og
+// må aldrig stille afgøres ved at vælge først/ingen uden spor i loggen:
+// - 0 rækker: enten har entreprenøren endnu ikke oprettet konto med denne
+//   email, ELLER profiler.email er forældet ift. den nuværende login-email
+//   (se ovenfor) — begge logges, så et reelt mismatch kan spores i
+//   produktionslogs i stedet for at forsvinde som "ingen notifikation".
+// - >1 rækker: flertydigt — der gættes IKKE på en modtager; notifikationen
+//   springes bevidst over og fejlen logges som en datafejl, der bør
+//   undersøges.
 async function findBrugerIdVedEmail(
   db: ReturnType<typeof createServiceClient>,
   email: string,
 ): Promise<string | null> {
-  const { data } = await db
+  const escapedEmail = email.trim().toLowerCase().replace(/[%_\\]/g, (m) => `\\${m}`);
+  const { data, error } = await db
     .from("profiler")
     .select("id")
-    .ilike("email", email.trim())
-    .maybeSingle();
-  return data?.id ?? null;
+    .ilike("email", escapedEmail);
+
+  if (error) {
+    console.error("[besigtigelse-notifikation] Kunne ikke slå bruger op via email:", error.message);
+    return null;
+  }
+  if (!data || data.length === 0) {
+    console.error(
+      `[besigtigelse-notifikation] Ingen profil matcher kontraktens haandvaerker_email (${email.trim()}) — springer notifikation over. Kontrollér om profiler.email er forældet ift. brugerens nuværende login-email.`,
+    );
+    return null;
+  }
+  if (data.length > 1) {
+    console.error(
+      `[besigtigelse-notifikation] ${data.length} profiler matcher samme email (${email.trim()}) — springer notifikation over i stedet for at gætte modtager.`,
+    );
+    return null;
+  }
+  return data?.[0]?.id ?? null;
 }
 
 // Simpel dublet-beskyttelse — samme grundmønster som harNyligNotifikation() i

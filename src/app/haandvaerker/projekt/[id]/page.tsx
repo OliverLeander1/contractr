@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import HaandvaerkerBadgeLinks from "@/components/HaandvaerkerBadgeLinks";
 import BesigtigelseKort from "@/components/BesigtigelseKort";
 import DokumentRenderer from "@/components/DokumentRenderer";
 
@@ -173,8 +174,11 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
             Mine sager
           </Link>
-          <div className="w-8 h-8 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center text-[#1e3a2a] font-semibold text-sm flex-shrink-0">
-            {initials}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <HaandvaerkerBadgeLinks />
+            <Link href="/haandvaerker/profil" className="w-8 h-8 rounded-full bg-[#1e3a2a]/10 flex items-center justify-center text-[#1e3a2a] font-semibold text-sm hover:opacity-90 transition-opacity" title="Min profil">
+              {initials}
+            </Link>
           </div>
         </div>
       </header>

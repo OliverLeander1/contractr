@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState, useCallback } from "react";
 import SimpleNav from "@/components/SimpleNav";
+import HaandvaerkerBadgeLinks from "@/components/HaandvaerkerBadgeLinks";
 import { createClient } from "@/lib/supabase";
 
 interface Sedel {
@@ -101,7 +102,7 @@ export default function HaandvaerkerEkstraarbejde({ params }: { params: Promise<
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SimpleNav tilbage={`/haandvaerker/projekt/${id}`} tilbageLabel="Tilbage til projekt" />
+      <SimpleNav tilbage={`/haandvaerker/projekt/${id}`} tilbageLabel="Tilbage til projekt" højre={<HaandvaerkerBadgeLinks />} />
 
       <div className="max-w-3xl mx-auto px-6 py-10">
 

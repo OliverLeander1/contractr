@@ -3,6 +3,7 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import SimpleNav from "@/components/SimpleNav";
+import HaandvaerkerBadgeLinks from "@/components/HaandvaerkerBadgeLinks";
 
 const PROJEKT_START = new Date(2025, 3, 3); // 3. apr 2025
 const DEADLINE = new Date(2025, 7, 15);     // 15. aug 2025
@@ -106,7 +107,7 @@ export default function HaandvaerkerTidsplan({ params }: { params: Promise<{ id:
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SimpleNav tilbage={`/haandvaerker/projekt/${id}`} tilbageLabel="Tilbage til projekt" />
+      <SimpleNav tilbage={`/haandvaerker/projekt/${id}`} tilbageLabel="Tilbage til projekt" højre={<HaandvaerkerBadgeLinks />} />
 
       <div className="max-w-3xl mx-auto px-6 py-8 space-y-4">
 

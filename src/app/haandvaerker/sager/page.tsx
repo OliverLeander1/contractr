@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import HaandvaerkerBadgeLinks from "@/components/HaandvaerkerBadgeLinks";
 
 interface Kontrakt {
   id: string;
@@ -99,7 +100,7 @@ export default function HaandvaerkerSager() {
       <header className="bg-white border-b border-gray-100 px-6 py-3.5 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
-            <span className="logo">contractr</span>
+            <span className="logo">nembyggestyring</span>
           </Link>
           <div className="flex-1" />
           <div className="flex items-center gap-3 flex-shrink-0">
@@ -110,6 +111,7 @@ export default function HaandvaerkerSager() {
               </svg>
               Nyt tilbud
             </Link>
+            <HaandvaerkerBadgeLinks />
             <Link href="/haandvaerker/profil" className="w-8 h-8 rounded-full bg-[#1e3a2a] flex items-center justify-center text-white font-semibold text-sm hover:opacity-90 transition-opacity" title="Min profil">
               {initials}
             </Link>

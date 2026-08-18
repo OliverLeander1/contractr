@@ -3,6 +3,7 @@
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import SimpleNav from "@/components/SimpleNav";
+import HaandvaerkerBadgeLinks from "@/components/HaandvaerkerBadgeLinks";
 
 interface GemtProjekt {
   titel?: string;
@@ -42,7 +43,7 @@ export default function HaandvaerkerKontrakt({ params }: { params: Promise<{ id:
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SimpleNav tilbage={`/haandvaerker/projekt/${id}`} tilbageLabel="Tilbage til projekt" />
+      <SimpleNav tilbage={`/haandvaerker/projekt/${id}`} tilbageLabel="Tilbage til projekt" højre={<HaandvaerkerBadgeLinks />} />
 
       <div className="max-w-3xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-8">

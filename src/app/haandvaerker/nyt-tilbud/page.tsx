@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import SimpleNav from "@/components/SimpleNav";
+import HaandvaerkerBadgeLinks from "@/components/HaandvaerkerBadgeLinks";
 import { createClient } from "@/lib/supabase";
 
 interface Post {
@@ -111,7 +112,7 @@ export default function NytTilbud() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SimpleNav tilbage="/haandvaerker/sager" tilbageLabel="Mine sager" />
+      <SimpleNav tilbage="/haandvaerker/sager" tilbageLabel="Mine sager" højre={<HaandvaerkerBadgeLinks />} />
 
       <div className="max-w-2xl mx-auto px-6 py-10">
 
