@@ -112,8 +112,10 @@ verificeret af Oliver i produktion).
   besigtigelse_tidspunkter, ingen policies, korrekte RPC-privileges,
   composite FK, øvrige constraints). Den skal committes sammen med
   denne feature-kode.
-- Manuel browsertest af det fulde multi-tids-flow mangler fortsat (se
-  docs/ACTIVE_TASK.md).
+- Manuel browsertest af kerneflowet (entreprenør foreslår tider →
+  bygherre accepterer → status ændres til "Besigtigelse aftalt") er
+  bekræftet af Oliver via live browsertest. Modforslag- og
+  afvis-grenene er ikke eksplicit bekræftet testet.
 
 # Sikkerhed og drift (commit: se "fix: close debug leak and repair notification client")
 
@@ -464,7 +466,11 @@ document structure and dates")
   DokumentRenderer, klientsiderne og /api/kontrakt nu importerer fra.
   V2-formatet, markørerne, datovalideringen og legacy-visningen er
   uændrede.
-- Manuel browsertest mangler fortsat (se docs/ACTIVE_TASK.md).
+- Manuel browsertest mangler fortsat: bekræft V2-dokumentets
+  sektionsstruktur (dokumenthoved → nummererede sektioner), at adresse
+  og dokumentdato vises korrekt, og at datovalideringen ("Datoer ændres
+  i Tidsplan.") reelt afviser konkrete datoer i de tre narrative
+  sektioner. Ikke bekræftet af Oliver endnu.
 
 ## Fjernelse af Projektopsummering fra aftaledokumentet (commit: se "fix: remove duplicate project summary")
 
@@ -494,7 +500,10 @@ document structure and dates")
   en del af aftalens autoritative arbejdsbeskrivelse.
 - Legacy-dokumenter (uden [[NEMBYG_DOKUMENT_V2]]-markøren) er urørte og
   upåvirkede af denne opgave.
-- Manuel browsertest mangler fortsat (se docs/ACTIVE_TASK.md).
+- Manuel browsertest mangler fortsat: bekræft at Projektopsummering
+  ikke længere vises som separat afsnit, at nummereringen (Arbejdsomfang
+  = 1 osv.) er korrekt, og at AI-resuméet kun vises som sidetekst uden
+  for selve dokumentet. Ikke bekræftet af Oliver endnu.
 
 # Parkeret
 

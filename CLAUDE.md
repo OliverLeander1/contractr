@@ -210,6 +210,39 @@ kan være påvirket.
 
 ---
 
+## Arbejdsproces og rapportering (permanent)
+
+Faste arbejdsregler — skal ikke gentages i fremtidige prompts.
+
+- Én aktiv opgave ad gangen. Se docs/ACTIVE_TASK.md for den aktuelle.
+- Commit/push kun efter bekræftet browsertest — eller når Oliver
+  eksplicit godkender commit/push uden browsertest i den konkrete opgave.
+- SQL/migrationer køres aldrig automatisk. Skriv migrationsfilen, vent
+  på at Oliver selv kører den i Supabase, og få bekræftelse før
+  tilhørende applikationskode implementeres.
+- Ingen `git stash`, `reset`, `checkout` (destruktivt) eller `clean`
+  uden eksplicit godkendelse i den konkrete opgave.
+- Stage aldrig med `git add .` eller `git add -A` — kun eksplicitte
+  filstier navngivet af Oliver eller tydeligt afgrænset af opgaven.
+- Beskyttede untracked filer (liste i docs/PROJECT_STATE.md, "Beskyttede
+  untracked filer") må aldrig stages, ændres, slettes eller køres.
+- Genbrug eksisterende arkitektur, komponenter, helpers og mønstre før
+  noget nyt oprettes (se "Genbrug før ny kode" nedenfor).
+- Undgå unødig teknisk gæld (se "Kodekvalitet og teknisk gæld" nedenfor).
+- UX/UI er lige så vigtigt som funktionalitet og sikkerhed — ikke noget
+  der eftermonteres. De permanente UX/UI-principper (inkl. mobilkrav)
+  står i docs/DECISIONS.md, "UX/UI-principper", og gælder for alle nye
+  funktioner uden at skulle gentages her.
+- `npx tsc --noEmit`, relevant ESLint, `npm run build` og
+  `git diff --check` skal være grønne før enhver commit.
+- Rapporter er som udgangspunkt korte. En lang, struktureret rapport
+  (jf. Analyseprotokollen nedenfor) er kun nødvendig ved reel
+  sikkerheds-, database- eller arkitektur-usikkerhed.
+- Gentag ikke indhold, der allerede står i CLAUDE.md eller docs/-filerne
+  — henvis til det i stedet.
+
+---
+
 ## Opgaveklassifikation
 
 ### Lille ændring
