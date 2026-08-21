@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUlaesteBadges } from "@/lib/useUlaesteBadges";
+import { LayoutGrid, MessageSquare, Bell, User } from "lucide-react";
 
 // Kun rutepræfikser — ingen adgangskontrol. Middleware og de sikre
 // API-routes er fortsat autoritative for hvem der reelt må se siderne.
@@ -31,28 +32,20 @@ function erChatAktiv(pathname: string): boolean {
   return /^\/projekt\/[^/]+\/chat(\/|$)/.test(pathname);
 }
 
-const IkonOverblik = (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
-    <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
-  </svg>
-);
-const IkonChat = (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-  </svg>
-);
-const IkonNotifikationer = (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-  </svg>
-);
 const IkonProfil = (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
     <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
   </svg>
 );
+
+// Lucide-ikoner (den låste ikonstandard) til mobil-bundnavigationen, 20px,
+// strokeWidth 1.75. Holdt adskilt fra IkonProfil ovenfor, som fortsat bruges
+// til topheaderens lille 16px profil-cirkel — den skal ikke ændre størrelse
+// eller ikonkilde her.
+const IkonOverblikNav = <LayoutGrid size={20} strokeWidth={1.75} />;
+const IkonChatNav = <MessageSquare size={20} strokeWidth={1.75} />;
+const IkonNotifikationerNav = <Bell size={20} strokeWidth={1.75} />;
+const IkonProfilNav = <User size={20} strokeWidth={1.75} />;
 
 interface NavItem {
   label: string;
@@ -71,15 +64,15 @@ function bestemNavItems(erHaandvaerker: boolean): NavItem[] {
       label: erHaandvaerker ? "Mine sager" : "Overblik",
       href: erHaandvaerker ? "/haandvaerker/sager" : "/dashboard",
       aktiv: (p) => (erHaandvaerker ? matcherPræfiks(p, "/haandvaerker") : matcherPræfiks(p, "/dashboard")),
-      ikon: IkonOverblik,
+      ikon: IkonOverblikNav,
     },
-    { label: "Samtaler", href: "/chat", aktiv: erChatAktiv, ikon: IkonChat },
-    { label: "Notifikationer", href: "/notifikationer", aktiv: (p) => matcherPræfiks(p, "/notifikationer"), ikon: IkonNotifikationer },
+    { label: "Samtaler", href: "/chat", aktiv: erChatAktiv, ikon: IkonChatNav },
+    { label: "Notifikationer", href: "/notifikationer", aktiv: (p) => matcherPræfiks(p, "/notifikationer"), ikon: IkonNotifikationerNav },
     {
       label: "Profil",
       href: erHaandvaerker ? "/haandvaerker/profil" : "/konto",
       aktiv: (p) => (erHaandvaerker ? p === "/haandvaerker/profil" : p === "/konto"),
-      ikon: IkonProfil,
+      ikon: IkonProfilNav,
     },
   ];
 }
@@ -172,9 +165,12 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
       {/* Bundnavigation — normal flex-søskende UDEN FOR det scrollbare
           område, ikke positioneret/fixed. Optager sin egen faste plads
           nederst i viewporten; indholdet ovenfor kan derfor aldrig ses eller
-          fortsætte visuelt bagved den. */}
+          fortsætte visuelt bagved den. Visuel finjustering: en anelse varmere
+          baggrund og en let skygge opad adskiller den tydeligere fra siden
+          uden en tung, mørk bar. #e0ddd6 er det eksisterende varme
+          border-token brugt andre steder i produktet (login, dashboard). */}
       <nav
-        className="md:hidden flex-shrink-0 grid grid-cols-4 bg-white border-t border-gray-100 h-14"
+        className="md:hidden flex-shrink-0 grid grid-cols-4 bg-[#fbfaf6] border-t border-[#e0ddd6] h-16 shadow-[0_-6px_18px_rgba(18,45,32,0.06)]"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {navItems.map((item) => {
@@ -184,19 +180,19 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
               key={item.href}
               href={item.href}
               aria-label={item.label}
-              className={`relative min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 py-1 transition-colors ${
-                aktiv ? "text-[#1e3a2a]" : "text-gray-400"
+              className={`relative min-w-0 flex flex-col items-center justify-center gap-1 px-1 py-1 transition-colors ${
+                aktiv ? "text-[#1e3a2a]" : "text-gray-500"
               }`}
             >
               {item.ikon}
-              <span className="w-full text-center text-[9px] font-semibold leading-none truncate">
+              <span className={`w-full text-center text-[11px] leading-none truncate ${aktiv ? "font-bold" : "font-semibold"}`}>
                 {item.label}
               </span>
               {item.href === "/chat" && ulaestSamlet !== null && ulaestSamlet > 0 && (
-                <span className="absolute top-1 right-1.5 w-2 h-2 rounded-full bg-[#1e3a2a]" />
+                <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-[#1e3a2a]" />
               )}
               {item.href === "/notifikationer" && ulaestNotifikationer !== null && ulaestNotifikationer > 0 && (
-                <span className="absolute top-0.5 right-2.5 min-w-[16px] h-[16px] px-1 rounded-full bg-[#9c3b3b] text-white text-[9px] font-bold flex items-center justify-center leading-none">
+                <span className="absolute top-0.5 right-2 min-w-[16px] h-[16px] px-1 rounded-full bg-[#9c3b3b] text-white text-[9px] font-bold flex items-center justify-center leading-none">
                   {ulaestNotifikationer > 9 ? "9+" : ulaestNotifikationer}
                 </span>
               )}
