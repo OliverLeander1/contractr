@@ -94,19 +94,30 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
   const profilHref = erHaandvaerker ? "/haandvaerker/profil" : "/konto";
   const profilAktiv = erHaandvaerker ? pathname === "/haandvaerker/profil" : pathname === "/konto";
 
+  // Ikke en shell-rute (fx forsiden, login): uændret, ingen højde-låsning,
+  // intet scroll-container-lag — ren normal dokument-scroll som hidtil.
+  if (!visShell) {
+    return <div className="flex-1 flex flex-col">{children}</div>;
+  }
+
   return (
-    // --shell-h: topheaderens egen højde (kun relevant for dens egen
-    // h-[var(--shell-h)] og for ProjektNav's sticky-offset på desktop).
-    // --bottomnav-h: den faste mobil-bundnavigations højde, brugt til at
-    // reservere plads i bunden af siden, så intet indhold skjules bag den.
-    <div className="flex-1 flex flex-col [--shell-h:44px] md:[--shell-h:64px] [--bottomnav-h:56px] md:[--bottomnav-h:0px]">
-      {visShell && (
-        // Almindelig del af siden på mobil (ingen position — scroller væk med
-        // resten af indholdet), sticky fra md som hidtil. Navigationen
-        // (Overblik/Samtaler/Notifikationer/Profil) ligger IKKE længere her
-        // på mobil — tidligere forsøg med fixed/will-change på selve headeren
-        // løste ikke det bekræftede problem på rigtig iPhone Safari og er
-        // fjernet. Se den selvstændige <nav> nedenfor i stedet.
+    // Mobil: skallen er låst til den reelle synlige viewport-højde (dvh, ikke
+    // vh — følger iOS' dynamiske adressefelt korrekt) og delt i to rigtige
+    // flex-rækker: (1) et scrollbart indholdsområde og (2) bundnavigationen
+    // som en almindelig, ikke-positioneret søskende der optager sin egen
+    // plads nederst. Bundnavigationen er dermed aldrig et overlay oven på
+    // indholdet — den er en fast del af layoutet, og indholdet kan fysisk
+    // ikke fortsætte bagved den. Fra md: uændret normal dokument-scroll,
+    // ingen højde-låsning, ingen bundnavigation.
+    // --shell-h: topheaderens egen højde (bruges også af ProjektNav's
+    // sticky-offset på desktop).
+    <div className="flex flex-col h-dvh md:h-auto md:flex-1 [--shell-h:44px] md:[--shell-h:64px]">
+      {/* Scrollbart indholdsområde. min-h-0 er nødvendigt: uden det vil et
+          flex-1-element som udgangspunkt aldrig blive mindre end sit eget
+          indhold, og overflow-y-auto ville derfor aldrig få noget at scrolle. */}
+      <div className="flex-1 min-h-0 overflow-y-auto md:overflow-visible">
+        {/* Almindelig del af det scrollbare indhold på mobil — scroller væk
+            med resten. Sticky fra md, som hidtil. */}
         <header className="md:sticky top-0 z-50 bg-white border-b border-gray-100 h-[var(--shell-h)] flex-shrink-0 overflow-x-hidden">
           {/* Desktop — én kompakt vandret bar, uændret */}
           <div className="hidden md:flex items-center justify-between h-full max-w-6xl mx-auto px-6">
@@ -139,8 +150,8 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
             </nav>
           </div>
 
-          {/* Mobil — kun logo + profil. Almindelig, ikke-fastgjort del af
-              siden: scroller væk med resten af indholdet. */}
+          {/* Mobil — kun logo + profil. Almindelig del af det scrollbare
+              indhold: scroller væk med resten. */}
           <div className="md:hidden flex items-center justify-between h-full px-4">
             <Link href={overblikHref} className="logo">nembyggestyring</Link>
             <Link
@@ -154,52 +165,45 @@ export default function AuthenticatedAppShell({ children }: { children: React.Re
             </Link>
           </div>
         </header>
-      )}
 
-      {/* pb reserverer plads til den faste bundnavigation (højde + iPhone
-          safe-area), så det sidste indhold på siden aldrig skjules bag den.
-          0 på desktop, hvor der ingen bundnavigation er. */}
-      <div className={visShell ? "pb-[calc(var(--bottomnav-h)+env(safe-area-inset-bottom))] md:pb-0" : undefined}>
         {children}
       </div>
 
-      {visShell && (
-        // Selvstændig, fast bundnavigation på mobil — adskilt fra topheaderen,
-        // som nu er en almindelig del af siden. Dette er den faktiske
-        // navigation (Overblik/Samtaler/Notifikationer/Profil), altid synlig
-        // under scroll, uafhængig af topheaderens position.
-        <nav
-          className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 grid grid-cols-4 h-14"
-          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-        >
-          {navItems.map((item) => {
-            const aktiv = item.aktiv(pathname);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-label={item.label}
-                className={`relative min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 py-1 transition-colors ${
-                  aktiv ? "text-[#1e3a2a]" : "text-gray-400"
-                }`}
-              >
-                {item.ikon}
-                <span className="w-full text-center text-[9px] font-semibold leading-none truncate">
-                  {item.label}
+      {/* Bundnavigation — normal flex-søskende UDEN FOR det scrollbare
+          område, ikke positioneret/fixed. Optager sin egen faste plads
+          nederst i viewporten; indholdet ovenfor kan derfor aldrig ses eller
+          fortsætte visuelt bagved den. */}
+      <nav
+        className="md:hidden flex-shrink-0 grid grid-cols-4 bg-white border-t border-gray-100 h-14"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        {navItems.map((item) => {
+          const aktiv = item.aktiv(pathname);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-label={item.label}
+              className={`relative min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 py-1 transition-colors ${
+                aktiv ? "text-[#1e3a2a]" : "text-gray-400"
+              }`}
+            >
+              {item.ikon}
+              <span className="w-full text-center text-[9px] font-semibold leading-none truncate">
+                {item.label}
+              </span>
+              {item.href === "/chat" && ulaestSamlet !== null && ulaestSamlet > 0 && (
+                <span className="absolute top-1 right-1.5 w-2 h-2 rounded-full bg-[#1e3a2a]" />
+              )}
+              {item.href === "/notifikationer" && ulaestNotifikationer !== null && ulaestNotifikationer > 0 && (
+                <span className="absolute top-0.5 right-2.5 min-w-[16px] h-[16px] px-1 rounded-full bg-[#9c3b3b] text-white text-[9px] font-bold flex items-center justify-center leading-none">
+                  {ulaestNotifikationer > 9 ? "9+" : ulaestNotifikationer}
                 </span>
-                {item.href === "/chat" && ulaestSamlet !== null && ulaestSamlet > 0 && (
-                  <span className="absolute top-1 right-1.5 w-2 h-2 rounded-full bg-[#1e3a2a]" />
-                )}
-                {item.href === "/notifikationer" && ulaestNotifikationer !== null && ulaestNotifikationer > 0 && (
-                  <span className="absolute top-0.5 right-2.5 min-w-[16px] h-[16px] px-1 rounded-full bg-[#9c3b3b] text-white text-[9px] font-bold flex items-center justify-center leading-none">
-                    {ulaestNotifikationer > 9 ? "9+" : ulaestNotifikationer}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-      )}
+              )}
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
