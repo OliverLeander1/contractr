@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase";
 import DokumentRenderer from "@/components/DokumentRenderer";
 import { erV2Dokument, parseV2Sektioner, byggV2Dokument, indeholderKonkretDato } from "@/lib/dokumentV2";
 import { fmtBesigtigelseDatoLang, erBesigtigelsePasseret, hentEffektivDatoTid, fmtTidsinterval } from "@/lib/besigtigelse";
+import { Plus, UserPlus } from "lucide-react";
 
 interface BesigtigelseTidspunktRad {
   id: string;
@@ -478,7 +479,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
 
   if (kontrakt === "loading") {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#f5f3ee]">
         <ProjektNav id={id} />
         <div className="flex items-center justify-center py-32">
           <div className="w-6 h-6 border-2 border-[#1e3a2a] border-t-transparent rounded-full animate-spin" />
@@ -489,7 +490,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
 
   if (!kontrakt) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#f5f3ee]">
         <ProjektNav id={id} />
         <div className="max-w-2xl mx-auto px-6 py-20 text-center">
           <p className="text-gray-500">{sideFejl || "Kunne ikke hente kontraktdata."}</p>
@@ -524,43 +525,46 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f5f3ee]">
       <ProjektNav id={id} />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
 
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4 gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${statusFarve[kontrakt.status] || "bg-gray-100 text-gray-600"}`}>
+        {/* Header — samme redaktionelle masthead-mønster som dashboardet:
+            serif-overskrift, rolig hierarki, status som tekst-badge. */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pt-2 pb-6">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusFarve[kontrakt.status] || "bg-gray-100 text-gray-600"}`}>
                 {statusTekst[kontrakt.status] || kontrakt.status}
               </span>
               {afventerForslag.length > 0 && (
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
                   {afventerForslag.length} forslag afventer svar
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Aftalegrundlag</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="font-serif text-[28px] md:text-[34px] font-normal text-[#16241c] leading-[1.15] tracking-tight" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+              Aftalegrundlag
+            </h1>
+            <p className="text-sm text-gray-500 mt-1.5 break-words">
               {kontrakt.titel || "Kontraktudkast"} · <span className="font-medium text-gray-700">Rev. {revision}</span>
             </p>
           </div>
-          <div className="flex gap-2 flex-shrink-0">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => router.push("/opret")}
-              className="flex items-center gap-1.5 border border-gray-200 text-gray-600 text-sm font-semibold px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-1.5 border border-[#e0ddd6] text-gray-600 text-sm font-semibold px-3 py-2.5 min-h-11 rounded-xl hover:bg-white transition-colors"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <Plus size={16} strokeWidth={1.75} />
               Opret ny sag
             </button>
             {!erBeggeGodkendt && !kontrakt.haandvaerker_email && (
               <button
                 onClick={() => setVisInviter(true)}
-                className="flex items-center gap-2 bg-[#1e3a2a] text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+                className="flex items-center gap-2 bg-[#1e3a2a] text-white text-sm font-bold px-4 py-2.5 min-h-11 rounded-xl hover:opacity-90 transition-opacity"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                <UserPlus size={16} strokeWidth={1.75} />
                 Inviter håndværker
               </button>
             )}
@@ -574,7 +578,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               <button
                 key={k.id}
                 onClick={() => hentKontrakt(k.id)}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                className={`max-w-full break-words text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
                   typeof kontrakt === "object" && kontrakt?.id === k.id
                     ? "bg-[#1e3a2a] text-white border-[#1e3a2a]"
                     : "bg-white text-gray-600 border-gray-200 hover:border-[#1e3a2a]/40"
@@ -610,7 +614,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                     onBlur={slaaCvrOp}
                     placeholder="12345678"
                     maxLength={8}
-                    className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
+                    className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
                   />
                   <button
                     type="button"
@@ -637,14 +641,14 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                   value={inviterEmail}
                   onChange={e => setInviterEmail(e.target.value)}
                   placeholder="thomas@tmbyg.dk"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
                 />
               </div>
 
               <div className="bg-gray-50 rounded-xl p-4 mb-5">
                 <p className="text-xs font-semibold text-gray-500 mb-2">Eller kopiér link og send det selv</p>
                 <div className="flex gap-2">
-                  <input readOnly value={invitationslink} className="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-500 truncate" />
+                  <input readOnly value={invitationslink} className="flex-1 text-base md:text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-500 truncate" />
                   <button
                     onClick={kopierLink}
                     className="flex-shrink-0 text-xs font-semibold text-[#1e3a2a] border border-[#1e3a2a]/20 bg-[#1e3a2a]/5 hover:bg-[#1e3a2a]/10 px-3 py-2 rounded-lg transition-colors"
@@ -773,7 +777,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
           return null;
         })()}
 
-        <div className="grid lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
           {/* Kontraktindhold */}
           <div className="lg:col-span-2 space-y-4">
@@ -802,7 +806,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               );
 
               return (
-                <div key={felt} className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${harForslag ? "border-amber-200" : "border-gray-100"}`}>
+                <div key={felt} className={`bg-white rounded-2xl border overflow-hidden transition-all ${harForslag ? "border-amber-200" : "border-[#e0ddd6]"}`}>
                   <div className="px-5 py-4">
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex items-center gap-2">
@@ -820,7 +824,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                             setRedigererFelt(felt);
                             setFeltVaerdi(vaerdi ? String(vaerdi).replace(" kr.", "").replace(/\./g, "").replace(",", ".") : "");
                           }}
-                          className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors"
+                          className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors p-2 -m-2 inline-block"
                         >
                           Rediger
                         </button>
@@ -830,13 +834,13 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       <div>
                         {felt === "total_pris" ? (
                           <input type="number" value={feltVaerdi} onChange={e => setFeltVaerdi(e.target.value)}
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
+                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
                         ) : (felt === "startdato" || felt === "slutdato") ? (
                           <input type="date" value={feltVaerdi} onChange={e => setFeltVaerdi(e.target.value)}
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
+                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
                         ) : (
                           <textarea rows={3} value={feltVaerdi} onChange={e => setFeltVaerdi(e.target.value)}
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none" />
+                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none" />
                         )}
                         <div className="flex gap-2 mt-2">
                           <button onClick={() => setRedigererFelt(null)} className="flex-1 py-2 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50">Annuller</button>
@@ -952,9 +956,9 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Aftaledokument</p>
                       {!erBeggeGodkendt && !redigererV2 && !kontrakt.haandvaerker_email && (
                         <div className="flex gap-3 flex-wrap">
-                          <button onClick={() => { setRedigererFelt("v2_arbejdsomfang"); setFeltVaerdi(v2.arbejdsomfang); setV2Fejl(""); }} className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors">Rediger arbejdsomfang</button>
-                          <button onClick={() => { setRedigererFelt("v2_krav"); setFeltVaerdi(v2.kravOgOensker); setV2Fejl(""); }} className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors">Rediger krav og ønsker</button>
-                          <button onClick={() => { setRedigererFelt("v2_praktisk"); setFeltVaerdi(v2.praktiskeForhold); setV2Fejl(""); }} className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors">Rediger praktiske forhold</button>
+                          <button onClick={() => { setRedigererFelt("v2_arbejdsomfang"); setFeltVaerdi(v2.arbejdsomfang); setV2Fejl(""); }} className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors p-2 -m-2 inline-block">Rediger arbejdsomfang</button>
+                          <button onClick={() => { setRedigererFelt("v2_krav"); setFeltVaerdi(v2.kravOgOensker); setV2Fejl(""); }} className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors p-2 -m-2 inline-block">Rediger krav og ønsker</button>
+                          <button onClick={() => { setRedigererFelt("v2_praktisk"); setFeltVaerdi(v2.praktiskeForhold); setV2Fejl(""); }} className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors p-2 -m-2 inline-block">Rediger praktiske forhold</button>
                         </div>
                       )}
                     </div>
@@ -971,7 +975,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                           rows={Math.max(10, feltVaerdi.split("\n").length + 2)}
                           value={feltVaerdi}
                           onChange={e => setFeltVaerdi(e.target.value)}
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none"
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base md:text-sm text-gray-700 leading-relaxed focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none"
                           autoFocus
                         />
                         {v2Fejl && <p className="text-xs text-red-600 mt-2 font-medium">{v2Fejl}</p>}
@@ -1022,7 +1026,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       {!erBeggeGodkendt && !erAktiv && !kontrakt.haandvaerker_email && (
                         <button
                           onClick={() => { setRedigererFelt("beskrivelse"); setFeltVaerdi(beskrivelseBody); }}
-                          className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors"
+                          className="text-xs text-gray-400 hover:text-[#1e3a2a] transition-colors p-2 -m-2 inline-block"
                         >
                           Rediger
                         </button>
@@ -1038,7 +1042,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                           rows={Math.max(20, beskrivelseBody.split("\n").length + 2)}
                           value={feltVaerdi}
                           onChange={e => setFeltVaerdi(e.target.value)}
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono text-gray-700 leading-relaxed focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none"
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base md:text-sm font-mono text-gray-700 leading-relaxed focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none"
                           autoFocus
                         />
                         <div className="flex gap-2 mt-2">
@@ -1095,7 +1099,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               }
 
               return (
-                <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${afventende.length > 0 ? "border-amber-200" : "border-gray-100"}`}>
+                <div className={`bg-white rounded-2xl border overflow-hidden ${afventende.length > 0 ? "border-amber-200" : "border-[#e0ddd6]"}`}>
                   <div className="px-5 py-4">
                     {indhold}
                   </div>
@@ -1119,7 +1123,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
 
             {/* Forudsætninger fra entreprenøren — vises i kontrakten som forslag */}
             {kontrakt.forudsaetninger_sendt_at && (
-              <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${!kontrakt.forudsaetninger_godkendt ? "border-amber-200" : "border-gray-100"}`}>
+              <div className={`bg-white rounded-2xl border overflow-hidden ${!kontrakt.forudsaetninger_godkendt ? "border-amber-200" : "border-[#e0ddd6]"}`}>
                 <div className="px-5 py-4">
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Forudsætninger</p>
@@ -1180,7 +1184,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
             )}
 
             {/* Betalingsplan */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[#e0ddd6] overflow-hidden">
               <div className="px-5 py-4">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div>
@@ -1210,7 +1214,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                               ny[i] = { ...ny[i], milepæl: e.target.value };
                               setBetalingsplanRækker(ny);
                             }}
-                            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
+                            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
                           />
                           <input
                             placeholder="%"
@@ -1220,7 +1224,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                               ny[i] = { ...ny[i], andel: e.target.value };
                               setBetalingsplanRækker(ny);
                             }}
-                            className="w-20 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
+                            className="w-20 border border-gray-200 rounded-lg px-3 py-2 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
                           />
                           <button
                             onClick={() => setBetalingsplanRækker(prev => prev.filter((_, j) => j !== i))}
@@ -1290,7 +1294,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
 
               if (!tp) {
                 return (
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                  <div className="bg-white rounded-2xl border border-[#e0ddd6] p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Aftalte datoer</p>
                       <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">AB-Forbruger § 12</span>
@@ -1324,7 +1328,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               const harBemaerkning = fase?.navn && fase.navn !== "Aftalt periode" && fase.navn !== "Foreslået af entreprenør";
 
               return (
-                <div className={`rounded-2xl overflow-hidden border shadow-sm ${godkendt ? "border-green-100" : harAendringer ? "border-[#1e3a2a]/30" : "border-amber-200"}`}>
+                <div className={`rounded-2xl overflow-hidden border ${godkendt ? "border-green-100" : harAendringer ? "border-[#1e3a2a]/30" : "border-amber-200"}`}>
                   {/* Header */}
                   <div className="px-5 py-4 flex items-center justify-between bg-[#111c17]">
                     <div className="flex items-center gap-3">
@@ -1468,7 +1472,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
           <div className="space-y-4">
 
             {/* Status */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="bg-white rounded-2xl border border-[#e0ddd6] p-5">
               <h3 className="font-semibold text-gray-900 text-sm mb-4">Godkendelsesstatus</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
@@ -1542,7 +1546,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
             </div>
 
             {/* Chat med håndværker */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="bg-white rounded-2xl border border-[#e0ddd6] p-5">
               <h3 className="font-semibold text-gray-900 text-sm mb-3">Chat med håndværker</h3>
               {kontrakt.haandvaerker_email ? (
                 <Link
@@ -1563,7 +1567,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
 
             {/* Tilbudsdokument fra entreprenor */}
             {kontrakt.tilbud_dokument_url && (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="bg-white rounded-2xl border border-[#e0ddd6] p-5">
                 <h3 className="font-semibold text-gray-900 text-sm mb-3">Tilbud fra entreprenoren</h3>
                 <div className="flex items-center justify-between bg-[#f5f3ee] rounded-xl px-4 py-3 border border-gray-200 mb-3">
                   <div className="flex items-center gap-2 min-w-0">
@@ -1609,7 +1613,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
             )}
 
             {/* AB-Forbruger */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="bg-white rounded-2xl border border-[#e0ddd6] p-5">
               <div className="flex items-center gap-2 mb-2">
                 <span className="bg-[#1e3a2a] text-white text-[10px] font-bold px-2 py-0.5 rounded">AB-Forbruger</span>
               </div>

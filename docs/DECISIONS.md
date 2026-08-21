@@ -170,6 +170,126 @@ ophæver eller ændrer ingen af dem.
   roller, investering, eksklusivitet og konkrete forpligtelser er ikke
   besluttet. Intet heraf skal omsættes til produktkode.
 
+# UI/UX v2 — låst designsystem (Batch 1)
+
+Låst efter dashboard-piloten, den mobile bundnavigation og Batch 1
+(projektshell + Aftalegrundlag). Erstatter ikke UX/UI-principperne
+nedenfor — konkretiserer dem visuelt. Gælder som standard for alle
+authenticated bygherre-sider fremadrettet, indføres side for side i
+kommende batches (ingen big-bang-omskrivning af hele produktet på én
+gang).
+
+## Visuel retning (låst)
+
+- Varm creme/offwhite hovedflade: `#f5f3ee` som side-baggrund (ikke
+  `bg-gray-50`/koldt hvid-grå).
+- Mørk skovgrøn som primær brand-/handlingsfarve: `#1e3a2a` (knapper,
+  links, aktive states, ikoner). Mørkere "hero"-nuance til tunge/mørke
+  overflader: `#111c17` / `#16241c`.
+- Lys grøn accent til tonede flader og sekundær kontekst: `#f0f7f3`
+  (allerede brugt i `ProjektNav`, dashboardets tomtilstand m.fl.).
+- Varmt border-token: `#e0ddd6` — standardgrænse på hvide kort. Erstatter
+  `border-gray-100`/`border-gray-200` på nye/redesignede overflader.
+- Rolig nordisk/editorial identitet: ingen tilfældige blueprint- eller
+  dekorationslinjer, ingen skrigende orange CTA, ingen emojis som
+  primære UI-ikoner.
+- Serif/display-font til store redaktionelle H1'er (masthead-niveau:
+  "Her er dit daglige overblik", "Aftalegrundlag"): `font-serif` med
+  `style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}` — ingen
+  ny font-dependency, genbruger systemfont-stakken. Sans-serif
+  (`--font-sans`, Plus Jakarta Sans) til al operationel UI: labels,
+  knapper, tabeldata, formularer.
+- Tydeligt hierarki frem for mange cards: foretræk sektionsoverskrifter
+  (`text-xs font-semibold uppercase tracking-widest text-gray-400/500`)
+  og rolige lister frem for at pakke hvert datapunkt ind i endnu et
+  hvidt kort med skygge. Hvor et kort stadig er den rette løsning:
+  `bg-white rounded-2xl border border-[#e0ddd6]` — uden `shadow-sm`
+  som standard (roligere brug af border/surface end den tidligere
+  admin-agtige kort+skygge-stil).
+
+## Ikonstandard (låst)
+
+- Lucide (`lucide-react`) er eneste ikonstandard i nyt/redesignet UI.
+  Størrelser 16 / 20 / 24px, `strokeWidth={1.75}` for almindelige
+  UI-ikoner (mindre utility-ikoner som Plus/ArrowRight kan bruge
+  2–2.5 hvor det allerede er etableret), `currentColor` (arver
+  tekstfarven, sættes ikke eksplicit).
+- Håndtegnede inline-SVG'er i endnu ikke redesignede sider/sektioner er
+  kendt, accepteret teknisk gæld — udskiftes løbende i takt med at de
+  pågældende sider redesignes, ikke i én stor icon-refactor.
+- En handling der fører videre (næste skridt, "gå til") skal læses som
+  ÉN samlet handling: tekst + tæt integreret `ArrowRight`, aldrig en
+  separat rund pil-knap ved siden af. Ingen unødvendige dobbeltknapper
+  for samme handling.
+
+## Status og information (låst)
+
+- Status kommunikeres altid med fulde, læsbare tekststrenge (fx
+  "Afventer din gennemgang", "Besigtigelse aftalt") — aldrig med
+  kryptiske prikker, farvede cirkler alene eller symbolsystemer uden
+  tekst. Farvede tekst-badges (grøn/amber/blå/grå baggrund + tekst) er
+  fortsat den korrekte mønster for semantisk status.
+- Ingen opdigtede procenter, score eller fremdriftstal. Intern
+  sortering (fx efter hvor langt en sag er gennem sin periode) må
+  bruges, men aldrig vises som et tal.
+- Aktive/aftalte sager har samme visuelle vægt — ingen kunstigt
+  fremhævet "første" række.
+- Lange navne/titler/adresser håndteres kontrolleret: `truncate` med
+  `min-w-0` på den nærmeste flex/grid-forælder hvor ét-linjes visning er
+  ønsket, `break-words` hvor flerlinjers visning er acceptabel (typisk
+  overskrifter og fritekst). Aldrig ubegrænset tekst uden nogen af
+  delene — det er den dokumenterede, gentagne kilde til horisontal
+  overflow på mobil i dette produkt.
+
+## Mobil (låst)
+
+- Den godkendte faste bundnavigation (Overblik/Samtaler/Notifikationer/
+  Profil) i `AuthenticatedAppShell` er standard på alle authenticated
+  mobile sider — ikke kun dashboardet. Topheaderen er almindelig,
+  ikke-fastgjort del af siden på mobil (scroller væk); bundnavigationen
+  er en selvstændig, ikke-overlay flex-sektion med egen plads nederst.
+  `ProjektNav` klæber korrekt til `top-0` på mobil (`md:top-[var(--shell-h)]`
+  på desktop), da topheaderen ikke længere optager plads i toppen på mobil.
+- Alle formularfelter (input/select/textarea) skal have `text-base`
+  (16px) på mobil og må først gå ned til `text-sm`/mindre fra `md:` —
+  under 16px trigger iOS Safari's automatiske zoom-på-fokus. Dette er
+  nu rettet konsekvent på login-siden og Aftalegrundlag-siden; øvrige
+  formularer rettes i takt med at de pågældende sider redesignes.
+- Minimum ca. 44×44px effektiv touch-flade på interaktive kontroller.
+  Hvor en visuel kontrol er mindre (fx en lille tekstlink som
+  "Rediger"), udvides selve klik-/tap-fladen usynligt med
+  `p-2 -m-2 inline-block` (eller `min-h-11` hvor kontrollen allerede
+  har synlig baggrund) frem for at forstørre kontrollen visuelt.
+- `overflow-x-hidden` er ALDRIG en accepteret rettelse af horisontal
+  overflow — kun et symptom-plaster. Reelt overflow findes og rettes
+  ved roden (manglende `min-w-0`, `break-words`/`truncate`, faste
+  desktop-bredder uden mobilvariant, ubegrænsede grid-tracks).
+
+## Genbrug — hvor mønsteret er dokumenteret i kode
+
+- Masthead-mønster (hilsen + serif-H1 + statuslinje): se
+  `src/app/dashboard/page.tsx` og `src/app/projekt/[id]/aftale/page.tsx`
+  ("Header"-sektionen i begge).
+- Delt navigationsshell (topheader + mobil bundnav): `src/components/AuthenticatedAppShell.tsx`.
+- Projektspecifik underniveau-navigation: `src/components/ProjektNav.tsx`
+  — allerede on-brand (bruger `#f0f7f3`/`#1e3a2a`), ikke ændret i
+  Batch 1.
+- Kort uden skygge: `bg-white rounded-2xl border border-[#e0ddd6]`,
+  se Aftalegrundlag-sidens felt- og sektionskort.
+
+## Ikke gjort i Batch 1 (bevidst afgrænset scope)
+
+- De øvrige projekt-undersider (`/projekt/[id]` oversigt, logbog,
+  betalinger, mangler, ekstraarbejde, rapport, tidsplan m.fl.) er IKKE
+  visuelt redesignet i denne batch — kun `ProjektNav` (allerede
+  on-brand) og Aftalegrundlag-siden. De følger i senere batches efter
+  samme låste mønster ovenfor.
+- Ingen udskiftning af hvert enkelt håndtegnet inline-SVG-ikon i
+  Aftalegrundlag-siden — kun de to nye handlingsknapper i sidens
+  masthead ("Opret ny sag", "Inviter håndværker") bruger Lucide. De
+  mange små eksisterende status-/dekorationsikoner i modaler og
+  detaljekort er urørt teknisk gæld, jf. Ikonstandard-afsnittet ovenfor.
+
 # UX/UI-principper (permanente kvalitetskrav)
 
 Gælder for alle kommende funktioner — ikke kun navigationsopgaver.
