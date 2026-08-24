@@ -434,14 +434,18 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
 
   async function besvarForslag(aendring_id: string, status: "accepteret" | "afvist") {
     if (!kontrakt || typeof kontrakt !== "object") return;
-    const r = await fetch(`/api/kontrakt/${kontrakt.haandvaerker_token}/forslag`, {
+    setSkrivFejl("");
+    const resultat = await autentificeretFetch(`/api/kontrakt/${kontrakt.haandvaerker_token}/forslag`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ aendring_id, status }),
     });
-    const data = await r.json();
+    if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
+    const data = await resultat.res.json();
     if (!data.error) {
       await hentKontrakt();
+    } else {
+      setSkrivFejl(data.error);
     }
   }
 
