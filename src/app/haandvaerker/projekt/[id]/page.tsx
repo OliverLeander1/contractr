@@ -39,12 +39,22 @@ interface Sedel {
   status: string;
   haandvaerker_pris: number | null;
   haandvaerker_pris_type: string | null;
+  haandvaerker_timepris: number | null;
+  materiale_afregning: string | null;
+  materiale_tillaeg_procent: number | null;
+  haandvaerker_prisoverslag: number | null;
   haandvaerker_tidsdage: number | null;
   haandvaerker_besked: string | null;
   haandvaerker_udfyldt_at: string | null;
   bygherre_godkendt_at: string | null;
   oprettet_at: string;
 }
+
+const materialeLabelKort: Record<string, string> = {
+  inkluderet: "Materialer inkluderet i timeprisen",
+  dokumenteret_pris: "Materialer til dokumenteret indkøbspris",
+  dokumenteret_pris_med_tillaeg: "Materialer til dokumenteret indkøbspris + tillæg",
+};
 
 interface Mangel {
   id: string;
@@ -61,10 +71,10 @@ const fmtDato = (iso: string) =>
   new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" });
 
 const statusLabel: Record<string, { label: string; klasse: string }> = {
-  sendt:               { label: "Afventer dit svar",    klasse: "bg-amber-100 text-amber-700" },
-  haandvaerker_udfyldt:{ label: "Afventer bygherre",    klasse: "bg-blue-100 text-blue-700" },
-  godkendt:            { label: "Godkendt",             klasse: "bg-green-100 text-green-700" },
-  afvist:              { label: "Afvist",               klasse: "bg-red-100 text-red-700" },
+  afventer_entreprenoer: { label: "Afventer dit svar",    klasse: "bg-amber-100 text-amber-700" },
+  afventer_bygherre:     { label: "Afventer bygherre",    klasse: "bg-blue-100 text-blue-700" },
+  godkendt:              { label: "Godkendt",             klasse: "bg-green-100 text-green-700" },
+  afvist:                { label: "Afvist",               klasse: "bg-red-100 text-red-700" },
 };
 
 const mangelStatus: Record<string, { label: string; klasse: string }> = {
@@ -89,13 +99,16 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
   const [mangler, setMangler] = useState<Mangel[]>([]);
   const [indlæser, setIndlæser] = useState(true);
   const [fejl, setFejl] = useState("");
-  const [navn, setNavn] = useState("");
   const [initials, setInitials] = useState("H");
 
   // Svar på aftaleseddel
   const [åbnSedel, setÅbnSedel] = useState<Sedel | null>(null);
+  const [svarPrisform, setSvarPrisform] = useState<"fast" | "medgaaet_tid">("fast");
   const [svarPris, setSvarPris] = useState("");
-  const [svarPrisType, setSvarPrisType] = useState<"fast" | "overslag">("fast");
+  const [svarTimepris, setSvarTimepris] = useState("");
+  const [svarMaterialeAfregning, setSvarMaterialeAfregning] = useState<"inkluderet" | "dokumenteret_pris" | "dokumenteret_pris_med_tillaeg">("inkluderet");
+  const [svarTillaegProcent, setSvarTillaegProcent] = useState("");
+  const [svarPrisoverslag, setSvarPrisoverslag] = useState("");
   const [svarDage, setSvarDage] = useState("");
   const [svarBesked, setSvarBesked] = useState("");
   const [gemmer, setGemmer] = useState(false);
@@ -107,7 +120,6 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
 
       const { data: profil } = await supabase.from("profiler").select("navn").eq("id", user.id).maybeSingle();
       const n = profil?.navn || user.email.split("@")[0];
-      setNavn(n);
       setInitials(n.split(" ").map((x: string) => x[0]).join("").toUpperCase().slice(0, 2) || "H");
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -126,23 +138,43 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
   async function svarPåSeddel() {
     if (!åbnSedel || gemmer) return;
     setGemmer(true);
+    setFejl("");
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    await fetch(`/api/ekstraarbejde/${åbnSedel.id}/svar`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        haandvaerker_pris: svarPris ? parseFloat(svarPris) : null,
-        haandvaerker_pris_type: svarPrisType,
-        haandvaerker_tidsdage: svarDage ? parseInt(svarDage) : null,
-        haandvaerker_besked: svarBesked,
-        haandvaerker_navn: navn,
-        haandvaerker_email: user?.email,
-      }),
-    });
     const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      setFejl("Din session er udløbet. Log ind igen for at fortsætte.");
+      setGemmer(false);
+      return;
+    }
+    const svarBody: Record<string, unknown> = {
+      haandvaerker_pris_type: svarPrisform,
+      haandvaerker_tidsdage: svarDage !== "" ? parseInt(svarDage) : null,
+      haandvaerker_besked: svarBesked,
+    };
+    if (svarPrisform === "fast") {
+      svarBody.haandvaerker_pris = svarPris !== "" ? parseFloat(svarPris) : null;
+    } else {
+      svarBody.haandvaerker_timepris = svarTimepris !== "" ? parseFloat(svarTimepris) : null;
+      svarBody.materiale_afregning = svarMaterialeAfregning;
+      svarBody.materiale_tillaeg_procent = svarMaterialeAfregning === "dokumenteret_pris_med_tillaeg" && svarTillaegProcent !== "" ? parseFloat(svarTillaegProcent) : null;
+      svarBody.haandvaerker_prisoverslag = svarPrisoverslag !== "" ? parseFloat(svarPrisoverslag) : null;
+    }
+    const svarRes = await fetch(`/api/ekstraarbejde/${åbnSedel.id}/svar`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify(svarBody),
+    });
+    const svarData = await svarRes.json().catch(() => ({}));
+    if (!svarRes.ok) {
+      setFejl(svarData.error || "Kunne ikke sende svaret. Prøv igen.");
+      setGemmer(false);
+      return;
+    }
     const res = await fetch(`/api/haandvaerker/projekt/${id}`, {
-      headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      headers: { Authorization: `Bearer ${session.access_token}` },
     });
     const data = await res.json();
     setSedler(data.sedler);
@@ -399,22 +431,42 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                     {(statusLabel[s.status] ?? { label: s.status }).label}
                   </span>
                 </div>
-                {s.haandvaerker_pris != null && (
-                  <p className="text-sm text-gray-600 mb-1">Pris: <span className="font-semibold">{fmtKr(s.haandvaerker_pris)}</span> ({s.haandvaerker_pris_type})</p>
+                {s.haandvaerker_pris_type === "fast" && s.haandvaerker_pris != null && (
+                  <p className="text-sm text-gray-600 mb-1">Fast pris inkl. moms: <span className="font-semibold">{fmtKr(s.haandvaerker_pris)}</span></p>
+                )}
+                {s.haandvaerker_pris_type === "medgaaet_tid" && (
+                  <>
+                    {s.haandvaerker_timepris != null && (
+                      <p className="text-sm text-gray-600 mb-1">Timepris inkl. moms: <span className="font-semibold">{fmtKr(s.haandvaerker_timepris)}</span></p>
+                    )}
+                    {s.materiale_afregning && (
+                      <p className="text-sm text-gray-600 mb-1">
+                        {materialeLabelKort[s.materiale_afregning] ?? s.materiale_afregning}
+                        {s.materiale_afregning === "dokumenteret_pris_med_tillaeg" && s.materiale_tillaeg_procent != null ? ` (${s.materiale_tillaeg_procent} %)` : ""}
+                      </p>
+                    )}
+                    {s.haandvaerker_prisoverslag != null && (
+                      <p className="text-sm text-gray-600 mb-1">Prisoverslag inkl. moms: <span className="font-semibold">{fmtKr(s.haandvaerker_prisoverslag)}</span> (ikke en fast maksimal pris)</p>
+                    )}
+                  </>
                 )}
                 {s.haandvaerker_tidsdage != null && (
-                  <p className="text-sm text-gray-600 mb-1">Tidsforbrug: <span className="font-semibold">{s.haandvaerker_tidsdage} dage</span></p>
+                  <p className="text-sm text-gray-600 mb-1">Tidskonsekvens: <span className="font-semibold">{s.haandvaerker_tidsdage === 0 ? "ingen tidsforlængelse" : `${s.haandvaerker_tidsdage} dage`}</span></p>
                 )}
                 {s.haandvaerker_besked && (
                   <p className="text-sm text-gray-500 italic mb-2">"{s.haandvaerker_besked}"</p>
                 )}
                 <p className="text-xs text-gray-400">Oprettet {fmtDato(s.oprettet_at)}</p>
-                {s.status === "sendt" && (
+                {s.status === "afventer_entreprenoer" && (
                   <button onClick={() => {
                     setÅbnSedel(s);
-                    setSvarPris(s.haandvaerker_pris?.toString() ?? "");
-                    setSvarPrisType((s.haandvaerker_pris_type as "fast" | "overslag") ?? "fast");
-                    setSvarDage(s.haandvaerker_tidsdage?.toString() ?? "");
+                    setSvarPrisform(s.haandvaerker_pris_type === "medgaaet_tid" ? "medgaaet_tid" : "fast");
+                    setSvarPris(s.haandvaerker_pris != null ? s.haandvaerker_pris.toString() : "");
+                    setSvarTimepris(s.haandvaerker_timepris != null ? s.haandvaerker_timepris.toString() : "");
+                    setSvarMaterialeAfregning((s.materiale_afregning as "inkluderet" | "dokumenteret_pris" | "dokumenteret_pris_med_tillaeg") ?? "inkluderet");
+                    setSvarTillaegProcent(s.materiale_tillaeg_procent != null ? s.materiale_tillaeg_procent.toString() : "");
+                    setSvarPrisoverslag(s.haandvaerker_prisoverslag != null ? s.haandvaerker_prisoverslag.toString() : "");
+                    setSvarDage(s.haandvaerker_tidsdage != null ? s.haandvaerker_tidsdage.toString() : "");
                     setSvarBesked(s.haandvaerker_besked ?? "");
                   }} className="mt-3 text-sm font-semibold bg-[#1e3a2a] text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
                     Svar på aftaleseddel
@@ -470,27 +522,67 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
       {/* Svar-modal */}
       {åbnSedel && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-gray-900 mb-1">Svar på aftaleseddel</h3>
             <p className="text-sm text-gray-500 mb-5 leading-relaxed">{åbnSedel.beskrivelse}</p>
             <div className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Pris (kr. ekskl. moms)</label>
-                <input type="number" value={svarPris} onChange={e => setSvarPris(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 12500" />
-              </div>
               <div className="grid grid-cols-2 gap-3">
-                {(["fast", "overslag"] as const).map(t => (
-                  <button key={t} onClick={() => setSvarPrisType(t)}
-                    className={`py-2.5 text-sm font-semibold rounded-xl border transition-all ${svarPrisType === t ? "bg-[#1e3a2a] text-white border-[#1e3a2a]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
-                    {t === "fast" ? "Fast pris" : "Overslag"}
+                {(["fast", "medgaaet_tid"] as const).map(t => (
+                  <button key={t} onClick={() => setSvarPrisform(t)}
+                    className={`py-2.5 text-sm font-semibold rounded-xl border transition-all ${svarPrisform === t ? "bg-[#1e3a2a] text-white border-[#1e3a2a]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
+                    {t === "fast" ? "Fast pris" : "Medgået tid"}
                   </button>
                 ))}
               </div>
+
+              {svarPrisform === "fast" ? (
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Fast pris inkl. moms (kr.)</label>
+                  <input type="number" min="0" value={svarPris} onChange={e => setSvarPris(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 12500" />
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Timepris inkl. moms (kr.)</label>
+                    <input type="number" min="0" value={svarTimepris} onChange={e => setSvarTimepris(e.target.value)}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 650" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Materialer</label>
+                    <div className="space-y-2">
+                      {([
+                        ["inkluderet", "Inkluderet i timeprisen"],
+                        ["dokumenteret_pris", "Til dokumenteret indkøbspris"],
+                        ["dokumenteret_pris_med_tillaeg", "Til dokumenteret indkøbspris + tillæg"],
+                      ] as const).map(([val, label]) => (
+                        <button key={val} onClick={() => setSvarMaterialeAfregning(val)}
+                          className={`w-full text-left px-4 py-2.5 rounded-xl border text-sm transition-all ${svarMaterialeAfregning === val ? "border-[#1e3a2a] bg-[#1e3a2a]/5 text-[#1e3a2a] font-semibold" : "border-gray-200 text-gray-600"}`}>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {svarMaterialeAfregning === "dokumenteret_pris_med_tillaeg" && (
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Tillæg i %</label>
+                      <input type="number" min="0" value={svarTillaegProcent} onChange={e => setSvarTillaegProcent(e.target.value)}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 10" />
+                    </div>
+                  )}
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Prisoverslag inkl. moms (valgfrit)</label>
+                    <input type="number" min="0" value={svarPrisoverslag} onChange={e => setSvarPrisoverslag(e.target.value)}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="Valgfrit" />
+                  </div>
+                </>
+              )}
+
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Antal arbejdsdage</label>
-                <input type="number" value={svarDage} onChange={e => setSvarDage(e.target.value)}
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Tidskonsekvens (dage)</label>
+                <input type="number" min="0" value={svarDage} onChange={e => setSvarDage(e.target.value)}
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 3" />
+                <p className="text-xs text-gray-400 mt-1">0 dage betyder ingen tidsforlængelse.</p>
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Besked (valgfri)</label>
@@ -499,12 +591,15 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setÅbnSedel(null)} className="flex-1 py-3 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50">Annuller</button>
+              <button onClick={() => { setÅbnSedel(null); setFejl(""); }} className="flex-1 py-3 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50">Annuller</button>
               <button onClick={svarPåSeddel} disabled={gemmer}
                 className="flex-1 py-3 text-sm font-semibold bg-[#1e3a2a] text-white rounded-xl hover:opacity-90 disabled:opacity-50">
                 {gemmer ? "Sender..." : "Send svar"}
               </button>
             </div>
+            {fejl && (
+              <p className="text-xs text-red-600 font-medium mt-3">{fejl}</p>
+            )}
           </div>
         </div>
       )}

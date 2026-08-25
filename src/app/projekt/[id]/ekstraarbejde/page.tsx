@@ -9,21 +9,32 @@ import { createClient } from "@/lib/supabase";
 interface Sedel {
   id: string;
   projekt_id: string;
+  kontrakt_id?: string;
   oprettet_af: string;
   oprettet_af_navn: string | null;
   beskrivelse: string;
-  status: "sendt" | "haandvaerker_udfyldt" | "godkendt" | "afvist";
+  status: "afventer_entreprenoer" | "afventer_bygherre" | "godkendt" | "afvist";
   haandvaerker_pris: number | null;
-  haandvaerker_pris_type: "fast" | "overslag" | null;
+  haandvaerker_pris_type: "fast" | "medgaaet_tid" | null;
+  haandvaerker_timepris: number | null;
+  materiale_afregning: "inkluderet" | "dokumenteret_pris" | "dokumenteret_pris_med_tillaeg" | null;
+  materiale_tillaeg_procent: number | null;
+  haandvaerker_prisoverslag: number | null;
   haandvaerker_tidsdage: number | null;
   haandvaerker_besked: string | null;
   haandvaerker_navn: string | null;
   haandvaerker_udfyldt_at: string | null;
   bygherre_godkendt_navn: string | null;
   bygherre_godkendt_at: string | null;
-  billeder: string[] | null;
   haandvaerker_email: string | null;
   oprettet_at: string;
+}
+
+interface BilledeVisning {
+  id: string;
+  billedtekst: string | null;
+  oprettet_at: string;
+  url: string | null;
 }
 
 const fmtKr = (n: number) =>
@@ -34,6 +45,12 @@ const fmtDato = (iso: string) =>
 
 const fmtTid = (iso: string) =>
   new Date(iso).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+
+const materialeLabel: Record<string, string> = {
+  inkluderet: "Materialer inkluderet i timeprisen",
+  dokumenteret_pris: "Materialer til dokumenteret indkøbspris",
+  dokumenteret_pris_med_tillaeg: "Materialer til dokumenteret indkøbspris + tillæg",
+};
 
 export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -57,12 +74,18 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
   const [gemmer, setGemmer]         = useState(false);
   const [godkender, setGodkender]   = useState<string | null>(null);
   const [sessionsfejl, setSessionsfejl] = useState<string | null>(null);
+  const [skrivFejl, setSkrivFejl] = useState<string | null>(null);
 
   // Opret-formular
   const [beskrivelse, setBeskrivelse]               = useState("");
   const [valgteHaandvaerker, setValgteHaandvaerker] = useState<Kontrakt | null>(null);
-  const [annoteredesBilleder, setAnnoteredesBilleder] = useState<string[]>([]);
+  const [annoteredesBilleder, setAnnoteredesBilleder] = useState<{ dataUrl: string; lokation: string }[]>([]);
   const [visAnnotering, setVisAnnotering]           = useState(false);
+  const [uploadFejl, setUploadFejl]                 = useState<string | null>(null);
+
+  // Billeder til visning på allerede oprettede sedler, hentet via
+  // signerede læse-URLs — aldrig fra base64/den gamle billeder-kolonne.
+  const [billedeVisning, setBilledeVisning] = useState<Record<string, BilledeVisning[]>>({});
 
   // Godkend-modal
   const [godkendSedel, setGodkendSedel] = useState<Sedel | null>(null);
@@ -109,8 +132,22 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
     const godkendteKontrakter = (Array.isArray(kontraktRes) ? kontraktRes : []) as Kontrakt[];
     setKontrakter(godkendteKontrakter);
     if (godkendteKontrakter.length === 1) setValgteHaandvaerker(godkendteKontrakter[0]);
-    setSedler((e || []) as Sedel[]);
+    const hentedeSedler = (e || []) as Sedel[];
+    setSedler(hentedeSedler);
     setIndlæser(false);
+
+    // Hent signerede visnings-URLs for hver sedel parallelt — billeder
+    // vises aldrig via den gamle base64-kolonne eller en offentlig URL.
+    await Promise.all(hentedeSedler.map(async (s) => {
+      const billedRes = await fetch(`/api/ekstraarbejde/${s.id}/billeder`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!billedRes.ok) return;
+      const billedData = await billedRes.json().catch(() => null);
+      if (billedData?.billeder) {
+        setBilledeVisning((prev) => ({ ...prev, [s.id]: billedData.billeder }));
+      }
+    }));
   }, [id]);
 
   useEffect(() => { hentData(); }, [hentData]);
@@ -124,70 +161,137 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
     ? kontrakter.find(k => k.haandvaerker_email.toLowerCase() === userEmail!.toLowerCase()) ?? null
     : null;
 
+  // Fælles hjælper til autentificerede /api/ekstraarbejde-kald — henter en
+  // frisk session og sender den som Bearer-token, samme mønster som
+  // aftale-siden bruger for kontraktkald.
+  async function autentificeretFetch(
+    url: string,
+    init?: RequestInit
+  ): Promise<{ res: Response } | { fejltype: "session" | "adgang" }> {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      return { fejltype: "session" };
+    }
+    const res = await fetch(url, {
+      ...init,
+      headers: { ...(init?.headers as Record<string, string> | undefined), Authorization: `Bearer ${session.access_token}` },
+    });
+    if (res.status === 401) return { fejltype: "session" };
+    if (res.status === 403) return { fejltype: "adgang" };
+    return { res };
+  }
+
+  function skrivFejlTekst(fejltype: "session" | "adgang"): string {
+    return fejltype === "session"
+      ? "Din session er udløbet. Log ind igen for at fortsætte."
+      : "Du har ikke adgang til denne handling.";
+  }
+
+  function dataUrlTilBlob(dataUrl: string): Blob {
+    const [header, base64] = dataUrl.split(",");
+    const mime = /data:(.*?);base64/.exec(header)?.[1] || "image/jpeg";
+    const bytes = atob(base64);
+    const array = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) array[i] = bytes.charCodeAt(i);
+    return new Blob([array], { type: mime });
+  }
+
+  // Uploader de valgte, annoterede billeder direkte til den private
+  // Storage-bucket via serverudstedte signed upload-URLs. Billed-bytes/
+  // base64 sendes ALDRIG til vores egen Next.js-route.
+  async function uploadBilleder(kontraktId: string): Promise<{ storage_path: string; billedtekst: string | null }[] | null> {
+    if (annoteredesBilleder.length === 0) return [];
+
+    const resultat = await autentificeretFetch("/api/ekstraarbejde/upload-urls", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kontrakt_id: kontraktId, antal: annoteredesBilleder.length }),
+    });
+    if ("fejltype" in resultat) { setUploadFejl(skrivFejlTekst(resultat.fejltype)); return null; }
+    const data = await resultat.res.json();
+    if (data.error || !Array.isArray(data.uploads)) {
+      setUploadFejl(data.error || "Kunne ikke forberede billedupload.");
+      return null;
+    }
+
+    const referencer: { storage_path: string; billedtekst: string | null }[] = [];
+    for (let i = 0; i < annoteredesBilleder.length; i++) {
+      const { path, token } = data.uploads[i];
+      const blob = dataUrlTilBlob(annoteredesBilleder[i].dataUrl);
+      const { error: uploadFejlRes } = await supabase.storage
+        .from("aftalesedler")
+        .uploadToSignedUrl(path, token, blob, { contentType: "image/jpeg" });
+      if (uploadFejlRes) {
+        setUploadFejl("Et billede kunne ikke uploades. Prøv igen.");
+        return null;
+      }
+      referencer.push({ storage_path: path, billedtekst: annoteredesBilleder[i].lokation.trim() || null });
+    }
+    return referencer;
+  }
+
   async function opretSedel() {
     if (!beskrivelse.trim() || !userId || gemmer || !valgteHaandvaerker) return;
     setGemmer(true);
-    await supabase.from("ekstraarbejde").insert({
-      projekt_id: id,
-      oprettet_af: userId,
-      oprettet_af_navn: brugerNavn,
-      beskrivelse: beskrivelse.trim(),
-      status: "sendt",
-      pris_type: "fast",
-      pris: 0,
-      billeder: annoteredesBilleder.length > 0 ? annoteredesBilleder : null,
-      haandvaerker_email: valgteHaandvaerker.haandvaerker_email,
-    });
-    await supabase.from("notifikationer").insert({
-      bruger_id: userId,
-      projekt_id: id,
-      type: "ekstraarbejde_anmodning",
-      titel: "Ny aftaleseddel til udfyldelse",
-      besked: `Bygherre har sendt en anmodning om ekstraarbejde til ${valgteHaandvaerker.haandvaerker_navn ?? valgteHaandvaerker.haandvaerker_email}: "${beskrivelse.trim().slice(0, 80)}"`,
-      ab_paragraf: "§ 23",
-    });
-    setBeskrivelse("");
-    setAnnoteredesBilleder([]);
-    setVisOpret(false);
-    setGemmer(false);
-    hentData();
+    setSkrivFejl(null);
+    setUploadFejl(null);
+    try {
+      const billedeReferencer = await uploadBilleder(valgteHaandvaerker.id);
+      if (billedeReferencer === null) return; // uploadFejl er allerede sat
+
+      const resultat = await autentificeretFetch("/api/ekstraarbejde", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kontrakt_id: valgteHaandvaerker.id,
+          beskrivelse: beskrivelse.trim(),
+          billeder: billedeReferencer.length > 0 ? billedeReferencer : null,
+        }),
+      });
+      if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
+      const data = await resultat.res.json();
+      if (data.error) { setSkrivFejl(data.error); return; }
+      setBeskrivelse("");
+      setAnnoteredesBilleder([]);
+      setVisOpret(false);
+      hentData();
+    } finally {
+      setGemmer(false);
+    }
   }
 
   async function godkendSedlen(sedel: Sedel) {
     if (!userId || godkender) return;
     setGodkender(sedel.id);
-    const now = new Date().toISOString();
-    await supabase.from("ekstraarbejde").update({
-      status: "godkendt",
-      godkendt_af: userId,
-      godkendt_at: now,
-      bygherre_godkendt_navn: brugerNavn,
-      bygherre_godkendt_at: now,
-    }).eq("id", sedel.id);
-
-    // Find tilknyttet kontrakt for at sende notifikation til håndværker
-    const tilknyttetKontrakt = kontrakter.find(k => k.haandvaerker_email === sedel.haandvaerker_email);
-    if (tilknyttetKontrakt?.haandvaerker_token) {
-      fetch(`/api/ekstraarbejde/${sedel.id}/godkend`, {
+    setSkrivFejl(null);
+    try {
+      const resultat = await autentificeretFetch(`/api/ekstraarbejde/${sedel.id}/godkend`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ haandvaerker_token: tilknyttetKontrakt.haandvaerker_token }),
-      }).catch(() => {});
+      });
+      if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
+      const data = await resultat.res.json();
+      if (data.error) { setSkrivFejl(data.error); return; }
+      setGodkendSedel(null);
+      hentData();
+    } finally {
+      setGodkender(null);
     }
-
-    setGodkendSedel(null);
-    setGodkender(null);
-    hentData();
   }
 
   async function afvisSedel(sedelId: string) {
     if (!userId) return;
-    await supabase.from("ekstraarbejde").update({ status: "afvist" }).eq("id", sedelId);
+    setSkrivFejl(null);
+    const resultat = await autentificeretFetch(`/api/ekstraarbejde/${sedelId}/afvis`, {
+      method: "POST",
+    });
+    if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
+    const data = await resultat.res.json();
+    if (data.error) { setSkrivFejl(data.error); return; }
     setSedler(p => p.map(s => s.id === sedelId ? { ...s, status: "afvist" } : s));
   }
 
   const godkendtTotal = sedler.filter(s => s.status === "godkendt").reduce((sum, s) => sum + (s.haandvaerker_pris || 0), 0);
-  const afventerAntal = sedler.filter(s => s.status === "haandvaerker_udfyldt").length;
+  const afventerAntal = sedler.filter(s => s.status === "afventer_bygherre").length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -212,6 +316,10 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
             </button>
           )}
         </div>
+
+        {skrivFejl && (
+          <p className="text-xs text-red-600 font-medium mb-5">{skrivFejl}</p>
+        )}
 
         {/* Opret modal */}
         {visOpret && (
@@ -263,7 +371,7 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
               {visAnnotering ? (
                 <BilledAnnotering
                   onGem={dataUrl => {
-                    setAnnoteredesBilleder(prev => [...prev, dataUrl]);
+                    setAnnoteredesBilleder(prev => [...prev, { dataUrl, lokation: "" }]);
                     setVisAnnotering(false);
                   }}
                   onAnnuller={() => setVisAnnotering(false)}
@@ -279,15 +387,24 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
 
                   {/* Annoterede billeder */}
                   {annoteredesBilleder.length > 0 && (
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="space-y-2">
                       {annoteredesBilleder.map((b, i) => (
-                        <div key={i} className="relative group">
-                          <img src={b} alt={`Markering ${i + 1}`} className="w-20 h-20 object-cover rounded-xl border border-gray-200" />
-                          <button
-                            onClick={() => setAnnoteredesBilleder(prev => prev.filter((_, j) => j !== i))}
-                            className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs hidden group-hover:flex items-center justify-center">
-                            ×
-                          </button>
+                        <div key={i} className="flex items-center gap-3">
+                          <div className="relative group flex-shrink-0">
+                            <img src={b.dataUrl} alt={`Markering ${i + 1}`} className="w-16 h-16 object-cover rounded-xl border border-gray-200" />
+                            <button
+                              onClick={() => setAnnoteredesBilleder(prev => prev.filter((_, j) => j !== i))}
+                              className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center">
+                              ×
+                            </button>
+                          </div>
+                          <input
+                            type="text"
+                            value={b.lokation}
+                            onChange={e => setAnnoteredesBilleder(prev => prev.map((x, j) => j === i ? { ...x, lokation: e.target.value } : x))}
+                            placeholder="Lokation/beskrivelse (valgfri), fx Badeværelse, væg mod entré"
+                            className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10"
+                          />
                         </div>
                       ))}
                     </div>
@@ -300,6 +417,10 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                     </svg>
                     {annoteredesBilleder.length > 0 ? "Tilføj endnu et billede med markering" : "Tilføj billede med markering (valgfrit)"}
                   </button>
+
+                  {uploadFejl && (
+                    <p className="text-xs text-red-600 font-medium">{uploadFejl}</p>
+                  )}
 
                   <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
                     Jf. AB-Forbruger § 23 skal ekstraarbejde aftales skriftligt inden opstart. Entreprenøren modtager denne anmodning og skal bekræfte pris og tidspåvirkning, inden arbejdet kan gå i gang.
@@ -339,19 +460,44 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                   <p className="text-xs text-gray-400 mb-0.5">Arbejde</p>
                   <p className="text-sm text-gray-800">{godkendSedel.beskrivelse}</p>
                 </div>
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                  <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Pris inkl. moms</p>
-                    <p className="text-base font-bold text-gray-900">{godkendSedel.haandvaerker_pris ? fmtKr(godkendSedel.haandvaerker_pris) : "—"}</p>
-                    <p className="text-xs text-gray-400">{godkendSedel.haandvaerker_pris_type === "fast" ? "Fast pris" : "Overslag"}</p>
-                  </div>
-                  {godkendSedel.haandvaerker_tidsdage && (
+                {godkendSedel.haandvaerker_pris_type === "fast" ? (
+                  <div className="grid grid-cols-2 gap-3 pt-2">
                     <div>
-                      <p className="text-xs text-gray-400 mb-0.5">Tidspåvirkning</p>
-                      <p className="text-base font-bold text-gray-900">+{godkendSedel.haandvaerker_tidsdage} dage</p>
+                      <p className="text-xs text-gray-400 mb-0.5">Fast pris inkl. moms</p>
+                      <p className="text-base font-bold text-gray-900">{godkendSedel.haandvaerker_pris !== null ? fmtKr(godkendSedel.haandvaerker_pris) : "—"}</p>
                     </div>
-                  )}
-                </div>
+                    {godkendSedel.haandvaerker_tidsdage !== null && (
+                      <div>
+                        <p className="text-xs text-gray-400 mb-0.5">Tidskonsekvens</p>
+                        <p className="text-base font-bold text-gray-900">{godkendSedel.haandvaerker_tidsdage === 0 ? "Ingen tidsforlængelse" : `+${godkendSedel.haandvaerker_tidsdage} dage`}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="pt-2 space-y-2">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs text-gray-400 mb-0.5">Timepris inkl. moms</p>
+                        <p className="text-base font-bold text-gray-900">{godkendSedel.haandvaerker_timepris !== null ? `${fmtKr(godkendSedel.haandvaerker_timepris)}/time` : "—"}</p>
+                      </div>
+                      {godkendSedel.haandvaerker_tidsdage !== null && (
+                        <div>
+                          <p className="text-xs text-gray-400 mb-0.5">Tidskonsekvens</p>
+                          <p className="text-base font-bold text-gray-900">{godkendSedel.haandvaerker_tidsdage === 0 ? "Ingen tidsforlængelse" : `+${godkendSedel.haandvaerker_tidsdage} dage`}</p>
+                        </div>
+                      )}
+                    </div>
+                    {godkendSedel.materiale_afregning && (
+                      <p className="text-xs text-gray-500">
+                        {materialeLabel[godkendSedel.materiale_afregning]}
+                        {godkendSedel.materiale_afregning === "dokumenteret_pris_med_tillaeg" && godkendSedel.materiale_tillaeg_procent !== null ? ` (${godkendSedel.materiale_tillaeg_procent} %)` : ""}
+                      </p>
+                    )}
+                    {godkendSedel.haandvaerker_prisoverslag !== null && (
+                      <p className="text-xs text-gray-500">Prisoverslag: cirka {fmtKr(godkendSedel.haandvaerker_prisoverslag)}. Ikke en fast maksimal pris.</p>
+                    )}
+                  </div>
+                )}
                 {godkendSedel.haandvaerker_besked && (
                   <div className="pt-2 border-t border-gray-100">
                     <p className="text-xs text-gray-400 mb-0.5">Note fra entreprenøren</p>
@@ -495,7 +641,7 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
           <div className="space-y-4 mb-6">
             {sedler.map((s, i) => (
               <div key={s.id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${
-                s.status === "haandvaerker_udfyldt" ? "border-amber-200" : "border-gray-100"
+                s.status === "afventer_bygherre" ? "border-amber-200" : "border-gray-100"
               }`}>
                 {/* Header */}
                 <div className="px-5 pt-5 pb-4">
@@ -519,13 +665,15 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                           </p>
                         )}
                       </div>
-                      {s.billeder && s.billeder.length > 0 && (
+                      {billedeVisning[s.id] && billedeVisning[s.id].length > 0 && (
                         <div className="flex gap-2 flex-wrap mt-3">
-                          {s.billeder.map((b, bi) => (
-                            <a key={bi} href={b} target="_blank" rel="noopener noreferrer">
-                              <img src={b} alt={`Markering ${bi + 1}`}
-                                className="w-24 h-24 object-cover rounded-xl border border-gray-200 hover:opacity-90 transition-opacity cursor-zoom-in" />
-                            </a>
+                          {billedeVisning[s.id].map((b) => (
+                            b.url && (
+                              <a key={b.id} href={b.url} target="_blank" rel="noopener noreferrer" title={b.billedtekst || undefined}>
+                                <img src={b.url} alt={b.billedtekst || "Billede"}
+                                  className="w-24 h-24 object-cover rounded-xl border border-gray-200 hover:opacity-90 transition-opacity cursor-zoom-in" />
+                              </a>
+                            )
                           ))}
                         </div>
                       )}
@@ -534,22 +682,47 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                 </div>
 
                 {/* Entreprenørens svar */}
-                {(s.status === "haandvaerker_udfyldt" || s.status === "godkendt") && s.haandvaerker_pris && (
+                {(s.status === "afventer_bygherre" || s.status === "godkendt") && s.haandvaerker_pris_type && (
                   <div className="mx-5 mb-4 bg-gray-50 rounded-xl p-4">
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Entreprenørens tilbud</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-xs text-gray-400">Pris inkl. moms</p>
-                        <p className="text-xl font-bold text-gray-900">{fmtKr(s.haandvaerker_pris)}</p>
-                        <p className="text-xs text-gray-400">{s.haandvaerker_pris_type === "fast" ? "Fast pris" : "Overslag"}</p>
-                      </div>
-                      {s.haandvaerker_tidsdage && (
+                    {s.haandvaerker_pris_type === "fast" ? (
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-xs text-gray-400">Tidspåvirkning</p>
-                          <p className="text-xl font-bold text-gray-900">+{s.haandvaerker_tidsdage} dage</p>
+                          <p className="text-xs text-gray-400">Fast pris inkl. moms</p>
+                          <p className="text-xl font-bold text-gray-900">{s.haandvaerker_pris !== null ? fmtKr(s.haandvaerker_pris) : "—"}</p>
                         </div>
-                      )}
-                    </div>
+                        {s.haandvaerker_tidsdage !== null && (
+                          <div>
+                            <p className="text-xs text-gray-400">Tidskonsekvens</p>
+                            <p className="text-xl font-bold text-gray-900">{s.haandvaerker_tidsdage === 0 ? "Ingen tidsforlængelse" : `+${s.haandvaerker_tidsdage} dage`}</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs text-gray-400">Timepris inkl. moms</p>
+                            <p className="text-xl font-bold text-gray-900">{s.haandvaerker_timepris !== null ? `${fmtKr(s.haandvaerker_timepris)}/time` : "—"}</p>
+                          </div>
+                          {s.haandvaerker_tidsdage !== null && (
+                            <div>
+                              <p className="text-xs text-gray-400">Tidskonsekvens</p>
+                              <p className="text-xl font-bold text-gray-900">{s.haandvaerker_tidsdage === 0 ? "Ingen tidsforlængelse" : `+${s.haandvaerker_tidsdage} dage`}</p>
+                            </div>
+                          )}
+                        </div>
+                        {s.materiale_afregning && (
+                          <p className="text-sm text-gray-500">
+                            {materialeLabel[s.materiale_afregning]}
+                            {s.materiale_afregning === "dokumenteret_pris_med_tillaeg" && s.materiale_tillaeg_procent !== null ? ` (${s.materiale_tillaeg_procent} %)` : ""}
+                          </p>
+                        )}
+                        {s.haandvaerker_prisoverslag !== null && (
+                          <p className="text-sm text-gray-500">Prisoverslag: cirka {fmtKr(s.haandvaerker_prisoverslag)}. Ikke en fast maksimal pris.</p>
+                        )}
+                      </div>
+                    )}
                     {s.haandvaerker_besked && (
                       <p className="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">&ldquo;{s.haandvaerker_besked}&rdquo;</p>
                     )}
@@ -583,14 +756,14 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                 )}
 
                 {/* Afventer svar fra entreprenør */}
-                {s.status === "sendt" && (
+                {s.status === "afventer_entreprenoer" && (
                   <div className="mx-5 mb-4 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
                     <p className="text-xs text-amber-700">Afventer at entreprenøren udfylder pris og tidspåvirkning.</p>
                   </div>
                 )}
 
                 {/* Bygherre godkender */}
-                {s.status === "haandvaerker_udfyldt" && !erHaandvaerker && (
+                {s.status === "afventer_bygherre" && !erHaandvaerker && (
                   <div className="flex gap-2 px-5 pb-5">
                     <button onClick={() => afvisSedel(s.id)}
                       className="flex-1 py-2.5 text-sm font-semibold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors border border-red-100">
@@ -626,8 +799,8 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
 
 function StatusBadge({ status }: { status: Sedel["status"] }) {
   const map = {
-    sendt:                 { label: "Afventer pris fra entreprenør", cls: "bg-amber-100 text-amber-700" },
-    haandvaerker_udfyldt:  { label: "Klar til din godkendelse", cls: "bg-blue-100 text-blue-700" },
+    afventer_entreprenoer: { label: "Afventer pris fra entreprenør", cls: "bg-amber-100 text-amber-700" },
+    afventer_bygherre:     { label: "Klar til din godkendelse", cls: "bg-blue-100 text-blue-700" },
     godkendt:              { label: "Godkendt · digitalt underskrevet", cls: "bg-green-100 text-green-700" },
     afvist:                { label: "Afvist", cls: "bg-red-100 text-red-700" },
   };

@@ -17,6 +17,7 @@ interface Notifikation {
 
 const TYPE_IKON: Record<string, { ikon: string; cls: string }> = {
   ekstraarbejde_anmodning: { ikon: "📋", cls: "bg-amber-50 border-amber-200" },
+  ekstraarbejde_oprettet:  { ikon: "📋", cls: "bg-amber-50 border-amber-200" },
   ekstraarbejde_godkendt:  { ikon: "✅", cls: "bg-green-50 border-green-200" },
   eftersyn_paamoind:       { ikon: "📅", cls: "bg-blue-50 border-blue-200" },
   betaling_markeret:       { ikon: "💰", cls: "bg-purple-50 border-purple-200" },

@@ -10,6 +10,7 @@ export type NotifikationsType =
   | "haandvaerker_indsendt_tidsplan"
   | "bygherre_godkendt_tidsplan"
   | "ny_chatbesked"
+  | "ekstraarbejde_oprettet"
   | "haandvaerker_ekstraarbejde_svar"
   | "bygherre_godkendt_ekstraarbejde"
   | "bygherre_ny_mangel"
@@ -108,6 +109,12 @@ const beskeder: Record<NotifikationsType, (data: NotifikationsData) => { emne: s
     overskrift: `Ny besked fra ${d.afsenderNavn || "din samarbejdspartner"}`,
     brødtekst: `Du har modtaget en ny besked i projektet <strong>${d.projekttitel || ""}</strong>.`,
     knapTekst: "Åbn beskeder",
+  }),
+  ekstraarbejde_oprettet: (d) => ({
+    emne: `${d.afsenderNavn || "Din samarbejdspartner"} har oprettet en ny aftaleseddel`,
+    overskrift: `Ny aftaleseddel om ekstraarbejde`,
+    brødtekst: `${d.afsenderNavn || "Din samarbejdspartner"} har oprettet en ny aftaleseddel på <strong>${d.projekttitel || "projektet"}</strong>. Gennemgå den og tag stilling.`,
+    knapTekst: "Se aftaleseddel",
   }),
   haandvaerker_ekstraarbejde_svar: (d) => ({
     emne: `${d.afsenderNavn || "Entreprenøren"} har besvaret en aftaleseddel`,
