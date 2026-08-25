@@ -423,7 +423,7 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                   )}
 
                   <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
-                    Jf. AB-Forbruger § 23 skal ekstraarbejde aftales skriftligt inden opstart. Entreprenøren modtager denne anmodning og skal bekræfte pris og tidspåvirkning, inden arbejdet kan gå i gang.
+                    Beskriv arbejdet. Entreprenøren angiver herefter pris og tidspåvirkning. Du tager derefter stilling til og godkender eller afviser aftalesedlen.
                   </p>
                 </>
               )}

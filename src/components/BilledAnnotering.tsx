@@ -44,9 +44,17 @@ export default function BilledAnnotering({ onGem, onAnnuller }: Props) {
   function indlæsBillede(file: File) {
     const url = URL.createObjectURL(file);
     const img = new Image();
-    img.onload = () => { setBillede(img); tegnBillede(img); URL.revokeObjectURL(url); };
+    img.onload = () => { setBillede(img); URL.revokeObjectURL(url); };
     img.src = url;
   }
+
+  // Canvas'et findes først i DOM'en, når "billede" er sat (betinget rendering
+  // nedenfor) — at tegne synkront i img.onload, før den re-render er
+  // committet, rammer derfor altid canvasRef.current === null. Tegningen sker
+  // i stedet her, efter canvas'et faktisk er monteret.
+  useEffect(() => {
+    if (billede) tegnBillede(billede);
+  }, [billede, tegnBillede]);
 
   function getPos(e: React.MouseEvent | React.TouchEvent) {
     const overlay = overlayRef.current!;
