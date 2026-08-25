@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
 import { sendNotifikation, hentBygherreEmail } from "@/lib/notifikationer";
+import { findUafklaredeForslag } from "@/lib/kontraktGodkendelse";
 
 export const runtime = "nodejs";
 
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
 
   const { data: kontrakt, error: hentFejl } = await db
     .from("kontrakter")
-    .select("id, bygherre_id, bygherre_godkendt_at, haandvaerker_godkendt_at, haandvaerker_email, status, total_pris")
+    .select("id, bygherre_id, bygherre_godkendt_at, haandvaerker_godkendt_at, haandvaerker_email, status, total_pris, tidsplan, forudsaetninger_sendt_at, forudsaetninger_godkendt, kontraktaendringer(status)")
     .eq("haandvaerker_token", token)
     .single();
 
@@ -50,6 +51,27 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
 
   if (!kontrakt.total_pris || kontrakt.total_pris <= 0) {
     return NextResponse.json({ error: "Entreprisesum skal være udfyldt inden godkendelse" }, { status: 422 });
+  }
+
+  // Entreprenøren skal godkende den aktuelle version først. Bygherre kan
+  // derfor kun slutgodkende, når entreprenøren allerede har gjort det.
+  // UI-knappen er disabled som ekstra UX, men serveren er autoritativ.
+  if (rolle === "bygherre" && !kontrakt.haandvaerker_godkendt_at) {
+    return NextResponse.json(
+      { error: "Entreprenøren skal godkende aftalegrundlaget, før du kan godkende det." },
+      { status: 409 }
+    );
+  }
+
+  // Slutgodkendelse omfatter hele det aktuelle aftalegrundlag samlet — men kan
+  // først ske, når alle uafklarede materielle forslag er accepteret/afvist.
+  // Serveren er autoritativ her, ikke kun UI-knappens disabled-tilstand.
+  const uafklaret = findUafklaredeForslag(kontrakt);
+  if (uafklaret.length > 0) {
+    return NextResponse.json(
+      { error: "Aftalegrundlaget kan først godkendes, når alle forslag er afklaret." },
+      { status: 409 }
+    );
   }
 
   const body = await req.json();

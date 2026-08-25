@@ -123,7 +123,10 @@ export async function GET(req: NextRequest) {
 // POST /api/kontrakt — opdater kontraktindhold
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
-  const { kontrakt_id, titel, beskrivelse, total_pris, betalingsplan, vilkaar, startdato, slutdato, haandvaerker_navn, haandvaerker_email, haandvaerker_firma, haandvaerker_cvr, godkend_tidsplan, godkend_forudsaetninger, afvis_forudsaetninger } = body;
+  // "vilkaar" (AB-Forbruger) læses bevidst ikke fra body her. Det er et låst
+  // aftalevilkår og må ikke kunne ændres af bygherre via denne route, samme
+  // princip som forslagsruten (se /api/kontrakt/[token]/forslag).
+  const { kontrakt_id, titel, beskrivelse, total_pris, betalingsplan, startdato, slutdato, haandvaerker_navn, haandvaerker_email, haandvaerker_firma, haandvaerker_cvr, godkend_tidsplan, godkend_forudsaetninger, afvis_forudsaetninger } = body;
 
   if (!kontrakt_id) {
     return NextResponse.json({ error: "kontrakt_id mangler" }, { status: 400 });
@@ -161,7 +164,6 @@ export async function POST(req: NextRequest) {
   if (beskrivelse !== undefined) opdatering.beskrivelse = beskrivelse;
   if (total_pris !== undefined) opdatering.total_pris = total_pris;
   if (betalingsplan !== undefined) opdatering.betalingsplan = betalingsplan;
-  if (vilkaar !== undefined) opdatering.vilkaar = vilkaar;
   if (startdato !== undefined) opdatering.startdato = startdato;
   if (slutdato !== undefined) opdatering.slutdato = slutdato;
   if (haandvaerker_email !== undefined) {
@@ -184,22 +186,62 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Bygherre godkender forudsætninger fra håndværker
+  // Bygherre godkender forudsætninger fra håndværker. En godkendelse gør
+  // forudsætningen til en del af det aktuelle aftalegrundlag — hvis en af
+  // parterne allerede har slutgodkendt, er dette en materiel ændring, og
+  // begge godkendelser skal derfor nulstilles (medmindre den reelt ikke
+  // ændrer noget, fx et dobbeltklik).
   if (godkend_forudsaetninger === true) {
+    const { data: foer } = await db
+      .from("kontrakter")
+      .select("forudsaetninger_godkendt, bygherre_godkendt_at, haandvaerker_godkendt_at")
+      .eq("id", kontrakt_id)
+      .single();
+
+    const opdatering: Record<string, unknown> = {
+      forudsaetninger_godkendt: true,
+      opdateret_at: new Date().toISOString(),
+    };
+    const erReelAendring = foer?.forudsaetninger_godkendt !== true;
+    if (erReelAendring && (foer?.bygherre_godkendt_at || foer?.haandvaerker_godkendt_at)) {
+      opdatering.bygherre_godkendt_at = null;
+      opdatering.haandvaerker_godkendt_at = null;
+    }
+
     const { data, error } = await db
       .from("kontrakter")
-      .update({ forudsaetninger_godkendt: true, opdateret_at: new Date().toISOString() })
+      .update(opdatering)
       .eq("id", kontrakt_id)
       .select().single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json(data);
   }
 
-  // Bygherre afviser forudsætninger — nulstil så håndværker kan sende nye
+  // Bygherre afviser forudsætninger — nulstil så håndværker kan sende nye.
+  // Samme princip: fjerner en forudsætning en materiel del af en allerede
+  // slutgodkendt aftale, skal begge godkendelser nulstilles.
   if (afvis_forudsaetninger === true) {
+    const { data: foer } = await db
+      .from("kontrakter")
+      .select("forudsaetninger, bygherre_godkendt_at, haandvaerker_godkendt_at")
+      .eq("id", kontrakt_id)
+      .single();
+
+    const opdatering: Record<string, unknown> = {
+      forudsaetninger: null,
+      forudsaetninger_sendt_at: null,
+      forudsaetninger_godkendt: null,
+      opdateret_at: new Date().toISOString(),
+    };
+    const erReelAendring = !!foer?.forudsaetninger;
+    if (erReelAendring && (foer?.bygherre_godkendt_at || foer?.haandvaerker_godkendt_at)) {
+      opdatering.bygherre_godkendt_at = null;
+      opdatering.haandvaerker_godkendt_at = null;
+    }
+
     const { data, error } = await db
       .from("kontrakter")
-      .update({ forudsaetninger: null, forudsaetninger_sendt_at: null, forudsaetninger_godkendt: null, opdateret_at: new Date().toISOString() })
+      .update(opdatering)
       .eq("id", kontrakt_id)
       .select().single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

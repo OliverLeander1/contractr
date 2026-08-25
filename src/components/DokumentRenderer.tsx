@@ -27,6 +27,7 @@ interface Props {
   slutdato?: string | null;
   betalingsplan?: { milepæl: string; andel: string }[] | null;
   forudsaetninger?: string | null;
+  forudsaetningerGodkendt?: boolean | null;
   tidsplan?: Tidsplan | null;
   vilkaar?: string | null;
   haandvaerkerNavn?: string | null;
@@ -97,6 +98,7 @@ export default function DokumentRenderer({
   slutdato,
   betalingsplan,
   forudsaetninger,
+  forudsaetningerGodkendt,
   tidsplan,
   vilkaar,
   haandvaerkerNavn,
@@ -156,7 +158,10 @@ export default function DokumentRenderer({
   const harPrisSektion = !!(totalPris || (betalingsplan && betalingsplan.length > 0));
   const harBetalingsplan = !!(betalingsplan && betalingsplan.length > 0);
   const harTidsplan = !!(startdato || slutdato || tidsplan);
-  const harForudsaetninger = !!forudsaetninger?.trim();
+  // En forudsætning må først fremstå som gældende aftaleindhold i det
+  // genererede dokument, når bygherre reelt har godkendt den — en
+  // afventende eller afvist forudsætning må ikke se ud som en aftalt sag.
+  const harForudsaetninger = !!forudsaetninger?.trim() && forudsaetningerGodkendt === true;
 
   let sektionsNr = 1;
 

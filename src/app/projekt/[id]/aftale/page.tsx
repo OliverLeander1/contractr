@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase";
 import DokumentRenderer from "@/components/DokumentRenderer";
 import { erV2Dokument, parseV2Sektioner, byggV2Dokument, indeholderKonkretDato } from "@/lib/dokumentV2";
 import { fmtBesigtigelseDatoLang, erBesigtigelsePasseret, hentEffektivDatoTid, fmtTidsinterval } from "@/lib/besigtigelse";
+import { findUafklaredeForslag } from "@/lib/kontraktGodkendelse";
 import { Plus, UserPlus } from "lucide-react";
 
 interface BesigtigelseTidspunktRad {
@@ -509,6 +510,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const erBeggeGodkendt = kontrakt.status === "begge_godkendt";
   const bygherreGodkendt = !!kontrakt.bygherre_godkendt_at;
   const haandvaerkerGodkendt = !!kontrakt.haandvaerker_godkendt_at;
+  const uafklaret = findUafklaredeForslag(kontrakt);
 
   const statusTekst: Record<string, string> = {
     udkast: "Udkast",
@@ -1006,6 +1008,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         slutdato={kontrakt.slutdato}
                         betalingsplan={kontrakt.betalingsplan}
                         forudsaetninger={kontrakt.forudsaetninger}
+                        forudsaetningerGodkendt={kontrakt.forudsaetninger_godkendt}
                         tidsplan={kontrakt.tidsplan}
                         vilkaar={kontrakt.vilkaar}
                         haandvaerkerNavn={kontrakt.haandvaerker_navn}
@@ -1091,6 +1094,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         slutdato={kontrakt.slutdato}
                         betalingsplan={kontrakt.betalingsplan}
                         forudsaetninger={kontrakt.forudsaetninger}
+                        forudsaetningerGodkendt={kontrakt.forudsaetninger_godkendt}
                         tidsplan={kontrakt.tidsplan}
                         vilkaar={kontrakt.vilkaar}
                         haandvaerkerNavn={kontrakt.haandvaerker_navn}
@@ -1531,16 +1535,22 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 <>
                   <button
                     onClick={godkendKontrakt}
-                    disabled={godkender || bygherreGodkendt || !haandvaerkerGodkendt}
+                    disabled={godkender || bygherreGodkendt || !haandvaerkerGodkendt || uafklaret.length > 0}
                     className={`w-full mt-4 py-3 rounded-xl text-sm font-bold transition-all ${
-                      bygherreGodkendt
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : !haandvaerkerGodkendt
+                      bygherreGodkendt || !haandvaerkerGodkendt || uafklaret.length > 0
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                         : "bg-[#1e3a2a] text-white hover:opacity-90"
                     }`}
                   >
-                    {godkender ? "Godkender..." : bygherreGodkendt ? "Du har accepteret" : !haandvaerkerGodkendt ? (kontrakt.haandvaerker_email ? "Afventer samlet grundlag" : "Ingen håndværker inviteret") : "Godkend og indgå aftale"}
+                    {godkender
+                      ? "Godkender..."
+                      : bygherreGodkendt
+                      ? "Du har accepteret"
+                      : !haandvaerkerGodkendt
+                      ? (kontrakt.haandvaerker_email ? "Afventer samlet grundlag" : "Ingen håndværker inviteret")
+                      : uafklaret.length > 0
+                      ? `${uafklaret.length} forslag mangler at blive afklaret`
+                      : "Godkend og indgå aftale"}
                   </button>
                   {godkendFejl && (
                     <p className="mt-2 text-xs text-red-600 text-center leading-snug">{godkendFejl}</p>

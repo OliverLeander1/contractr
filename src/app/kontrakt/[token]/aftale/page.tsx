@@ -544,6 +544,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               slutdato={kontrakt.slutdato}
               betalingsplan={kontrakt.betalingsplan as { milepæl: string; andel: string }[] | null}
               forudsaetninger={kontrakt.forudsaetninger}
+              forudsaetningerGodkendt={kontrakt.forudsaetninger_godkendt}
               tidsplan={kontrakt.tidsplan}
               vilkaar={kontrakt.vilkaar}
               haandvaerkerNavn={kontrakt.haandvaerker_navn}
