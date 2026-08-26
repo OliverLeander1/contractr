@@ -40,17 +40,21 @@ export async function GET(
   // som /api/haandvaerker/sager.
   const escapedEmail = user.email.trim().toLowerCase().replace(/[%_\\]/g, (m) => `\\${m}`);
 
-  const [{ data: kontrakt, error: kErr }, { data: sedler }, { data: mangler }] = await Promise.all([
+  const [{ data: kontrakt, error: kErr }, { data: egneKontrakter }, { data: mangler }] = await Promise.all([
     db.from("kontrakter")
       .select("id, projekt_id, titel, beskrivelse, total_pris, status, haandvaerker_navn, haandvaerker_email, haandvaerker_token, startdato, slutdato, betalingsplan, tidsplan, oprettet_at, haandvaerker_godkendt_at, bygherre_godkendt_at, besigtigelse_dato, besigtigelse_tid, besigtigelse_bekraeftet")
       .eq("projekt_id", id)
       .ilike("haandvaerker_email", escapedEmail)
       .single(),
-    db.from("ekstraarbejde")
-      .select("*")
+    // Alle kontrakt-id'er den verificerede entreprenør faktisk er part i på
+    // dette projekt — ikke kun den ene, .single()-hentede kontrakt ovenfor.
+    // Et projekt kan have flere uafhængige kontrakter, og samme entreprenør
+    // kan have flere kontrakter på samme projekt, så aftalesedler skal
+    // findes via ALLE hans/hendes kontrakt_id'er her, ikke kun én.
+    db.from("kontrakter")
+      .select("id")
       .eq("projekt_id", id)
-      .ilike("haandvaerker_email", escapedEmail)
-      .order("oprettet_at", { ascending: false }),
+      .ilike("haandvaerker_email", escapedEmail),
     db.from("mangler")
       .select("id, beskrivelse, alvorlighed, status, oprettet_at, billeder")
       .eq("projekt_id", id)
@@ -58,5 +62,19 @@ export async function GET(
   ]);
 
   if (kErr) return NextResponse.json({ error: kErr.message }, { status: 500 });
+
+  // Aftalesedler er nu kontraktspecifikke (kontrakt_id), ikke længere knyttet
+  // via det gamle, denormaliserede ekstraarbejde.haandvaerker_email-felt, som
+  // den nye sikre oprettelsesmodel aldrig udfylder. Adgangsgrundlaget er
+  // fortsat udelukkende den verificerede login-email ovenfor — kontrakt_id
+  // vælges aldrig af klienten.
+  const kontraktIder = (egneKontrakter ?? []).map((k) => k.id);
+  const { data: sedler } = kontraktIder.length > 0
+    ? await db.from("ekstraarbejde")
+        .select("*")
+        .in("kontrakt_id", kontraktIder)
+        .order("oprettet_at", { ascending: false })
+    : { data: [] as unknown[] };
+
   return NextResponse.json({ kontrakt, sedler: sedler ?? [], mangler: mangler ?? [] });
 }

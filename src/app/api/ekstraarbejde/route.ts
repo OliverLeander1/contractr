@@ -279,7 +279,7 @@ export async function POST(req: NextRequest) {
       sendNotifikation("ekstraarbejde_oprettet", kontrakt.haandvaerker_email, {
         projekttitel: kontrakt.titel || "projektet",
         afsenderNavn,
-        link: `${baseUrl}/kontrakt/${kontrakt.haandvaerker_token}`,
+        link: `${baseUrl}/haandvaerker/projekt/${kontrakt.projekt_id}/ekstraarbejde`,
       });
       await opretEkstraarbejdeNotifikation(db, {
         modtagerRolle: "haandvaerker",

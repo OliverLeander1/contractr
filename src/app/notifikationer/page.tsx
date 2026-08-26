@@ -128,14 +128,24 @@ export default function NotifikationerSide() {
 
   const ulæste = notifikationer.filter(n => !n.laest).length;
 
-  // Rolle-specifik destination for en besigtigelsesnotifikation, eller null
-  // hvis notifikationen ikke skal være klikbar (ukendt type eller intet
-  // projekt at linke til).
+  // Rolle-specifik destination for en besigtigelses- eller
+  // aftaleseddel-notifikation, eller null hvis notifikationen ikke skal være
+  // klikbar (ukendt type eller intet projekt at linke til). Rollen kommer
+  // altid fra den allerede autentificerede egenRolle ovenfor — aldrig gættet
+  // ud fra URL, tekst eller klientinput.
   function linkTil(n: Notifikation): string | null {
-    if (!n.projekt_id || !erBesigtigelseType(n.type)) return null;
-    return egenRolle === "haandvaerker"
-      ? `/haandvaerker/projekt/${n.projekt_id}?fane=besigtigelse`
-      : `/projekt/${n.projekt_id}#besigtigelse`;
+    if (!n.projekt_id) return null;
+    if (erBesigtigelseType(n.type)) {
+      return egenRolle === "haandvaerker"
+        ? `/haandvaerker/projekt/${n.projekt_id}?fane=besigtigelse`
+        : `/projekt/${n.projekt_id}#besigtigelse`;
+    }
+    if (n.type === "ekstraarbejde_oprettet") {
+      return egenRolle === "haandvaerker"
+        ? `/haandvaerker/projekt/${n.projekt_id}/ekstraarbejde`
+        : `/projekt/${n.projekt_id}/ekstraarbejde`;
+    }
+    return null;
   }
 
   // Diskret sekundær linje ("hvilken sag?") for enhver projekt-relateret
