@@ -285,6 +285,7 @@ export async function POST(req: NextRequest) {
         modtagerRolle: "haandvaerker",
         kontrakt,
         projektId: kontrakt.projekt_id,
+        type: "ekstraarbejde_oprettet",
         titel: "Ny aftaleseddel til udfyldelse",
         besked: `${afsenderNavn} har sendt en anmodning om ekstraarbejde: "${beskrivelseUddrag}"`,
       });
@@ -301,6 +302,7 @@ export async function POST(req: NextRequest) {
         modtagerRolle: "bygherre",
         kontrakt,
         projektId: kontrakt.projekt_id,
+        type: "ekstraarbejde_oprettet",
         titel: "Ny aftaleseddel oprettet",
         besked: `${afsenderNavn} har oprettet en aftaleseddel om ekstraarbejde: "${beskrivelseUddrag}"`,
       });

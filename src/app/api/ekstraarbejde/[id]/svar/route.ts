@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase-server";
 import { verificerKontraktRolle } from "@/lib/kontraktRolle";
 import { sendNotifikation, hentBygherreEmail } from "@/lib/notifikationer";
 import { erGyldigMaterialeAfregning, erForslagKomplet } from "@/lib/ekstraarbejdeCompleteness";
+import { opretEkstraarbejdeNotifikation } from "@/lib/ekstraarbejdeNotifikation";
 
 export const runtime = "nodejs";
 
@@ -134,17 +135,36 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Notificer bygherre kun når forslaget rent faktisk er klar til beslutning.
+  // Notifikationer til bygherre sker kun når forslaget rent faktisk er klar
+  // til beslutning, og kun én gang — guarden ovenfor (sedel.status !==
+  // "afventer_entreprenoer" -> 409) forhindrer allerede, at en aftaleseddel,
+  // der allerede er "afventer_bygherre", kan patches igen, så denne blok kan
+  // aldrig nås to gange for samme overgang. En fejlet notifikation (email
+  // eller in-app) må ikke rulle det allerede gemte svar tilbage — samme
+  // etablerede princip som i POST /api/ekstraarbejde.
   if (opdatering.status === "afventer_bygherre" && kontrakt.bygherre_id && sedel.projekt_id) {
-    const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
-    const { data: projekt } = await db.from("projekter").select("adresse").eq("id", sedel.projekt_id).maybeSingle();
-    const { email, notifikationer } = await hentBygherreEmail(kontrakt.bygherre_id, db);
-    if (email) {
-      sendNotifikation("haandvaerker_ekstraarbejde_svar", email, {
-        projekttitel: projekt?.adresse || "dit projekt",
-        afsenderNavn: profil?.navn || "Entreprenøren",
-        link: `${baseUrl}/projekt/${sedel.projekt_id}/ekstraarbejde`,
-      }, notifikationer);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
+      const afsenderNavn = profil?.navn || "Entreprenøren";
+      const { data: projekt } = await db.from("projekter").select("adresse").eq("id", sedel.projekt_id).maybeSingle();
+      const { email, notifikationer } = await hentBygherreEmail(kontrakt.bygherre_id, db);
+      if (email) {
+        sendNotifikation("haandvaerker_ekstraarbejde_svar", email, {
+          projekttitel: projekt?.adresse || "dit projekt",
+          afsenderNavn,
+          link: `${baseUrl}/projekt/${sedel.projekt_id}/ekstraarbejde`,
+        }, notifikationer);
+      }
+      await opretEkstraarbejdeNotifikation(db, {
+        modtagerRolle: "bygherre",
+        kontrakt,
+        projektId: sedel.projekt_id,
+        type: "haandvaerker_ekstraarbejde_svar",
+        titel: "Aftaleseddel klar til din godkendelse",
+        besked: `${afsenderNavn} har angivet pris og tid for aftalesedlen. Gennemgå og tag stilling.`,
+      });
+    } catch (notifikationsFejl) {
+      console.error("Notifikation ved svar på aftaleseddel fejlede:", notifikationsFejl);
     }
   }
 

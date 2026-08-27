@@ -5,6 +5,13 @@ interface KontraktTilNotifikation {
   haandvaerker_email: string | null;
 }
 
+// Alle typer, denne helper i dag kan skrive til public.notifikationer.type.
+// En snæver union frem for en vilkårlig string, så et nyt kaldested ikke ved
+// en fejl kan indsætte en type, notifikationscenteret ikke kender.
+export type EkstraarbejdeNotifikationsType =
+  | "ekstraarbejde_oprettet"
+  | "haandvaerker_ekstraarbejde_svar";
+
 // Slår entreprenørens profiler.id op ud fra kontraktens haandvaerker_email.
 // Samme mønster og samme dokumenterede begrundelse som findBrugerIdVedEmail i
 // /api/besigtigelse/route.ts: profiler.email er ikke en fuldt autoritativ,
@@ -60,6 +67,7 @@ export async function opretEkstraarbejdeNotifikation(
     modtagerRolle: "bygherre" | "haandvaerker";
     kontrakt: KontraktTilNotifikation;
     projektId: string;
+    type: EkstraarbejdeNotifikationsType;
     titel: string;
     besked: string;
   },
@@ -76,7 +84,7 @@ export async function opretEkstraarbejdeNotifikation(
     const { error } = await db.from("notifikationer").insert({
       bruger_id: brugerId,
       projekt_id: params.projektId,
-      type: "ekstraarbejde_oprettet",
+      type: params.type,
       titel: params.titel,
       besked: params.besked,
       ab_paragraf: "§ 23",
