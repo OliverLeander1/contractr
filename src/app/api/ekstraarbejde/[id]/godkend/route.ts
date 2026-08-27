@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase-server";
 import { verificerKontraktRolle } from "@/lib/kontraktRolle";
 import { sendNotifikation } from "@/lib/notifikationer";
 import { erForslagKomplet } from "@/lib/ekstraarbejdeCompleteness";
+import { opretEkstraarbejdeNotifikation } from "@/lib/ekstraarbejdeNotifikation";
 
 export const runtime = "nodejs";
 
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data: sedel } = await db
     .from("ekstraarbejde")
-    .select("id, status, kontrakt_id, projekt_id, haandvaerker_pris_type, haandvaerker_pris, haandvaerker_timepris, haandvaerker_tidsdage, materiale_afregning, materiale_tillaeg_procent")
+    .select("id, status, kontrakt_id, projekt_id, beskrivelse, haandvaerker_pris_type, haandvaerker_pris, haandvaerker_timepris, haandvaerker_tidsdage, materiale_afregning, materiale_tillaeg_procent")
     .eq("id", id)
     .maybeSingle();
 
@@ -72,13 +73,30 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Notificer håndværker om godkendelsen
+  // Notifikation til entreprenøren er en secondary side-effect. Den primære
+  // handling (statusovergang + digitale underskriftsfelter) er allerede
+  // gemt ovenfor og må ikke rulles tilbage, hvis email eller in-app
+  // notifikation fejler — samme etablerede princip som i
+  // PATCH /api/ekstraarbejde/[id]/svar.
   if (kontrakt.haandvaerker_email) {
     const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
     sendNotifikation("bygherre_godkendt_ekstraarbejde", kontrakt.haandvaerker_email, {
       projekttitel: kontrakt.titel || "projektet",
-      link: `${baseUrl}/kontrakt/${kontrakt.haandvaerker_token}`,
+      link: `${baseUrl}/haandvaerker/projekt/${sedel.projekt_id}/ekstraarbejde`,
     });
+  }
+
+  try {
+    await opretEkstraarbejdeNotifikation(db, {
+      modtagerRolle: "haandvaerker",
+      kontrakt,
+      projektId: sedel.projekt_id,
+      type: "ekstraarbejde_godkendt",
+      titel: "Aftaleseddel godkendt",
+      besked: `Bygherren har godkendt aftalesedlen om ${sedel.beskrivelse}. Arbejdet kan udføres som aftalt.`,
+    });
+  } catch (notifikationsFejl) {
+    console.error("Notifikation ved godkendelse af aftaleseddel fejlede:", notifikationsFejl);
   }
 
   return NextResponse.json(data);

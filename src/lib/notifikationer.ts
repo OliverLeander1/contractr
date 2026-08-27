@@ -13,6 +13,7 @@ export type NotifikationsType =
   | "ekstraarbejde_oprettet"
   | "haandvaerker_ekstraarbejde_svar"
   | "bygherre_godkendt_ekstraarbejde"
+  | "bygherre_afvist_ekstraarbejde"
   | "bygherre_ny_mangel"
   | "haandvaerker_udbedret_mangel"
   | "haandvaerker_trukket_sig"
@@ -126,6 +127,12 @@ const beskeder: Record<NotifikationsType, (data: NotifikationsData) => { emne: s
     emne: `Bygherren har godkendt ekstraarbejdet`,
     overskrift: `Ekstraarbejde godkendt`,
     brødtekst: `Bygherren har godkendt aftaleseddelen for ekstraarbejde på <strong>${d.projekttitel || "projektet"}</strong>.`,
+    knapTekst: "Se aftaleseddel",
+  }),
+  bygherre_afvist_ekstraarbejde: (d) => ({
+    emne: `Aftaleseddel afvist`,
+    overskrift: `Aftaleseddel afvist`,
+    brødtekst: `Bygherren har afvist aftaleseddelen for ekstraarbejde på <strong>${d.projekttitel || "projektet"}</strong>.`,
     knapTekst: "Se aftaleseddel",
   }),
   bygherre_ny_mangel: (d) => ({

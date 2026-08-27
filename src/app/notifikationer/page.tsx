@@ -20,6 +20,7 @@ const TYPE_IKON: Record<string, { ikon: string; cls: string }> = {
   ekstraarbejde_oprettet:  { ikon: "📋", cls: "bg-amber-50 border-amber-200" },
   haandvaerker_ekstraarbejde_svar: { ikon: "📋", cls: "bg-amber-50 border-amber-200" },
   ekstraarbejde_godkendt:  { ikon: "✅", cls: "bg-green-50 border-green-200" },
+  ekstraarbejde_afvist:    { ikon: "❌", cls: "bg-red-50 border-red-200" },
   eftersyn_paamoind:       { ikon: "📅", cls: "bg-blue-50 border-blue-200" },
   betaling_markeret:       { ikon: "💰", cls: "bg-purple-50 border-purple-200" },
   mangel_opdateret:        { ikon: "🔧", cls: "bg-orange-50 border-orange-200" },
@@ -151,6 +152,14 @@ export default function NotifikationerSide() {
     // eller opfindes for den.
     if (n.type === "haandvaerker_ekstraarbejde_svar") {
       return `/projekt/${n.projekt_id}/ekstraarbejde`;
+    }
+    // Disse to typer oprettes udelukkende til entreprenøren som følge af
+    // bygherrens godkendelse eller afvisning — der findes bevidst ingen
+    // bygherre-destination for dem.
+    if (n.type === "ekstraarbejde_godkendt" || n.type === "ekstraarbejde_afvist") {
+      return egenRolle === "haandvaerker"
+        ? `/haandvaerker/projekt/${n.projekt_id}/ekstraarbejde`
+        : null;
     }
     return null;
   }

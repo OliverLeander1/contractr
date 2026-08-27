@@ -10,7 +10,9 @@ interface KontraktTilNotifikation {
 // en fejl kan indsætte en type, notifikationscenteret ikke kender.
 export type EkstraarbejdeNotifikationsType =
   | "ekstraarbejde_oprettet"
-  | "haandvaerker_ekstraarbejde_svar";
+  | "haandvaerker_ekstraarbejde_svar"
+  | "ekstraarbejde_godkendt"
+  | "ekstraarbejde_afvist";
 
 // Slår entreprenørens profiler.id op ud fra kontraktens haandvaerker_email.
 // Samme mønster og samme dokumenterede begrundelse som findBrugerIdVedEmail i
