@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase";
 import HaandvaerkerBadgeLinks from "@/components/HaandvaerkerBadgeLinks";
 import BesigtigelseKort from "@/components/BesigtigelseKort";
 import DokumentRenderer from "@/components/DokumentRenderer";
+import AftaleseddelSvarModal, { MaterialeAfregning, materialeLabel } from "@/components/AftaleseddelSvarModal";
 
 type Fane = "aftale" | "tidsplan" | "sedler" | "mangler" | "besigtigelse";
 
@@ -36,12 +37,12 @@ interface Kontrakt {
 interface Sedel {
   id: string;
   beskrivelse: string;
-  status: string;
+  status: "afventer_entreprenoer" | "afventer_bygherre" | "godkendt" | "afvist";
   oprettet_af_navn: string | null;
   haandvaerker_pris: number | null;
-  haandvaerker_pris_type: string | null;
+  haandvaerker_pris_type: "fast" | "medgaaet_tid" | null;
   haandvaerker_timepris: number | null;
-  materiale_afregning: string | null;
+  materiale_afregning: MaterialeAfregning | null;
   materiale_tillaeg_procent: number | null;
   haandvaerker_prisoverslag: number | null;
   haandvaerker_tidsdage: number | null;
@@ -57,12 +58,6 @@ interface SedelBillede {
   oprettet_at: string;
   url: string | null;
 }
-
-const materialeLabelKort: Record<string, string> = {
-  inkluderet: "Materialer inkluderet i timeprisen",
-  dokumenteret_pris: "Materialer til dokumenteret indkøbspris",
-  dokumenteret_pris_med_tillaeg: "Materialer til dokumenteret indkøbspris + tillæg",
-};
 
 interface Mangel {
   id: string;
@@ -108,18 +103,10 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
   const [indlæser, setIndlæser] = useState(true);
   const [fejl, setFejl] = useState("");
   const [initials, setInitials] = useState("H");
+  const [brugerNavn, setBrugerNavn] = useState("Entreprenør");
 
   // Svar på aftaleseddel
   const [åbnSedel, setÅbnSedel] = useState<Sedel | null>(null);
-  const [svarPrisform, setSvarPrisform] = useState<"fast" | "medgaaet_tid">("fast");
-  const [svarPris, setSvarPris] = useState("");
-  const [svarTimepris, setSvarTimepris] = useState("");
-  const [svarMaterialeAfregning, setSvarMaterialeAfregning] = useState<"inkluderet" | "dokumenteret_pris" | "dokumenteret_pris_med_tillaeg">("inkluderet");
-  const [svarTillaegProcent, setSvarTillaegProcent] = useState("");
-  const [svarPrisoverslag, setSvarPrisoverslag] = useState("");
-  const [svarDage, setSvarDage] = useState("");
-  const [svarBesked, setSvarBesked] = useState("");
-  const [gemmer, setGemmer] = useState(false);
 
   // Billeder pr. aftaleseddel, hentet via signerede læse-URLs — aldrig fra
   // den gamle base64-kolonne. Samme mønster som bygherresidens
@@ -147,6 +134,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
 
       const { data: profil } = await supabase.from("profiler").select("navn").eq("id", user.id).maybeSingle();
       const n = profil?.navn || user.email.split("@")[0];
+      setBrugerNavn(n);
       setInitials(n.split(" ").map((x: string) => x[0]).join("").toUpperCase().slice(0, 2) || "H");
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -165,51 +153,17 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
     });
   }, [id]);
 
-  async function svarPåSeddel() {
-    if (!åbnSedel || gemmer) return;
-    setGemmer(true);
-    setFejl("");
+  // Genindlæser kun sedler-listen efter et indsendt svar i AftaleseddelSvarModal
+  // — selve indsendelsen (validering, PATCH-kald) ejes af den delte komponent.
+  async function genindlaesSedler() {
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) {
-      setFejl("Din session er udløbet. Log ind igen for at fortsætte.");
-      setGemmer(false);
-      return;
-    }
-    const svarBody: Record<string, unknown> = {
-      haandvaerker_pris_type: svarPrisform,
-      haandvaerker_tidsdage: svarDage !== "" ? parseInt(svarDage) : null,
-      haandvaerker_besked: svarBesked,
-    };
-    if (svarPrisform === "fast") {
-      svarBody.haandvaerker_pris = svarPris !== "" ? parseFloat(svarPris) : null;
-    } else {
-      svarBody.haandvaerker_timepris = svarTimepris !== "" ? parseFloat(svarTimepris) : null;
-      svarBody.materiale_afregning = svarMaterialeAfregning;
-      svarBody.materiale_tillaeg_procent = svarMaterialeAfregning === "dokumenteret_pris_med_tillaeg" && svarTillaegProcent !== "" ? parseFloat(svarTillaegProcent) : null;
-      svarBody.haandvaerker_prisoverslag = svarPrisoverslag !== "" ? parseFloat(svarPrisoverslag) : null;
-    }
-    const svarRes = await fetch(`/api/ekstraarbejde/${åbnSedel.id}/svar`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify(svarBody),
-    });
-    const svarData = await svarRes.json().catch(() => ({}));
-    if (!svarRes.ok) {
-      setFejl(svarData.error || "Kunne ikke sende svaret. Prøv igen.");
-      setGemmer(false);
-      return;
-    }
+    if (!session?.access_token) return;
     const res = await fetch(`/api/haandvaerker/projekt/${id}`, {
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
     const data = await res.json();
-    setSedler(data.sedler);
-    setÅbnSedel(null);
-    setGemmer(false);
+    if (!data.error) setSedler(data.sedler);
   }
 
   if (indlæser) return (
@@ -486,7 +440,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                         )}
                         {s.materiale_afregning && (
                           <p className="text-sm text-gray-600 mb-1">
-                            {materialeLabelKort[s.materiale_afregning] ?? s.materiale_afregning}
+                            {materialeLabel[s.materiale_afregning]}
                             {s.materiale_afregning === "dokumenteret_pris_med_tillaeg" && s.materiale_tillaeg_procent != null ? ` (${s.materiale_tillaeg_procent} %)` : ""}
                           </p>
                         )}
@@ -502,17 +456,8 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                       <p className="text-sm text-gray-500 italic mb-2">&ldquo;{s.haandvaerker_besked}&rdquo;</p>
                     )}
                     {s.status === "afventer_entreprenoer" && (
-                      <button onClick={() => {
-                        setÅbnSedel(s);
-                        setSvarPrisform(s.haandvaerker_pris_type === "medgaaet_tid" ? "medgaaet_tid" : "fast");
-                        setSvarPris(s.haandvaerker_pris != null ? s.haandvaerker_pris.toString() : "");
-                        setSvarTimepris(s.haandvaerker_timepris != null ? s.haandvaerker_timepris.toString() : "");
-                        setSvarMaterialeAfregning((s.materiale_afregning as "inkluderet" | "dokumenteret_pris" | "dokumenteret_pris_med_tillaeg") ?? "inkluderet");
-                        setSvarTillaegProcent(s.materiale_tillaeg_procent != null ? s.materiale_tillaeg_procent.toString() : "");
-                        setSvarPrisoverslag(s.haandvaerker_prisoverslag != null ? s.haandvaerker_prisoverslag.toString() : "");
-                        setSvarDage(s.haandvaerker_tidsdage != null ? s.haandvaerker_tidsdage.toString() : "");
-                        setSvarBesked(s.haandvaerker_besked ?? "");
-                      }} className="mt-3 text-sm font-semibold bg-[#1e3a2a] text-white px-4 py-2.5 rounded-lg hover:opacity-90 transition-opacity min-h-[44px]">
+                      <button onClick={() => setÅbnSedel(s)}
+                        className="mt-3 text-sm font-semibold bg-[#1e3a2a] text-white px-4 py-2.5 rounded-lg hover:opacity-90 transition-opacity min-h-[44px]">
                         Svar på aftaleseddel
                       </button>
                     )}
@@ -566,118 +511,13 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
         )}
       </div>
 
-      {/* Svar-modal */}
       {åbnSedel && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-md max-h-[92vh] overflow-y-auto">
-
-            {/* Bygherrens anmodning — læsbar kontekst, ikke en del af formularen */}
-            <div className="bg-[#f0f7f3] px-6 pt-6 pb-5 border-b border-[#1e3a2a]/10">
-              <p className="text-xs font-semibold text-[#1e3a2a]/70 uppercase tracking-widest mb-2">Bygherrens anmodning</p>
-              <p className="text-sm text-gray-800 leading-relaxed break-words">{åbnSedel.beskrivelse}</p>
-
-              {(sedelBilleder[åbnSedel.id]?.length ?? 0) > 0 && (
-                <div className="flex gap-2 flex-wrap mt-3">
-                  {sedelBilleder[åbnSedel.id].map(b => b.url && (
-                    <button key={b.id} onClick={() => setLightboxUrl(b.url)}>
-                      <img src={b.url} alt={b.billedtekst || "Billede fra bygherre"}
-                        className="w-16 h-16 object-cover rounded-xl border border-[#1e3a2a]/15 hover:opacity-90 transition-opacity" />
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex items-center gap-2 flex-wrap mt-3 text-xs text-[#1e3a2a]/60">
-                <span>{åbnSedel.oprettet_af_navn || "Bygherre"}</span>
-                <span>·</span>
-                <span>{fmtDato(åbnSedel.oprettet_at)}</span>
-                <span className={`font-semibold px-2 py-0.5 rounded-full ${(statusLabel[åbnSedel.status] ?? { klasse: "bg-gray-100 text-gray-600" }).klasse}`}>
-                  {(statusLabel[åbnSedel.status] ?? { label: åbnSedel.status }).label}
-                </span>
-              </div>
-            </div>
-
-            {/* Dit svar — entreprenørens eget input */}
-            <div className="px-6 pt-5 pb-6">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">Dit svar</p>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  {(["fast", "medgaaet_tid"] as const).map(t => (
-                    <button key={t} onClick={() => setSvarPrisform(t)}
-                      className={`py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border transition-all ${svarPrisform === t ? "bg-[#1e3a2a] text-white border-[#1e3a2a]" : "border-[#e0ddd6] text-gray-600 hover:border-gray-300"}`}>
-                      {t === "fast" ? "Fast pris" : "Medgået tid"}
-                    </button>
-                  ))}
-                </div>
-
-                {svarPrisform === "fast" ? (
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Fast pris inkl. moms (kr.)</label>
-                    <input type="number" min="0" value={svarPris} onChange={e => setSvarPris(e.target.value)}
-                      className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 12500" />
-                  </div>
-                ) : (
-                  <>
-                    <div>
-                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Timepris inkl. moms (kr.)</label>
-                      <input type="number" min="0" value={svarTimepris} onChange={e => setSvarTimepris(e.target.value)}
-                        className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 650" />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Materialer</label>
-                      <div className="space-y-2">
-                        {([
-                          ["inkluderet", "Inkluderet i timeprisen"],
-                          ["dokumenteret_pris", "Til dokumenteret indkøbspris"],
-                          ["dokumenteret_pris_med_tillaeg", "Til dokumenteret indkøbspris + tillæg"],
-                        ] as const).map(([val, label]) => (
-                          <button key={val} onClick={() => setSvarMaterialeAfregning(val)}
-                            className={`w-full text-left px-4 py-2.5 min-h-[44px] rounded-xl border text-sm transition-all ${svarMaterialeAfregning === val ? "border-[#1e3a2a] bg-[#1e3a2a]/5 text-[#1e3a2a] font-semibold" : "border-[#e0ddd6] text-gray-600"}`}>
-                            {label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    {svarMaterialeAfregning === "dokumenteret_pris_med_tillaeg" && (
-                      <div>
-                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Tillæg i %</label>
-                        <input type="number" min="0" value={svarTillaegProcent} onChange={e => setSvarTillaegProcent(e.target.value)}
-                          className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 10" />
-                      </div>
-                    )}
-                    <div>
-                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Prisoverslag inkl. moms (valgfrit)</label>
-                      <input type="number" min="0" value={svarPrisoverslag} onChange={e => setSvarPrisoverslag(e.target.value)}
-                        className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="Valgfrit" />
-                    </div>
-                  </>
-                )}
-
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Tidskonsekvens (dage)</label>
-                  <input type="number" min="0" value={svarDage} onChange={e => setSvarDage(e.target.value)}
-                    className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 3" />
-                  <p className="text-xs text-gray-400 mt-1">0 dage betyder ingen tidsforlængelse.</p>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Besked (valgfri)</label>
-                  <textarea value={svarBesked} onChange={e => setSvarBesked(e.target.value)} rows={3}
-                    className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20 resize-none" placeholder="Eventuelle kommentarer" />
-                </div>
-              </div>
-              <div className="flex gap-3 mt-6">
-                <button onClick={() => { setÅbnSedel(null); setFejl(""); }} className="flex-1 py-3 min-h-[44px] text-sm font-semibold text-gray-600 border border-[#e0ddd6] rounded-xl hover:bg-gray-50">Annuller</button>
-                <button onClick={svarPåSeddel} disabled={gemmer}
-                  className="flex-1 py-3 min-h-[44px] text-sm font-semibold bg-[#1e3a2a] text-white rounded-xl hover:opacity-90 disabled:opacity-50">
-                  {gemmer ? "Sender..." : "Send svar"}
-                </button>
-              </div>
-              {fejl && (
-                <p className="text-xs text-red-600 font-medium mt-3">{fejl}</p>
-              )}
-            </div>
-          </div>
-        </div>
+        <AftaleseddelSvarModal
+          sedel={åbnSedel}
+          brugerNavn={brugerNavn}
+          onLuk={() => setÅbnSedel(null)}
+          onSvarSendt={() => { setÅbnSedel(null); genindlaesSedler(); }}
+        />
       )}
 
       {/* Billed-lightbox — genbruges af listekortet og svar-modalen */}

@@ -4,8 +4,7 @@ import { use, useEffect, useState, useCallback } from "react";
 import SimpleNav from "@/components/SimpleNav";
 import HaandvaerkerBadgeLinks from "@/components/HaandvaerkerBadgeLinks";
 import { createClient } from "@/lib/supabase";
-
-type MaterialeAfregning = "inkluderet" | "dokumenteret_pris" | "dokumenteret_pris_med_tillaeg";
+import AftaleseddelSvarModal, { MaterialeAfregning, materialeLabel } from "@/components/AftaleseddelSvarModal";
 
 interface Sedel {
   id: string;
@@ -43,33 +42,14 @@ const fmtDato = (iso: string) =>
 const fmtTid = (iso: string) =>
   new Date(iso).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
 
-const materialeLabel: Record<MaterialeAfregning, string> = {
-  inkluderet: "Materialer inkluderet i timeprisen",
-  dokumenteret_pris: "Materialer faktureres til dokumenteret indkøbspris",
-  dokumenteret_pris_med_tillaeg: "Materialer faktureres til dokumenteret indkøbspris + tillæg",
-};
-
 export default function HaandvaerkerEkstraarbejde({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const supabase = createClient();
 
-  const [userId, setUserId]       = useState<string | null>(null);
   const [brugerNavn, setBrugerNavn] = useState("");
   const [sedler, setSedler]       = useState<Sedel[]>([]);
   const [indlæser, setIndlæser]   = useState(true);
   const [aktivSedel, setAktivSedel] = useState<Sedel | null>(null);
-  const [sender, setSender]       = useState(false);
-  const [svarFejl, setSvarFejl]   = useState<string | null>(null);
-
-  // Udfyld-formular
-  const [prisform, setPrisform]           = useState<"fast" | "medgaaet_tid">("fast");
-  const [pris, setPris]                   = useState("");
-  const [timepris, setTimepris]           = useState("");
-  const [materialeAfregning, setMaterialeAfregning] = useState<MaterialeAfregning>("inkluderet");
-  const [tillaegProcent, setTillaegProcent] = useState("");
-  const [prisoverslag, setPrisoverslag]   = useState("");
-  const [dage, setDage]                   = useState("");
-  const [besked, setBesked]               = useState("");
 
   // Billeder pr. aftaleseddel, hentet via signerede læse-URLs — samme
   // mønster som bygherresidens projekt/[id]/ekstraarbejde/page.tsx.
@@ -79,7 +59,6 @@ export default function HaandvaerkerEkstraarbejde({ params }: { params: Promise<
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return;
-      setUserId(user.id);
       const { data: profil } = await supabase.from("profiler").select("navn").eq("id", user.id).single();
       setBrugerNavn(profil?.navn || user.email?.split("@")[0] || "Entreprenør");
     });
@@ -113,66 +92,6 @@ export default function HaandvaerkerEkstraarbejde({ params }: { params: Promise<
 
   useEffect(() => { hentData(); }, [hentData]);
 
-  function åbnSedel(s: Sedel) {
-    setAktivSedel(s);
-    setPrisform(s.haandvaerker_pris_type === "medgaaet_tid" ? "medgaaet_tid" : "fast");
-    setPris(s.haandvaerker_pris !== null ? String(s.haandvaerker_pris) : "");
-    setTimepris(s.haandvaerker_timepris !== null ? String(s.haandvaerker_timepris) : "");
-    setMaterialeAfregning(s.materiale_afregning || "inkluderet");
-    setTillaegProcent(s.materiale_tillaeg_procent !== null ? String(s.materiale_tillaeg_procent) : "");
-    setPrisoverslag(s.haandvaerker_prisoverslag !== null ? String(s.haandvaerker_prisoverslag) : "");
-    setDage(s.haandvaerker_tidsdage !== null ? String(s.haandvaerker_tidsdage) : "");
-    setBesked(s.haandvaerker_besked || "");
-    setSvarFejl(null);
-  }
-
-  const kanSende = prisform === "fast"
-    ? pris !== "" && dage !== ""
-    : timepris !== "" && dage !== "" && (materialeAfregning !== "dokumenteret_pris_med_tillaeg" || tillaegProcent !== "");
-
-  async function indsendSvar() {
-    if (!kanSende || !userId || sender || !aktivSedel) return;
-    setSender(true);
-    setSvarFejl(null);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        setSvarFejl("Din session er udløbet. Log ind igen for at fortsætte.");
-        return;
-      }
-      const body: Record<string, unknown> = {
-        haandvaerker_pris_type: prisform,
-        haandvaerker_tidsdage: dage !== "" ? parseInt(dage) : null,
-        haandvaerker_besked: besked.trim() || null,
-      };
-      if (prisform === "fast") {
-        body.haandvaerker_pris = parseFloat(pris);
-      } else {
-        body.haandvaerker_timepris = parseFloat(timepris);
-        body.materiale_afregning = materialeAfregning;
-        body.materiale_tillaeg_procent = materialeAfregning === "dokumenteret_pris_med_tillaeg" ? parseFloat(tillaegProcent) : null;
-        body.haandvaerker_prisoverslag = prisoverslag !== "" ? parseFloat(prisoverslag) : null;
-      }
-      const res = await fetch(`/api/ekstraarbejde/${aktivSedel.id}/svar`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setSvarFejl(data.error || "Kunne ikke sende svaret. Prøv igen.");
-        return;
-      }
-      setAktivSedel(null);
-      hentData();
-    } finally {
-      setSender(false);
-    }
-  }
-
   const afventer = sedler.filter(s => s.status === "afventer_entreprenoer").length;
 
   return (
@@ -190,140 +109,13 @@ export default function HaandvaerkerEkstraarbejde({ params }: { params: Promise<
           </p>
         </div>
 
-        {/* Udfyld-modal */}
         {aktivSedel && (
-          <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:p-4">
-            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
-
-              {/* Bygherrens anmodning — læsbar kontekst, ikke en del af formularen */}
-              <div className="bg-[#f0f7f3] px-6 pt-6 pb-5 border-b border-[#1e3a2a]/10">
-                <p className="text-xs font-semibold text-[#1e3a2a]/70 uppercase tracking-widest mb-2">Bygherrens anmodning</p>
-                <p className="text-sm text-gray-800 leading-relaxed break-words">{aktivSedel.beskrivelse}</p>
-
-                {(sedelBilleder[aktivSedel.id]?.length ?? 0) > 0 && (
-                  <div className="flex gap-2 flex-wrap mt-3">
-                    {sedelBilleder[aktivSedel.id].map(b => b.url && (
-                      <button key={b.id} onClick={() => setLightboxUrl(b.url)}>
-                        <img src={b.url} alt={b.billedtekst || "Billede fra bygherre"}
-                          className="w-16 h-16 object-cover rounded-xl border border-[#1e3a2a]/15 hover:opacity-90 transition-opacity" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                <p className="text-xs text-[#1e3a2a]/60 mt-3">
-                  Fra {aktivSedel.oprettet_af_navn || "bygherre"} · {fmtDato(aktivSedel.oprettet_at)}
-                </p>
-              </div>
-
-              <div className="px-6 pt-5 pb-6">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">Dit svar</p>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Prisform</label>
-                    <div className="flex gap-2">
-                      {(["fast", "medgaaet_tid"] as const).map(t => (
-                        <button key={t} onClick={() => setPrisform(t)}
-                          className={`flex-1 py-2.5 min-h-[44px] rounded-xl border-2 text-sm font-semibold transition-all ${
-                            prisform === t ? "border-[#1e3a2a] bg-[#1e3a2a]/5 text-[#1e3a2a]" : "border-[#e0ddd6] text-gray-500"
-                          }`}>
-                          {t === "fast" ? "Fast pris" : "Medgået tid"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {prisform === "fast" ? (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Fast pris inkl. moms (kr.)</label>
-                        <input type="number" min="0" value={pris} onChange={e => setPris(e.target.value)} placeholder="0"
-                          className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Tidskonsekvens (dage)</label>
-                        <input type="number" min="0" value={dage} onChange={e => setDage(e.target.value)} placeholder="0"
-                          className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
-                        <p className="text-xs text-gray-400 mt-1">0 dage betyder ingen tidsforlængelse.</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Timepris inkl. moms (kr.)</label>
-                        <input type="number" min="0" value={timepris} onChange={e => setTimepris(e.target.value)} placeholder="0"
-                          className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Materialer</label>
-                        <div className="space-y-2">
-                          {(Object.keys(materialeLabel) as MaterialeAfregning[]).map(m => (
-                            <button key={m} onClick={() => setMaterialeAfregning(m)}
-                              className={`w-full text-left px-4 py-2.5 min-h-[44px] rounded-xl border-2 text-sm transition-all ${
-                                materialeAfregning === m ? "border-[#1e3a2a] bg-[#1e3a2a]/5 text-[#1e3a2a] font-semibold" : "border-[#e0ddd6] text-gray-600"
-                              }`}>
-                              {materialeLabel[m]}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {materialeAfregning === "dokumenteret_pris_med_tillaeg" && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Tillæg i %</label>
-                          <input type="number" min="0" value={tillaegProcent} onChange={e => setTillaegProcent(e.target.value)} placeholder="0"
-                            className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Prisoverslag inkl. moms (valgfrit)</label>
-                          <input type="number" min="0" value={prisoverslag} onChange={e => setPrisoverslag(e.target.value)} placeholder="0"
-                            className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Tidskonsekvens (dage)</label>
-                          <input type="number" min="0" value={dage} onChange={e => setDage(e.target.value)} placeholder="0"
-                            className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
-                          <p className="text-xs text-gray-400 mt-1">0 dage betyder ingen tidsforlængelse.</p>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Note til bygherre (valgfrit)</label>
-                    <textarea rows={2} value={besked} onChange={e => setBesked(e.target.value)}
-                      placeholder="F.eks. forudsætninger, materialevalg, hvad der er inkluderet..."
-                      className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none" />
-                  </div>
-                </div>
-
-                <div className="bg-[#1e3a2a]/5 border border-[#1e3a2a]/10 rounded-xl px-4 py-3 mt-4">
-                  <p className="text-xs text-[#1e3a2a] leading-relaxed">
-                    Dit svar logges med navn og tidsstempel som <strong>{brugerNavn}</strong>. Bygherre skal herefter godkende inden arbejdet kan påbegyndes.
-                  </p>
-                </div>
-
-                {svarFejl && (
-                  <p className="text-xs text-red-600 font-medium mt-3">{svarFejl}</p>
-                )}
-
-                <div className="flex gap-3 mt-5">
-                  <button onClick={() => { setAktivSedel(null); setSvarFejl(null); }}
-                    className="flex-1 py-3 min-h-[44px] rounded-xl border border-[#e0ddd6] text-gray-600 text-sm font-medium hover:bg-gray-50">
-                    Annuller
-                  </button>
-                  <button onClick={indsendSvar} disabled={!kanSende || sender}
-                    className="flex-1 py-3 min-h-[44px] rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 disabled:opacity-40 transition-all">
-                    {sender ? "Sender..." : "Send svar til bygherre"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <AftaleseddelSvarModal
+            sedel={aktivSedel}
+            brugerNavn={brugerNavn}
+            onLuk={() => setAktivSedel(null)}
+            onSvarSendt={() => { setAktivSedel(null); hentData(); }}
+          />
         )}
 
         {indlæser ? (
@@ -439,7 +231,7 @@ export default function HaandvaerkerEkstraarbejde({ params }: { params: Promise<
 
                   {/* Handling */}
                   {s.status === "afventer_entreprenoer" && (
-                    <button onClick={() => åbnSedel(s)}
+                    <button onClick={() => setAktivSedel(s)}
                       className="w-full mt-3 py-2.5 min-h-[44px] bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity">
                       Udfyld pris og tid
                     </button>
