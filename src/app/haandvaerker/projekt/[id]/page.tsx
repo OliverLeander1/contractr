@@ -37,6 +37,7 @@ interface Sedel {
   id: string;
   beskrivelse: string;
   status: string;
+  oprettet_af_navn: string | null;
   haandvaerker_pris: number | null;
   haandvaerker_pris_type: string | null;
   haandvaerker_timepris: number | null;
@@ -48,6 +49,13 @@ interface Sedel {
   haandvaerker_udfyldt_at: string | null;
   bygherre_godkendt_at: string | null;
   oprettet_at: string;
+}
+
+interface SedelBillede {
+  id: string;
+  billedtekst: string | null;
+  oprettet_at: string;
+  url: string | null;
 }
 
 const materialeLabelKort: Record<string, string> = {
@@ -113,6 +121,25 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
   const [svarBesked, setSvarBesked] = useState("");
   const [gemmer, setGemmer] = useState(false);
 
+  // Billeder pr. aftaleseddel, hentet via signerede læse-URLs — aldrig fra
+  // den gamle base64-kolonne. Samme mønster som bygherresidens
+  // projekt/[id]/ekstraarbejde/page.tsx.
+  const [sedelBilleder, setSedelBilleder] = useState<Record<string, SedelBillede[]>>({});
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  async function hentSedelBilleder(sedler: Sedel[], accessToken: string) {
+    await Promise.all(sedler.map(async (s) => {
+      const res = await fetch(`/api/ekstraarbejde/${s.id}/billeder`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json().catch(() => null);
+      if (data?.billeder) {
+        setSedelBilleder((prev) => ({ ...prev, [s.id]: data.billeder }));
+      }
+    }));
+  }
+
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -132,6 +159,9 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
       setSedler(data.sedler);
       setMangler(data.mangler);
       setIndlæser(false);
+      if (session?.access_token && data.sedler?.length > 0) {
+        hentSedelBilleder(data.sedler, session.access_token);
+      }
     });
   }, [id]);
 
@@ -423,57 +453,74 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
                 <p className="text-sm text-gray-500">Ingen aftalesedler på dette projekt endnu.</p>
               </div>
-            ) : sedler.map(s => (
-              <div key={s.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <p className="text-sm font-semibold text-gray-900 flex-1">{s.beskrivelse}</p>
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${(statusLabel[s.status] ?? { klasse: "bg-gray-100 text-gray-600" }).klasse}`}>
-                    {(statusLabel[s.status] ?? { label: s.status }).label}
-                  </span>
+            ) : sedler.map(s => {
+              const billeder = sedelBilleder[s.id] ?? [];
+              const forsideBillede = billeder.find(b => b.url)?.url ?? null;
+              return (
+              <div key={s.id} className="bg-white rounded-2xl border border-[#e0ddd6] p-5">
+                <div className="flex gap-4">
+                  {forsideBillede && (
+                    <button onClick={() => setLightboxUrl(forsideBillede)} className="flex-shrink-0">
+                      <img src={forsideBillede} alt="Billede fra bygherre"
+                        className="w-16 h-16 rounded-xl object-cover border border-[#e0ddd6] hover:opacity-90 transition-opacity" />
+                    </button>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3 mb-1">
+                      <p className="text-sm font-semibold text-gray-900 flex-1 break-words">{s.beskrivelse}</p>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${(statusLabel[s.status] ?? { klasse: "bg-gray-100 text-gray-600" }).klasse}`}>
+                        {(statusLabel[s.status] ?? { label: s.status }).label}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-2">
+                      Fra {s.oprettet_af_navn || "bygherre"} · {fmtDato(s.oprettet_at)}
+                      {billeder.length > 0 ? ` · ${billeder.length} billede${billeder.length > 1 ? "r" : ""}` : ""}
+                    </p>
+                    {s.haandvaerker_pris_type === "fast" && s.haandvaerker_pris != null && (
+                      <p className="text-sm text-gray-600 mb-1">Fast pris inkl. moms: <span className="font-semibold">{fmtKr(s.haandvaerker_pris)}</span></p>
+                    )}
+                    {s.haandvaerker_pris_type === "medgaaet_tid" && (
+                      <>
+                        {s.haandvaerker_timepris != null && (
+                          <p className="text-sm text-gray-600 mb-1">Timepris inkl. moms: <span className="font-semibold">{fmtKr(s.haandvaerker_timepris)}</span></p>
+                        )}
+                        {s.materiale_afregning && (
+                          <p className="text-sm text-gray-600 mb-1">
+                            {materialeLabelKort[s.materiale_afregning] ?? s.materiale_afregning}
+                            {s.materiale_afregning === "dokumenteret_pris_med_tillaeg" && s.materiale_tillaeg_procent != null ? ` (${s.materiale_tillaeg_procent} %)` : ""}
+                          </p>
+                        )}
+                        {s.haandvaerker_prisoverslag != null && (
+                          <p className="text-sm text-gray-600 mb-1">Prisoverslag inkl. moms: <span className="font-semibold">{fmtKr(s.haandvaerker_prisoverslag)}</span> (ikke en fast maksimal pris)</p>
+                        )}
+                      </>
+                    )}
+                    {s.haandvaerker_tidsdage != null && (
+                      <p className="text-sm text-gray-600 mb-1">Tidskonsekvens: <span className="font-semibold">{s.haandvaerker_tidsdage === 0 ? "ingen tidsforlængelse" : `${s.haandvaerker_tidsdage} dage`}</span></p>
+                    )}
+                    {s.haandvaerker_besked && (
+                      <p className="text-sm text-gray-500 italic mb-2">&ldquo;{s.haandvaerker_besked}&rdquo;</p>
+                    )}
+                    {s.status === "afventer_entreprenoer" && (
+                      <button onClick={() => {
+                        setÅbnSedel(s);
+                        setSvarPrisform(s.haandvaerker_pris_type === "medgaaet_tid" ? "medgaaet_tid" : "fast");
+                        setSvarPris(s.haandvaerker_pris != null ? s.haandvaerker_pris.toString() : "");
+                        setSvarTimepris(s.haandvaerker_timepris != null ? s.haandvaerker_timepris.toString() : "");
+                        setSvarMaterialeAfregning((s.materiale_afregning as "inkluderet" | "dokumenteret_pris" | "dokumenteret_pris_med_tillaeg") ?? "inkluderet");
+                        setSvarTillaegProcent(s.materiale_tillaeg_procent != null ? s.materiale_tillaeg_procent.toString() : "");
+                        setSvarPrisoverslag(s.haandvaerker_prisoverslag != null ? s.haandvaerker_prisoverslag.toString() : "");
+                        setSvarDage(s.haandvaerker_tidsdage != null ? s.haandvaerker_tidsdage.toString() : "");
+                        setSvarBesked(s.haandvaerker_besked ?? "");
+                      }} className="mt-3 text-sm font-semibold bg-[#1e3a2a] text-white px-4 py-2.5 rounded-lg hover:opacity-90 transition-opacity min-h-[44px]">
+                        Svar på aftaleseddel
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {s.haandvaerker_pris_type === "fast" && s.haandvaerker_pris != null && (
-                  <p className="text-sm text-gray-600 mb-1">Fast pris inkl. moms: <span className="font-semibold">{fmtKr(s.haandvaerker_pris)}</span></p>
-                )}
-                {s.haandvaerker_pris_type === "medgaaet_tid" && (
-                  <>
-                    {s.haandvaerker_timepris != null && (
-                      <p className="text-sm text-gray-600 mb-1">Timepris inkl. moms: <span className="font-semibold">{fmtKr(s.haandvaerker_timepris)}</span></p>
-                    )}
-                    {s.materiale_afregning && (
-                      <p className="text-sm text-gray-600 mb-1">
-                        {materialeLabelKort[s.materiale_afregning] ?? s.materiale_afregning}
-                        {s.materiale_afregning === "dokumenteret_pris_med_tillaeg" && s.materiale_tillaeg_procent != null ? ` (${s.materiale_tillaeg_procent} %)` : ""}
-                      </p>
-                    )}
-                    {s.haandvaerker_prisoverslag != null && (
-                      <p className="text-sm text-gray-600 mb-1">Prisoverslag inkl. moms: <span className="font-semibold">{fmtKr(s.haandvaerker_prisoverslag)}</span> (ikke en fast maksimal pris)</p>
-                    )}
-                  </>
-                )}
-                {s.haandvaerker_tidsdage != null && (
-                  <p className="text-sm text-gray-600 mb-1">Tidskonsekvens: <span className="font-semibold">{s.haandvaerker_tidsdage === 0 ? "ingen tidsforlængelse" : `${s.haandvaerker_tidsdage} dage`}</span></p>
-                )}
-                {s.haandvaerker_besked && (
-                  <p className="text-sm text-gray-500 italic mb-2">"{s.haandvaerker_besked}"</p>
-                )}
-                <p className="text-xs text-gray-400">Oprettet {fmtDato(s.oprettet_at)}</p>
-                {s.status === "afventer_entreprenoer" && (
-                  <button onClick={() => {
-                    setÅbnSedel(s);
-                    setSvarPrisform(s.haandvaerker_pris_type === "medgaaet_tid" ? "medgaaet_tid" : "fast");
-                    setSvarPris(s.haandvaerker_pris != null ? s.haandvaerker_pris.toString() : "");
-                    setSvarTimepris(s.haandvaerker_timepris != null ? s.haandvaerker_timepris.toString() : "");
-                    setSvarMaterialeAfregning((s.materiale_afregning as "inkluderet" | "dokumenteret_pris" | "dokumenteret_pris_med_tillaeg") ?? "inkluderet");
-                    setSvarTillaegProcent(s.materiale_tillaeg_procent != null ? s.materiale_tillaeg_procent.toString() : "");
-                    setSvarPrisoverslag(s.haandvaerker_prisoverslag != null ? s.haandvaerker_prisoverslag.toString() : "");
-                    setSvarDage(s.haandvaerker_tidsdage != null ? s.haandvaerker_tidsdage.toString() : "");
-                    setSvarBesked(s.haandvaerker_besked ?? "");
-                  }} className="mt-3 text-sm font-semibold bg-[#1e3a2a] text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
-                    Svar på aftaleseddel
-                  </button>
-                )}
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -521,86 +568,127 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
 
       {/* Svar-modal */}
       {åbnSedel && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
-            <h3 className="font-bold text-gray-900 mb-1">Svar på aftaleseddel</h3>
-            <p className="text-sm text-gray-500 mb-5 leading-relaxed">{åbnSedel.beskrivelse}</p>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                {(["fast", "medgaaet_tid"] as const).map(t => (
-                  <button key={t} onClick={() => setSvarPrisform(t)}
-                    className={`py-2.5 text-sm font-semibold rounded-xl border transition-all ${svarPrisform === t ? "bg-[#1e3a2a] text-white border-[#1e3a2a]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
-                    {t === "fast" ? "Fast pris" : "Medgået tid"}
-                  </button>
-                ))}
-              </div>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-md max-h-[92vh] overflow-y-auto">
 
-              {svarPrisform === "fast" ? (
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Fast pris inkl. moms (kr.)</label>
-                  <input type="number" min="0" value={svarPris} onChange={e => setSvarPris(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 12500" />
+            {/* Bygherrens anmodning — læsbar kontekst, ikke en del af formularen */}
+            <div className="bg-[#f0f7f3] px-6 pt-6 pb-5 border-b border-[#1e3a2a]/10">
+              <p className="text-xs font-semibold text-[#1e3a2a]/70 uppercase tracking-widest mb-2">Bygherrens anmodning</p>
+              <p className="text-sm text-gray-800 leading-relaxed break-words">{åbnSedel.beskrivelse}</p>
+
+              {(sedelBilleder[åbnSedel.id]?.length ?? 0) > 0 && (
+                <div className="flex gap-2 flex-wrap mt-3">
+                  {sedelBilleder[åbnSedel.id].map(b => b.url && (
+                    <button key={b.id} onClick={() => setLightboxUrl(b.url)}>
+                      <img src={b.url} alt={b.billedtekst || "Billede fra bygherre"}
+                        className="w-16 h-16 object-cover rounded-xl border border-[#1e3a2a]/15 hover:opacity-90 transition-opacity" />
+                    </button>
+                  ))}
                 </div>
-              ) : (
-                <>
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Timepris inkl. moms (kr.)</label>
-                    <input type="number" min="0" value={svarTimepris} onChange={e => setSvarTimepris(e.target.value)}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 650" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Materialer</label>
-                    <div className="space-y-2">
-                      {([
-                        ["inkluderet", "Inkluderet i timeprisen"],
-                        ["dokumenteret_pris", "Til dokumenteret indkøbspris"],
-                        ["dokumenteret_pris_med_tillaeg", "Til dokumenteret indkøbspris + tillæg"],
-                      ] as const).map(([val, label]) => (
-                        <button key={val} onClick={() => setSvarMaterialeAfregning(val)}
-                          className={`w-full text-left px-4 py-2.5 rounded-xl border text-sm transition-all ${svarMaterialeAfregning === val ? "border-[#1e3a2a] bg-[#1e3a2a]/5 text-[#1e3a2a] font-semibold" : "border-gray-200 text-gray-600"}`}>
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  {svarMaterialeAfregning === "dokumenteret_pris_med_tillaeg" && (
-                    <div>
-                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Tillæg i %</label>
-                      <input type="number" min="0" value={svarTillaegProcent} onChange={e => setSvarTillaegProcent(e.target.value)}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 10" />
-                    </div>
-                  )}
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Prisoverslag inkl. moms (valgfrit)</label>
-                    <input type="number" min="0" value={svarPrisoverslag} onChange={e => setSvarPrisoverslag(e.target.value)}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="Valgfrit" />
-                  </div>
-                </>
               )}
 
-              <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Tidskonsekvens (dage)</label>
-                <input type="number" min="0" value={svarDage} onChange={e => setSvarDage(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 3" />
-                <p className="text-xs text-gray-400 mt-1">0 dage betyder ingen tidsforlængelse.</p>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Besked (valgfri)</label>
-                <textarea value={svarBesked} onChange={e => setSvarBesked(e.target.value)} rows={3}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20 resize-none" placeholder="Eventuelle kommentarer" />
+              <div className="flex items-center gap-2 flex-wrap mt-3 text-xs text-[#1e3a2a]/60">
+                <span>{åbnSedel.oprettet_af_navn || "Bygherre"}</span>
+                <span>·</span>
+                <span>{fmtDato(åbnSedel.oprettet_at)}</span>
+                <span className={`font-semibold px-2 py-0.5 rounded-full ${(statusLabel[åbnSedel.status] ?? { klasse: "bg-gray-100 text-gray-600" }).klasse}`}>
+                  {(statusLabel[åbnSedel.status] ?? { label: åbnSedel.status }).label}
+                </span>
               </div>
             </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => { setÅbnSedel(null); setFejl(""); }} className="flex-1 py-3 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50">Annuller</button>
-              <button onClick={svarPåSeddel} disabled={gemmer}
-                className="flex-1 py-3 text-sm font-semibold bg-[#1e3a2a] text-white rounded-xl hover:opacity-90 disabled:opacity-50">
-                {gemmer ? "Sender..." : "Send svar"}
-              </button>
+
+            {/* Dit svar — entreprenørens eget input */}
+            <div className="px-6 pt-5 pb-6">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">Dit svar</p>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {(["fast", "medgaaet_tid"] as const).map(t => (
+                    <button key={t} onClick={() => setSvarPrisform(t)}
+                      className={`py-2.5 min-h-[44px] text-sm font-semibold rounded-xl border transition-all ${svarPrisform === t ? "bg-[#1e3a2a] text-white border-[#1e3a2a]" : "border-[#e0ddd6] text-gray-600 hover:border-gray-300"}`}>
+                      {t === "fast" ? "Fast pris" : "Medgået tid"}
+                    </button>
+                  ))}
+                </div>
+
+                {svarPrisform === "fast" ? (
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Fast pris inkl. moms (kr.)</label>
+                    <input type="number" min="0" value={svarPris} onChange={e => setSvarPris(e.target.value)}
+                      className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 12500" />
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Timepris inkl. moms (kr.)</label>
+                      <input type="number" min="0" value={svarTimepris} onChange={e => setSvarTimepris(e.target.value)}
+                        className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 650" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Materialer</label>
+                      <div className="space-y-2">
+                        {([
+                          ["inkluderet", "Inkluderet i timeprisen"],
+                          ["dokumenteret_pris", "Til dokumenteret indkøbspris"],
+                          ["dokumenteret_pris_med_tillaeg", "Til dokumenteret indkøbspris + tillæg"],
+                        ] as const).map(([val, label]) => (
+                          <button key={val} onClick={() => setSvarMaterialeAfregning(val)}
+                            className={`w-full text-left px-4 py-2.5 min-h-[44px] rounded-xl border text-sm transition-all ${svarMaterialeAfregning === val ? "border-[#1e3a2a] bg-[#1e3a2a]/5 text-[#1e3a2a] font-semibold" : "border-[#e0ddd6] text-gray-600"}`}>
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {svarMaterialeAfregning === "dokumenteret_pris_med_tillaeg" && (
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Tillæg i %</label>
+                        <input type="number" min="0" value={svarTillaegProcent} onChange={e => setSvarTillaegProcent(e.target.value)}
+                          className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 10" />
+                      </div>
+                    )}
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Prisoverslag inkl. moms (valgfrit)</label>
+                      <input type="number" min="0" value={svarPrisoverslag} onChange={e => setSvarPrisoverslag(e.target.value)}
+                        className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="Valgfrit" />
+                    </div>
+                  </>
+                )}
+
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Tidskonsekvens (dage)</label>
+                  <input type="number" min="0" value={svarDage} onChange={e => setSvarDage(e.target.value)}
+                    className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20" placeholder="F.eks. 3" />
+                  <p className="text-xs text-gray-400 mt-1">0 dage betyder ingen tidsforlængelse.</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5">Besked (valgfri)</label>
+                  <textarea value={svarBesked} onChange={e => setSvarBesked(e.target.value)} rows={3}
+                    className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a2a]/20 resize-none" placeholder="Eventuelle kommentarer" />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => { setÅbnSedel(null); setFejl(""); }} className="flex-1 py-3 min-h-[44px] text-sm font-semibold text-gray-600 border border-[#e0ddd6] rounded-xl hover:bg-gray-50">Annuller</button>
+                <button onClick={svarPåSeddel} disabled={gemmer}
+                  className="flex-1 py-3 min-h-[44px] text-sm font-semibold bg-[#1e3a2a] text-white rounded-xl hover:opacity-90 disabled:opacity-50">
+                  {gemmer ? "Sender..." : "Send svar"}
+                </button>
+              </div>
+              {fejl && (
+                <p className="text-xs text-red-600 font-medium mt-3">{fejl}</p>
+              )}
             </div>
-            {fejl && (
-              <p className="text-xs text-red-600 font-medium mt-3">{fejl}</p>
-            )}
           </div>
+        </div>
+      )}
+
+      {/* Billed-lightbox — genbruges af listekortet og svar-modalen */}
+      {lightboxUrl && (
+        <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4" onClick={() => setLightboxUrl(null)}>
+          <button onClick={() => setLightboxUrl(null)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            aria-label="Luk">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+          <img src={lightboxUrl} alt="Billede fra bygherre" className="max-w-full max-h-full rounded-xl object-contain" onClick={e => e.stopPropagation()} />
         </div>
       )}
     </div>
