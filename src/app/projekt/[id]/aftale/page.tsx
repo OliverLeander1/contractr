@@ -9,6 +9,7 @@ import DokumentRenderer from "@/components/DokumentRenderer";
 import { erV2Dokument, parseV2Sektioner, byggV2Dokument, indeholderKonkretDato } from "@/lib/dokumentV2";
 import { fmtBesigtigelseDatoLang, erBesigtigelsePasseret, hentEffektivDatoTid, fmtTidsinterval } from "@/lib/besigtigelse";
 import { findUafklaredeForslag } from "@/lib/kontraktGodkendelse";
+import { hentOprindeligAftaltSlutdato } from "@/lib/kontraktSlutdato";
 import { Plus, UserPlus } from "lucide-react";
 
 interface BesigtigelseTidspunktRad {
@@ -1323,6 +1324,11 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               }
 
               const godkendt = tp.godkendt_af_bygherre;
+              // Canonical, allerede godkendt slutdato — bruges kun til selve
+              // visningen af den endeligt aftalte dato (senere i dette
+              // afsnit). Bruger den seneste slutdato blandt ALLE faser, ikke
+              // kun faser[0], for korrekt multi-fase-understøttelse.
+              const canonicalSlutdato = hentOprindeligAftaltSlutdato(kontrakt);
 
               // Tjek om entreprenøren har foreslået andre datoer end bygherre ønskede
               const fase = tp.faser?.[0];
@@ -1427,7 +1433,9 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                             </div>
                           ) : (
                             <p className={`text-sm font-bold mt-1 ${godkendt ? "text-green-700" : "text-gray-900"}`}>
-                              {entSlutdato ? fmtDatoKort(entSlutdato) : (bygSlutdato ? fmtDatoKort(bygSlutdato) : "—")}
+                              {godkendt
+                                ? (canonicalSlutdato ? fmtDatoKort(canonicalSlutdato) : "—")
+                                : (entSlutdato ? fmtDatoKort(entSlutdato) : (bygSlutdato ? fmtDatoKort(bygSlutdato) : "—"))}
                             </p>
                           )}
                         </div>

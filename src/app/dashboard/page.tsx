@@ -10,6 +10,7 @@ import {
   type BesigtigelseData,
 } from "@/lib/besigtigelse";
 import { FileText, ArrowRight, Trash2, Plus } from "lucide-react";
+import { hentOprindeligAftaltSlutdato } from "@/lib/kontraktSlutdato";
 
 interface Projekt {
   id: string;
@@ -35,7 +36,12 @@ interface Aftale {
   slutdato: string | null;
   total_pris: number | null;
   betalingsplan: { milepæl: string; andel: string }[] | null;
-  tidsplan: { godkendt_af_bygherre: boolean; indsendt_at: string | null } | null;
+  tidsplan: {
+    type?: string;
+    faser?: { navn?: string; startdato?: string; slutdato?: string }[];
+    godkendt_af_bygherre: boolean;
+    indsendt_at: string | null;
+  } | null;
   forudsaetninger_sendt_at: string | null;
   forudsaetninger_godkendt: boolean | null;
   tilbud_dokument_url: string | null;
@@ -322,9 +328,10 @@ export default function Dashboard() {
     if (a.status === "begge_godkendt") {
       const relateretProjekt = projekter.find(p => p.id === a.projekt_id);
       const statusTekst = relateretProjekt ? (statusLabel[relateretProjekt.status] || "Aftalt") : "Aftalt";
+      const aftaltSlutdato = hentOprindeligAftaltSlutdato(a);
       let datoTekst: string | null = null;
-      if (a.slutdato) {
-        datoTekst = `Forventet aflevering ${fmtDatoLang(a.slutdato)}`;
+      if (aftaltSlutdato) {
+        datoTekst = `Forventet aflevering ${fmtDatoLang(aftaltSlutdato)}`;
       } else if (a.startdato) {
         datoTekst = `Opstart ${fmtDatoLang(a.startdato)}`;
       }
@@ -338,7 +345,7 @@ export default function Dashboard() {
       // 3) Ingen datoer: sidst, i uændret rækkefølge.
       let sorteringsNoegle = Number.MAX_SAFE_INTEGER;
       const start = a.startdato ? new Date(a.startdato).getTime() : null;
-      const slut = a.slutdato ? new Date(a.slutdato).getTime() : null;
+      const slut = aftaltSlutdato ? new Date(aftaltSlutdato).getTime() : null;
       if (start !== null && slut !== null && slut > start && nuTidsstempel !== null) {
         const fraktion = Math.min(1, Math.max(0, (nuTidsstempel - start) / (slut - start)));
         sorteringsNoegle = -fraktion; // mest fremskreden (højeste fraktion) først

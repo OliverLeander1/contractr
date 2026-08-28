@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
+import { hentOprindeligAftaltSlutdato } from "@/lib/kontraktSlutdato";
 import { Resend } from "resend";
 
 export const runtime = "nodejs";
 
+// Et påkrav er en juridisk betydningsfuld handling (AB-Forbruger 2012).
+// Serveren skal derfor selv verificere autentifikation, ejerskab og
+// kontraktens livscyklus, før nogen sideeffekt (logbog-skrivning, email)
+// finder sted — et autentificeret request alene er ikke tilstrækkeligt.
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
@@ -20,13 +25,59 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "kontrakt_id og besked er påkrævet" }, { status: 400 });
   }
 
+  // kontrakt_id fra klienten bruges kun som lookup-key. Alle autoritative
+  // værdier (ejerskab, status, godkendelsestidsstempler, entreprenørens
+  // e-mail, projekt_id, aftalt slutdato) udledes udelukkende af den
+  // verificerede kontraktrække herunder — aldrig af klientens body.
   const { data: kontrakt } = await db
     .from("kontrakter")
-    .select("haandvaerker_email, haandvaerker_navn, haandvaerker_firma, titel, projekt_id, haandvaerker_token, slutdato")
+    .select("bygherre_id, status, bygherre_godkendt_at, haandvaerker_godkendt_at, haandvaerker_email, haandvaerker_navn, haandvaerker_firma, titel, projekt_id, haandvaerker_token, slutdato, tidsplan")
     .eq("id", kontrakt_id)
     .single();
 
   if (!kontrakt) return NextResponse.json({ error: "Kontrakt ikke fundet" }, { status: 404 });
+
+  // Ownership — den verificerede bruger skal være denne konkrete kontrakts
+  // bygherre. Intet klientsendt bruger-id/rolle/email accepteres som authority.
+  if (kontrakt.bygherre_id !== user.id) {
+    return NextResponse.json({ error: "Du har ikke adgang til denne kontrakt" }, { status: 403 });
+  }
+
+  // Lifecycle — status alene antages ikke synkron med godkendelses-
+  // tidsstemplerne (dokumenteret risiko for divergens andre steder i
+  // kodebasen), så alle tre kræves eksplicit som defense-in-depth.
+  const erEndeligtIndgaaet = !!(
+    kontrakt.status === "begge_godkendt" &&
+    kontrakt.bygherre_godkendt_at &&
+    kontrakt.haandvaerker_godkendt_at
+  );
+  if (!erEndeligtIndgaaet) {
+    return NextResponse.json(
+      { error: "Der kan først sendes påkrav, når aftalegrundlaget er endeligt indgået af begge parter." },
+      { status: 409 }
+    );
+  }
+
+  // Canonical aftalt slutdato (Canonical contract deadline v1) — samme
+  // udledning som resten af platformen, ikke den rå kontrakt.slutdato.
+  const aftaltSlutdato = hentOprindeligAftaltSlutdato(kontrakt);
+  if (!aftaltSlutdato) {
+    return NextResponse.json({ error: "Der er ikke aftalt en slutdato på denne kontrakt." }, { status: 409 });
+  }
+
+  // Deadline skal faktisk være overskredet — samme dato-konvention som
+  // DeadlineTæller (kalenderdag-sammenligning, ikke inkl. selve slutdatoen).
+  const nu = new Date();
+  nu.setHours(0, 0, 0, 0);
+  const slut = new Date(aftaltSlutdato);
+  slut.setHours(0, 0, 0, 0);
+  if (slut >= nu) {
+    return NextResponse.json(
+      { error: "Den aftalte afleveringsdato er endnu ikke overskredet." },
+      { status: 409 }
+    );
+  }
+
   if (!kontrakt.haandvaerker_email) return NextResponse.json({ error: "Ingen e-mail på entreprenøren" }, { status: 422 });
 
   // Gem påkrav i logbog som dokumentation
@@ -51,9 +102,7 @@ export async function POST(req: NextRequest) {
   const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
   const link = `${baseUrl}/kontrakt/${kontrakt.haandvaerker_token}`;
 
-  const datoFormateret = kontrakt.slutdato
-    ? new Date(kontrakt.slutdato).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" })
-    : null;
+  const datoFormateret = new Date(aftaltSlutdato).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
 
   const nyFristFormateret = ny_frist
     ? new Date(ny_frist).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" })

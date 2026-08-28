@@ -4,6 +4,7 @@ import { use, useEffect, useState, useRef } from "react";
 import ProjektNav from "@/components/ProjektNav";
 import DeadlineTæller from "@/components/DeadlineTæller";
 import { createClient } from "@/lib/supabase";
+import { hentOprindeligAftaltSlutdato } from "@/lib/kontraktSlutdato";
 
 interface LogEntry {
   id: string;
@@ -46,13 +47,22 @@ export default function Logbog({ params }: { params: Promise<{ id: string }> }) 
 
       const [{ data: profil }, { data: kontrakt }, { data: logs }] = await Promise.all([
         supabase.from("profiler").select("navn").eq("id", user.id).single(),
-        supabase.from("kontrakter").select("startdato, slutdato").eq("projekt_id", id).order("oprettet_at", { ascending: false }).limit(1).single(),
+        supabase.from("kontrakter").select("startdato, slutdato, tidsplan, status, bygherre_godkendt_at, haandvaerker_godkendt_at").eq("projekt_id", id).order("oprettet_at", { ascending: false }).limit(1).single(),
         fetch(`/api/logbog?projekt_id=${id}`).then(r => r.json()),
       ]);
 
+      // Deadline-tælleren må kun vise en dato, når kontrakten reelt er
+      // endeligt indgået — status alene antages ikke synkron med
+      // godkendelsestidsstemplerne, så alle tre kræves eksplicit.
+      const erEndeligtIndgaaet = !!(
+        kontrakt?.status === "begge_godkendt" &&
+        kontrakt?.bygherre_godkendt_at &&
+        kontrakt?.haandvaerker_godkendt_at
+      );
+
       setBrugerNavn(profil?.navn || user.email?.split("@")[0] || "Bygherre");
       setStartdato(kontrakt?.startdato ?? null);
-      setSlutdato(kontrakt?.slutdato ?? null);
+      setSlutdato(erEndeligtIndgaaet ? hentOprindeligAftaltSlutdato(kontrakt) : null);
       setEntries(Array.isArray(logs) ? logs : []);
       setIndlæser(false);
     };

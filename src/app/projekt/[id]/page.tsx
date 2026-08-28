@@ -7,6 +7,7 @@ import Chat from "@/components/Chat";
 import BesigtigelseKort from "@/components/BesigtigelseKort";
 import DeadlineTæller from "@/components/DeadlineTæller";
 import { createClient } from "@/lib/supabase";
+import { hentOprindeligAftaltSlutdato } from "@/lib/kontraktSlutdato";
 
 interface Kontrakt {
   id: string;
@@ -22,6 +23,11 @@ interface Kontrakt {
   haandvaerker_godkendt_at: string | null;
   startdato: string | null;
   slutdato: string | null;
+  tidsplan: {
+    type?: string;
+    faser?: { navn?: string; startdato?: string; slutdato?: string }[];
+    godkendt_af_bygherre?: boolean;
+  } | null;
   betalingsplan: { milepæl: string; andel: string }[] | null;
   oprettet_at: string;
   besigtigelse_dato: string | null;
@@ -127,6 +133,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
     if (beggeGodkendt) {
       const dageТilStart = kontrakt.startdato ? dageImellem(idag, kontrakt.startdato) : null;
       const erStartet    = dageТilStart !== null && dageТilStart <= 0;
+      const aftaltSlutdato = hentOprindeligAftaltSlutdato(kontrakt);
 
       return (
         <div className="min-h-screen bg-gray-50">
@@ -181,10 +188,10 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
                       </p>
                     </div>
                   )}
-                  {kontrakt.slutdato && (
+                  {aftaltSlutdato && (
                     <div className="flex justify-between items-center py-2.5">
                       <p className="text-sm text-gray-500">Aflevering</p>
-                      <p className="text-sm font-bold text-gray-900">{fmtDato(kontrakt.slutdato)}</p>
+                      <p className="text-sm font-bold text-gray-900">{fmtDato(aftaltSlutdato)}</p>
                     </div>
                   )}
                   <div className="flex justify-between items-center py-2.5">
@@ -250,17 +257,17 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
             )}
 
             {/* Deadline-tæller */}
-            {kontrakt.slutdato && (
+            {aftaltSlutdato && (
               <div className="mb-5">
                 <DeadlineTæller
                   startdato={kontrakt.startdato}
-                  slutdato={kontrakt.slutdato}
+                  slutdato={aftaltSlutdato}
                   kanSendePaakrav={!!kontrakt.haandvaerker_email}
                   onSendPaakrav={() => {
-                    const overskredetDage = kontrakt.slutdato
-                      ? Math.abs(Math.round((new Date(kontrakt.slutdato).getTime() - new Date().setHours(0,0,0,0)) / (1000*60*60*24)))
+                    const overskredetDage = aftaltSlutdato
+                      ? Math.abs(Math.round((new Date(aftaltSlutdato).getTime() - new Date().setHours(0,0,0,0)) / (1000*60*60*24)))
                       : 0;
-                    const slutFormateret = kontrakt.slutdato ? fmtDatoLang(kontrakt.slutdato) : "";
+                    const slutFormateret = aftaltSlutdato ? fmtDatoLang(aftaltSlutdato) : "";
                     setPaakravBesked(
                       `Kære ${kontrakt.haandvaerker_navn || "entreprenør"},\n\nJeg skal hermed gøre opmærksom på, at den aftalte afleveringsdato den ${slutFormateret} er overskredet med ${overskredetDage} ${overskredetDage === 1 ? "dag" : "dage"}.\n\nJeg anmoder om, at arbejdet afsluttes hurtigst muligt og senest til nedenstående frist. Såfremt dette ikke overholdes, forbeholder jeg mig retten til at søge erstatning for dokumenterede tab i henhold til AB-Forbruger 2012.\n\nMed venlig hilsen\n${bygherreNavn}`
                     );
