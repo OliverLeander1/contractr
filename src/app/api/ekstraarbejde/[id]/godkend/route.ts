@@ -4,6 +4,7 @@ import { verificerKontraktRolle } from "@/lib/kontraktRolle";
 import { sendNotifikation } from "@/lib/notifikationer";
 import { erForslagKomplet } from "@/lib/ekstraarbejdeCompleteness";
 import { opretEkstraarbejdeNotifikation } from "@/lib/ekstraarbejdeNotifikation";
+import { hentAftaleseddelNummer } from "@/lib/ekstraarbejdeNummer";
 
 export const runtime = "nodejs";
 
@@ -73,20 +74,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Notifikation til entreprenøren er en secondary side-effect. Den primære
-  // handling (statusovergang + digitale underskriftsfelter) er allerede
-  // gemt ovenfor og må ikke rulles tilbage, hvis email eller in-app
-  // notifikation fejler — samme etablerede princip som i
-  // PATCH /api/ekstraarbejde/[id]/svar.
-  if (kontrakt.haandvaerker_email) {
-    const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
-    sendNotifikation("bygherre_godkendt_ekstraarbejde", kontrakt.haandvaerker_email, {
-      projekttitel: kontrakt.titel || "projektet",
-      link: `${baseUrl}/haandvaerker/projekt/${sedel.projekt_id}/ekstraarbejde`,
-    });
-  }
-
+  // Notifikation og email til entreprenøren er secondary side-effects. Den
+  // primære handling (statusovergang + digitale underskriftsfelter) er
+  // allerede gemt ovenfor og må ikke rulles tilbage, hvis nummeropslag,
+  // email eller in-app notifikation fejler — samme etablerede princip som i
+  // PATCH /api/ekstraarbejde/[id]/svar. Begge side-effects er derfor samlet
+  // i én try/catch.
   try {
+    const aftaleseddelNummer = await hentAftaleseddelNummer(db, sedel.projekt_id, sedel.id);
+
+    if (kontrakt.haandvaerker_email) {
+      const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
+      sendNotifikation("bygherre_godkendt_ekstraarbejde", kontrakt.haandvaerker_email, {
+        projekttitel: kontrakt.titel || "projektet",
+        link: `${baseUrl}/haandvaerker/projekt/${sedel.projekt_id}/ekstraarbejde`,
+        aftaleseddelNummer: aftaleseddelNummer ?? undefined,
+      });
+    }
+
     await opretEkstraarbejdeNotifikation(db, {
       modtagerRolle: "haandvaerker",
       kontrakt,

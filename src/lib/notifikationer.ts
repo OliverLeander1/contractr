@@ -25,6 +25,7 @@ interface NotifikationsData {
   afsenderNavn?: string;
   link: string;
   ekstraInfo?: string;
+  aftaleseddelNummer?: number;
 }
 
 function emailHtml(overskrift: string, brødtekst: string, knapTekst: string, data: NotifikationsData) {
@@ -124,14 +125,14 @@ const beskeder: Record<NotifikationsType, (data: NotifikationsData) => { emne: s
     knapTekst: "Se aftaleseddel",
   }),
   bygherre_godkendt_ekstraarbejde: (d) => ({
-    emne: `Bygherren har godkendt ekstraarbejdet`,
-    overskrift: `Ekstraarbejde godkendt`,
+    emne: d.aftaleseddelNummer ? `Aftaleseddel #${d.aftaleseddelNummer} godkendt` : `Bygherren har godkendt ekstraarbejdet`,
+    overskrift: d.aftaleseddelNummer ? `Aftaleseddel #${d.aftaleseddelNummer} godkendt` : `Ekstraarbejde godkendt`,
     brødtekst: `Bygherren har godkendt aftaleseddelen for ekstraarbejde på <strong>${d.projekttitel || "projektet"}</strong>.`,
     knapTekst: "Se aftaleseddel",
   }),
   bygherre_afvist_ekstraarbejde: (d) => ({
-    emne: `Aftaleseddel afvist`,
-    overskrift: `Aftaleseddel afvist`,
+    emne: d.aftaleseddelNummer ? `Aftaleseddel #${d.aftaleseddelNummer} afvist` : `Aftaleseddel afvist`,
+    overskrift: d.aftaleseddelNummer ? `Aftaleseddel #${d.aftaleseddelNummer} afvist` : `Aftaleseddel afvist`,
     brødtekst: `Bygherren har afvist aftaleseddelen for ekstraarbejde på <strong>${d.projekttitel || "projektet"}</strong>.`,
     knapTekst: "Se aftaleseddel",
   }),

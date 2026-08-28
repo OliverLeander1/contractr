@@ -451,7 +451,7 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                 </div>
                 <div>
                   <h2 className="font-bold text-gray-900">Digital godkendelse</h2>
-                  <p className="text-xs text-gray-400">Aftaleseddel #{sedler.indexOf(godkendSedel) + 1}</p>
+                  <p className="text-xs text-gray-400">Aftaleseddel #{sedler.length - sedler.indexOf(godkendSedel)}</p>
                 </div>
               </div>
 
@@ -764,13 +764,13 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
 
                 {/* Bygherre godkender */}
                 {s.status === "afventer_bygherre" && !erHaandvaerker && (
-                  <div className="flex gap-2 px-5 pb-5">
+                  <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-2 px-5 pb-5">
                     <button onClick={() => afvisSedel(s.id)}
-                      className="flex-1 py-2.5 text-sm font-semibold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors border border-red-100">
+                      className="w-full sm:flex-1 py-3.5 sm:py-2.5 text-sm font-semibold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors border border-red-100">
                       Afvis
                     </button>
                     <button onClick={() => setGodkendSedel(s)}
-                      className="flex-1 py-2.5 text-sm font-bold text-white bg-[#1e3a2a] rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                      className="w-full sm:flex-1 py-3.5 sm:py-2.5 text-sm font-bold text-white bg-[#1e3a2a] rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                       Godkend og underskriv
                     </button>

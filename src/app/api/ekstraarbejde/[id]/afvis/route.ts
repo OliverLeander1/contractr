@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase-server";
 import { verificerKontraktRolle } from "@/lib/kontraktRolle";
 import { sendNotifikation } from "@/lib/notifikationer";
 import { opretEkstraarbejdeNotifikation } from "@/lib/ekstraarbejdeNotifikation";
+import { hentAftaleseddelNummer } from "@/lib/ekstraarbejdeNummer";
 
 export const runtime = "nodejs";
 
@@ -59,16 +60,21 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   // Notifikation og email til entreprenøren er secondary side-effects af den
   // allerede gemte statusovergang ovenfor — samme etablerede princip som i
-  // PATCH /api/ekstraarbejde/[id]/svar og POST .../godkend.
-  if (kontrakt.haandvaerker_email) {
-    const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
-    sendNotifikation("bygherre_afvist_ekstraarbejde", kontrakt.haandvaerker_email, {
-      projekttitel: kontrakt.titel || "projektet",
-      link: `${baseUrl}/haandvaerker/projekt/${sedel.projekt_id}/ekstraarbejde`,
-    });
-  }
-
+  // PATCH /api/ekstraarbejde/[id]/svar og POST .../godkend. Nummeropslag,
+  // email og in-app notifikation er samlet i én try/catch, så ingen af dem
+  // kan få den allerede gemte afvisning til at fremstå som mislykket.
   try {
+    const aftaleseddelNummer = await hentAftaleseddelNummer(db, sedel.projekt_id, sedel.id);
+
+    if (kontrakt.haandvaerker_email) {
+      const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
+      sendNotifikation("bygherre_afvist_ekstraarbejde", kontrakt.haandvaerker_email, {
+        projekttitel: kontrakt.titel || "projektet",
+        link: `${baseUrl}/haandvaerker/projekt/${sedel.projekt_id}/ekstraarbejde`,
+        aftaleseddelNummer: aftaleseddelNummer ?? undefined,
+      });
+    }
+
     await opretEkstraarbejdeNotifikation(db, {
       modtagerRolle: "haandvaerker",
       kontrakt,
