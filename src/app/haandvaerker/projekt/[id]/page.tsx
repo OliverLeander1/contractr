@@ -8,6 +8,7 @@ import HaandvaerkerBadgeLinks from "@/components/HaandvaerkerBadgeLinks";
 import BesigtigelseKort from "@/components/BesigtigelseKort";
 import DokumentRenderer from "@/components/DokumentRenderer";
 import AftaleseddelSvarModal, { MaterialeAfregning, materialeLabel } from "@/components/AftaleseddelSvarModal";
+import { hentOprindeligAftaltStartdato } from "@/lib/kontraktSlutdato";
 
 type Fane = "aftale" | "tidsplan" | "sedler" | "mangler" | "besigtigelse";
 
@@ -180,6 +181,14 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
   );
 
   const tidsplan = kontrakt.tidsplan as { type?: string; faser?: { navn: string; startdato: string; slutdato: string }[]; godkendt_af_bygherre?: boolean } | null;
+  // Samme canonical kilde som bygherresiden (Contract dates truth & UX
+  // consistency v1): når fasetidsplanen er godkendt, er den den aftalte
+  // dato — kontrakt.startdato er da forhandlingshistorik og må ikke vises
+  // som "Opstart" ved siden af den godkendte tidsplan.
+  const tidsplanGodkendt = tidsplan?.type === "faser" && tidsplan?.godkendt_af_bygherre === true;
+  const visStartdato = tidsplanGodkendt
+    ? hentOprindeligAftaltStartdato({ startdato: kontrakt.startdato, tidsplan })
+    : kontrakt.startdato;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -205,7 +214,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
           <h1 className="text-2xl font-bold text-gray-900">{kontrakt.titel || "Projekt"}</h1>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
             {kontrakt.total_pris && <span className="text-sm text-gray-500">{fmtKr(kontrakt.total_pris)}</span>}
-            {kontrakt.startdato && <span className="text-sm text-gray-400">· Opstart {fmtDato(kontrakt.startdato)}</span>}
+            {visStartdato && <span className="text-sm text-gray-400">· {tidsplanGodkendt ? "Aftalt opstart" : "Opstart"} {fmtDato(visStartdato)}</span>}
             {(() => {
               const hG = !!kontrakt.haandvaerker_godkendt_at;
               const bG = !!kontrakt.bygherre_godkendt_at;

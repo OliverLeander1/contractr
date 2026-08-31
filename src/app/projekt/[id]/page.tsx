@@ -7,7 +7,7 @@ import Chat from "@/components/Chat";
 import BesigtigelseKort from "@/components/BesigtigelseKort";
 import DeadlineTæller from "@/components/DeadlineTæller";
 import { createClient } from "@/lib/supabase";
-import { hentOprindeligAftaltSlutdato } from "@/lib/kontraktSlutdato";
+import { hentOprindeligAftaltSlutdato, hentOprindeligAftaltStartdato } from "@/lib/kontraktSlutdato";
 
 interface Kontrakt {
   id: string;
@@ -131,9 +131,11 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
     }
 
     if (beggeGodkendt) {
-      const dageТilStart = kontrakt.startdato ? dageImellem(idag, kontrakt.startdato) : null;
-      const erStartet    = dageТilStart !== null && dageТilStart <= 0;
+      const aftaltStartdato = hentOprindeligAftaltStartdato(kontrakt);
       const aftaltSlutdato = hentOprindeligAftaltSlutdato(kontrakt);
+      const dageТilStart = aftaltStartdato ? dageImellem(idag, aftaltStartdato) : null;
+      const erStartet    = dageТilStart !== null && dageТilStart <= 0;
+      const tidsplanGodkendt = kontrakt.tidsplan?.type === "faser" && kontrakt.tidsplan?.godkendt_af_bygherre === true;
 
       return (
         <div className="min-h-screen bg-gray-50">
@@ -180,17 +182,17 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
                       <p className="text-sm font-bold text-gray-900">{fmtKr(kontrakt.total_pris)} inkl. moms</p>
                     </div>
                   )}
-                  {kontrakt.startdato && (
+                  {aftaltStartdato && (
                     <div className="flex justify-between items-center py-2.5">
-                      <p className="text-sm text-gray-500">Opstart</p>
+                      <p className="text-sm text-gray-500">{tidsplanGodkendt ? "Aftalt opstart" : "Opstart"}</p>
                       <p className={`text-sm font-bold ${!erStartet ? "text-amber-600" : "text-gray-900"}`}>
-                        {erStartet ? fmtDato(kontrakt.startdato) : `${fmtDato(kontrakt.startdato)} · om ${dageТilStart} dage`}
+                        {erStartet ? fmtDato(aftaltStartdato) : `${fmtDato(aftaltStartdato)} · om ${dageТilStart} dage`}
                       </p>
                     </div>
                   )}
                   {aftaltSlutdato && (
                     <div className="flex justify-between items-center py-2.5">
-                      <p className="text-sm text-gray-500">Aflevering</p>
+                      <p className="text-sm text-gray-500">{tidsplanGodkendt ? "Aftalt aflevering" : "Aflevering"}</p>
                       <p className="text-sm font-bold text-gray-900">{fmtDato(aftaltSlutdato)}</p>
                     </div>
                   )}
@@ -260,7 +262,7 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
             {aftaltSlutdato && (
               <div className="mb-5">
                 <DeadlineTæller
-                  startdato={kontrakt.startdato}
+                  startdato={aftaltStartdato}
                   slutdato={aftaltSlutdato}
                   kanSendePaakrav={!!kontrakt.haandvaerker_email}
                   onSendPaakrav={() => {

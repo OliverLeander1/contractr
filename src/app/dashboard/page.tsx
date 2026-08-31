@@ -10,7 +10,7 @@ import {
   type BesigtigelseData,
 } from "@/lib/besigtigelse";
 import { FileText, ArrowRight, Trash2, Plus } from "lucide-react";
-import { hentOprindeligAftaltSlutdato } from "@/lib/kontraktSlutdato";
+import { hentOprindeligAftaltSlutdato, hentOprindeligAftaltStartdato } from "@/lib/kontraktSlutdato";
 
 interface Projekt {
   id: string;
@@ -328,12 +328,13 @@ export default function Dashboard() {
     if (a.status === "begge_godkendt") {
       const relateretProjekt = projekter.find(p => p.id === a.projekt_id);
       const statusTekst = relateretProjekt ? (statusLabel[relateretProjekt.status] || "Aftalt") : "Aftalt";
+      const aftaltStartdato = hentOprindeligAftaltStartdato(a);
       const aftaltSlutdato = hentOprindeligAftaltSlutdato(a);
       let datoTekst: string | null = null;
       if (aftaltSlutdato) {
         datoTekst = `Forventet aflevering ${fmtDatoLang(aftaltSlutdato)}`;
-      } else if (a.startdato) {
-        datoTekst = `Opstart ${fmtDatoLang(a.startdato)}`;
+      } else if (aftaltStartdato) {
+        datoTekst = `Opstart ${fmtDatoLang(aftaltStartdato)}`;
       }
 
       // Sorteringsnøgle — beregnes uden at kalde Date.now() under render:
@@ -344,7 +345,7 @@ export default function Dashboard() {
       // 2) Ellers: stabil fallback på den ene kendte dato (nærmeste først).
       // 3) Ingen datoer: sidst, i uændret rækkefølge.
       let sorteringsNoegle = Number.MAX_SAFE_INTEGER;
-      const start = a.startdato ? new Date(a.startdato).getTime() : null;
+      const start = aftaltStartdato ? new Date(aftaltStartdato).getTime() : null;
       const slut = aftaltSlutdato ? new Date(aftaltSlutdato).getTime() : null;
       if (start !== null && slut !== null && slut > start && nuTidsstempel !== null) {
         const fraktion = Math.min(1, Math.max(0, (nuTidsstempel - start) / (slut - start)));

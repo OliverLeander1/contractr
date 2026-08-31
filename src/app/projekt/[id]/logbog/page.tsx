@@ -4,7 +4,7 @@ import { use, useEffect, useState, useRef } from "react";
 import ProjektNav from "@/components/ProjektNav";
 import DeadlineTæller from "@/components/DeadlineTæller";
 import { createClient } from "@/lib/supabase";
-import { hentOprindeligAftaltSlutdato } from "@/lib/kontraktSlutdato";
+import { hentOprindeligAftaltSlutdato, hentOprindeligAftaltStartdato } from "@/lib/kontraktSlutdato";
 
 interface LogEntry {
   id: string;
@@ -61,7 +61,7 @@ export default function Logbog({ params }: { params: Promise<{ id: string }> }) 
       );
 
       setBrugerNavn(profil?.navn || user.email?.split("@")[0] || "Bygherre");
-      setStartdato(kontrakt?.startdato ?? null);
+      setStartdato(erEndeligtIndgaaet ? hentOprindeligAftaltStartdato(kontrakt) : null);
       setSlutdato(erEndeligtIndgaaet ? hentOprindeligAftaltSlutdato(kontrakt) : null);
       setEntries(Array.isArray(logs) ? logs : []);
       setIndlæser(false);

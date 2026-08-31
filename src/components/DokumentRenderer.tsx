@@ -1,6 +1,7 @@
 "use client";
 
 import { erV2Dokument, parseV2Sektioner } from "@/lib/dokumentV2";
+import { hentOprindeligAftaltStartdato, hentOprindeligAftaltSlutdato } from "@/lib/kontraktSlutdato";
 
 interface TidsplanFase {
   navn: string;
@@ -158,6 +159,20 @@ export default function DokumentRenderer({
   const harPrisSektion = !!(totalPris || (betalingsplan && betalingsplan.length > 0));
   const harBetalingsplan = !!(betalingsplan && betalingsplan.length > 0);
   const harTidsplan = !!(startdato || slutdato || tidsplan);
+  // Når entreprenørens fasetidsplan er godkendt af bygherre, er den den
+  // aftalte tidsplan — kontrakt.startdato/slutdato (props herover) er da
+  // forhandlingshistorik og må ikke fortsat vises som "Opstartsdato"/
+  // "Færdigmelding" ved siden af den godkendte tidsplan (Contract dates
+  // truth & UX consistency v1). Bruger samme canonical, date-safe helper
+  // som resten af platformen — tidligste/seneste gyldige fase-dato, ikke
+  // kun faser[0].
+  const tidsplanGodkendt = tidsplan?.type === "faser" && tidsplan?.godkendt_af_bygherre === true;
+  const visStartdato = tidsplanGodkendt
+    ? hentOprindeligAftaltStartdato({ startdato: startdato ?? null, tidsplan })
+    : (startdato ?? null);
+  const visSlutdato = tidsplanGodkendt
+    ? hentOprindeligAftaltSlutdato({ slutdato: slutdato ?? null, tidsplan })
+    : (slutdato ?? null);
   // En forudsætning må først fremstå som gældende aftaleindhold i det
   // genererede dokument, når bygherre reelt har godkendt den — en
   // afventende eller afvist forudsætning må ikke se ud som en aftalt sag.
@@ -392,8 +407,8 @@ export default function DokumentRenderer({
           <div>
             <SektionsOverskrift nr={sektionsNr++} label="Tidsplan" />
             <div className="space-y-0">
-              {startdato && <DataRække label="Opstartsdato" værdi={fmtDato(startdato)} />}
-              {slutdato && <DataRække label="Færdigmelding" værdi={fmtDato(slutdato)} />}
+              {visStartdato && <DataRække label={tidsplanGodkendt ? "Aftalt opstart" : "Opstartsdato"} værdi={fmtDato(visStartdato)} />}
+              {visSlutdato && <DataRække label={tidsplanGodkendt ? "Aftalt aflevering" : "Færdigmelding"} værdi={fmtDato(visSlutdato)} />}
               {tidsplan?.type === "ingen_tidsplan" && (
                 <p className="text-sm text-gray-600 py-1 leading-relaxed">
                   Parterne har aftalt at arbejdet udføres uden en faseopdelt tidsplan.

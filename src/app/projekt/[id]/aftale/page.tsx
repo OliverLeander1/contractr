@@ -9,7 +9,7 @@ import DokumentRenderer from "@/components/DokumentRenderer";
 import { erV2Dokument, parseV2Sektioner, byggV2Dokument, indeholderKonkretDato } from "@/lib/dokumentV2";
 import { fmtBesigtigelseDatoLang, erBesigtigelsePasseret, hentEffektivDatoTid, fmtTidsinterval } from "@/lib/besigtigelse";
 import { findUafklaredeForslag } from "@/lib/kontraktGodkendelse";
-import { hentOprindeligAftaltSlutdato } from "@/lib/kontraktSlutdato";
+import { hentOprindeligAftaltSlutdato, hentOprindeligAftaltStartdato } from "@/lib/kontraktSlutdato";
 import { Plus, UserPlus } from "lucide-react";
 
 interface BesigtigelseTidspunktRad {
@@ -1324,10 +1324,11 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               }
 
               const godkendt = tp.godkendt_af_bygherre;
-              // Canonical, allerede godkendt slutdato — bruges kun til selve
-              // visningen af den endeligt aftalte dato (senere i dette
-              // afsnit). Bruger den seneste slutdato blandt ALLE faser, ikke
-              // kun faser[0], for korrekt multi-fase-understøttelse.
+              // Canonical, allerede godkendt start-/slutdato — bruges kun til
+              // selve visningen af de endeligt aftalte datoer (senere i dette
+              // afsnit). Bruger tidligste/seneste dato blandt ALLE faser,
+              // ikke kun faser[0], for korrekt multi-fase-understøttelse.
+              const canonicalStartdato = hentOprindeligAftaltStartdato(kontrakt);
               const canonicalSlutdato = hentOprindeligAftaltSlutdato(kontrakt);
 
               // Tjek om entreprenøren har foreslået andre datoer end bygherre ønskede
@@ -1389,7 +1390,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         {/* Startdato */}
                         <div className={`rounded-xl px-4 py-3 border ${startAendret && !godkendt ? "bg-[#f0f7f3] border-[#1e3a2a]/20" : "bg-gray-50 border-gray-100"}`}>
                           <div className="flex items-center justify-between">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Opstart</p>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{godkendt ? "Aftalt opstart" : "Opstart"}</p>
                             {startAendret && !godkendt && (
                               <span className="text-[10px] font-bold text-[#1e3a2a] bg-[#1e3a2a]/10 px-2 py-0.5 rounded-full">Ændret</span>
                             )}
@@ -1407,7 +1408,9 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                             </div>
                           ) : (
                             <p className={`text-sm font-bold mt-1 ${godkendt ? "text-green-700" : "text-gray-900"}`}>
-                              {entStartdato ? fmtDatoKort(entStartdato) : (bygStartdato ? fmtDatoKort(bygStartdato) : "—")}
+                              {godkendt
+                                ? (canonicalStartdato ? fmtDatoKort(canonicalStartdato) : "—")
+                                : (entStartdato ? fmtDatoKort(entStartdato) : (bygStartdato ? fmtDatoKort(bygStartdato) : "—"))}
                             </p>
                           )}
                         </div>
@@ -1415,7 +1418,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         {/* Slutdato / aflevering */}
                         <div className={`rounded-xl px-4 py-3 border ${slutAendret && !godkendt ? "bg-[#f0f7f3] border-[#1e3a2a]/20" : "bg-gray-50 border-gray-100"}`}>
                           <div className="flex items-center justify-between">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Aflevering</p>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{godkendt ? "Aftalt aflevering" : "Aflevering"}</p>
                             {slutAendret && !godkendt && (
                               <span className="text-[10px] font-bold text-[#1e3a2a] bg-[#1e3a2a]/10 px-2 py-0.5 rounded-full">Ændret</span>
                             )}
@@ -1474,7 +1477,9 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                           </p>
                         )}
                         <p className="text-xs text-[#1e3a2a]/70 leading-relaxed">
-                          Tidsplanen er godkendt. Aftalegrundlaget afventer stadig endelig godkendelse.
+                          {erBeggeGodkendt
+                            ? "Tidsplanen er en del af det godkendte aftalegrundlag."
+                            : "Tidsplanen er godkendt. Aftalegrundlaget afventer stadig endelig godkendelse."}
                         </p>
                       </div>
                     )}

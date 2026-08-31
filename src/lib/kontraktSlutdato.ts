@@ -10,7 +10,8 @@ interface KontraktTidsplan {
   godkendt_af_bygherre?: boolean | null;
 }
 
-interface KontraktMedSlutdato {
+interface KontraktMedDatoer {
+  startdato?: string | null;
   slutdato?: string | null;
   tidsplan?: KontraktTidsplan | null;
 }
@@ -61,7 +62,7 @@ function erGyldigDatoOnly(value: unknown): value is string {
 // på tværs af flere kontrakter, og udleder aldrig et projekts overordnede
 // slutdato — det er en separat, endnu ikke truffet produktbeslutning.
 export function hentOprindeligAftaltSlutdato(
-  kontrakt: KontraktMedSlutdato | null | undefined,
+  kontrakt: KontraktMedDatoer | null | undefined,
 ): string | null {
   if (!kontrakt) return null;
 
@@ -86,4 +87,42 @@ export function hentOprindeligAftaltSlutdato(
   }
 
   return erGyldigDatoOnly(kontrakt.slutdato) ? kontrakt.slutdato : null;
+}
+
+// Samme princip som hentOprindeligAftaltSlutdato, men for aftalt startdato:
+// 1. Godkendt fasetidsplan findes → den TIDLIGSTE gyldige startdato blandt
+//    ALLE faser (ikke kun første fase i arrayet).
+// 2. Ellers kontrakt.startdato, hvis den er en gyldig date-only værdi.
+// 3. Ellers null.
+//
+// Produktbeslutning (Contract dates truth & UX consistency v1): fallback
+// til kontrakt.startdato/slutdato er bevidst bevaret for en kontrakt uden
+// godkendt tidsplan, også efter endelig underskrift — ellers ville
+// kontrakter, der aldrig har brugt tidsplan-godkendelsesfunktionen, miste
+// deres eneste kendte aftalte dato. Det er dokumenteret (se projektets
+// noter), at kontrakt.startdato/slutdato i dag IKKE er låst mod ændring
+// efter begge_godkendt uden nulstilling af underskrifter — dette er en
+// kendt, separat opfølgningsopgave og ikke løst her.
+export function hentOprindeligAftaltStartdato(
+  kontrakt: KontraktMedDatoer | null | undefined,
+): string | null {
+  if (!kontrakt) return null;
+
+  const tidsplan = kontrakt.tidsplan;
+  if (
+    tidsplan &&
+    tidsplan.type === "faser" &&
+    tidsplan.godkendt_af_bygherre === true &&
+    Array.isArray(tidsplan.faser)
+  ) {
+    const gyldigeStartdatoer = tidsplan.faser
+      .map((fase) => fase?.startdato)
+      .filter(erGyldigDatoOnly);
+
+    if (gyldigeStartdatoer.length > 0) {
+      return gyldigeStartdatoer.reduce((tidligste, dato) => (dato < tidligste ? dato : tidligste));
+    }
+  }
+
+  return erGyldigDatoOnly(kontrakt.startdato) ? kontrakt.startdato : null;
 }
