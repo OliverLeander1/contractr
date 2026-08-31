@@ -71,3 +71,17 @@ export function erKontraktEndeligtIndgaaet(kontrakt: KontraktTilLivscyklusTjek |
     kontrakt.haandvaerker_godkendt_at
   );
 }
+
+// En godkendelse gælder kun det aftalegrundlag, parten faktisk godkendte
+// (Contract approval state coherence v1). Hvis blot ÉN part allerede har
+// godkendt, skal en efterfølgende materiel ændring derfor blokeres på
+// samme måde som håndværkerens egne mutation-routes allerede gør
+// (fx PATCH /api/kontrakt/[token] og /[token]/tidsplan: "afvis ændringer
+// når ét eller begge godkendelsestimestamps er sat"). Dette er en bevidst
+// strengere — og samtidig enklere — regel end erKontraktEndeligtIndgaaet:
+// den kræver ikke "begge", kun "mindst én", og undgår dermed at skulle
+// opfinde en ny status-transition for en delvist godkendt kontrakt, som
+// ingen eksisterende, entydig re-approval-status findes for.
+export function erGodkendtAfNogen(kontrakt: KontraktTilLivscyklusTjek | null | undefined): boolean {
+  return !!(kontrakt && (kontrakt.bygherre_godkendt_at || kontrakt.haandvaerker_godkendt_at));
+}

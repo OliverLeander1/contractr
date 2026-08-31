@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
 import { sendNotifikation } from "@/lib/notifikationer";
 import { erV2Dokument, parseV2Sektioner, indeholderKonkretDato } from "@/lib/dokumentV2";
-import { erKontraktEndeligtIndgaaet } from "@/lib/kontraktGodkendelse";
+import { erGodkendtAfNogen } from "@/lib/kontraktGodkendelse";
 
 export const runtime = "nodejs";
 
@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
 
   const { data: eksisterendeKontrakt } = await db
     .from("kontrakter")
-    .select("id, projekt_id, startdato, slutdato, status, bygherre_godkendt_at, haandvaerker_godkendt_at")
+    .select("id, projekt_id, titel, beskrivelse, total_pris, betalingsplan, startdato, slutdato, haandvaerker_email, haandvaerker_navn, haandvaerker_firma, haandvaerker_cvr, status, bygherre_godkendt_at, haandvaerker_godkendt_at")
     .eq("id", kontrakt_id)
     .maybeSingle();
 
@@ -160,44 +160,60 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Adgang afvist" }, { status: 403 });
   }
 
-  const erEndeligtIndgaaet = erKontraktEndeligtIndgaaet(eksisterendeKontrakt);
+  // Contract approval state coherence v1 — en godkendelse gælder kun det
+  // aftalegrundlag, parten faktisk godkendte. Bruger den strengere "mindst
+  // én part har godkendt"-regel (ikke kun "begge") for materielle
+  // felt-ændringer, så vi aldrig kan producere en selvmodsigende
+  // status/tidsstempel-kombination for en delvist godkendt kontrakt (fx
+  // status "haandvaerker_godkendt" med et efterfølgende nulstillet
+  // tidsstempel). Samme regel som håndværkerens egne mutation-routes
+  // allerede håndhæver.
+  const erGodkendtAfEnPart = erGodkendtAfNogen(eksisterendeKontrakt);
 
-  // Signed contract date integrity v1 — de bindende kontraktdatoer (den
-  // canonical aftalte tidsplans baseline) må ikke kunne ændres direkte,
-  // efter aftalen er endeligt indgået af begge parter. Blokerer kun en
-  // FAKTISK værdiændring, ikke blot feltets tilstedeværelse i payload —
-  // at sende den allerede gemte værdi tilbage er ikke en reel ændring.
-  // Ingen DB-write, ingen signaturændring, sker før al anden logik.
-  if (erEndeligtIndgaaet) {
-    const forsoegerAendreStart = startdato !== undefined && startdato !== eksisterendeKontrakt.startdato;
-    const forsoegerAendreSlut = slutdato !== undefined && slutdato !== eksisterendeKontrakt.slutdato;
-    if (forsoegerAendreStart || forsoegerAendreSlut) {
-      return NextResponse.json(
-        { error: "Den aftalte tidsplan kan ikke ændres direkte, efter aftalen er godkendt af begge parter." },
-        { status: 409 }
-      );
-    }
-  }
-
+  // Contract approval state coherence v1 — kun en FAKTISK værdiændring skal
+  // indgå i opdateringen, uanset kontraktens livscyklus. Ellers ville et
+  // no-op-resend af en allerede gemt værdi udløse "nulstil godkendelser når
+  // indhold ændres" nedenfor og lydløst invalidere gyldige underskrifter,
+  // selvom intet aftaleindhold reelt ændrede sig.
   const opdatering: Record<string, unknown> = { opdateret_at: new Date().toISOString() };
-  if (titel !== undefined) opdatering.titel = titel;
-  if (beskrivelse !== undefined) opdatering.beskrivelse = beskrivelse;
-  if (total_pris !== undefined) opdatering.total_pris = total_pris;
-  if (betalingsplan !== undefined) opdatering.betalingsplan = betalingsplan;
-  // Kun en FAKTISK værdiændring skal indgå i opdateringen — ellers ville et
-  // no-op-resend af den allerede gemte dato udløse "nulstil godkendelser
-  // når indhold ændres" nedenfor og lydløst invalidere gyldige underskrifter
-  // uden at nogen reel kontraktdato ændrede sig (Signed contract date
-  // integrity v1).
+  if (titel !== undefined && titel !== eksisterendeKontrakt.titel) opdatering.titel = titel;
+  if (beskrivelse !== undefined && beskrivelse !== eksisterendeKontrakt.beskrivelse) opdatering.beskrivelse = beskrivelse;
+  if (total_pris !== undefined && total_pris !== eksisterendeKontrakt.total_pris) opdatering.total_pris = total_pris;
+  if (betalingsplan !== undefined && JSON.stringify(betalingsplan) !== JSON.stringify(eksisterendeKontrakt.betalingsplan)) {
+    opdatering.betalingsplan = betalingsplan;
+  }
   if (startdato !== undefined && startdato !== eksisterendeKontrakt.startdato) opdatering.startdato = startdato;
   if (slutdato !== undefined && slutdato !== eksisterendeKontrakt.slutdato) opdatering.slutdato = slutdato;
-  if (haandvaerker_email !== undefined) {
+  if (haandvaerker_email !== undefined && haandvaerker_email !== eksisterendeKontrakt.haandvaerker_email) {
     opdatering.haandvaerker_email = haandvaerker_email;
     opdatering.status = "inviteret";
   }
-  if (haandvaerker_navn !== undefined) opdatering.haandvaerker_navn = haandvaerker_navn;
-  if (haandvaerker_firma !== undefined) opdatering.haandvaerker_firma = haandvaerker_firma;
-  if (haandvaerker_cvr !== undefined) opdatering.haandvaerker_cvr = haandvaerker_cvr;
+  if (haandvaerker_navn !== undefined && haandvaerker_navn !== eksisterendeKontrakt.haandvaerker_navn) opdatering.haandvaerker_navn = haandvaerker_navn;
+  if (haandvaerker_firma !== undefined && haandvaerker_firma !== eksisterendeKontrakt.haandvaerker_firma) opdatering.haandvaerker_firma = haandvaerker_firma;
+  if (haandvaerker_cvr !== undefined && haandvaerker_cvr !== eksisterendeKontrakt.haandvaerker_cvr) opdatering.haandvaerker_cvr = haandvaerker_cvr;
+
+  // Contract approval state coherence v1 — en allerede givet godkendelse
+  // (af én eller begge parter) må ikke kunne fremstå som fortsat gældende
+  // for et aftalegrundlag, der efterfølgende ændres materielt. Alle disse
+  // felter er materielle aftalevilkår (indgår i det live-renderede
+  // dokument via DokumentRenderer, eller identificerer selve modparten).
+  // Der findes i dag intet kontrolleret, brugerforståeligt re-approval-flow
+  // for disse felter (UI'et skjuler allerede redigeringskontrollerne, når
+  // blot én part har godkendt) — derfor fail-closed: blokér i stedet for
+  // at nulstille underskrifter stille i baggrunden, mens status fortsat
+  // hævder en godkendelse, der ikke længere gælder. Kun en FAKTISK forsøgt
+  // værdiændring blokeres (se opdatering ovenfor).
+  const MATERIELLE_FELTER = [
+    "titel", "beskrivelse", "total_pris", "betalingsplan",
+    "startdato", "slutdato",
+    "haandvaerker_email", "haandvaerker_navn", "haandvaerker_firma", "haandvaerker_cvr",
+  ] as const;
+  if (erGodkendtAfEnPart && MATERIELLE_FELTER.some((felt) => felt in opdatering)) {
+    return NextResponse.json(
+      { error: "Aftalen er allerede godkendt af en af parterne. Aftalevilkår kan ikke ændres direkte." },
+      { status: 409 }
+    );
+  }
 
   // Servervalidering af V2-dokumenter: konkrete kalenderdatoer må ikke gemmes
   // i de redigerbare narrative sektioner. Ligger bevidst før enhver
@@ -228,6 +244,18 @@ export async function POST(req: NextRequest) {
       opdateret_at: new Date().toISOString(),
     };
     const erReelAendring = foer?.forudsaetninger_godkendt !== true;
+    // Contract approval state coherence v1 — en reel forudsætnings-
+    // godkendelse er et materielt aftalevilkår. Denne handling er i dag
+    // strukturelt kun reachable før nogen part har underskrevet endeligt
+    // (håndværkerens indsendelsesrute låser allerede ved ét tidsstempel, og
+    // slutgodkendelsen kræver alle uafklarede forudsætninger afgjort), men
+    // guardes alligevel her som defense-in-depth mod et direkte API-kald.
+    if (erGodkendtAfNogen(foer) && erReelAendring) {
+      return NextResponse.json(
+        { error: "Aftalen er allerede godkendt af en af parterne. Aftalevilkår kan ikke ændres direkte." },
+        { status: 409 }
+      );
+    }
     if (erReelAendring && (foer?.bygherre_godkendt_at || foer?.haandvaerker_godkendt_at)) {
       opdatering.bygherre_godkendt_at = null;
       opdatering.haandvaerker_godkendt_at = null;
@@ -259,6 +287,16 @@ export async function POST(req: NextRequest) {
       opdateret_at: new Date().toISOString(),
     };
     const erReelAendring = !!foer?.forudsaetninger;
+    // Contract approval state coherence v1 — samme defense-in-depth som
+    // godkend_forudsaetninger ovenfor: at fjerne en allerede aftalt
+    // forudsætning fra en kontrakt, hvor en part allerede har godkendt, er
+    // en materiel ændring af aftalegrundlaget.
+    if (erGodkendtAfNogen(foer) && erReelAendring) {
+      return NextResponse.json(
+        { error: "Aftalen er allerede godkendt af en af parterne. Aftalevilkår kan ikke ændres direkte." },
+        { status: 409 }
+      );
+    }
     if (erReelAendring && (foer?.bygherre_godkendt_at || foer?.haandvaerker_godkendt_at)) {
       opdatering.bygherre_godkendt_at = null;
       opdatering.haandvaerker_godkendt_at = null;
@@ -275,16 +313,17 @@ export async function POST(req: NextRequest) {
 
   // Bygherre godkender tidsplan — opdater kun tidsplan.godkendt_af_bygherre, nulstil IKKE underskrifter
   if (godkend_tidsplan === true) {
-    // Signed contract date integrity v1 — den godkendte tidsplan er (når
-    // den findes) selve authority for de canonical kontraktdatoer. En
-    // (gen)godkendelse efter endelig underskrift kunne derfor ændre eller
+    // Signed contract date integrity v1 / Contract approval state
+    // coherence v1 — den godkendte tidsplan er (når den findes) selve
+    // authority for de canonical kontraktdatoer. En (gen)godkendelse efter
+    // at en part allerede har underskrevet kunne derfor ændre eller
     // førstegangsetablere den bindende baseline uden ny fælles aftale.
-    // Normal brug godkender altid tidsplanen FØR endelig underskrift
-    // (uændret, urørt af dette) — dette blokerer kun det unødvendige og
-    // potentielt utilsigtede tilfælde efter.
-    if (erEndeligtIndgaaet) {
+    // Normal brug godkender altid tidsplanen FØR nogen underskriver
+    // endeligt (uændret, urørt af dette) — dette blokerer kun det
+    // unødvendige og potentielt utilsigtede tilfælde efter.
+    if (erGodkendtAfEnPart) {
       return NextResponse.json(
-        { error: "Den aftalte tidsplan kan ikke ændres direkte, efter aftalen er godkendt af begge parter." },
+        { error: "Aftalen er allerede godkendt af en af parterne. Den aftalte tidsplan kan ikke ændres direkte." },
         { status: 409 }
       );
     }
