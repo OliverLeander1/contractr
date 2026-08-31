@@ -198,10 +198,10 @@ export default function AftaleseddelSvarModal({ sedel, brugerNavn, onLuk, onSvar
                     className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Tidskonsekvens (dage)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Fristforlængelse (kalenderdage)</label>
                   <input type="number" min="0" value={dage} onChange={e => setDage(e.target.value)} placeholder="0"
                     className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
-                  <p className="text-xs text-gray-400 mt-1">0 dage betyder ingen tidsforlængelse.</p>
+                  <p className="text-xs text-gray-400 mt-1">Angiv hvor mange kalenderdage ekstraarbejdet forlænger den aftalte afleveringsfrist. Angiv 0, hvis arbejdet ikke ændrer afleveringsdatoen.</p>
                 </div>
               </div>
             ) : (
@@ -241,10 +241,10 @@ export default function AftaleseddelSvarModal({ sedel, brugerNavn, onLuk, onSvar
                       className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Tidskonsekvens (dage)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Fristforlængelse (kalenderdage)</label>
                     <input type="number" min="0" value={dage} onChange={e => setDage(e.target.value)} placeholder="0"
                       className="w-full border border-[#e0ddd6] rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10" />
-                    <p className="text-xs text-gray-400 mt-1">0 dage betyder ingen tidsforlængelse.</p>
+                    <p className="text-xs text-gray-400 mt-1">Angiv hvor mange kalenderdage ekstraarbejdet forlænger den aftalte afleveringsfrist. Angiv 0, hvis arbejdet ikke ændrer afleveringsdatoen.</p>
                   </div>
                 </div>
               </>

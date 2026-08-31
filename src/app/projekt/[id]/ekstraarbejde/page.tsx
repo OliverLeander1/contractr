@@ -468,8 +468,8 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                     </div>
                     {godkendSedel.haandvaerker_tidsdage !== null && (
                       <div>
-                        <p className="text-xs text-gray-400 mb-0.5">Tidskonsekvens</p>
-                        <p className="text-base font-bold text-gray-900">{godkendSedel.haandvaerker_tidsdage === 0 ? "Ingen tidsforlængelse" : `+${godkendSedel.haandvaerker_tidsdage} dage`}</p>
+                        <p className="text-xs text-gray-400 mb-0.5">Fristforlængelse</p>
+                        <p className="text-base font-bold text-gray-900">{godkendSedel.haandvaerker_tidsdage === 0 ? "Ingen fristforlængelse" : `+${godkendSedel.haandvaerker_tidsdage} kalenderdage`}</p>
                       </div>
                     )}
                   </div>
@@ -482,8 +482,8 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                       </div>
                       {godkendSedel.haandvaerker_tidsdage !== null && (
                         <div>
-                          <p className="text-xs text-gray-400 mb-0.5">Tidskonsekvens</p>
-                          <p className="text-base font-bold text-gray-900">{godkendSedel.haandvaerker_tidsdage === 0 ? "Ingen tidsforlængelse" : `+${godkendSedel.haandvaerker_tidsdage} dage`}</p>
+                          <p className="text-xs text-gray-400 mb-0.5">Fristforlængelse</p>
+                          <p className="text-base font-bold text-gray-900">{godkendSedel.haandvaerker_tidsdage === 0 ? "Ingen fristforlængelse" : `+${godkendSedel.haandvaerker_tidsdage} kalenderdage`}</p>
                         </div>
                       )}
                     </div>
@@ -693,8 +693,8 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                         </div>
                         {s.haandvaerker_tidsdage !== null && (
                           <div>
-                            <p className="text-xs text-gray-400">Tidskonsekvens</p>
-                            <p className="text-xl font-bold text-gray-900">{s.haandvaerker_tidsdage === 0 ? "Ingen tidsforlængelse" : `+${s.haandvaerker_tidsdage} dage`}</p>
+                            <p className="text-xs text-gray-400">Fristforlængelse</p>
+                            <p className="text-xl font-bold text-gray-900">{s.haandvaerker_tidsdage === 0 ? "Ingen fristforlængelse" : `+${s.haandvaerker_tidsdage} kalenderdage`}</p>
                           </div>
                         )}
                       </div>
@@ -707,8 +707,8 @@ export default function EkstraarbejdeSide({ params }: { params: Promise<{ id: st
                           </div>
                           {s.haandvaerker_tidsdage !== null && (
                             <div>
-                              <p className="text-xs text-gray-400">Tidskonsekvens</p>
-                              <p className="text-xl font-bold text-gray-900">{s.haandvaerker_tidsdage === 0 ? "Ingen tidsforlængelse" : `+${s.haandvaerker_tidsdage} dage`}</p>
+                              <p className="text-xs text-gray-400">Fristforlængelse</p>
+                              <p className="text-xl font-bold text-gray-900">{s.haandvaerker_tidsdage === 0 ? "Ingen fristforlængelse" : `+${s.haandvaerker_tidsdage} kalenderdage`}</p>
                             </div>
                           )}
                         </div>

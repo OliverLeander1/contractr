@@ -175,8 +175,8 @@ export default function HaandvaerkerEkstraarbejde({ params }: { params: Promise<
                           </div>
                           {s.haandvaerker_tidsdage !== null && (
                             <div>
-                              <p className="text-sm font-bold text-gray-900">{s.haandvaerker_tidsdage === 0 ? "Ingen tidsforlængelse" : `+${s.haandvaerker_tidsdage} dage`}</p>
-                              <p className="text-xs text-gray-400">Tidskonsekvens</p>
+                              <p className="text-sm font-bold text-gray-900">{s.haandvaerker_tidsdage === 0 ? "Ingen fristforlængelse" : `+${s.haandvaerker_tidsdage} kalenderdage`}</p>
+                              <p className="text-xs text-gray-400">Fristforlængelse</p>
                             </div>
                           )}
                         </div>
@@ -189,8 +189,8 @@ export default function HaandvaerkerEkstraarbejde({ params }: { params: Promise<
                             </div>
                             {s.haandvaerker_tidsdage !== null && (
                               <div>
-                                <p className="text-sm font-bold text-gray-900">{s.haandvaerker_tidsdage === 0 ? "Ingen tidsforlængelse" : `+${s.haandvaerker_tidsdage} dage`}</p>
-                                <p className="text-xs text-gray-400">Tidskonsekvens</p>
+                                <p className="text-sm font-bold text-gray-900">{s.haandvaerker_tidsdage === 0 ? "Ingen fristforlængelse" : `+${s.haandvaerker_tidsdage} kalenderdage`}</p>
+                                <p className="text-xs text-gray-400">Fristforlængelse</p>
                               </div>
                             )}
                           </div>

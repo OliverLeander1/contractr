@@ -10,7 +10,8 @@ import {
   type BesigtigelseData,
 } from "@/lib/besigtigelse";
 import { FileText, ArrowRight, Trash2, Plus } from "lucide-react";
-import { hentOprindeligAftaltSlutdato, hentOprindeligAftaltStartdato } from "@/lib/kontraktSlutdato";
+import { hentOprindeligAftaltStartdato } from "@/lib/kontraktSlutdato";
+import { beregnKontraktDeadline } from "@/lib/kontraktDeadline";
 
 interface Projekt {
   id: string;
@@ -168,6 +169,7 @@ export default function Dashboard() {
   // er gennem sin planlagte periode. Sat i en effekt (ikke under render), så
   // selve rendering forbliver ren — ingen Date.now()-kald i komponentkroppen.
   const [nuTidsstempel, setNuTidsstempel] = useState<number | null>(null);
+  const [sedlerPrKontrakt, setSedlerPrKontrakt] = useState<Record<string, { status: string; haandvaerker_tidsdage: number | null }[]>>({});
 
   useEffect(() => {
     const hent = async () => {
@@ -215,6 +217,23 @@ export default function Dashboard() {
 
       if (aftaleData) {
         setAftaler(aftaleData);
+
+        // Agreement sheet deadline extension v1 — ét batched kald for ALLE
+        // kontrakter, grupperet client-side pr. kontrakt_id. Undgår N+1 (ikke
+        // ét kald pr. aftale/aftaleseddel).
+        const kontraktIder = aftaleData.map((a) => a.id);
+        if (kontraktIder.length > 0) {
+          const { data: sedler } = await supabase
+            .from("ekstraarbejde")
+            .select("kontrakt_id, status, haandvaerker_tidsdage")
+            .in("kontrakt_id", kontraktIder);
+          const grupperet: Record<string, { status: string; haandvaerker_tidsdage: number | null }[]> = {};
+          (sedler ?? []).forEach((s) => {
+            (grupperet[s.kontrakt_id] ??= []).push({ status: s.status, haandvaerker_tidsdage: s.haandvaerker_tidsdage });
+          });
+          setSedlerPrKontrakt(grupperet);
+        }
+
         // Hent besigtigelse for brugerens kontrakter — ét serverside-kald
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.access_token) {
@@ -329,10 +348,12 @@ export default function Dashboard() {
       const relateretProjekt = projekter.find(p => p.id === a.projekt_id);
       const statusTekst = relateretProjekt ? (statusLabel[relateretProjekt.status] || "Aftalt") : "Aftalt";
       const aftaltStartdato = hentOprindeligAftaltStartdato(a);
-      const aftaltSlutdato = hentOprindeligAftaltSlutdato(a);
+      const { samletFristforlaengelseDage, gaeldendeAflevering } = beregnKontraktDeadline(a, sedlerPrKontrakt[a.id], a.id);
       let datoTekst: string | null = null;
-      if (aftaltSlutdato) {
-        datoTekst = `Forventet aflevering ${fmtDatoLang(aftaltSlutdato)}`;
+      if (gaeldendeAflevering) {
+        datoTekst = samletFristforlaengelseDage > 0
+          ? `Gældende aflevering ${fmtDatoLang(gaeldendeAflevering)} (+${samletFristforlaengelseDage} kalenderdage)`
+          : `Forventet aflevering ${fmtDatoLang(gaeldendeAflevering)}`;
       } else if (aftaltStartdato) {
         datoTekst = `Opstart ${fmtDatoLang(aftaltStartdato)}`;
       }
@@ -346,7 +367,7 @@ export default function Dashboard() {
       // 3) Ingen datoer: sidst, i uændret rækkefølge.
       let sorteringsNoegle = Number.MAX_SAFE_INTEGER;
       const start = aftaltStartdato ? new Date(aftaltStartdato).getTime() : null;
-      const slut = aftaltSlutdato ? new Date(aftaltSlutdato).getTime() : null;
+      const slut = gaeldendeAflevering ? new Date(gaeldendeAflevering).getTime() : null;
       if (start !== null && slut !== null && slut > start && nuTidsstempel !== null) {
         const fraktion = Math.min(1, Math.max(0, (nuTidsstempel - start) / (slut - start)));
         sorteringsNoegle = -fraktion; // mest fremskreden (højeste fraktion) først

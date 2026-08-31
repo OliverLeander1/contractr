@@ -28,7 +28,7 @@ function erSkudaar(aar: number): boolean {
 // (fx "2026-02-31" bliver til 3. marts), hvilket ikke må kunne blive en
 // canonical, juridisk relevant kontraktdato. Ingen dependency, ingen
 // timezone-konvertering.
-function erGyldigDatoOnly(value: unknown): value is string {
+export function erGyldigDatoOnly(value: unknown): value is string {
   if (typeof value !== "string") return false;
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) return false;

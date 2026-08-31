@@ -71,8 +71,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const tidsdage = Number(haandvaerker_tidsdage);
-  if (!Number.isFinite(tidsdage) || tidsdage < 0) {
-    return NextResponse.json({ error: "haandvaerker_tidsdage skal være 0 eller positiv" }, { status: 400 });
+  // Agreement sheet deadline extension v1 — feltet er nu netto
+  // fristforlængelse i KALENDERDAGE og skal derfor være et helt tal, ikke
+  // blot et endeligt tal. Number.isInteger afviser også NaN/Infinity, så
+  // Number.isFinite er ikke længere nødvendig separat.
+  if (!Number.isInteger(tidsdage) || tidsdage < 0) {
+    return NextResponse.json({ error: "haandvaerker_tidsdage skal være et helt antal kalenderdage, 0 eller derover" }, { status: 400 });
   }
   opdatering.haandvaerker_tidsdage = tidsdage;
 

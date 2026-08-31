@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
-import { hentOprindeligAftaltSlutdato } from "@/lib/kontraktSlutdato";
+import { beregnKontraktDeadline } from "@/lib/kontraktDeadline";
 import { erKontraktEndeligtIndgaaet } from "@/lib/kontraktGodkendelse";
 import { Resend } from "resend";
 
@@ -53,10 +53,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Canonical aftalt slutdato (Canonical contract deadline v1) — samme
-  // udledning som resten af platformen, ikke den rå kontrakt.slutdato.
-  const aftaltSlutdato = hentOprindeligAftaltSlutdato(kontrakt);
-  if (!aftaltSlutdato) {
+  // Agreement sheet deadline extension v1 — serveren henter selv de
+  // godkendte fristforlængelser for DENNE kontrakt og beregner den
+  // GÆLDENDE aflevering. Klienten kan ikke sende eller påvirke denne
+  // værdi. Bruger samme canonical baseline-udledning som resten af
+  // platformen (Canonical contract deadline v1), ikke den rå
+  // kontrakt.slutdato, plus summen af godkendte, kontraktscopede
+  // fristforlængelser.
+  const { data: aftalesedler } = await db
+    .from("ekstraarbejde")
+    .select("status, haandvaerker_tidsdage")
+    .eq("kontrakt_id", kontrakt_id);
+  const { gaeldendeAflevering } = beregnKontraktDeadline(kontrakt, aftalesedler, kontrakt_id);
+  if (!gaeldendeAflevering) {
     return NextResponse.json({ error: "Der er ikke aftalt en slutdato på denne kontrakt." }, { status: 409 });
   }
 
@@ -64,11 +73,11 @@ export async function POST(req: NextRequest) {
   // DeadlineTæller (kalenderdag-sammenligning, ikke inkl. selve slutdatoen).
   const nu = new Date();
   nu.setHours(0, 0, 0, 0);
-  const slut = new Date(aftaltSlutdato);
+  const slut = new Date(gaeldendeAflevering);
   slut.setHours(0, 0, 0, 0);
   if (slut >= nu) {
     return NextResponse.json(
-      { error: "Den aftalte afleveringsdato er endnu ikke overskredet." },
+      { error: "Den gældende afleveringsdato er endnu ikke overskredet." },
       { status: 409 }
     );
   }
@@ -97,7 +106,7 @@ export async function POST(req: NextRequest) {
   const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
   const link = `${baseUrl}/kontrakt/${kontrakt.haandvaerker_token}`;
 
-  const datoFormateret = new Date(aftaltSlutdato).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
+  const datoFormateret = new Date(gaeldendeAflevering).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
 
   const nyFristFormateret = ny_frist
     ? new Date(ny_frist).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" })
@@ -129,7 +138,7 @@ export async function POST(req: NextRequest) {
 
         ${datoFormateret ? `
         <div style="background: #f8f8f6; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px;">
-          <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px;">Aftalt afleveringsdato (overskredet)</p>
+          <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px;">Gældende afleveringsdato (overskredet)</p>
           <p style="margin: 0; font-size: 16px; font-weight: 700; color: #dc2626;">${datoFormateret}</p>
         </div>
         ` : ""}

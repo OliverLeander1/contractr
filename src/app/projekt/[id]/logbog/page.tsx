@@ -4,8 +4,9 @@ import { use, useEffect, useState, useRef } from "react";
 import ProjektNav from "@/components/ProjektNav";
 import DeadlineTæller from "@/components/DeadlineTæller";
 import { createClient } from "@/lib/supabase";
-import { hentOprindeligAftaltSlutdato, hentOprindeligAftaltStartdato } from "@/lib/kontraktSlutdato";
+import { hentOprindeligAftaltStartdato } from "@/lib/kontraktSlutdato";
 import { erKontraktEndeligtIndgaaet } from "@/lib/kontraktGodkendelse";
+import { beregnKontraktDeadline } from "@/lib/kontraktDeadline";
 
 interface LogEntry {
   id: string;
@@ -48,7 +49,7 @@ export default function Logbog({ params }: { params: Promise<{ id: string }> }) 
 
       const [{ data: profil }, { data: kontrakt }, { data: logs }] = await Promise.all([
         supabase.from("profiler").select("navn").eq("id", user.id).single(),
-        supabase.from("kontrakter").select("startdato, slutdato, tidsplan, status, bygherre_godkendt_at, haandvaerker_godkendt_at").eq("projekt_id", id).order("oprettet_at", { ascending: false }).limit(1).single(),
+        supabase.from("kontrakter").select("id, startdato, slutdato, tidsplan, status, bygherre_godkendt_at, haandvaerker_godkendt_at").eq("projekt_id", id).order("oprettet_at", { ascending: false }).limit(1).single(),
         fetch(`/api/logbog?projekt_id=${id}`).then(r => r.json()),
       ]);
 
@@ -57,9 +58,16 @@ export default function Logbog({ params }: { params: Promise<{ id: string }> }) 
       // kontraktGodkendelse.ts).
       const erEndeligtIndgaaet = erKontraktEndeligtIndgaaet(kontrakt);
 
+      // Agreement sheet deadline extension v1 — hentet scoped til DENNE
+      // kontrakt, kun når relevant (kontrakten er endeligt indgået).
+      const godkendteSedler = erEndeligtIndgaaet && kontrakt
+        ? (await supabase.from("ekstraarbejde").select("status, haandvaerker_tidsdage").eq("kontrakt_id", kontrakt.id)).data ?? []
+        : [];
+      const { gaeldendeAflevering } = beregnKontraktDeadline(kontrakt, godkendteSedler, kontrakt?.id);
+
       setBrugerNavn(profil?.navn || user.email?.split("@")[0] || "Bygherre");
       setStartdato(erEndeligtIndgaaet ? hentOprindeligAftaltStartdato(kontrakt) : null);
-      setSlutdato(erEndeligtIndgaaet ? hentOprindeligAftaltSlutdato(kontrakt) : null);
+      setSlutdato(erEndeligtIndgaaet ? gaeldendeAflevering : null);
       setEntries(Array.isArray(logs) ? logs : []);
       setIndlæser(false);
     };

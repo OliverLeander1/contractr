@@ -10,6 +10,7 @@ import { erV2Dokument, parseV2Sektioner, byggV2Dokument, indeholderKonkretDato }
 import { fmtBesigtigelseDatoLang, erBesigtigelsePasseret, hentEffektivDatoTid, fmtTidsinterval } from "@/lib/besigtigelse";
 import { findUafklaredeForslag } from "@/lib/kontraktGodkendelse";
 import { hentOprindeligAftaltSlutdato, hentOprindeligAftaltStartdato } from "@/lib/kontraktSlutdato";
+import { beregnKontraktDeadline } from "@/lib/kontraktDeadline";
 import { Plus, UserPlus } from "lucide-react";
 
 interface BesigtigelseTidspunktRad {
@@ -156,6 +157,15 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const [skrivFejl, setSkrivFejl] = useState("");
   const [projektAdresse, setProjektAdresse] = useState<string | null>(null);
   const [v2Fejl, setV2Fejl] = useState("");
+  // Agreement sheet deadline extension v1 — ALLE aftalesedler for hele
+  // projektet, hentet én gang, så den eksisterende canonical nummerering
+  // (ældste = #1, se ekstraarbejde-siderne) kan genbruges uændret. Kun
+  // godkendte sedler for DENNE kontrakt indgår senere i selve
+  // fristforlængelses-summen.
+  const [alleAftalesedler, setAlleAftalesedler] = useState<{
+    id: string; kontrakt_id: string; beskrivelse: string; status: string;
+    haandvaerker_tidsdage: number | null; oprettet_at: string; godkendt_at: string | null;
+  }[]>([]);
 
   const hentKontrakt = useCallback(async (kontraktId?: string) => {
     const supabase = createClient();
@@ -188,6 +198,16 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
     const d = await r.json();
     if (!d.error) { setKontrakt(d); setProjektAdresse(d.projekt_adresse ?? null); setSideFejl(""); }
     else setKontrakt(null);
+
+    // Agreement sheet deadline extension v1 — projekt-scoped, ét kald,
+    // samme etablerede client-side læsemønster som den eksisterende
+    // aftaleseddel-oversigt.
+    const { data: sedler } = await supabase
+      .from("ekstraarbejde")
+      .select("id, kontrakt_id, beskrivelse, status, haandvaerker_tidsdage, oprettet_at, godkendt_at")
+      .eq("projekt_id", id)
+      .order("oprettet_at", { ascending: false });
+    setAlleAftalesedler(sedler ?? []);
 
     if (session?.access_token) {
       const alleR = await fetch(`/api/projekter/${id}/kontrakter`, {
@@ -1483,6 +1503,55 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         </p>
                       </div>
                     )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Agreement sheet deadline extension v1 — DERIVED state ovenpå
+                den underskrevne baseline ovenfor. Ændrer aldrig selve
+                dokumentet/tidsplanen, kun denne separate visning. */}
+            {(() => {
+              const fmtDatoKort = (iso: string) =>
+                new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" });
+              const oprindeligAftaltSlutdato = hentOprindeligAftaltSlutdato(kontrakt);
+              const { samletFristforlaengelseDage, gaeldendeAflevering } = beregnKontraktDeadline(kontrakt, alleAftalesedler, kontrakt.id);
+              if (samletFristforlaengelseDage <= 0 || !gaeldendeAflevering || !oprindeligAftaltSlutdato) return null;
+
+              const bidragydendeSedler = alleAftalesedler
+                .map((s, i) => ({ ...s, nummer: alleAftalesedler.length - i }))
+                .filter((s) => s.kontrakt_id === kontrakt.id && s.status === "godkendt" && typeof s.haandvaerker_tidsdage === "number" && s.haandvaerker_tidsdage > 0)
+                .sort((a, b) => new Date(a.godkendt_at ?? a.oprettet_at).getTime() - new Date(b.godkendt_at ?? b.oprettet_at).getTime());
+
+              return (
+                <div className="bg-white rounded-2xl border border-[#e0ddd6] overflow-hidden">
+                  <div className="px-5 py-4">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Efterfølgende godkendte ændringer</p>
+
+                    <div className="space-y-2.5 mb-4">
+                      {bidragydendeSedler.map((s) => (
+                        <div key={s.id} className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm text-gray-800 truncate">Aftaleseddel #{s.nummer}</p>
+                            <p className="text-xs text-gray-400 truncate">{s.beskrivelse}</p>
+                          </div>
+                          <span className="text-sm font-bold text-[#1e3a2a] flex-shrink-0">
+                            +{s.haandvaerker_tidsdage} {s.haandvaerker_tidsdage === 1 ? "kalenderdag" : "kalenderdage"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100 mb-4">
+                      <p className="text-xs text-gray-500">Samlet fristforlængelse</p>
+                      <p className="text-sm font-bold text-gray-900">+{samletFristforlaengelseDage} kalenderdage</p>
+                    </div>
+
+                    <div className="bg-[#f0f7f3] rounded-xl px-4 py-3 flex items-center justify-between">
+                      <p className="text-xs font-semibold text-[#1e3a2a]">Gældende aflevering</p>
+                      <p className="text-base font-bold text-[#1e3a2a]">{fmtDatoKort(gaeldendeAflevering)}</p>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-2">Oprindeligt aftalt aflevering: {fmtDatoKort(oprindeligAftaltSlutdato)}</p>
                   </div>
                 </div>
               );

@@ -8,6 +8,7 @@ import BesigtigelseKort from "@/components/BesigtigelseKort";
 import DeadlineTæller from "@/components/DeadlineTæller";
 import { createClient } from "@/lib/supabase";
 import { hentOprindeligAftaltSlutdato, hentOprindeligAftaltStartdato } from "@/lib/kontraktSlutdato";
+import { beregnKontraktDeadline } from "@/lib/kontraktDeadline";
 
 interface Kontrakt {
   id: string;
@@ -58,6 +59,7 @@ const aftaleStatus: Record<string, { label: string; klasse: string }> = {
 export default function ProjektOversigt({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [kontrakt, setKontrakt] = useState<Kontrakt | null | "loading">("loading");
+  const [godkendteSedler, setGodkendteSedler] = useState<{ status: string; haandvaerker_tidsdage: number | null }[]>([]);
   const [bygherreNavn, setBygherreNavn] = useState("");
   const [visPaakrav, setVisPaakrav] = useState(false);
   const [paakravBesked, setPaakravBesked] = useState("");
@@ -79,6 +81,17 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
       }
 
       setKontrakt(data ?? null);
+
+      // Agreement sheet deadline extension v1 — hentet én gang, scoped til
+      // DENNE kontrakt (ikke projektet), til brug for den derived gældende
+      // aflevering. Kun status/haandvaerker_tidsdage er nødvendige her.
+      if (data) {
+        const { data: sedler } = await supabase
+          .from("ekstraarbejde")
+          .select("status, haandvaerker_tidsdage")
+          .eq("kontrakt_id", data.id);
+        setGodkendteSedler(sedler ?? []);
+      }
     };
     hent();
   }, [id]);
@@ -136,6 +149,11 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
       const dageТilStart = aftaltStartdato ? dageImellem(idag, aftaltStartdato) : null;
       const erStartet    = dageТilStart !== null && dageТilStart <= 0;
       const tidsplanGodkendt = kontrakt.tidsplan?.type === "faser" && kontrakt.tidsplan?.godkendt_af_bygherre === true;
+      // Agreement sheet deadline extension v1 — DERIVED gældende aflevering.
+      // Den underskrevne baseline (aftaltSlutdato/kontrakt.tidsplan) muteres
+      // aldrig; kun godkendte aftalesedler for DENNE kontrakt lægges oveni.
+      const { samletFristforlaengelseDage, gaeldendeAflevering } = beregnKontraktDeadline(kontrakt, godkendteSedler, kontrakt.id);
+      const harFristforlaengelse = samletFristforlaengelseDage > 0 && !!gaeldendeAflevering;
 
       return (
         <div className="min-h-screen bg-gray-50">
@@ -192,8 +210,13 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
                   )}
                   {aftaltSlutdato && (
                     <div className="flex justify-between items-center py-2.5">
-                      <p className="text-sm text-gray-500">{tidsplanGodkendt ? "Aftalt aflevering" : "Aflevering"}</p>
-                      <p className="text-sm font-bold text-gray-900">{fmtDato(aftaltSlutdato)}</p>
+                      <p className="text-sm text-gray-500">{harFristforlaengelse ? "Gældende aflevering" : (tidsplanGodkendt ? "Aftalt aflevering" : "Aflevering")}</p>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-gray-900">{fmtDato(harFristforlaengelse ? gaeldendeAflevering! : aftaltSlutdato)}</p>
+                        {harFristforlaengelse && (
+                          <p className="text-[10px] text-gray-400 mt-0.5">+{samletFristforlaengelseDage} kalenderdage siden oprindelig aftale</p>
+                        )}
+                      </div>
                     </div>
                   )}
                   <div className="flex justify-between items-center py-2.5">
@@ -258,18 +281,18 @@ export default function ProjektOversigt({ params }: { params: Promise<{ id: stri
               </div>
             )}
 
-            {/* Deadline-tæller */}
-            {aftaltSlutdato && (
+            {/* Deadline-tæller — tæller mod GÆLDENDE aflevering (baseline + godkendte fristforlængelser), ikke den underskrevne baseline alene */}
+            {gaeldendeAflevering && (
               <div className="mb-5">
                 <DeadlineTæller
                   startdato={aftaltStartdato}
-                  slutdato={aftaltSlutdato}
+                  slutdato={gaeldendeAflevering}
                   kanSendePaakrav={!!kontrakt.haandvaerker_email}
                   onSendPaakrav={() => {
-                    const overskredetDage = aftaltSlutdato
-                      ? Math.abs(Math.round((new Date(aftaltSlutdato).getTime() - new Date().setHours(0,0,0,0)) / (1000*60*60*24)))
+                    const overskredetDage = gaeldendeAflevering
+                      ? Math.abs(Math.round((new Date(gaeldendeAflevering).getTime() - new Date().setHours(0,0,0,0)) / (1000*60*60*24)))
                       : 0;
-                    const slutFormateret = aftaltSlutdato ? fmtDatoLang(aftaltSlutdato) : "";
+                    const slutFormateret = gaeldendeAflevering ? fmtDatoLang(gaeldendeAflevering) : "";
                     setPaakravBesked(
                       `Kære ${kontrakt.haandvaerker_navn || "entreprenør"},\n\nJeg skal hermed gøre opmærksom på, at den aftalte afleveringsdato den ${slutFormateret} er overskredet med ${overskredetDage} ${overskredetDage === 1 ? "dag" : "dage"}.\n\nJeg anmoder om, at arbejdet afsluttes hurtigst muligt og senest til nedenstående frist. Såfremt dette ikke overholdes, forbeholder jeg mig retten til at søge erstatning for dokumenterede tab i henhold til AB-Forbruger 2012.\n\nMed venlig hilsen\n${bygherreNavn}`
                     );

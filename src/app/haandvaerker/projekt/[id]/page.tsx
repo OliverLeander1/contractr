@@ -459,7 +459,7 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
                       </>
                     )}
                     {s.haandvaerker_tidsdage != null && (
-                      <p className="text-sm text-gray-600 mb-1">Tidskonsekvens: <span className="font-semibold">{s.haandvaerker_tidsdage === 0 ? "ingen tidsforlængelse" : `${s.haandvaerker_tidsdage} dage`}</span></p>
+                      <p className="text-sm text-gray-600 mb-1">Fristforlængelse: <span className="font-semibold">{s.haandvaerker_tidsdage === 0 ? "ingen fristforlængelse" : `+${s.haandvaerker_tidsdage} kalenderdage`}</span></p>
                     )}
                     {s.haandvaerker_besked && (
                       <p className="text-sm text-gray-500 italic mb-2">&ldquo;{s.haandvaerker_besked}&rdquo;</p>
