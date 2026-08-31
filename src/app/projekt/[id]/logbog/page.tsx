@@ -5,6 +5,7 @@ import ProjektNav from "@/components/ProjektNav";
 import DeadlineTæller from "@/components/DeadlineTæller";
 import { createClient } from "@/lib/supabase";
 import { hentOprindeligAftaltSlutdato, hentOprindeligAftaltStartdato } from "@/lib/kontraktSlutdato";
+import { erKontraktEndeligtIndgaaet } from "@/lib/kontraktGodkendelse";
 
 interface LogEntry {
   id: string;
@@ -52,13 +53,9 @@ export default function Logbog({ params }: { params: Promise<{ id: string }> }) 
       ]);
 
       // Deadline-tælleren må kun vise en dato, når kontrakten reelt er
-      // endeligt indgået — status alene antages ikke synkron med
-      // godkendelsestidsstemplerne, så alle tre kræves eksplicit.
-      const erEndeligtIndgaaet = !!(
-        kontrakt?.status === "begge_godkendt" &&
-        kontrakt?.bygherre_godkendt_at &&
-        kontrakt?.haandvaerker_godkendt_at
-      );
+      // endeligt indgået — fælles, autoritativ predicate (se
+      // kontraktGodkendelse.ts).
+      const erEndeligtIndgaaet = erKontraktEndeligtIndgaaet(kontrakt);
 
       setBrugerNavn(profil?.navn || user.email?.split("@")[0] || "Bygherre");
       setStartdato(erEndeligtIndgaaet ? hentOprindeligAftaltStartdato(kontrakt) : null);

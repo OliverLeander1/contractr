@@ -46,3 +46,28 @@ export function findUafklaredeForslag(kontrakt: KontraktTilGodkendelsesTjek): Ua
 export function talUafklaredeForslag(kontrakt: KontraktTilGodkendelsesTjek): number {
   return findUafklaredeForslag(kontrakt).reduce((sum, r) => sum + r.antal, 0);
 }
+
+interface KontraktTilLivscyklusTjek {
+  status?: string | null;
+  bygherre_godkendt_at?: string | null;
+  haandvaerker_godkendt_at?: string | null;
+}
+
+// Autoritativ, fail-closed definition af "kontrakten er endeligt indgået
+// af begge parter" (Signed contract date integrity v1). Status alene er
+// IKKE tilstrækkelig som predicate — den generelle indholds-opdatering i
+// /api/kontrakt kan i dag nulstille begge godkendelsestidsstempler uden
+// samtidig at rette status tilbage fra "begge_godkendt", så en
+// inkonsistent legacy-tilstand (status sat, tidsstempler tomme) er reelt
+// mulig. Alle tre felter kræves derfor eksplicit som defense-in-depth.
+// Bruges BÅDE server-side (til at autoritativt blokere mutation af
+// bindende kontraktdatoer) og klient-side (kun til rolig
+// statustekst/gating — klienten er aldrig den autoritative kilde).
+export function erKontraktEndeligtIndgaaet(kontrakt: KontraktTilLivscyklusTjek | null | undefined): boolean {
+  return !!(
+    kontrakt &&
+    kontrakt.status === "begge_godkendt" &&
+    kontrakt.bygherre_godkendt_at &&
+    kontrakt.haandvaerker_godkendt_at
+  );
+}

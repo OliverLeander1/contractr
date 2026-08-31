@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
 import { hentOprindeligAftaltSlutdato } from "@/lib/kontraktSlutdato";
+import { erKontraktEndeligtIndgaaet } from "@/lib/kontraktGodkendelse";
 import { Resend } from "resend";
 
 export const runtime = "nodejs";
@@ -43,15 +44,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Du har ikke adgang til denne kontrakt" }, { status: 403 });
   }
 
-  // Lifecycle — status alene antages ikke synkron med godkendelses-
-  // tidsstemplerne (dokumenteret risiko for divergens andre steder i
-  // kodebasen), så alle tre kræves eksplicit som defense-in-depth.
-  const erEndeligtIndgaaet = !!(
-    kontrakt.status === "begge_godkendt" &&
-    kontrakt.bygherre_godkendt_at &&
-    kontrakt.haandvaerker_godkendt_at
-  );
-  if (!erEndeligtIndgaaet) {
+  // Lifecycle — fælles, autoritativ predicate (se kontraktGodkendelse.ts):
+  // status alene antages ikke synkron med godkendelsestidsstemplerne.
+  if (!erKontraktEndeligtIndgaaet(kontrakt)) {
     return NextResponse.json(
       { error: "Der kan først sendes påkrav, når aftalegrundlaget er endeligt indgået af begge parter." },
       { status: 409 }

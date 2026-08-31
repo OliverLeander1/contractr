@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
 import { sendNotifikation } from "@/lib/notifikationer";
 import { erV2Dokument, parseV2Sektioner, indeholderKonkretDato } from "@/lib/dokumentV2";
+import { erKontraktEndeligtIndgaaet } from "@/lib/kontraktGodkendelse";
 
 export const runtime = "nodejs";
 
@@ -138,7 +139,7 @@ export async function POST(req: NextRequest) {
 
   const { data: eksisterendeKontrakt } = await db
     .from("kontrakter")
-    .select("id, projekt_id")
+    .select("id, projekt_id, startdato, slutdato, status, bygherre_godkendt_at, haandvaerker_godkendt_at")
     .eq("id", kontrakt_id)
     .maybeSingle();
 
@@ -159,13 +160,37 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Adgang afvist" }, { status: 403 });
   }
 
+  const erEndeligtIndgaaet = erKontraktEndeligtIndgaaet(eksisterendeKontrakt);
+
+  // Signed contract date integrity v1 — de bindende kontraktdatoer (den
+  // canonical aftalte tidsplans baseline) må ikke kunne ændres direkte,
+  // efter aftalen er endeligt indgået af begge parter. Blokerer kun en
+  // FAKTISK værdiændring, ikke blot feltets tilstedeværelse i payload —
+  // at sende den allerede gemte værdi tilbage er ikke en reel ændring.
+  // Ingen DB-write, ingen signaturændring, sker før al anden logik.
+  if (erEndeligtIndgaaet) {
+    const forsoegerAendreStart = startdato !== undefined && startdato !== eksisterendeKontrakt.startdato;
+    const forsoegerAendreSlut = slutdato !== undefined && slutdato !== eksisterendeKontrakt.slutdato;
+    if (forsoegerAendreStart || forsoegerAendreSlut) {
+      return NextResponse.json(
+        { error: "Den aftalte tidsplan kan ikke ændres direkte, efter aftalen er godkendt af begge parter." },
+        { status: 409 }
+      );
+    }
+  }
+
   const opdatering: Record<string, unknown> = { opdateret_at: new Date().toISOString() };
   if (titel !== undefined) opdatering.titel = titel;
   if (beskrivelse !== undefined) opdatering.beskrivelse = beskrivelse;
   if (total_pris !== undefined) opdatering.total_pris = total_pris;
   if (betalingsplan !== undefined) opdatering.betalingsplan = betalingsplan;
-  if (startdato !== undefined) opdatering.startdato = startdato;
-  if (slutdato !== undefined) opdatering.slutdato = slutdato;
+  // Kun en FAKTISK værdiændring skal indgå i opdateringen — ellers ville et
+  // no-op-resend af den allerede gemte dato udløse "nulstil godkendelser
+  // når indhold ændres" nedenfor og lydløst invalidere gyldige underskrifter
+  // uden at nogen reel kontraktdato ændrede sig (Signed contract date
+  // integrity v1).
+  if (startdato !== undefined && startdato !== eksisterendeKontrakt.startdato) opdatering.startdato = startdato;
+  if (slutdato !== undefined && slutdato !== eksisterendeKontrakt.slutdato) opdatering.slutdato = slutdato;
   if (haandvaerker_email !== undefined) {
     opdatering.haandvaerker_email = haandvaerker_email;
     opdatering.status = "inviteret";
@@ -250,6 +275,20 @@ export async function POST(req: NextRequest) {
 
   // Bygherre godkender tidsplan — opdater kun tidsplan.godkendt_af_bygherre, nulstil IKKE underskrifter
   if (godkend_tidsplan === true) {
+    // Signed contract date integrity v1 — den godkendte tidsplan er (når
+    // den findes) selve authority for de canonical kontraktdatoer. En
+    // (gen)godkendelse efter endelig underskrift kunne derfor ændre eller
+    // førstegangsetablere den bindende baseline uden ny fælles aftale.
+    // Normal brug godkender altid tidsplanen FØR endelig underskrift
+    // (uændret, urørt af dette) — dette blokerer kun det unødvendige og
+    // potentielt utilsigtede tilfælde efter.
+    if (erEndeligtIndgaaet) {
+      return NextResponse.json(
+        { error: "Den aftalte tidsplan kan ikke ændres direkte, efter aftalen er godkendt af begge parter." },
+        { status: 409 }
+      );
+    }
+
     const { data: eksisterende } = await db
       .from("kontrakter").select("tidsplan, titel, haandvaerker_email, haandvaerker_token").eq("id", kontrakt_id).single();
     const nuværendeTidsplan = eksisterende?.tidsplan ?? {};
