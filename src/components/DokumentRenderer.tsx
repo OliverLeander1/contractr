@@ -206,6 +206,17 @@ export default function DokumentRenderer({
       ? `Fristen er ${bidragydendeAftaleseddelNumre.length > 1 ? "samlet " : ""}forlænget med +${samletFristforlaengelseDage} kalenderdage jf. ${formatterAftaleseddelListe(bidragydendeAftaleseddelNumre)}.`
       : `Fristen er samlet forlænget med +${samletFristforlaengelseDage} kalenderdage.`
     : "";
+  // Tidsplan UX cleanup v1 — en enkelt fase, hvis start-/slutdato er
+  // identiske med de allerede viste hoveddatoer ovenfor, gentager kun det,
+  // brugeren netop har læst, og skjules derfor i selve dokumentvisningen.
+  // Ren præsentation: tidsplan.faser ændres ikke, og har kontrakten flere
+  // faser (eller en enkelt fase med afvigende datoer), vises sektionen
+  // fortsat uændret.
+  const eneste = tidsplanGodkendt && tidsplan?.faser && tidsplan.faser.length === 1 ? tidsplan.faser[0] : null;
+  const eneFaseErRedundant = !!(
+    eneste && visStartdato && visSlutdato &&
+    eneste.startdato === visStartdato && eneste.slutdato === visSlutdato
+  );
   // En forudsætning må først fremstå som gældende aftaleindhold i det
   // genererede dokument, når bygherre reelt har godkendt den — en
   // afventende eller afvist forudsætning må ikke se ud som en aftalt sag.
@@ -444,7 +455,10 @@ export default function DokumentRenderer({
               {visSlutdato && harFristforlaengelse && (
                 <>
                   <DataRække label="Oprindeligt aftalt aflevering" værdi={fmtDato(visSlutdato)} />
-                  <DataRække label="Gældende aflevering" værdi={fmtDato(gaeldendeAflevering as string)} />
+                  <div className="flex gap-4 py-2 border-b border-gray-50 last:border-0">
+                    <span className="text-xs font-bold text-gray-700 w-40 flex-shrink-0 pt-0.5">Gældende aflevering</span>
+                    <span className="text-base text-gray-900 font-bold flex-1">{fmtDato(gaeldendeAflevering as string)}</span>
+                  </div>
                   <p className="text-xs text-gray-500 py-1 leading-relaxed">{fristforlaengelseTekst}</p>
                 </>
               )}
@@ -457,7 +471,7 @@ export default function DokumentRenderer({
                   Dette udgør en eksplicit fravigelse af AB-Forbruger 2012 § 12.
                 </p>
               )}
-              {tidsplan?.type === "faser" && tidsplan.faser && tidsplan.faser.length > 0 && (
+              {tidsplan?.type === "faser" && tidsplan.faser && tidsplan.faser.length > 0 && !eneFaseErRedundant && (
                 <div className="mt-3">
                   <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Arbejdsfaser</p>
                   <div className="space-y-1.5">

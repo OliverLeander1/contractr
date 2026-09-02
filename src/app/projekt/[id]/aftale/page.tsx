@@ -91,6 +91,27 @@ interface Kontrakt {
 const fmtKr = (n: number) =>
   n.toLocaleString("da-DK", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + " kr.";
 
+// Tidsplan UX cleanup v1 — én delt radkomponent til den samlede
+// tidsplanssektion, så "gældende aflevering" kan fremhæves typografisk
+// (font weight/størrelse/baggrund) uden skrigende farve, jf. designsystemets
+// afdæmpede accentfarve (#f0f7f3), ikke grøn tekst.
+function TidsplanDatoRow({ label, værdi, fremhaevet = false }: { label: string; værdi: string; fremhaevet?: boolean }) {
+  if (fremhaevet) {
+    return (
+      <div className="flex items-center justify-between gap-3 bg-[#f0f7f3] rounded-xl px-4 py-3 mt-2">
+        <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">{label}</p>
+        <p className="text-base font-bold text-gray-900">{værdi}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center justify-between gap-3 py-2 border-b border-gray-50 last:border-0">
+      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</p>
+      <p className="text-sm font-semibold text-gray-800">{værdi}</p>
+    </div>
+  );
+}
+
 const feltLabels: Record<string, string> = {
   titel: "Projekttitel",
   beskrivelse: "Arbejdets omfang",
@@ -535,11 +556,10 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
 
   // Agreement sheet deadline extension v1 (korrektion) — beregnet ÉN gang
   // her og genbrugt både af selve dokumentvisningen (DokumentRenderer §5,
-  // nedenfor) og af den separate "Efterfølgende godkendte ændringer"-
-  // sektion længere nede, så de aldrig kan vise forskellige tal for samme
-  // kontrakt. Baseline (kontrakt.startdato/slutdato/tidsplan) læses uændret
-  // og muteres ikke — kun denne afledte visning tilføjes.
-  const oprindeligAftaltSlutdato = hentOprindeligAftaltSlutdato(kontrakt);
+  // nedenfor) og af den samlede tidsplanssektion i "Tidsplan"-kortet
+  // længere nede, så de aldrig kan vise forskellige tal for samme kontrakt.
+  // Baseline (kontrakt.startdato/slutdato/tidsplan) læses uændret og
+  // muteres ikke — kun denne afledte visning tilføjes.
   const { samletFristforlaengelseDage, gaeldendeAflevering } = beregnKontraktDeadline(kontrakt, alleAftalesedler, kontrakt.id);
   const bidragydendeAftalesedler = alleAftalesedler
     .map((s, i) => ({ ...s, nummer: alleAftalesedler.length - i }))
@@ -1382,6 +1402,77 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               const harAendringer = startAendret || slutAendret;
               const harBemaerkning = fase?.navn && fase.navn !== "Aftalt periode" && fase.navn !== "Foreslået af entreprenør";
 
+              // Tidsplan UX cleanup v1 — når tidsplanen er godkendt (den
+              // almindelige, faseopdelte sag), merges den tidligere separate
+              // "Tidsplan godkendt"-boks og "Efterfølgende godkendte
+              // ændringer"-boks til ÉN sammenhængende tidsplanssektion.
+              // Ingen ændring af selve tidsplan- eller
+              // fristforlængelsesdata — kun præsentation. Godkendt +
+              // "ingen_tidsplan" (fravigelse af § 12) er en separat, sjælden
+              // kombination uden datoer at samle og beholder derfor uændret
+              // den eksisterende visning nedenfor.
+              if (godkendt && tp.type === "faser") {
+                const harExtension = samletFristforlaengelseDage > 0 && !!gaeldendeAflevering;
+                return (
+                  <div className="bg-white rounded-2xl border border-[#e0ddd6] overflow-hidden">
+                    <div className="px-5 py-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tidsplan</p>
+                        <span className="text-[10px] font-bold text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">Godkendt</span>
+                      </div>
+                      <p className="text-xs text-gray-400 mb-4">
+                        {erBeggeGodkendt
+                          ? "Tidsplanen er en del af det godkendte aftalegrundlag."
+                          : "Tidsplanen er godkendt. Aftalegrundlaget afventer stadig endelig godkendelse."}
+                      </p>
+
+                      <div>
+                        <TidsplanDatoRow label="Aftalt opstart" værdi={canonicalStartdato ? fmtDatoKort(canonicalStartdato) : "—"} />
+                        {harExtension ? (
+                          <>
+                            <TidsplanDatoRow label="Oprindeligt aftalt aflevering" værdi={canonicalSlutdato ? fmtDatoKort(canonicalSlutdato) : "—"} />
+                            <TidsplanDatoRow label="Gældende aflevering" værdi={fmtDatoKort(gaeldendeAflevering as string)} fremhaevet />
+                          </>
+                        ) : (
+                          <TidsplanDatoRow label="Aftalt aflevering" værdi={canonicalSlutdato ? fmtDatoKort(canonicalSlutdato) : "—"} />
+                        )}
+                      </div>
+
+                      {harExtension && (
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5">
+                            {bidragydendeAftalesedler.length > 1 ? "Efterfølgende ændringer" : "Efterfølgende ændring"}
+                          </p>
+                          <div className="space-y-2 mb-3">
+                            {bidragydendeAftalesedler.map((s) => (
+                              <div key={s.id} className="flex items-center justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p className="text-sm text-gray-700 truncate">Aftaleseddel #{s.nummer}</p>
+                                  <p className="text-xs text-gray-400 truncate">{s.beskrivelse}</p>
+                                </div>
+                                <span className="text-sm font-semibold text-gray-700 flex-shrink-0">
+                                  +{s.haandvaerker_tidsdage} {s.haandvaerker_tidsdage === 1 ? "kalenderdag" : "kalenderdage"}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs text-gray-500">Samlet fristforlængelse</p>
+                            <p className="text-sm font-bold text-gray-900">+{samletFristforlaengelseDage} kalenderdage</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {tp.godkendt_at && (
+                        <p className="text-[11px] text-gray-400 mt-4 pt-3 border-t border-gray-100">
+                          Tidsplan godkendt {new Date(tp.godkendt_at).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div className={`rounded-2xl overflow-hidden border ${godkendt ? "border-green-100" : harAendringer ? "border-[#1e3a2a]/30" : "border-amber-200"}`}>
                   {/* Header */}
@@ -1523,48 +1614,6 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         </p>
                       </div>
                     )}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Agreement sheet deadline extension v1 — DERIVED state ovenpå
-                den underskrevne baseline ovenfor. Ændrer aldrig selve
-                dokumentet/tidsplanen, kun denne separate visning. */}
-            {(() => {
-              const fmtDatoKort = (iso: string) =>
-                new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" });
-              if (samletFristforlaengelseDage <= 0 || !gaeldendeAflevering || !oprindeligAftaltSlutdato) return null;
-
-              return (
-                <div className="bg-white rounded-2xl border border-[#e0ddd6] overflow-hidden">
-                  <div className="px-5 py-4">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Efterfølgende godkendte ændringer</p>
-
-                    <div className="space-y-2.5 mb-4">
-                      {bidragydendeAftalesedler.map((s) => (
-                        <div key={s.id} className="flex items-center justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="text-sm text-gray-800 truncate">Aftaleseddel #{s.nummer}</p>
-                            <p className="text-xs text-gray-400 truncate">{s.beskrivelse}</p>
-                          </div>
-                          <span className="text-sm font-bold text-[#1e3a2a] flex-shrink-0">
-                            +{s.haandvaerker_tidsdage} {s.haandvaerker_tidsdage === 1 ? "kalenderdag" : "kalenderdage"}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-100 mb-4">
-                      <p className="text-xs text-gray-500">Samlet fristforlængelse</p>
-                      <p className="text-sm font-bold text-gray-900">+{samletFristforlaengelseDage} kalenderdage</p>
-                    </div>
-
-                    <div className="bg-[#f0f7f3] rounded-xl px-4 py-3 flex items-center justify-between">
-                      <p className="text-xs font-semibold text-[#1e3a2a]">Gældende aflevering</p>
-                      <p className="text-base font-bold text-[#1e3a2a]">{fmtDatoKort(gaeldendeAflevering)}</p>
-                    </div>
-                    <p className="text-[10px] text-gray-400 mt-2">Oprindeligt aftalt aflevering: {fmtDatoKort(oprindeligAftaltSlutdato)}</p>
                   </div>
                 </div>
               );
