@@ -34,6 +34,22 @@ interface Props {
   haandvaerkerNavn?: string | null;
   haandvaerkerFirma?: string | null;
   erAftaleEndeligtGodkendt?: boolean;
+  // Agreement sheet deadline extension v1 — DERIVED state, beregnet af
+  // parent/view-laget (kontraktDeadline.ts), ALDRIG af DokumentRenderer
+  // selv. Komponenten er ren præsentation og laver ingen egne DB-kald.
+  // Bruges kun til at vise den gældende aflevering ved siden af den
+  // oprindeligt aftalte baseline — baseline-data ovenfor forbliver uændret
+  // og umuteret.
+  samletFristforlaengelseDage?: number;
+  gaeldendeAflevering?: string | null;
+  bidragydendeAftaleseddelNumre?: number[];
+}
+
+// "Aftaleseddel #2" / "Aftaleseddel #2 og #4" / "Aftaleseddel #2, #4 og #6"
+function formatterAftaleseddelListe(numre: number[]): string {
+  const navne = numre.map((n) => `Aftaleseddel #${n}`);
+  if (navne.length <= 1) return navne[0] ?? "";
+  return `${navne.slice(0, -1).join(", ")} og ${navne[navne.length - 1]}`;
 }
 
 const fmtKr = (n: number) =>
@@ -105,6 +121,9 @@ export default function DokumentRenderer({
   haandvaerkerNavn,
   haandvaerkerFirma,
   erAftaleEndeligtGodkendt = false,
+  samletFristforlaengelseDage = 0,
+  gaeldendeAflevering = null,
+  bidragydendeAftaleseddelNumre = [],
 }: Props) {
   const erV2 = erV2Dokument(tekst);
 
@@ -173,6 +192,20 @@ export default function DokumentRenderer({
   const visSlutdato = tidsplanGodkendt
     ? hentOprindeligAftaltSlutdato({ slutdato: slutdato ?? null, tidsplan })
     : (slutdato ?? null);
+  // Agreement sheet deadline extension v1 (korrektion): §5 skal vise BÅDE
+  // den oprindelige baseline og den afledte gældende aflevering, når en
+  // efterfølgende godkendt aftaleseddel har forlænget fristen — ikke kun
+  // baseline. samletFristforlaengelseDage/gaeldendeAflevering er beregnet
+  // af parent-viewet via kontraktDeadline.ts; komponenten laver ingen egen
+  // beregning eller DB-kald, kun visning.
+  const harFristforlaengelse = !!(
+    visSlutdato && samletFristforlaengelseDage > 0 && gaeldendeAflevering
+  );
+  const fristforlaengelseTekst = harFristforlaengelse
+    ? bidragydendeAftaleseddelNumre.length > 0
+      ? `Fristen er ${bidragydendeAftaleseddelNumre.length > 1 ? "samlet " : ""}forlænget med +${samletFristforlaengelseDage} kalenderdage jf. ${formatterAftaleseddelListe(bidragydendeAftaleseddelNumre)}.`
+      : `Fristen er samlet forlænget med +${samletFristforlaengelseDage} kalenderdage.`
+    : "";
   // En forudsætning må først fremstå som gældende aftaleindhold i det
   // genererede dokument, når bygherre reelt har godkendt den — en
   // afventende eller afvist forudsætning må ikke se ud som en aftalt sag.
@@ -408,7 +441,16 @@ export default function DokumentRenderer({
             <SektionsOverskrift nr={sektionsNr++} label="Tidsplan" />
             <div className="space-y-0">
               {visStartdato && <DataRække label={tidsplanGodkendt ? "Aftalt opstart" : "Opstartsdato"} værdi={fmtDato(visStartdato)} />}
-              {visSlutdato && <DataRække label={tidsplanGodkendt ? "Aftalt aflevering" : "Færdigmelding"} værdi={fmtDato(visSlutdato)} />}
+              {visSlutdato && harFristforlaengelse && (
+                <>
+                  <DataRække label="Oprindeligt aftalt aflevering" værdi={fmtDato(visSlutdato)} />
+                  <DataRække label="Gældende aflevering" værdi={fmtDato(gaeldendeAflevering as string)} />
+                  <p className="text-xs text-gray-500 py-1 leading-relaxed">{fristforlaengelseTekst}</p>
+                </>
+              )}
+              {visSlutdato && !harFristforlaengelse && (
+                <DataRække label={tidsplanGodkendt ? "Aftalt aflevering" : "Færdigmelding"} værdi={fmtDato(visSlutdato)} />
+              )}
               {tidsplan?.type === "ingen_tidsplan" && (
                 <p className="text-sm text-gray-600 py-1 leading-relaxed">
                   Parterne har aftalt at arbejdet udføres uden en faseopdelt tidsplan.

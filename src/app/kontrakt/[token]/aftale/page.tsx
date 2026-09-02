@@ -135,6 +135,10 @@ interface Kontrakt {
   forudsaetninger: string | null;
   forudsaetninger_sendt_at: string | null;
   forudsaetninger_godkendt: boolean | null;
+  // Agreement sheet deadline extension v1 (korrektion, token-route) —
+  // udelukkende server-beregnet af GET /api/kontrakt/[token]. Klienten
+  // læser kun disse to afledte felter og beregner aldrig selv.
+  deadline?: { samletFristforlaengelseDage: number; gaeldendeAflevering: string | null } | null;
 }
 
 const fmtKr = (n: number) =>
@@ -549,6 +553,8 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               vilkaar={kontrakt.vilkaar}
               haandvaerkerNavn={kontrakt.haandvaerker_navn}
               haandvaerkerFirma={kontrakt.haandvaerker_firma}
+              samletFristforlaengelseDage={kontrakt.deadline?.samletFristforlaengelseDage}
+              gaeldendeAflevering={kontrakt.deadline?.gaeldendeAflevering}
             />
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">

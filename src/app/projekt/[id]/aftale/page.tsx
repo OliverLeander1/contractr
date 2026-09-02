@@ -533,6 +533,20 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const haandvaerkerGodkendt = !!kontrakt.haandvaerker_godkendt_at;
   const uafklaret = findUafklaredeForslag(kontrakt);
 
+  // Agreement sheet deadline extension v1 (korrektion) — beregnet ÉN gang
+  // her og genbrugt både af selve dokumentvisningen (DokumentRenderer §5,
+  // nedenfor) og af den separate "Efterfølgende godkendte ændringer"-
+  // sektion længere nede, så de aldrig kan vise forskellige tal for samme
+  // kontrakt. Baseline (kontrakt.startdato/slutdato/tidsplan) læses uændret
+  // og muteres ikke — kun denne afledte visning tilføjes.
+  const oprindeligAftaltSlutdato = hentOprindeligAftaltSlutdato(kontrakt);
+  const { samletFristforlaengelseDage, gaeldendeAflevering } = beregnKontraktDeadline(kontrakt, alleAftalesedler, kontrakt.id);
+  const bidragydendeAftalesedler = alleAftalesedler
+    .map((s, i) => ({ ...s, nummer: alleAftalesedler.length - i }))
+    .filter((s) => s.kontrakt_id === kontrakt.id && s.status === "godkendt" && typeof s.haandvaerker_tidsdage === "number" && s.haandvaerker_tidsdage > 0)
+    .sort((a, b) => new Date(a.godkendt_at ?? a.oprettet_at).getTime() - new Date(b.godkendt_at ?? b.oprettet_at).getTime());
+  const bidragydendeAftaleseddelNumre = bidragydendeAftalesedler.map((s) => s.nummer);
+
   const statusTekst: Record<string, string> = {
     udkast: "Udkast",
     inviteret: "Invitation sendt",
@@ -1035,6 +1049,9 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         haandvaerkerNavn={kontrakt.haandvaerker_navn}
                         haandvaerkerFirma={kontrakt.haandvaerker_firma}
                         erAftaleEndeligtGodkendt={erBeggeGodkendt}
+                        samletFristforlaengelseDage={samletFristforlaengelseDage}
+                        gaeldendeAflevering={gaeldendeAflevering}
+                        bidragydendeAftaleseddelNumre={bidragydendeAftaleseddelNumre}
                       />
                     )}
                   </>
@@ -1121,6 +1138,9 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         haandvaerkerNavn={kontrakt.haandvaerker_navn}
                         haandvaerkerFirma={kontrakt.haandvaerker_firma}
                         erAftaleEndeligtGodkendt={erBeggeGodkendt}
+                        samletFristforlaengelseDage={samletFristforlaengelseDage}
+                        gaeldendeAflevering={gaeldendeAflevering}
+                        bidragydendeAftaleseddelNumre={bidragydendeAftaleseddelNumre}
                       />
                     )}
                   </>
@@ -1514,14 +1534,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
             {(() => {
               const fmtDatoKort = (iso: string) =>
                 new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" });
-              const oprindeligAftaltSlutdato = hentOprindeligAftaltSlutdato(kontrakt);
-              const { samletFristforlaengelseDage, gaeldendeAflevering } = beregnKontraktDeadline(kontrakt, alleAftalesedler, kontrakt.id);
               if (samletFristforlaengelseDage <= 0 || !gaeldendeAflevering || !oprindeligAftaltSlutdato) return null;
-
-              const bidragydendeSedler = alleAftalesedler
-                .map((s, i) => ({ ...s, nummer: alleAftalesedler.length - i }))
-                .filter((s) => s.kontrakt_id === kontrakt.id && s.status === "godkendt" && typeof s.haandvaerker_tidsdage === "number" && s.haandvaerker_tidsdage > 0)
-                .sort((a, b) => new Date(a.godkendt_at ?? a.oprettet_at).getTime() - new Date(b.godkendt_at ?? b.oprettet_at).getTime());
 
               return (
                 <div className="bg-white rounded-2xl border border-[#e0ddd6] overflow-hidden">
@@ -1529,7 +1542,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Efterfølgende godkendte ændringer</p>
 
                     <div className="space-y-2.5 mb-4">
-                      {bidragydendeSedler.map((s) => (
+                      {bidragydendeAftalesedler.map((s) => (
                         <div key={s.id} className="flex items-center justify-between gap-3">
                           <div className="min-w-0">
                             <p className="text-sm text-gray-800 truncate">Aftaleseddel #{s.nummer}</p>

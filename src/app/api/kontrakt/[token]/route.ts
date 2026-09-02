@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
+import { beregnKontraktDeadline } from "@/lib/kontraktDeadline";
 
 export const runtime = "nodejs";
 
@@ -18,7 +19,28 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tok
     return NextResponse.json({ error: "Kontrakt ikke fundet" }, { status: 404 });
   }
 
-  return NextResponse.json(data);
+  // Agreement sheet deadline extension v1 (korrektion, token-route) —
+  // denne route er token-baseret og kan tilgås uden en almindelig
+  // authenticated session, så klienten må aldrig selv beregne eller
+  // levere fristforlængelsen. Serveren resolver udelukkende ud fra det
+  // allerede verificerede kontrakt.id og henter KUN de felter, der er
+  // nødvendige for beregningen — ingen rå aftaleseddelrækker (beskrivelse,
+  // priser, noter, billeder mv.) forlader nogensinde denne route.
+  const { data: godkendteSedler } = await db
+    .from("ekstraarbejde")
+    .select("status, haandvaerker_tidsdage")
+    .eq("kontrakt_id", data.id)
+    .eq("status", "godkendt");
+
+  const { samletFristforlaengelseDage, gaeldendeAflevering } = beregnKontraktDeadline(
+    data,
+    godkendteSedler ?? [],
+  );
+
+  return NextResponse.json({
+    ...data,
+    deadline: { samletFristforlaengelseDage, gaeldendeAflevering },
+  });
 }
 
 // PATCH /api/kontrakt/[token] — opdater felter som verificeret håndværker

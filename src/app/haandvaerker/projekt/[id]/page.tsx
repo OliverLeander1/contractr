@@ -9,6 +9,7 @@ import BesigtigelseKort from "@/components/BesigtigelseKort";
 import DokumentRenderer from "@/components/DokumentRenderer";
 import AftaleseddelSvarModal, { MaterialeAfregning, materialeLabel } from "@/components/AftaleseddelSvarModal";
 import { hentOprindeligAftaltStartdato } from "@/lib/kontraktSlutdato";
+import { beregnKontraktDeadline } from "@/lib/kontraktDeadline";
 
 type Fane = "aftale" | "tidsplan" | "sedler" | "mangler" | "besigtigelse";
 
@@ -37,6 +38,7 @@ interface Kontrakt {
 
 interface Sedel {
   id: string;
+  kontrakt_id: string;
   beskrivelse: string;
   status: "afventer_entreprenoer" | "afventer_bygherre" | "godkendt" | "afvist";
   oprettet_af_navn: string | null;
@@ -189,6 +191,18 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
   const visStartdato = tidsplanGodkendt
     ? hentOprindeligAftaltStartdato({ startdato: kontrakt.startdato, tidsplan })
     : kontrakt.startdato;
+  // Agreement sheet deadline extension v1 (korrektion) — samme afledte
+  // beregning som bygherresidens Aftale-fane, scopet til denne kontrakt.id.
+  // sedler dækker allerede alle denne entreprenørs egne kontrakter på
+  // projektet, så summen her er komplet for netop kontrakt.id — intet nyt
+  // DB-kald. Provenance-nummerering (Aftaleseddel #N) kræver projektbred
+  // nummerering, som ikke er tilgængelig her, og udelades derfor bevidst;
+  // DokumentRenderer viser i så fald en generisk formulering uden nummer.
+  const { samletFristforlaengelseDage, gaeldendeAflevering } = beregnKontraktDeadline(
+    { slutdato: kontrakt.slutdato, tidsplan },
+    sedler,
+    kontrakt.id,
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -322,6 +336,8 @@ export default function HaandvaerkerProjekt({ params }: { params: Promise<{ id: 
               tidsplan={kontrakt.tidsplan as Parameters<typeof DokumentRenderer>[0]["tidsplan"]}
               haandvaerkerNavn={kontrakt.haandvaerker_navn}
               haandvaerkerFirma={kontrakt.haandvaerker_firma}
+              samletFristforlaengelseDage={samletFristforlaengelseDage}
+              gaeldendeAflevering={gaeldendeAflevering}
             />
           </div>
         )}
