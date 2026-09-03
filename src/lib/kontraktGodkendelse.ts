@@ -4,22 +4,28 @@
 // den autoritative kilde). Undgår at samme regel vedligeholdes to steder.
 
 export interface UafklaretForslag {
-  type: "felt" | "tidsplan" | "forudsaetninger";
+  type: "felt";
   antal: number;
 }
 
 interface KontraktTilGodkendelsesTjek {
   kontraktaendringer?: { status: string }[] | null;
-  tidsplan?: { indsendt_at?: string | null; godkendt_af_bygherre?: boolean } | null;
-  forudsaetninger_sendt_at?: string | null;
-  forudsaetninger_godkendt?: boolean | null;
 }
 
-// Kortlægning af hvilke eksisterende workflow-states der regnes som
-// uafklarede, uafhængigt af hinanden:
+// Pre-contract lifecycle v2 (låst produktmodel) — tidsplan og forudsætninger
+// er IKKE længere separate godkendelsesanmodninger til bygherre. De er
+// indhold i entreprenørens udkast/tilbud, som bygherre gennemgår og
+// accepterer SAMLET ved den endelige godkendelse (se
+// /api/kontrakt/[token]/godkend, rolle=bygherre, og review-checkbox-
+// featuren i projekt/[id]/aftale/page.tsx). At kræve dem forhåndsgodkendt
+// af bygherre, FØR entreprenøren overhovedet kunne sende sit samlede
+// tilbud, skabte en cirkulær blokering: bygherre havde ingen grund til at
+// godkende noget, entreprenøren endnu ikke havde erklæret færdigt.
+//
+// Kortlægning af hvad der stadig regnes som uafklaret:
 // - kontraktaendringer med status "afventer" (titel/beskrivelse/total_pris)
-// - en indsendt tidsplan, som bygherre endnu ikke har godkendt
-// - en indsendt forudsætning, som bygherre endnu ikke har taget stilling til
+//   — en ægte, bilateral forhandling, der kan komme fra begge parter, og
+//   derfor fortsat blokerer BEGGE parters godkendelsesforsøg.
 // Besigtigelse indgår bevidst ikke — det er et selvstændigt planlægningsflow,
 // adskilt fra selve aftalegrundlaget (se docs/PROJECT_STATE.md).
 // Betalingsplan indgår bevidst ikke endnu — der findes i dag ikke et
@@ -30,14 +36,6 @@ export function findUafklaredeForslag(kontrakt: KontraktTilGodkendelsesTjek): Ua
   const afventendeFelter = (kontrakt.kontraktaendringer ?? []).filter((a) => a.status === "afventer");
   if (afventendeFelter.length > 0) {
     resultat.push({ type: "felt", antal: afventendeFelter.length });
-  }
-
-  if (kontrakt.tidsplan?.indsendt_at && kontrakt.tidsplan.godkendt_af_bygherre !== true) {
-    resultat.push({ type: "tidsplan", antal: 1 });
-  }
-
-  if (kontrakt.forudsaetninger_sendt_at && kontrakt.forudsaetninger_godkendt !== true) {
-    resultat.push({ type: "forudsaetninger", antal: 1 });
   }
 
   return resultat;

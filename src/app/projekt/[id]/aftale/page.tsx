@@ -12,6 +12,8 @@ import { findUafklaredeForslag } from "@/lib/kontraktGodkendelse";
 import { hentOprindeligAftaltSlutdato, hentOprindeligAftaltStartdato } from "@/lib/kontraktSlutdato";
 import { beregnKontraktDeadline } from "@/lib/kontraktDeadline";
 import { Plus, UserPlus } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { type ReviewAendringType, reviewAendringVisningstekst } from "@/lib/reviewAendringVisning";
 
 interface BesigtigelseTidspunktRad {
   id: string;
@@ -43,6 +45,164 @@ interface Aendring {
   kommentar: string | null;
   status: "afventer" | "accepteret" | "afvist";
   oprettet_at: string;
+  besvaret_at?: string | null;
+}
+
+// Sektionsbaseret forhandling v1 — REVIEW_TYPE_FOR_KEY er specifik for
+// denne sides korte review-id'er (samme id'er som reviewPunkter allerede
+// bruger). Selve felt-typerne og deres visningsformatering er delt med
+// entreprenørens side via src/lib/reviewAendringVisning.ts, så begge
+// sider aldrig kan komme til at fortolke samme ny_vaerdi-JSON forskelligt.
+const REVIEW_TYPE_FOR_KEY: Record<string, ReviewAendringType> = {
+  pris: "review_total_pris",
+  tidsplan: "review_tidsplan",
+  betalingsplan: "review_betalingsplan",
+  forudsaetninger: "review_forudsaetninger",
+};
+
+interface ReviewDraft {
+  foreslaaetPris: string;
+  startdato: string;
+  slutdato: string;
+  kommentar: string;
+}
+
+const TOM_REVIEW_DRAFT: ReviewDraft = { foreslaaetPris: "", startdato: "", slutdato: "", kommentar: "" };
+
+function reviewDraftGyldig(key: string, draft: ReviewDraft): boolean {
+  const kommentar = draft.kommentar.trim();
+  if (key === "pris") return !!kommentar || !!draft.foreslaaetPris.trim();
+  if (key === "tidsplan") return !!kommentar || !!draft.startdato || !!draft.slutdato;
+  return !!kommentar;
+}
+
+// Diskret "footer" til et review-kort: åbner et lille kontekstuelt
+// inline-draft (klientlokalt, intet sendt til serveren endnu), viser
+// enten "Foreslå ændring", et klargjort-udkast med Rediger/Fjern, eller
+// den seneste faktisk sendte anmodning og dens status.
+function ReviewAendringFooter({
+  reviewKey,
+  draft,
+  redigerer,
+  senesteAendring,
+  onAabn,
+  onSkift,
+  onGem,
+  onAnnuller,
+  onFjern,
+}: {
+  reviewKey: string;
+  draft: ReviewDraft | undefined;
+  redigerer: boolean;
+  senesteAendring: Aendring | null;
+  onAabn: () => void;
+  onSkift: (draft: ReviewDraft) => void;
+  onGem: () => void;
+  onAnnuller: () => void;
+  onFjern: () => void;
+}) {
+  const type = REVIEW_TYPE_FOR_KEY[reviewKey];
+
+  if (redigerer) {
+    const d = draft ?? TOM_REVIEW_DRAFT;
+    return (
+      <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
+        {type === "review_total_pris" && (
+          <input
+            type="number"
+            placeholder="Foreslået beløb (valgfrit)"
+            value={d.foreslaaetPris}
+            onChange={(e) => onSkift({ ...d, foreslaaetPris: e.target.value })}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
+          />
+        )}
+        {type === "review_tidsplan" && (
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={d.startdato}
+              onChange={(e) => onSkift({ ...d, startdato: e.target.value })}
+              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
+            />
+            <input
+              type="date"
+              value={d.slutdato}
+              onChange={(e) => onSkift({ ...d, slutdato: e.target.value })}
+              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
+            />
+          </div>
+        )}
+        <textarea
+          rows={2}
+          placeholder={
+            type === "review_betalingsplan"
+              ? "Fx: Jeg ønsker betaling 50 % ved opstart og 50 % ved aflevering."
+              : type === "review_forudsaetninger"
+              ? "Fx: Tilføj, at eksisterende inventar afdækkes inden arbejdet starter."
+              : "Kommentar (valgfrit)"
+          }
+          value={d.kommentar}
+          onChange={(e) => onSkift({ ...d, kommentar: e.target.value })}
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:border-[#1e3a2a] focus:ring-1 focus:ring-[#1e3a2a]/10"
+        />
+        <div className="flex gap-2">
+          <button onClick={onAnnuller} className="flex-1 py-2 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50">
+            Annuller
+          </button>
+          <button
+            onClick={onGem}
+            disabled={!reviewDraftGyldig(reviewKey, d)}
+            className="flex-1 py-2 bg-[#1e3a2a] text-white text-xs font-bold rounded-lg hover:opacity-90 disabled:opacity-40"
+          >
+            Klargør ændringsønske
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (draft) {
+    return (
+      <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between gap-3">
+        <span className="text-xs font-medium text-gray-600">Ændringsønske klargjort</span>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <button onClick={onAabn} className="text-xs font-semibold text-[#1e3a2a] hover:underline">Rediger</button>
+          <button onClick={onFjern} className="text-xs text-gray-400 hover:text-red-500">Fjern</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (senesteAendring) {
+    const statusTekst =
+      senesteAendring.status === "accepteret" ? "Indarbejdet"
+      : senesteAendring.status === "afvist" ? "Afvist"
+      : "Afventer entreprenør";
+    const statusKlasse =
+      senesteAendring.status === "accepteret" ? "bg-green-50 text-green-700 border-green-100"
+      : senesteAendring.status === "afvist" ? "bg-gray-50 text-gray-500 border-gray-200"
+      : "bg-amber-50 text-amber-700 border-amber-100";
+    return (
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="flex items-center gap-2 mb-1">
+          <p className="text-xs font-semibold text-gray-500">Dit ændringsønske</p>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusKlasse}`}>{statusTekst}</span>
+        </div>
+        <p className="text-sm text-gray-700 leading-relaxed">{reviewAendringVisningstekst(senesteAendring.felt, senesteAendring.ny_vaerdi)}</p>
+        {senesteAendring.status !== "afventer" && (
+          <button onClick={onAabn} className="mt-2 text-xs font-medium text-gray-400 hover:text-[#1e3a2a] transition-colors">
+            Foreslå ny ændring
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <button onClick={onAabn} className="mt-4 pt-4 border-t border-gray-100 w-full text-left text-xs font-medium text-gray-400 hover:text-[#1e3a2a] transition-colors">
+      Foreslå ændring
+    </button>
+  );
 }
 
 interface TidsplanFase {
@@ -112,6 +272,32 @@ function TidsplanDatoRow({ label, værdi, fremhaevet = false }: { label: string;
   );
 }
 
+// Review-/bekræftelsesflow v2 — kontekstuel bekræftelse. I stedet for en
+// samlet "indkøbsliste" af checkboxe i sidebaren bekræfter bygherre hvert
+// punkt dér, hvor indholdet faktisk vises (nederst i den relevante
+// sektion). Ren lokal UX-state, ingen persistence — kun en visuel
+// sikkerhedsforanstaltning før selve den juridiske handling
+// ("Godkend og indgå aftale"). Bruger den delte Radix-baserede Switch
+// (src/components/ui/switch.tsx) for rigtig role="switch"-semantik.
+// Label og Switch er forbundet via htmlFor/id (ikke nested), så et klik
+// på teksten kun udløser ét enkelt, nativt label→control-klik — ingen
+// dobbelt-toggle.
+function ReviewBekraeftRow({ id, label, bekraeftet, onToggle }: { id: string; label: string; bekraeftet: boolean; onToggle: (checked: boolean) => void }) {
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between gap-4">
+      <label
+        htmlFor={id}
+        className={`text-[13px] leading-none cursor-pointer select-none transition-colors ${
+          bekraeftet ? "font-semibold text-[#1e3a2a]" : "font-medium text-gray-600 hover:text-gray-800"
+        }`}
+      >
+        {label}
+      </label>
+      <Switch id={id} checked={bekraeftet} onCheckedChange={onToggle} />
+    </div>
+  );
+}
+
 const feltLabels: Record<string, string> = {
   titel: "Projekttitel",
   beskrivelse: "Arbejdets omfang",
@@ -164,12 +350,41 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const [sender, setSender] = useState(false);
   const [godkender, setGodkender] = useState(false);
   const [godkendFejl, setGodkendFejl] = useState("");
+  // Pre-contract lifecycle v2 — "Anmod om ændringer": sekundær handling i
+  // bygherres review-fase, genåbner aftalegrundlaget for entreprenøren i
+  // stedet for kun at tilbyde et binært "godkend alt / gør ingenting".
+  const [visAendringsModal, setVisAendringsModal] = useState(false);
+  const [aendringsBesked, setAendringsBesked] = useState("");
+  const [senderAendring, setSenderAendring] = useState(false);
+  const [aendringsFejl, setAendringsFejl] = useState("");
+  // Review-/bekræftelsesflow før endelig godkendelse v1 — ren lokal
+  // UX-gate, ingen persistens. Nulstilles bevidst ved genindlæsning, så
+  // bygherre aktivt genbekræfter hver gang. Erstatter ikke og skriver
+  // ikke til den juridiske kontraktgodkendelse (bygherre_godkendt_at).
+  // Sektionsbaseret forhandling v1 (rettelse) — bekræftelserne må ikke
+  // overleve til en NY entreprenørgodkendt revision (fx efter et
+  // ændringsønske). Rå state gemmer derfor selv den "runde"
+  // (kontrakt.haandvaerker_godkendt_at), den blev lavet imod; den
+  // faktiske, læste reviewBekraeftet nedenfor er en ren afledt værdi —
+  // ingen useEffect nødvendig for at nulstille den.
+  const [reviewBekraeftetRunde, setReviewBekraeftetRunde] = useState<{ runde: string | null; bekraeftelser: Record<string, boolean> }>({ runde: null, bekraeftelser: {} });
+  // Vises først efter et forsøg på at godkende med manglende review-punkter
+  // — listen over manglende punkter selv er altid afledt live af
+  // reviewBekraeftet, så den forsvinder automatisk, når alt er bekræftet.
+  const [visManglendeReview, setVisManglendeReview] = useState(false);
+  // Sektionsbaseret forhandling v1 — lokale, klient-only udkast til
+  // konkrete ændringsønsker. Intet sendes til serveren, før bygherre
+  // aktivt trykker "Send X ændringsønsker". Nøglen er den samme korte
+  // review-id ("pris"/"tidsplan"/"betalingsplan"/"forudsaetninger") som
+  // reviewPunkter allerede bruger.
+  const [reviewDrafts, setReviewDrafts] = useState<Record<string, ReviewDraft>>({});
+  const [aabenDraftEditor, setAabenDraftEditor] = useState<string | null>(null);
+  const [senderReviewAendringer, setSenderReviewAendringer] = useState(false);
+  const [reviewAendringerFejl, setReviewAendringerFejl] = useState("");
   const [gemmer, setGemmer] = useState(false);
   const [redigererBetalingsplan, setRedigererBetalingsplan] = useState(false);
   const [betalingsplanRækker, setBetalingsplanRækker] = useState<{milepæl: string; andel: string}[]>([]);
   const [brugerNavn, setBrugerNavn] = useState("");
-  const [godkenderTidsplan, setGodkenderTidsplan] = useState(false);
-  const [godkenderForudsaetninger, setGodkenderForudsaetninger] = useState(false);
   const [alleKontrakter, setAlleKontrakter] = useState<{ id: string; titel: string | null; status: string; oprettet_at: string }[]>([]);
   const [opretter, setOpretter] = useState(false);
   const [opretFejl, setOpretFejl] = useState("");
@@ -431,44 +646,6 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
     }
   }
 
-  async function godkendTidsplan() {
-    if (!kontrakt || typeof kontrakt !== "object" || godkenderTidsplan) return;
-    setGodkenderTidsplan(true);
-    setSkrivFejl("");
-    try {
-      const resultat = await autentificeretFetch("/api/kontrakt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kontrakt_id: kontrakt.id, godkend_tidsplan: true }),
-      });
-      if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
-      const data = await resultat.res.json();
-      if (!data.error) setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, tidsplan: data.tidsplan } : prev);
-      else setSkrivFejl("Kunne ikke godkende tidsplanen. Prøv igen.");
-    } finally {
-      setGodkenderTidsplan(false);
-    }
-  }
-
-  async function godkendForudsaetninger() {
-    if (!kontrakt || typeof kontrakt !== "object" || godkenderForudsaetninger) return;
-    setGodkenderForudsaetninger(true);
-    setSkrivFejl("");
-    try {
-      const resultat = await autentificeretFetch("/api/kontrakt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kontrakt_id: kontrakt.id, godkend_forudsaetninger: true }),
-      });
-      if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
-      const data = await resultat.res.json();
-      if (!data.error) setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, forudsaetninger_godkendt: true } : prev);
-      else setSkrivFejl("Kunne ikke godkende forudsætningerne. Prøv igen.");
-    } finally {
-      setGodkenderForudsaetninger(false);
-    }
-  }
-
   async function sletTilbudsDokument() {
     if (!kontrakt || typeof kontrakt !== "object") return;
     await fetch(`/api/kontrakt/${kontrakt.haandvaerker_token}/tilbud-slet`, { method: "DELETE" });
@@ -524,6 +701,83 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
     }
   }
 
+  // Pre-contract lifecycle v2 — genåbner det entreprenørgodkendte
+  // aftalegrundlag for entreprenøren i stedet for et binært
+  // godkend-alt/gør-intet-valg. Genbruger den eksisterende
+  // /api/kontrakt POST-route (samme mønster som godkend_tidsplan m.fl.).
+  async function anmodOmAendringer() {
+    if (!kontrakt || typeof kontrakt !== "object" || senderAendring) return;
+    if (!aendringsBesked.trim()) {
+      setAendringsFejl("Skriv en kort besked om, hvad der skal ændres.");
+      return;
+    }
+    setAendringsFejl("");
+    setSenderAendring(true);
+    try {
+      const resultat = await autentificeretFetch("/api/kontrakt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kontrakt_id: kontrakt.id, anmod_om_aendringer: true, besked: aendringsBesked.trim() }),
+      });
+      if ("fejltype" in resultat) { setAendringsFejl(skrivFejlTekst(resultat.fejltype)); return; }
+      const data = await resultat.res.json();
+      if (!data.error) {
+        setKontrakt(prev => prev && typeof prev === "object" ? { ...prev, ...data } : prev);
+        setVisAendringsModal(false);
+        setAendringsBesked("");
+      } else {
+        setAendringsFejl(data.error || "Kunne ikke sende anmodningen. Prøv igen.");
+      }
+    } finally {
+      setSenderAendring(false);
+    }
+  }
+
+  // Sektionsbaseret forhandling v1 — sender ALLE klargjorte lokale
+  // ændringsønsker i ét samlet kald. Fail-closed rækkefølge håndteres
+  // server-side (pre-check → batched insert → verificér antal → først
+  // derefter genåbnes kontrakten). Klienten venter blot på ét svar og
+  // clearer først det lokale udkast-state, når serveren bekræfter succes.
+  async function sendReviewAendringer() {
+    if (!kontrakt || typeof kontrakt !== "object" || senderReviewAendringer) return;
+    const nøgler = Object.keys(reviewDrafts);
+    if (nøgler.length === 0) return;
+
+    const review_aendringer = nøgler.map((key) => {
+      const draft = reviewDrafts[key];
+      const payload: Record<string, unknown> = { type: REVIEW_TYPE_FOR_KEY[key], kommentar: draft.kommentar.trim() || undefined };
+      if (key === "pris" && draft.foreslaaetPris.trim()) {
+        payload.foreslaaetPris = parseFloat(draft.foreslaaetPris.replace(",", "."));
+      }
+      if (key === "tidsplan") {
+        if (draft.startdato) payload.startdato = draft.startdato;
+        if (draft.slutdato) payload.slutdato = draft.slutdato;
+      }
+      return payload;
+    });
+
+    setReviewAendringerFejl("");
+    setSenderReviewAendringer(true);
+    try {
+      const resultat = await autentificeretFetch("/api/kontrakt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kontrakt_id: kontrakt.id, action: "send_review_aendringer", review_aendringer }),
+      });
+      if ("fejltype" in resultat) { setReviewAendringerFejl(skrivFejlTekst(resultat.fejltype)); return; }
+      const data = await resultat.res.json();
+      if (!data.error) {
+        setReviewDrafts({});
+        setAabenDraftEditor(null);
+        await hentKontrakt();
+      } else {
+        setReviewAendringerFejl(data.error || "Kunne ikke sende ændringsønskerne. Prøv igen.");
+      }
+    } finally {
+      setSenderReviewAendringer(false);
+    }
+  }
+
   if (kontrakt === "loading") {
     return (
       <div className="min-h-screen bg-[#f5f3ee]">
@@ -553,6 +807,122 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
   const bygherreGodkendt = !!kontrakt.bygherre_godkendt_at;
   const haandvaerkerGodkendt = !!kontrakt.haandvaerker_godkendt_at;
   const uafklaret = findUafklaredeForslag(kontrakt);
+
+  // Review-/bekræftelsesflow før endelig godkendelse v1 — hvilke punkter
+  // der reelt findes at gennemgå, afgøres af den samme data/rendering som
+  // resten af siden allerede bruger, ikke en ny condition-engine:
+  // - Pris: findes altid her — /api/kontrakt/[token]/godkend afviser al
+  //   godkendelse (også håndværkerens egen, forud for bygherres) uden
+  //   total_pris > 0, og haandvaerkerGodkendt er allerede en forudsætning
+  //   for at nå hertil.
+  // - Betalingsplan: "Betalingsplan"-kortet nedenfor viser altid reelt
+  //   indhold (aftalt/foreslået plan eller default AB-Forbruger §25-tekst,
+  //   som også indgår i selve DokumentRenderer-dokumentet).
+  // - Forudsætninger: kun hvis forudsaetninger_sendt_at er sat — samme
+  //   betingelse som det eksisterende Forudsætninger-kort allerede bruger.
+  // Omfang: for V2-dokumenter er det den udtrukne arbejdsomfang-sektion
+  // (samme kilde som DokumentRenderer selv bruger til at afgøre om
+  // "Arbejdsomfang" vises) der afgør relevans — ikke blot om beskrivelse
+  // som helhed er ikke-tom, som ellers kunne dække over et V2-dokument med
+  // fx kun krav/praktiske forhold udfyldt.
+  const omfangIndhold = erV2Dokument(kontrakt.beskrivelse)
+    ? parseV2Sektioner(kontrakt.beskrivelse || "").arbejdsomfang
+    : kontrakt.beskrivelse;
+  // Tidsplan: samme kilde som DokumentRenderers egen harTidsplan-gate og
+  // den canonical dato-helper (kontraktSlutdato.ts) — kontrakt.tidsplan
+  // alene er for snævert, fordi den canonical logik bevidst falder tilbage
+  // til kontrakt.startdato/slutdato, når der ikke findes en godkendt
+  // fasetidsplan. En eksplicit "ingen fast tidsplan"-fravigelse (§12) tæller
+  // også som reelt indhold at gennemgå.
+  // Pre-contract lifecycle v2 (rettelse): i SAMLET REVIEW er tidsplanen
+  // entreprenørens allerede indsendte, men endnu ikke bygherre-godkendte
+  // tilbud — samme rå kilde (tidsplan.indsendt_at) som DokumentRenderers
+  // offer-view (erUnderBygherreReview) allerede bruger. Uden dette ville
+  // reviewpunktet fejlagtigt være skjult, når bygherre hverken havde
+  // udfyldt startdato eller slutdato ved oprettelse, selvom dokumentet
+  // rent faktisk viser entreprenørens tidsplan.
+  const harReviewbarTidsplan = !!(
+    kontrakt.tidsplan?.indsendt_at ||
+    hentOprindeligAftaltStartdato(kontrakt) ||
+    hentOprindeligAftaltSlutdato(kontrakt) ||
+    kontrakt.tidsplan?.type === "ingen_tidsplan"
+  );
+  // Sektionsbaseret forhandling v1 (rettelse) — kontrakt.haandvaerker_godkendt_at
+  // ER review-runde-nøglen. Et nyt tidsstempel (efter et ændringsønske og
+  // en ny "Godkend og send aftalegrundlag") betyder en ny revision, og alle
+  // tidligere "gennemgået"-markeringer skal da tælle som ubekræftede igen
+  // — uanset hvilken enkelt sektion der reelt blev ændret (vi forsøger
+  // bevidst ikke at diff-beregne det, jf. produktbeslutning). Matcher den
+  // gemte runde ikke længere kontraktens aktuelle værdi, læses
+  // bekræftelserne simpelthen som tomme.
+  const reviewRunde = kontrakt.haandvaerker_godkendt_at ?? null;
+  const reviewBekraeftet = reviewBekraeftetRunde.runde === reviewRunde ? reviewBekraeftetRunde.bekraeftelser : {};
+  function setReviewBekraeftet(updater: (prev: Record<string, boolean>) => Record<string, boolean>) {
+    setReviewBekraeftetRunde({ runde: reviewRunde, bekraeftelser: updater(reviewBekraeftet) });
+  }
+
+  const reviewPunkter = [
+    { id: "omfang", label: "Arbejdsomfang", vis: !!omfangIndhold?.trim() },
+    { id: "pris", label: "Pris", vis: true },
+    { id: "betalingsplan", label: "Betalingsplan", vis: true },
+    { id: "tidsplan", label: "Tidsplan", vis: harReviewbarTidsplan },
+    { id: "forudsaetninger", label: "Forudsætninger", vis: !!kontrakt.forudsaetninger_sendt_at },
+  ].filter((p) => p.vis);
+  const alleReviewpunkterBekraeftet = reviewPunkter.every((p) => reviewBekraeftet[p.id]);
+  // Afledt live af reviewBekraeftet — forsvinder automatisk fra visningen,
+  // efterhånden som bygherre bekræfter punkterne kontekstuelt.
+  const manglendeReviewPunkter = reviewPunkter.filter((p) => !reviewBekraeftet[p.id]);
+  const antalLokaleDrafts = Object.keys(reviewDrafts).length;
+  const harLokaleDrafts = antalLokaleDrafts > 0;
+  // Reviewsektionen giver kun mening, når bygherre reelt står ved det
+  // sidste skridt — ellers ville den vises, mens knappen af helt andre
+  // grunde (afventer håndværker, uafklarede forslag) alligevel ikke kan
+  // aktiveres, hvilket ville føles som en meningsløs forhindring.
+  const klarTilBygherreGodkendelse = !bygherreGodkendt && haandvaerkerGodkendt && uafklaret.length === 0;
+
+  // Sektionsbaseret forhandling v1 — den senest oprettede review_*-række
+  // for et givet felt, uanset status. Bruges til at vise "Dit
+  // ændringsønske" diskret ved den relevante sektion, uden at gøre den
+  // til et fuldt revisionshistorik-feed (kun seneste vises, jf. produktkrav).
+  // Kopieret til en lokal, allerede narrowet const, da TypeScripts
+  // null-narrowing af kontrakt ikke bevares ind i en indlejret funktion.
+  const kontraktaendringerListe = kontrakt.kontraktaendringer;
+  function senesteReviewAendring(felt: ReviewAendringType): Aendring | null {
+    const rows = kontraktaendringerListe.filter((a) => a.felt === felt);
+    if (rows.length === 0) return null;
+    return rows.reduce((nyeste, r) => (new Date(r.oprettet_at) > new Date(nyeste.oprettet_at) ? r : nyeste));
+  }
+
+  function reviewAendringFooterProps(key: string) {
+    return {
+      reviewKey: key,
+      draft: reviewDrafts[key],
+      redigerer: aabenDraftEditor === key,
+      senesteAendring: senesteReviewAendring(REVIEW_TYPE_FOR_KEY[key]),
+      onAabn: () => { setAabenDraftEditor(key); setReviewDrafts((prev) => ({ ...prev, [key]: prev[key] ?? { ...TOM_REVIEW_DRAFT } })); },
+      onSkift: (draft: ReviewDraft) => setReviewDrafts((prev) => ({ ...prev, [key]: draft })),
+      onGem: () => setAabenDraftEditor(null),
+      // Luk formularen. Fjern kun udkastet, hvis det reelt er tomt/ugyldigt
+      // (brugeren åbnede "Foreslå ændring" og fortrød uden at skrive noget)
+      // — et allerede gyldigt, tidligere klargjort udkast bevares.
+      onAnnuller: () => {
+        setAabenDraftEditor(null);
+        const current = reviewDrafts[key];
+        if (!current || !reviewDraftGyldig(key, current)) {
+          setReviewDrafts((prev) => {
+            const resten = { ...prev };
+            delete resten[key];
+            return resten;
+          });
+        }
+      },
+      onFjern: () => setReviewDrafts((prev) => {
+        const resten = { ...prev };
+        delete resten[key];
+        return resten;
+      }),
+    };
+  }
 
   // Agreement sheet deadline extension v1 (korrektion) — beregnet ÉN gang
   // her og genbrugt både af selve dokumentvisningen (DokumentRenderer §5,
@@ -735,6 +1105,50 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
           </div>
         )}
 
+        {/* Anmod om ændringer-modal — pre-contract lifecycle v2 */}
+        {visAendringsModal && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+              <h2 className="font-bold text-gray-900 mb-1">Anmod om ændringer</h2>
+              <p className="text-sm text-gray-400 mb-5 leading-relaxed">
+                Aftalegrundlaget sendes tilbage til entreprenøren, som kan revidere det og sende en ny version til godkendelse.
+              </p>
+
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Hvad skal ændres?</label>
+                <textarea
+                  value={aendringsBesked}
+                  onChange={e => setAendringsBesked(e.target.value)}
+                  rows={4}
+                  placeholder="Beskriv kort, hvad du ønsker ændret"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base md:text-sm focus:outline-none focus:border-[#1e3a2a] focus:ring-2 focus:ring-[#1e3a2a]/10 resize-none"
+                  autoFocus
+                />
+              </div>
+
+              {aendringsFejl && (
+                <p className="text-xs text-red-600 font-medium mb-4">{aendringsFejl}</p>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setVisAendringsModal(false); setAendringsFejl(""); }}
+                  className="flex-1 py-3 border border-gray-200 text-gray-600 text-sm font-medium rounded-xl hover:bg-gray-50"
+                >
+                  Annuller
+                </button>
+                <button
+                  onClick={anmodOmAendringer}
+                  disabled={senderAendring || !aendringsBesked.trim()}
+                  className="flex-1 py-3 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 disabled:bg-gray-100 disabled:text-gray-400 transition-all"
+                >
+                  {senderAendring ? "Sender..." : "Send anmodning"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Besigtigelse-handlingsboks — vises kun ved aktiv selvstændig besigtigelse */}
         {besigtigelse === "error" && (
           <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-5">
@@ -867,7 +1281,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               );
 
               return (
-                <div key={felt} className={`bg-white rounded-2xl border overflow-hidden transition-all ${harForslag ? "border-amber-200" : "border-[#e0ddd6]"}`}>
+                <div key={felt} id={felt === "total_pris" ? "review-pris" : undefined} className={`bg-white rounded-2xl border overflow-hidden transition-all ${harForslag ? "border-amber-200" : "border-[#e0ddd6]"}`}>
                   <div className="px-5 py-4">
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex items-center gap-2">
@@ -922,6 +1336,17 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                           </span>
                         )}
                       </p>
+                    )}
+                    {felt === "total_pris" && !erAktiv && klarTilBygherreGodkendelse && (
+                      <>
+                        <ReviewBekraeftRow
+                          id="review-pris-toggle"
+                          label="Pris gennemgået"
+                          bekraeftet={!!reviewBekraeftet.pris}
+                          onToggle={(checked) => setReviewBekraeftet((prev) => ({ ...prev, pris: checked }))}
+                        />
+                        <ReviewAendringFooter {...reviewAendringFooterProps("pris")} />
+                      </>
                     )}
                   </div>
                   {afventendeFeltForslag.map(a => (
@@ -1069,6 +1494,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         haandvaerkerNavn={kontrakt.haandvaerker_navn}
                         haandvaerkerFirma={kontrakt.haandvaerker_firma}
                         erAftaleEndeligtGodkendt={erBeggeGodkendt}
+                        erUnderBygherreReview={haandvaerkerGodkendt && !bygherreGodkendt}
                         samletFristforlaengelseDage={samletFristforlaengelseDage}
                         gaeldendeAflevering={gaeldendeAflevering}
                         bidragydendeAftaleseddelNumre={bidragydendeAftaleseddelNumre}
@@ -1158,6 +1584,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         haandvaerkerNavn={kontrakt.haandvaerker_navn}
                         haandvaerkerFirma={kontrakt.haandvaerker_firma}
                         erAftaleEndeligtGodkendt={erBeggeGodkendt}
+                        erUnderBygherreReview={haandvaerkerGodkendt && !bygherreGodkendt}
                         samletFristforlaengelseDage={samletFristforlaengelseDage}
                         gaeldendeAflevering={gaeldendeAflevering}
                         bidragydendeAftaleseddelNumre={bidragydendeAftaleseddelNumre}
@@ -1168,9 +1595,17 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               }
 
               return (
-                <div className={`bg-white rounded-2xl border overflow-hidden ${afventende.length > 0 ? "border-amber-200" : "border-[#e0ddd6]"}`}>
+                <div id="review-omfang" className={`bg-white rounded-2xl border overflow-hidden ${afventende.length > 0 ? "border-amber-200" : "border-[#e0ddd6]"}`}>
                   <div className="px-5 py-4">
                     {indhold}
+                    {!!omfangIndhold?.trim() && klarTilBygherreGodkendelse && (
+                      <ReviewBekraeftRow
+                        id="review-omfang-toggle"
+                        label="Arbejdsomfang gennemgået"
+                        bekraeftet={!!reviewBekraeftet.omfang}
+                        onToggle={(checked) => setReviewBekraeftet((prev) => ({ ...prev, omfang: checked }))}
+                      />
+                    )}
                   </div>
 
                   {afventende.map(a => (
@@ -1190,70 +1625,43 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               );
             })()}
 
-            {/* Forudsætninger fra entreprenøren — vises i kontrakten som forslag */}
+            {/* Forudsætninger fra entreprenøren — pre-contract lifecycle v2:
+                indhold i entreprenørens tilbud, ikke en individuel
+                godkendelsesanmodning. Gennemgås og accepteres samlet ved
+                bygherres endelige godkendelse (review-checkboxene
+                nedenfor), ikke via separate acceptér/afvis-knapper her. */}
             {kontrakt.forudsaetninger_sendt_at && (
-              <div className={`bg-white rounded-2xl border overflow-hidden ${!kontrakt.forudsaetninger_godkendt ? "border-amber-200" : "border-[#e0ddd6]"}`}>
+              <div id="review-forudsaetninger" className="bg-white rounded-2xl border border-[#e0ddd6] overflow-hidden">
                 <div className="px-5 py-4">
-                  <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-2 mb-1">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Forudsætninger</p>
                     {kontrakt.forudsaetninger_godkendt && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Godkendt</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-100">Godkendt</span>
                     )}
                   </div>
-                  {kontrakt.forudsaetninger_godkendt ? (
-                    <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">{kontrakt.forudsaetninger}</p>
-                  ) : (
-                    <p className="text-sm text-gray-400 italic">Afventer din godkendelse herunder</p>
+                  <p className="text-xs text-gray-400 mb-3">
+                    {kontrakt.forudsaetninger_godkendt
+                      ? "Del af det godkendte aftalegrundlag."
+                      : "Indgår i aftalegrundlaget. Gennemgås og godkendes samlet."}
+                  </p>
+                  <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{kontrakt.forudsaetninger}</p>
+                  {klarTilBygherreGodkendelse && (
+                    <>
+                      <ReviewBekraeftRow
+                        id="review-forudsaetninger-toggle"
+                        label="Forudsætninger gennemgået"
+                        bekraeftet={!!reviewBekraeftet.forudsaetninger}
+                        onToggle={(checked) => setReviewBekraeftet((prev) => ({ ...prev, forudsaetninger: checked }))}
+                      />
+                      <ReviewAendringFooter {...reviewAendringFooterProps("forudsaetninger")} />
+                    </>
                   )}
                 </div>
-
-                {!kontrakt.forudsaetninger_godkendt && !erBeggeGodkendt && (
-                  <div className="border-t border-amber-100 bg-amber-50 px-5 py-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">
-                        {kontrakt.haandvaerker_navn || "Entreprenøren"} har tilføjet forudsætninger
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap mb-4">{kontrakt.forudsaetninger}</p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={godkendForudsaetninger}
-                        disabled={godkenderForudsaetninger}
-                        className="flex-1 py-2 text-xs font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
-                      >
-                        {godkenderForudsaetninger ? "Godkender..." : "Acceptér og tilføj til aftalen"}
-                      </button>
-                      <button
-                        onClick={async () => {
-                          if (!kontrakt || typeof kontrakt !== "object") return;
-                          setSkrivFejl("");
-                          const resultat = await autentificeretFetch("/api/kontrakt", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ kontrakt_id: kontrakt.id, afvis_forudsaetninger: true }),
-                          });
-                          if ("fejltype" in resultat) { setSkrivFejl(skrivFejlTekst(resultat.fejltype)); return; }
-                          const data = await resultat.res.json();
-                          if (!data.error) {
-                            setKontrakt(prev => prev && typeof prev === "object"
-                              ? { ...prev, forudsaetninger: null, forudsaetninger_sendt_at: null, forudsaetninger_godkendt: null }
-                              : prev);
-                          } else {
-                            setSkrivFejl("Kunne ikke afvise forudsætningerne. Prøv igen.");
-                          }
-                        }}
-                        className="flex-1 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                      >
-                        Afvis
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
             {/* Betalingsplan */}
-            <div className="bg-white rounded-2xl border border-[#e0ddd6] overflow-hidden">
+            <div id="review-betalingsplan" className="bg-white rounded-2xl border border-[#e0ddd6] overflow-hidden">
               <div className="px-5 py-4">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div>
@@ -1353,6 +1761,17 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                     </div>
                   </div>
                 )}
+                {!redigererBetalingsplan && klarTilBygherreGodkendelse && (
+                  <>
+                    <ReviewBekraeftRow
+                      id="review-betalingsplan-toggle"
+                      label="Betalingsplan gennemgået"
+                      bekraeftet={!!reviewBekraeftet.betalingsplan}
+                      onToggle={(checked) => setReviewBekraeftet((prev) => ({ ...prev, betalingsplan: checked }))}
+                    />
+                    <ReviewAendringFooter {...reviewAendringFooterProps("betalingsplan")} />
+                  </>
+                )}
               </div>
             </div>
             {/* Tidsplan */}
@@ -1360,10 +1779,23 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               const tp = kontrakt.tidsplan;
               const fmtDatoKort = (iso: string) =>
                 new Date(iso).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" });
+              // Vises nederst i uanset hvilken af de fire tidsplan-varianter der
+              // aktuelt renderes nedenfor — samme kontekstuelle bekræftelse ét sted.
+              const tidsplanReviewToggle = klarTilBygherreGodkendelse && harReviewbarTidsplan ? (
+                <ReviewBekraeftRow
+                  id="review-tidsplan-toggle"
+                  label="Tidsplan gennemgået"
+                  bekraeftet={!!reviewBekraeftet.tidsplan}
+                  onToggle={(checked) => setReviewBekraeftet((prev) => ({ ...prev, tidsplan: checked }))}
+                />
+              ) : null;
+              const tidsplanAendringFooter = klarTilBygherreGodkendelse && harReviewbarTidsplan ? (
+                <ReviewAendringFooter {...reviewAendringFooterProps("tidsplan")} />
+              ) : null;
 
               if (!tp) {
                 return (
-                  <div className="bg-white rounded-2xl border border-[#e0ddd6] p-5">
+                  <div id="review-tidsplan" className="bg-white rounded-2xl border border-[#e0ddd6] p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Aftalte datoer</p>
                       <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">AB-Forbruger § 12</span>
@@ -1379,6 +1811,8 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         <p className="text-xs text-gray-400 mt-0.5">Entreprenøren skal bekræfte eller foreslå andre start- og slutdatoer</p>
                       </div>
                     </div>
+                    {tidsplanReviewToggle}
+                    {tidsplanAendringFooter}
                   </div>
                 );
               }
@@ -1402,6 +1836,43 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               const harAendringer = startAendret || slutAendret;
               const harBemaerkning = fase?.navn && fase.navn !== "Aftalt periode" && fase.navn !== "Foreslået af entreprenør";
 
+              // Pre-contract lifecycle v2 — SAMLET REVIEW: entreprenøren har
+              // godkendt og sendt sit samlede tilbud, bygherre er nu ved at
+              // gennemgå det inden sin egen, endelige, samlede godkendelse.
+              // Tidsplanen er her entreprenørens indhold i tilbuddet, IKKE
+              // en individuel godkendelsesanmodning — derfor ingen "Godkend
+              // datoerne"-knap og intet "Afventer din godkendelse"-badge i
+              // dette vindue. Viser bevidst entreprenørens FAKTISKE
+              // indsendte fase-data (offer-view), ikke canonical/effective
+              // værdier — de bliver først retvisende efter bygherres
+              // samlede godkendelse (som atomisk sætter
+              // tidsplan.godkendt_af_bygherre, se /godkend-routen).
+              if (haandvaerkerGodkendt && !bygherreGodkendt) {
+                const visStart = entStartdato ?? bygStartdato;
+                const visSlut = entSlutdato ?? bygSlutdato;
+                return (
+                  <div id="review-tidsplan" className="bg-white rounded-2xl border border-[#e0ddd6] overflow-hidden">
+                    <div className="px-5 py-4">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Tidsplan</p>
+                      <p className="text-xs text-gray-400 mb-4">Indgår i aftalegrundlaget. Gennemgås og godkendes samlet.</p>
+
+                      {tp.type === "ingen_tidsplan" ? (
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          Entreprenøren har foreslået at arbejde uden en fast tidsplan — en fravigelse af AB-Forbruger § 12.
+                        </p>
+                      ) : (
+                        <div>
+                          <TidsplanDatoRow label="Aftalt opstart" værdi={visStart ? fmtDatoKort(visStart) : "—"} />
+                          <TidsplanDatoRow label="Aftalt aflevering" værdi={visSlut ? fmtDatoKort(visSlut) : "—"} />
+                        </div>
+                      )}
+                      {tidsplanReviewToggle}
+                      {tidsplanAendringFooter}
+                    </div>
+                  </div>
+                );
+              }
+
               // Tidsplan UX cleanup v1 — når tidsplanen er godkendt (den
               // almindelige, faseopdelte sag), merges den tidligere separate
               // "Tidsplan godkendt"-boks og "Efterfølgende godkendte
@@ -1414,7 +1885,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
               if (godkendt && tp.type === "faser") {
                 const harExtension = samletFristforlaengelseDage > 0 && !!gaeldendeAflevering;
                 return (
-                  <div className="bg-white rounded-2xl border border-[#e0ddd6] overflow-hidden">
+                  <div id="review-tidsplan" className="bg-white rounded-2xl border border-[#e0ddd6] overflow-hidden">
                     <div className="px-5 py-4">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tidsplan</p>
@@ -1468,13 +1939,15 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                           Tidsplan godkendt {new Date(tp.godkendt_at).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" })}
                         </p>
                       )}
+                      {tidsplanReviewToggle}
+                      {tidsplanAendringFooter}
                     </div>
                   </div>
                 );
               }
 
               return (
-                <div className={`rounded-2xl overflow-hidden border ${godkendt ? "border-green-100" : harAendringer ? "border-[#1e3a2a]/30" : "border-amber-200"}`}>
+                <div id="review-tidsplan" className={`rounded-2xl overflow-hidden border ${godkendt ? "border-green-100" : harAendringer ? "border-[#1e3a2a]/30" : "border-amber-200"}`}>
                   {/* Header */}
                   <div className="px-5 py-4 flex items-center justify-between bg-[#111c17]">
                     <div className="flex items-center gap-3">
@@ -1503,7 +1976,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       </span>
                     ) : (
                       <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/10 text-white border border-white/20">
-                        Afventer din godkendelse
+                        Udkast
                       </span>
                     )}
                   </div>
@@ -1513,7 +1986,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4">
                         <p className="text-xs font-bold text-amber-800 mb-1">Fravigelse af AB-Forbruger § 12</p>
                         <p className="text-xs text-amber-700 leading-relaxed">
-                          Entreprenøren ønsker at arbejde uden en aftalt afleveringsdato. Godkend kun hvis I har aftalt dette.
+                          Entreprenøren ønsker at arbejde uden en aftalt afleveringsdato{godkendt ? "." : " — indgår i aftalegrundlaget."}
                         </p>
                       </div>
                     ) : (
@@ -1584,20 +2057,10 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       </div>
                     )}
 
-                    {!godkendt && !erBeggeGodkendt && (
-                      <button
-                        onClick={godkendTidsplan}
-                        disabled={godkenderTidsplan}
-                        className="w-full py-2.5 bg-[#1e3a2a] text-white text-sm font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                      >
-                        {godkenderTidsplan ? (
-                          <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Godkender...</>
-                        ) : harAendringer ? (
-                          <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Godkend entreprenørens datoer</>
-                        ) : (
-                          <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Godkend datoerne</>
-                        )}
-                      </button>
+                    {!godkendt && (
+                      <p className="text-xs text-gray-400 text-center leading-relaxed">
+                        Del af entreprenørens udkast. Indgår i det foreløbige aftalegrundlag.
+                      </p>
                     )}
 
                     {godkendt && (
@@ -1614,6 +2077,8 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         </p>
                       </div>
                     )}
+                    {tidsplanReviewToggle}
+                    {tidsplanAendringFooter}
                   </div>
                 </div>
               );
@@ -1677,27 +2142,81 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                 </div>
               ) : (
                 <>
-                  <button
-                    onClick={godkendKontrakt}
-                    disabled={godkender || bygherreGodkendt || !haandvaerkerGodkendt || uafklaret.length > 0}
-                    className={`w-full mt-4 py-3 rounded-xl text-sm font-bold transition-all ${
-                      bygherreGodkendt || !haandvaerkerGodkendt || uafklaret.length > 0
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-[#1e3a2a] text-white hover:opacity-90"
-                    }`}
-                  >
-                    {godkender
-                      ? "Godkender..."
-                      : bygherreGodkendt
-                      ? "Du har accepteret"
-                      : !haandvaerkerGodkendt
-                      ? (kontrakt.haandvaerker_email ? "Afventer samlet grundlag" : "Ingen håndværker inviteret")
-                      : uafklaret.length > 0
-                      ? `${uafklaret.length} forslag mangler at blive afklaret`
-                      : "Godkend og indgå aftale"}
-                  </button>
-                  {godkendFejl && (
-                    <p className="mt-2 text-xs text-red-600 text-center leading-snug">{godkendFejl}</p>
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    {klarTilBygherreGodkendelse && harLokaleDrafts ? (
+                      <>
+                        <button
+                          onClick={sendReviewAendringer}
+                          disabled={senderReviewAendringer}
+                          className="w-full py-3 rounded-xl text-sm font-bold transition-all bg-[#1e3a2a] text-white hover:opacity-90 disabled:opacity-60"
+                        >
+                          {senderReviewAendringer
+                            ? "Sender..."
+                            : antalLokaleDrafts === 1
+                            ? "Send 1 ændringsønske"
+                            : `Send ${antalLokaleDrafts} ændringsønsker`}
+                        </button>
+                        <p className="mt-3 text-xs text-gray-400 leading-relaxed">
+                          Du har ændringsønsker, der endnu ikke er sendt. &ldquo;Godkend og indgå aftale&rdquo; er tilgængelig igen, når de er sendt eller fjernet.
+                        </p>
+                        {reviewAendringerFejl && (
+                          <p className="mt-2 text-xs text-red-600 text-center leading-snug">{reviewAendringerFejl}</p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            if (klarTilBygherreGodkendelse && !alleReviewpunkterBekraeftet) {
+                              setVisManglendeReview(true);
+                              return;
+                            }
+                            setVisManglendeReview(false);
+                            godkendKontrakt();
+                          }}
+                          disabled={godkender || bygherreGodkendt || !haandvaerkerGodkendt || uafklaret.length > 0}
+                          className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${
+                            bygherreGodkendt || !haandvaerkerGodkendt || uafklaret.length > 0
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                              : "bg-[#1e3a2a] text-white hover:opacity-90"
+                          }`}
+                        >
+                          {godkender
+                            ? "Godkender..."
+                            : bygherreGodkendt
+                            ? "Du har accepteret"
+                            : !haandvaerkerGodkendt
+                            ? (kontrakt.haandvaerker_email ? "Afventer samlet grundlag" : "Ingen håndværker inviteret")
+                            : uafklaret.length > 0
+                            ? `${uafklaret.length} forslag mangler at blive afklaret`
+                            : "Godkend og indgå aftale"}
+                        </button>
+                        {klarTilBygherreGodkendelse && visManglendeReview && manglendeReviewPunkter.length > 0 && (
+                          <p className="mt-3 text-xs text-gray-500 leading-relaxed">
+                            Du mangler at gennemgå {manglendeReviewPunkter.length === 1 ? "1 punkt" : `${manglendeReviewPunkter.length} punkter`} før aftalen kan godkendes:{" "}
+                            {manglendeReviewPunkter.map((p, i) => (
+                              <span key={p.id}>
+                                <a href={`#review-${p.id}`} className="font-semibold text-[#1e3a2a] hover:underline underline-offset-2">
+                                  {p.label}
+                                </a>
+                                {i < manglendeReviewPunkter.length - 1 ? ", " : ""}
+                              </span>
+                            ))}
+                          </p>
+                        )}
+                        {godkendFejl && (
+                          <p className="mt-3 text-xs text-red-600 text-center leading-snug">{godkendFejl}</p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  {klarTilBygherreGodkendelse && !harLokaleDrafts && (
+                    <button
+                      onClick={() => { setVisAendringsModal(true); setAendringsFejl(""); }}
+                      className="w-full mt-4 py-2 border border-gray-200 text-gray-600 text-xs font-semibold rounded-xl hover:bg-gray-50 hover:text-gray-800 transition-colors"
+                    >
+                      Anmod om ændringer
+                    </button>
                   )}
                 </>
               )}

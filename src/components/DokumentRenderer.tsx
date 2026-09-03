@@ -1,7 +1,7 @@
 "use client";
 
 import { erV2Dokument, parseV2Sektioner } from "@/lib/dokumentV2";
-import { hentOprindeligAftaltStartdato, hentOprindeligAftaltSlutdato } from "@/lib/kontraktSlutdato";
+import { hentOprindeligAftaltStartdato, hentOprindeligAftaltSlutdato, erGyldigDatoOnly } from "@/lib/kontraktSlutdato";
 
 interface TidsplanFase {
   navn: string;
@@ -34,6 +34,18 @@ interface Props {
   haandvaerkerNavn?: string | null;
   haandvaerkerFirma?: string | null;
   erAftaleEndeligtGodkendt?: boolean;
+  // Pre-contract lifecycle v2 — eksplicit offer/review-mode. Sættes af
+  // parent-viewet KUN når entreprenøren har godkendt sit samlede tilbud,
+  // men bygherre endnu ikke har godkendt endeligt (haandvaerkerGodkendt &&
+  // !bygherreGodkendt). I dette vindue skal §3 Tidsplan vise entreprenørens
+  // FAKTISK indsendte fase-datoer (offer-view), ikke de
+  // canonical/effective værdier fra hentOprindeligAftaltStartdato/
+  // Slutdato — de bliver først retvisende, når bygherre godkender endeligt
+  // (som atomisk sætter tidsplan.godkendt_af_bygherre). Et eksplicit flag
+  // fra parent i stedet for at gætte ud fra tidsplan-felter alene, så
+  // canonical/effective visning for allerede indgåede kontrakter,
+  // dashboards og deadlineberegning forbliver fuldstændig upåvirket.
+  erUnderBygherreReview?: boolean;
   // Agreement sheet deadline extension v1 — DERIVED state, beregnet af
   // parent/view-laget (kontraktDeadline.ts), ALDRIG af DokumentRenderer
   // selv. Komponenten er ren præsentation og laver ingen egne DB-kald.
@@ -121,6 +133,7 @@ export default function DokumentRenderer({
   haandvaerkerNavn,
   haandvaerkerFirma,
   erAftaleEndeligtGodkendt = false,
+  erUnderBygherreReview = false,
   samletFristforlaengelseDage = 0,
   gaeldendeAflevering = null,
   bidragydendeAftaleseddelNumre = [],
@@ -186,12 +199,35 @@ export default function DokumentRenderer({
   // som resten af platformen — tidligste/seneste gyldige fase-dato, ikke
   // kun faser[0].
   const tidsplanGodkendt = tidsplan?.type === "faser" && tidsplan?.godkendt_af_bygherre === true;
+  // Pre-contract lifecycle v2 — offer-view: mens bygherre gennemgår
+  // entreprenørens allerede godkendte, men endnu ikke bygherre-godkendte
+  // tilbud, læses fase-datoerne direkte (tidligste start / seneste
+  // slutdato blandt alle faser, samme metode som de canonical helpers selv
+  // bruger internt) — IKKE via hentOprindeligAftaltStartdato/Slutdato, som
+  // bevidst kun bruger fase-data, når tidsplanen ER bygherre-godkendt.
+  const erTilbudUnderReview = !!(
+    erUnderBygherreReview &&
+    !tidsplanGodkendt &&
+    tidsplan?.type === "faser" &&
+    Array.isArray(tidsplan.faser) &&
+    tidsplan.faser.length > 0
+  );
+  const tilbudStartdato = erTilbudUnderReview
+    ? tidsplan!.faser!.map((f) => f.startdato).filter(erGyldigDatoOnly).reduce(
+        (tidligste, d) => (tidligste === null || d < tidligste ? d : tidligste), null as string | null,
+      )
+    : null;
+  const tilbudSlutdato = erTilbudUnderReview
+    ? tidsplan!.faser!.map((f) => f.slutdato).filter(erGyldigDatoOnly).reduce(
+        (seneste, d) => (seneste === null || d > seneste ? d : seneste), null as string | null,
+      )
+    : null;
   const visStartdato = tidsplanGodkendt
     ? hentOprindeligAftaltStartdato({ startdato: startdato ?? null, tidsplan })
-    : (startdato ?? null);
+    : tilbudStartdato ?? (startdato ?? null);
   const visSlutdato = tidsplanGodkendt
     ? hentOprindeligAftaltSlutdato({ slutdato: slutdato ?? null, tidsplan })
-    : (slutdato ?? null);
+    : tilbudSlutdato ?? (slutdato ?? null);
   // Agreement sheet deadline extension v1 (korrektion): §5 skal vise BÅDE
   // den oprindelige baseline og den afledte gældende aflevering, når en
   // efterfølgende godkendt aftaleseddel har forlænget fristen — ikke kun
@@ -212,15 +248,18 @@ export default function DokumentRenderer({
   // Ren præsentation: tidsplan.faser ændres ikke, og har kontrakten flere
   // faser (eller en enkelt fase med afvigende datoer), vises sektionen
   // fortsat uændret.
-  const eneste = tidsplanGodkendt && tidsplan?.faser && tidsplan.faser.length === 1 ? tidsplan.faser[0] : null;
+  const eneste = (tidsplanGodkendt || erTilbudUnderReview) && tidsplan?.faser && tidsplan.faser.length === 1 ? tidsplan.faser[0] : null;
   const eneFaseErRedundant = !!(
     eneste && visStartdato && visSlutdato &&
     eneste.startdato === visStartdato && eneste.slutdato === visSlutdato
   );
-  // En forudsætning må først fremstå som gældende aftaleindhold i det
-  // genererede dokument, når bygherre reelt har godkendt den — en
-  // afventende eller afvist forudsætning må ikke se ud som en aftalt sag.
-  const harForudsaetninger = !!forudsaetninger?.trim() && forudsaetningerGodkendt === true;
+  // En forudsætning skal indgå i selve det samlede dokument, både mens
+  // bygherre gennemgår entreprenørens indsendte tilbud (erUnderBygherreReview
+  // — samme offer/review-vindue som Tidsplan §3 allerede bruger ovenfor) og
+  // efter bygherre reelt har godkendt den endeligt. Uden for begge disse
+  // vinduer (fx en afvist eller endnu ikke indsendt forudsætning) må den
+  // ikke se ud som en del af aftalegrundlaget.
+  const harForudsaetninger = !!forudsaetninger?.trim() && (forudsaetningerGodkendt === true || erUnderBygherreReview);
 
   let sektionsNr = 1;
 
@@ -505,7 +544,9 @@ export default function DokumentRenderer({
               <p className="text-sm text-gray-700 leading-[1.8] whitespace-pre-wrap">{forudsaetninger}</p>
             </div>
             <p className="text-xs text-gray-400 mt-2 leading-relaxed">
-              Ovenstående forudsætninger er fremsat af entreprenøren og accepteret af bygherre som vilkår for arbejdets udførelse.
+              {forudsaetningerGodkendt === true
+                ? "Ovenstående forudsætninger er fremsat af entreprenøren og accepteret af bygherre som vilkår for arbejdets udførelse."
+                : "Forudsætningerne indgår i det aftalegrundlag, du gennemgår."}
             </p>
           </div>
         )}

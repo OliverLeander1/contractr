@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase-server";
 import { sendNotifikation } from "@/lib/notifikationer";
 import { erV2Dokument, parseV2Sektioner, indeholderKonkretDato } from "@/lib/dokumentV2";
 import { erGodkendtAfNogen } from "@/lib/kontraktGodkendelse";
+import { erGyldigDatoOnly } from "@/lib/kontraktSlutdato";
 
 export const runtime = "nodejs";
 
@@ -127,7 +128,7 @@ export async function POST(req: NextRequest) {
   // "vilkaar" (AB-Forbruger) læses bevidst ikke fra body her. Det er et låst
   // aftalevilkår og må ikke kunne ændres af bygherre via denne route, samme
   // princip som forslagsruten (se /api/kontrakt/[token]/forslag).
-  const { kontrakt_id, titel, beskrivelse, total_pris, betalingsplan, startdato, slutdato, haandvaerker_navn, haandvaerker_email, haandvaerker_firma, haandvaerker_cvr, godkend_tidsplan, godkend_forudsaetninger, afvis_forudsaetninger } = body;
+  const { kontrakt_id, titel, beskrivelse, total_pris, betalingsplan, startdato, slutdato, haandvaerker_navn, haandvaerker_email, haandvaerker_firma, haandvaerker_cvr, godkend_tidsplan, godkend_forudsaetninger, afvis_forudsaetninger, anmod_om_aendringer, besked, action, review_aendringer } = body;
 
   if (!kontrakt_id) {
     return NextResponse.json({ error: "kontrakt_id mangler" }, { status: 400 });
@@ -348,6 +349,317 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(data);
+  }
+
+  // Pre-contract lifecycle v2 — bygherre anmoder om ændringer til det
+  // entreprenørgodkendte aftalegrundlag. Genåbner kontrakten for
+  // entreprenøren i stedet for at kræve chat/uden-for-systemet-kontakt.
+  // Genbruger den eksisterende /api/kontrakt POST-arkitektur (auth/
+  // ownership allerede verificeret ovenfor) — ingen ny route, ingen ny
+  // datamodel. Se docs-note: dette er IKKE et fuldt revisions-/
+  // snapshot-system — den præcise tidligere tilbudsversion kan ikke
+  // nødvendigvis rekonstrueres, når entreprenøren efterfølgende redigerer.
+  if (anmod_om_aendringer === true) {
+    const { data: foer } = await db
+      .from("kontrakter")
+      .select("haandvaerker_godkendt_at, bygherre_godkendt_at, haandvaerker_email, haandvaerker_token, titel, projekt_id")
+      .eq("id", kontrakt_id)
+      .single();
+
+    if (!foer?.haandvaerker_godkendt_at) {
+      return NextResponse.json(
+        { error: "Entreprenøren har ikke godkendt aftalegrundlaget endnu." },
+        { status: 409 }
+      );
+    }
+    if (foer.bygherre_godkendt_at) {
+      return NextResponse.json(
+        { error: "Aftalen er allerede endeligt godkendt og kan ikke genåbnes ad denne vej." },
+        { status: 409 }
+      );
+    }
+    const beskedTekst = typeof besked === "string" ? besked.trim() : "";
+    if (!beskedTekst) {
+      return NextResponse.json(
+        { error: "Skriv en kort besked om, hvad der skal ændres." },
+        { status: 400 }
+      );
+    }
+
+    const tidligereGodkendtAt = foer.haandvaerker_godkendt_at;
+
+    const { data, error } = await db
+      .from("kontrakter")
+      .update({
+        haandvaerker_godkendt_at: null,
+        status: "forhandling",
+        opdateret_at: new Date().toISOString(),
+      })
+      .eq("id", kontrakt_id)
+      .select()
+      .single();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // Notificér entreprenøren — in-app (public.notifikationer, den
+    // eneste MVP-audit-historik vi har for denne handling lige nu) og
+    // via mail. En fejl her må ikke rulle den allerede gennemførte
+    // genåbning tilbage, samme etablerede princip som andre
+    // notifikationskald i kodebasen.
+    try {
+      if (foer.haandvaerker_email) {
+        const escapedEmail = foer.haandvaerker_email.trim().toLowerCase().replace(/[%_\\]/g, (m: string) => `\\${m}`);
+        const { data: profiler } = await db
+          .from("profiler")
+          .select("id")
+          .ilike("email", escapedEmail);
+        if (profiler && profiler.length === 1 && foer.projekt_id) {
+          await db.from("notifikationer").insert({
+            bruger_id: profiler[0].id,
+            projekt_id: foer.projekt_id,
+            type: "bygherre_anmodet_om_aendringer",
+            titel: "Bygherre har anmodet om ændringer",
+            // Tidligere godkendelsestidspunkt gemmes i beskeden som minimal
+            // audit-oplysning — ikke et versioneret snapshot af selve
+            // tilbuddet, kun hvornår det tidligere blev godkendt.
+            besked: `${beskedTekst}\n\n(Tidligere godkendt af entreprenøren: ${new Date(tidligereGodkendtAt).toLocaleString("da-DK")})`,
+            laest: false,
+          });
+        }
+        const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
+        sendNotifikation("bygherre_anmodet_om_aendringer", foer.haandvaerker_email, {
+          projekttitel: foer.titel || "projektet",
+          link: `${baseUrl}/kontrakt/${foer.haandvaerker_token}`,
+          ekstraInfo: beskedTekst,
+        });
+      }
+    } catch (e) {
+      console.error("[anmod-om-aendringer] Notifikation fejlede:", e);
+    }
+
+    return NextResponse.json(data);
+  }
+
+  // Pre-contract lifecycle v2 — sektionsbaseret forhandling. Bygherre kan i
+  // ÉT samlet klik oprette 1-N konkrete, sektionsspecifikke ændringsønsker
+  // til det entreprenørgodkendte tilbud. Genbruger kontraktaendringer, men
+  // med egne felt-navne (review_*), der ALDRIG må optræde i den gamle
+  // bilaterale TILLADTE_FELTER-allowlist i /api/kontrakt/[token]/forslag —
+  // de har en anden semantik og resolves udelukkende via den dedikerede
+  // route /api/kontrakt/[token]/review-forslag, som aldrig skriver til et
+  // kontraktfelt. Ingen reel cross-request DB-transaktion findes i denne
+  // arkitektur uden en ny RPC/migration — rækkefølgen nedenfor er bevidst
+  // fail-closed: pre-check → ét batched insert → verificér antal → først
+  // DEREFTER genåbnes kontraktens lifecycle.
+  if (action === "send_review_aendringer") {
+    const REVIEW_TILLADTE_TYPER = [
+      "review_total_pris",
+      "review_tidsplan",
+      "review_betalingsplan",
+      "review_forudsaetninger",
+    ] as const;
+    type ReviewType = (typeof REVIEW_TILLADTE_TYPER)[number];
+
+    if (!Array.isArray(review_aendringer) || review_aendringer.length === 0) {
+      return NextResponse.json({ error: "Vælg mindst ét ændringsønske." }, { status: 400 });
+    }
+
+    const typer = new Set<string>();
+    for (const r of review_aendringer) {
+      if (!r || typeof r !== "object" || typeof (r as { type?: unknown }).type !== "string") {
+        return NextResponse.json({ error: "Ugyldigt ændringsønske." }, { status: 400 });
+      }
+      const type = (r as { type: string }).type;
+      if (!(REVIEW_TILLADTE_TYPER as readonly string[]).includes(type)) {
+        return NextResponse.json({ error: `'${type}' er ikke en gyldig ændringstype.` }, { status: 400 });
+      }
+      if (typer.has(type)) {
+        return NextResponse.json({ error: "Samme sektion er angivet flere gange i samme anmodning." }, { status: 400 });
+      }
+      typer.add(type);
+    }
+
+    // Frisk, fuld kontraktdata — det generelle select ovenfor indeholder
+    // ikke tidsplan/betalingsplan/forudsaetninger.
+    const { data: kt } = await db
+      .from("kontrakter")
+      .select("id, projekt_id, titel, total_pris, tidsplan, betalingsplan, forudsaetninger, startdato, slutdato, haandvaerker_godkendt_at, bygherre_godkendt_at, haandvaerker_email, haandvaerker_token")
+      .eq("id", kontrakt_id)
+      .single();
+
+    if (!kt) {
+      return NextResponse.json({ error: "Kontrakt ikke fundet" }, { status: 404 });
+    }
+    if (!kt.haandvaerker_godkendt_at) {
+      return NextResponse.json(
+        { error: "Entreprenøren har ikke sendt et samlet aftalegrundlag endnu." },
+        { status: 409 }
+      );
+    }
+    if (kt.bygherre_godkendt_at) {
+      return NextResponse.json(
+        { error: "Aftalen er allerede endeligt godkendt og kan ikke genåbnes ad denne vej." },
+        { status: 409 }
+      );
+    }
+
+    // Byg og validér hver anmodning server-side. Klienten leverer aldrig
+    // det autoritative "gammel_vaerdi"-snapshot.
+    const nyeRækker: Record<string, unknown>[] = [];
+
+    for (const raa of review_aendringer as {
+      type: ReviewType;
+      foreslaaetPris?: unknown;
+      startdato?: unknown;
+      slutdato?: unknown;
+      kommentar?: unknown;
+    }[]) {
+      const kommentar = typeof raa.kommentar === "string" ? raa.kommentar.trim().slice(0, 2000) : "";
+
+      if (raa.type === "review_total_pris") {
+        let foreslaaetPris: number | null = null;
+        if (raa.foreslaaetPris !== undefined && raa.foreslaaetPris !== null && raa.foreslaaetPris !== "") {
+          const parsed = Number(raa.foreslaaetPris);
+          if (!Number.isFinite(parsed) || parsed <= 0) {
+            return NextResponse.json({ error: "Det foreslåede beløb skal være et positivt tal." }, { status: 400 });
+          }
+          foreslaaetPris = parsed;
+        }
+        if (foreslaaetPris === null && !kommentar) {
+          return NextResponse.json({ error: "Angiv et foreslået beløb eller en kommentar til prisen." }, { status: 400 });
+        }
+        nyeRækker.push({
+          kontrakt_id: kt.id,
+          felt: "review_total_pris",
+          gammel_vaerdi: JSON.stringify({ pris: kt.total_pris ?? null }),
+          ny_vaerdi: JSON.stringify({ foreslaaetPris, kommentar: kommentar || null }),
+          forfatter: "bygherre",
+          status: "afventer",
+        });
+      } else if (raa.type === "review_tidsplan") {
+        const startdatoNy = erGyldigDatoOnly(raa.startdato) ? raa.startdato : null;
+        const slutdatoNy = erGyldigDatoOnly(raa.slutdato) ? raa.slutdato : null;
+        if (!startdatoNy && !slutdatoNy && !kommentar) {
+          return NextResponse.json(
+            { error: "Foreslå mindst én ny dato eller skriv en kommentar til tidsplanen." },
+            { status: 400 }
+          );
+        }
+        // Samme offer/review-datokilde som resten af aftalesiden allerede
+        // bruger under bygherres review (entreprenørens faktisk indsendte
+        // tilbud) — opfinder bevidst ingen tredje datokilde.
+        const tp = kt.tidsplan as { faser?: { startdato?: string; slutdato?: string }[] } | null;
+        const effektivStart = tp?.faser?.[0]?.startdato ?? kt.startdato ?? null;
+        const effektivSlut = tp?.faser?.[0]?.slutdato ?? kt.slutdato ?? null;
+        nyeRækker.push({
+          kontrakt_id: kt.id,
+          felt: "review_tidsplan",
+          gammel_vaerdi: JSON.stringify({ startdato: effektivStart, slutdato: effektivSlut }),
+          ny_vaerdi: JSON.stringify({ startdato: startdatoNy, slutdato: slutdatoNy, kommentar: kommentar || null }),
+          forfatter: "bygherre",
+          status: "afventer",
+        });
+      } else if (raa.type === "review_betalingsplan") {
+        if (!kommentar) {
+          return NextResponse.json({ error: "Skriv en kommentar til den ønskede betalingsplan." }, { status: 400 });
+        }
+        nyeRækker.push({
+          kontrakt_id: kt.id,
+          felt: "review_betalingsplan",
+          gammel_vaerdi: JSON.stringify({ betalingsplan: kt.betalingsplan ?? null }),
+          ny_vaerdi: JSON.stringify({ kommentar }),
+          forfatter: "bygherre",
+          status: "afventer",
+        });
+      } else {
+        // review_forudsaetninger
+        if (!kommentar) {
+          return NextResponse.json({ error: "Skriv en kommentar til forudsætningerne." }, { status: 400 });
+        }
+        nyeRækker.push({
+          kontrakt_id: kt.id,
+          felt: "review_forudsaetninger",
+          gammel_vaerdi: JSON.stringify({ tekst: kt.forudsaetninger ?? null }),
+          ny_vaerdi: JSON.stringify({ kommentar }),
+          forfatter: "bygherre",
+          status: "afventer",
+        });
+      }
+    }
+
+    const { data: eksisterendeAfventer } = await db
+      .from("kontraktaendringer")
+      .select("felt")
+      .eq("kontrakt_id", kt.id)
+      .eq("forfatter", "bygherre")
+      .eq("status", "afventer")
+      .in("felt", Array.from(typer));
+
+    if (eksisterendeAfventer && eksisterendeAfventer.length > 0) {
+      return NextResponse.json(
+        { error: "Der findes allerede et afventende ændringsønske for en af de valgte sektioner." },
+        { status: 409 }
+      );
+    }
+
+    const { data: indsatte, error: insertFejl } = await db
+      .from("kontraktaendringer")
+      .insert(nyeRækker)
+      .select("id");
+
+    if (insertFejl || !indsatte || indsatte.length !== nyeRækker.length) {
+      return NextResponse.json({ error: "Kunne ikke gemme ændringsønskerne. Prøv igen." }, { status: 500 });
+    }
+
+    const { data: opdateretKontrakt, error: opdateringFejl } = await db
+      .from("kontrakter")
+      .update({
+        haandvaerker_godkendt_at: null,
+        status: "forhandling",
+        opdateret_at: new Date().toISOString(),
+      })
+      .eq("id", kt.id)
+      .select()
+      .single();
+
+    if (opdateringFejl) {
+      return NextResponse.json({ error: opdateringFejl.message }, { status: 500 });
+    }
+
+    // Notifikation/email er best-effort EFTER lifecycle er korrekt gemt —
+    // en fejl her må ikke rulle den allerede gennemførte genåbning tilbage.
+    try {
+      if (kt.haandvaerker_email) {
+        const escapedEmail = kt.haandvaerker_email.trim().toLowerCase().replace(/[%_\\]/g, (m: string) => `\\${m}`);
+        const { data: profiler } = await db.from("profiler").select("id").ilike("email", escapedEmail);
+        const SEKTIONS_LABELS: Record<string, string> = {
+          review_total_pris: "Pris",
+          review_tidsplan: "Tidsplan",
+          review_betalingsplan: "Betalingsplan",
+          review_forudsaetninger: "Forudsætninger",
+        };
+        const sektionsListe = Array.from(typer).map((t) => SEKTIONS_LABELS[t] ?? t).join(", ");
+        if (profiler && profiler.length === 1 && kt.projekt_id) {
+          await db.from("notifikationer").insert({
+            bruger_id: profiler[0].id,
+            projekt_id: kt.projekt_id,
+            type: "bygherre_oensker_sektionsaendring",
+            titel: "Bygherre ønsker ændringer til aftalegrundlaget",
+            besked: `Bygherre har foreslået ændringer til: ${sektionsListe}.`,
+            laest: false,
+          });
+        }
+        const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
+        sendNotifikation("bygherre_oensker_sektionsaendring", kt.haandvaerker_email, {
+          projekttitel: kt.titel || "projektet",
+          link: `${baseUrl}/kontrakt/${kt.haandvaerker_token}`,
+          ekstraInfo: sektionsListe,
+        });
+      }
+    } catch (e) {
+      console.error("[send-review-aendringer] Notifikation fejlede:", e);
+    }
+
+    return NextResponse.json(opdateretKontrakt);
   }
 
   // Nulstil godkendelser når indhold ændres

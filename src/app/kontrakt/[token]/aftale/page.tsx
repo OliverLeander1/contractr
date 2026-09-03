@@ -4,6 +4,66 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import DokumentRenderer from "@/components/DokumentRenderer";
 import BesigtigelseKort from "@/components/BesigtigelseKort";
+import { reviewAendringVisningstekst, type ReviewAendringType } from "@/lib/reviewAendringVisning";
+
+// Sektionsbaseret forhandling v1 — bygherres review_*-ændringsønsker, som
+// de kommer retur fra GET /api/kontrakt/[token]s wildcard-select af
+// kontraktaendringer. Kun status/felt/ny_vaerdi er nødvendige på denne
+// side (ingen accept/afvis-knapper baseret på gammel_vaerdi/kommentar her).
+interface ReviewAendring {
+  id: string;
+  felt: string;
+  ny_vaerdi: string;
+  status: "afventer" | "accepteret" | "afvist";
+  oprettet_at: string;
+}
+
+function senesteAfventendeReview(rows: ReviewAendring[] | undefined, felt: ReviewAendringType): ReviewAendring | null {
+  const match = (rows ?? []).filter((a) => a.felt === felt && a.status === "afventer");
+  if (match.length === 0) return null;
+  return match.reduce((nyeste, r) => (new Date(r.oprettet_at) > new Date(nyeste.oprettet_at) ? r : nyeste));
+}
+
+// Sektionsbaseret forhandling v1 — vises direkte ved den relevante
+// sektion, når bygherre har et konkret, afventende ændringsønske til den.
+// "Indarbejd ændring" åbner/aktiverer udelukkende den eksisterende editor
+// for sektionen — resolve sker først ved et separat, eksplicit klik på
+// "Markér som indarbejdet" (to-trins, se produktbeslutning). Ingen af
+// knapperne rører noget kontraktfelt.
+function BygherreOenskerAendring({
+  aendring,
+  onIndarbejd,
+  onMarkerIndarbejdet,
+  onAfvis,
+  arbejder,
+  fejl,
+}: {
+  aendring: ReviewAendring;
+  onIndarbejd: () => void;
+  onMarkerIndarbejdet: () => void;
+  onAfvis: () => void;
+  arbejder: boolean;
+  fejl: string | null;
+}) {
+  return (
+    <div className="bg-[#f5f3ee] border border-[#e0ddd6] rounded-xl px-4 py-3.5 mb-4">
+      <p className="text-[10px] font-bold text-[#1e3a2a] uppercase tracking-widest mb-1.5">Bygherre ønsker ændring</p>
+      <p className="text-sm text-gray-800 leading-relaxed mb-3">{reviewAendringVisningstekst(aendring.felt, aendring.ny_vaerdi)}</p>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <button onClick={onIndarbejd} className="text-xs font-bold text-[#1e3a2a] hover:underline">
+          Indarbejd ændring
+        </button>
+        <button onClick={onMarkerIndarbejdet} disabled={arbejder} className="text-xs font-semibold text-gray-600 hover:text-[#1e3a2a] disabled:opacity-50">
+          {arbejder ? "Gemmer..." : "Markér som indarbejdet"}
+        </button>
+        <button onClick={onAfvis} disabled={arbejder} className="text-xs text-gray-400 hover:text-red-500 disabled:opacity-50">
+          Afvis ændringsønske
+        </button>
+      </div>
+      {fejl && <p className="text-xs text-red-600 font-medium mt-2">{fejl}</p>}
+    </div>
+  );
+}
 
 function ManuelPris({ token, onGemt }: { token: string; onGemt: (pris: number) => void }) {
   const [prisInput, setPrisInput] = useState("");
@@ -135,6 +195,11 @@ interface Kontrakt {
   forudsaetninger: string | null;
   forudsaetninger_sendt_at: string | null;
   forudsaetninger_godkendt: boolean | null;
+  // Sektionsbaseret forhandling v1 — bygherres review_*-ændringsønsker
+  // (og de gamle bilaterale titel/beskrivelse/total_pris-forslag) leveres
+  // her af GET /api/kontrakt/[token]s wildcard-select. Kun review_*-typerne
+  // vises på denne side.
+  kontraktaendringer?: ReviewAendring[];
   // Agreement sheet deadline extension v1 (korrektion, token-route) —
   // udelukkende server-beregnet af GET /api/kontrakt/[token]. Klienten
   // læser kun disse to afledte felter og beregner aldrig selv.
@@ -218,6 +283,13 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   const [foreslaaetPris, setForeslaaetPris] = useState<number | null>(null);
   const [prisGodkendt, setPrisGodkendt] = useState(false);
   const [sletter, setSletter] = useState(false);
+
+  // Sektionsbaseret forhandling v1 — resolve af bygherres review_*-
+  // ændringsønsker. Ren audit-handling (se /api/kontrakt/[token]/
+  // review-forslag) — rører aldrig et kontraktfelt.
+  const [resolverAendringId, setResolverAendringId] = useState<string | null>(null);
+  const [resolveFejl, setResolveFejl] = useState<string | null>(null);
+  const [nyligtResolveret, setNyligtResolveret] = useState<Record<string, "indarbejdet" | "afvist">>({});
 
   // Betalingsplan
   const [betalingsplanRækker, setBetalingsplanRækker] = useState<{ milepæl: string; andel: string }[]>([
@@ -314,7 +386,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
       } else {
         const body = await res.json().catch(() => ({}));
         setGodkendFejl(body.error === "Entreprisesum skal være udfyldt inden godkendelse"
-          ? "Du skal udfylde entreprisesummen inden du sender tilbuddet."
+          ? "Angiv den samlede pris, før aftalegrundlaget kan sendes til godkendelse."
           : body.error || "Noget gik galt. Prøv igen.");
       }
     } catch {
@@ -454,6 +526,29 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
     setForeslaaetPris(null);
     setPrisGodkendt(false);
     setSletter(false);
+  }
+
+  // Sektionsbaseret forhandling v1 — "Markér som indarbejdet"/"Afvis
+  // ændringsønske". Rører aldrig kontraktens felter (se den dedikerede
+  // /review-forslag-route). Fail-safe: fejler kaldet, forbliver requesten
+  // "afventer", og knappen kan forsøges igen uden at skulle redigere
+  // sektionen på ny.
+  async function resolveReviewAendring(aendring_id: string, handling: "indarbejdet" | "afvist") {
+    if (resolverAendringId) return;
+    setResolveFejl(null);
+    setResolverAendringId(aendring_id);
+    try {
+      const data = (await autentificeretPatch(`/api/kontrakt/${token}/review-forslag`, { aendring_id, handling })) as ReviewAendring;
+      setKontrakt(prev => prev ? {
+        ...prev,
+        kontraktaendringer: (prev.kontraktaendringer ?? []).map((a) => (a.id === data.id ? data : a)),
+      } : prev);
+      setNyligtResolveret((prev) => ({ ...prev, [data.felt]: handling }));
+    } catch (e) {
+      setResolveFejl(e instanceof Error ? e.message : "Der opstod en fejl. Prøv igen.");
+    } finally {
+      setResolverAendringId(null);
+    }
   }
 
   if (indlæser) return (
@@ -709,6 +804,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
           const sendt = !!kontrakt.forudsaetninger_sendt_at;
           const godkendtAfBygherre = kontrakt.forudsaetninger_godkendt === true;
           if (springetOver) return null;
+          const forudsaetningerAendring = senesteAfventendeReview(kontrakt.kontraktaendringer, "review_forudsaetninger");
           return (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
               <div className="flex items-center gap-3 mb-4">
@@ -723,6 +819,22 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                 </div>
               </div>
 
+              {forudsaetningerAendring && (
+                <BygherreOenskerAendring
+                  aendring={forudsaetningerAendring}
+                  onIndarbejd={() => setRedigererForudsaetninger(true)}
+                  onMarkerIndarbejdet={() => resolveReviewAendring(forudsaetningerAendring.id, "indarbejdet")}
+                  onAfvis={() => resolveReviewAendring(forudsaetningerAendring.id, "afvist")}
+                  arbejder={resolverAendringId === forudsaetningerAendring.id}
+                  fejl={resolverAendringId === forudsaetningerAendring.id ? resolveFejl : null}
+                />
+              )}
+              {!forudsaetningerAendring && nyligtResolveret.review_forudsaetninger && (
+                <p className="text-xs text-gray-400 mb-3">
+                  {nyligtResolveret.review_forudsaetninger === "indarbejdet" ? "Ændringsønske indarbejdet" : "Ændringsønske afvist"}
+                </p>
+              )}
+
               {godkendtAfBygherre ? (
                 <div className="flex items-start gap-3 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
                   <svg className="flex-shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -733,9 +845,9 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                 </div>
               ) : sendt && !redigererForudsaetninger ? (
                 <div className="space-y-3">
-                  <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
-                    <p className="text-xs font-bold text-amber-800 mb-1">Afventer bygherrens godkendelse</p>
-                    <p className="text-xs text-amber-700/80 whitespace-pre-wrap leading-relaxed">{kontrakt.forudsaetninger}</p>
+                  <div className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3">
+                    <p className="text-xs font-bold text-gray-500 mb-1">Del af dit udkast</p>
+                    <p className="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">{kontrakt.forudsaetninger}</p>
                   </div>
                   <button
                     onClick={() => setRedigererForudsaetninger(true)}
@@ -785,8 +897,9 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
 
         {/* Tilbudsdokument */}
         {!godkendt && harAdgang && (() => {
+          const prisAendring = senesteAfventendeReview(kontrakt.kontraktaendringer, "review_total_pris");
           return (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
+          <div id="review-pris-sektion" className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-9 h-9 bg-[#1e3a2a]/8 rounded-xl flex items-center justify-center flex-shrink-0">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2">
@@ -798,6 +911,26 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                 <p className="text-xs text-gray-400">Upload dit tilbud som PDF eller Word. Vi forsøger at finde prisen automatisk.</p>
               </div>
             </div>
+
+            {prisAendring && (
+              <BygherreOenskerAendring
+                aendring={prisAendring}
+                onIndarbejd={() => {
+                  if (kontrakt.total_pris && !kontrakt.tilbud_dokument_url) {
+                    setKontrakt(prev => prev ? { ...prev, total_pris: null } : prev);
+                  }
+                }}
+                onMarkerIndarbejdet={() => resolveReviewAendring(prisAendring.id, "indarbejdet")}
+                onAfvis={() => resolveReviewAendring(prisAendring.id, "afvist")}
+                arbejder={resolverAendringId === prisAendring.id}
+                fejl={resolverAendringId === prisAendring.id ? resolveFejl : null}
+              />
+            )}
+            {!prisAendring && nyligtResolveret.review_total_pris && (
+              <p className="text-xs text-gray-400 mb-3">
+                {nyligtResolveret.review_total_pris === "indarbejdet" ? "Ændringsønske indarbejdet" : "Ændringsønske afvist"}
+              </p>
+            )}
 
             {kontrakt.tilbud_dokument_url ? (
               <div className="space-y-3">
@@ -918,6 +1051,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
             betalingsplanRækker.every(r => r.milepæl.trim() && r.andel) &&
             Math.abs(planSum - 100) <= 0.01;
 
+          const betalingsplanAendring = senesteAfventendeReview(kontrakt.kontraktaendringer, "review_betalingsplan");
           return (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 mb-5">
               <div className="flex items-center gap-3 mb-4">
@@ -937,6 +1071,26 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                   )}
                 </div>
               </div>
+
+              {betalingsplanAendring && !låst && (
+                <BygherreOenskerAendring
+                  aendring={betalingsplanAendring}
+                  onIndarbejd={() => {
+                    setBetalingsplanRækker(harPlan && kontrakt.betalingsplan ? kontrakt.betalingsplan : [{ milepæl: "", andel: "" }, { milepæl: "", andel: "" }]);
+                    setBetalingsplanFejl(null);
+                    setRedigererBetalingsplan(true);
+                  }}
+                  onMarkerIndarbejdet={() => resolveReviewAendring(betalingsplanAendring.id, "indarbejdet")}
+                  onAfvis={() => resolveReviewAendring(betalingsplanAendring.id, "afvist")}
+                  arbejder={resolverAendringId === betalingsplanAendring.id}
+                  fejl={resolverAendringId === betalingsplanAendring.id ? resolveFejl : null}
+                />
+              )}
+              {!betalingsplanAendring && nyligtResolveret.review_betalingsplan && (
+                <p className="text-xs text-gray-400 mb-3">
+                  {nyligtResolveret.review_betalingsplan === "indarbejdet" ? "Ændringsønske indarbejdet" : "Ændringsønske afvist"}
+                </p>
+              )}
 
               {/* Standard — ingen plan, ikke redigering */}
               {!harPlan && !redigererBetalingsplan && (
@@ -1091,6 +1245,28 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
 
         {/* ─── TIDSPLAN ─── */}
         <div className="mb-5">
+          {(() => {
+            const tidsplanAendring = senesteAfventendeReview(kontrakt.kontraktaendringer, "review_tidsplan");
+            return (
+              <>
+                {tidsplanAendring && (
+                  <BygherreOenskerAendring
+                    aendring={tidsplanAendring}
+                    onIndarbejd={() => setVisTidsplanEditor(true)}
+                    onMarkerIndarbejdet={() => resolveReviewAendring(tidsplanAendring.id, "indarbejdet")}
+                    onAfvis={() => resolveReviewAendring(tidsplanAendring.id, "afvist")}
+                    arbejder={resolverAendringId === tidsplanAendring.id}
+                    fejl={resolverAendringId === tidsplanAendring.id ? resolveFejl : null}
+                  />
+                )}
+                {!tidsplanAendring && nyligtResolveret.review_tidsplan && (
+                  <p className="text-xs text-gray-400 mb-3">
+                    {nyligtResolveret.review_tidsplan === "indarbejdet" ? "Ændringsønske indarbejdet" : "Ændringsønske afvist"}
+                  </p>
+                )}
+              </>
+            );
+          })()}
           {tidsplan && !visTidsplanEditor ? (
             /* Bekræftet tidspunkt */
             <div className="bg-[#111c17] rounded-2xl overflow-hidden">
@@ -1115,7 +1291,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                   </span>
                 ) : (
                   <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/20">
-                    Afventer bygherrens godkendelse
+                    Afventer bygherrens samlede godkendelse
                   </span>
                 )}
               </div>
@@ -1326,13 +1502,13 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
           <button onClick={() => setVisNavnModal(true)}
             className="w-full py-4 bg-[#1e3a2a] text-white font-bold text-base rounded-2xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-sm">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            Send samlet grundlag til bygherres godkendelse
+            Godkend og send aftalegrundlag
           </button>
         )}
 
         {!godkendt && harAdgang && (
           <p className="text-xs text-center text-gray-400 mt-4 leading-relaxed">
-            Brug denne knap, når pris, tidsplan og vilkår er klar til bygherres gennemgang. Bygherre modtager en besked og kan derefter godkende eller vende tilbage med bemærkninger.
+            Når du godkender, låses aftalegrundlaget og sendes til bygherres gennemgang og endelige godkendelse.
           </p>
         )}
 
@@ -1384,8 +1560,8 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e3a2a" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
               <div>
-                <h2 className="font-bold text-gray-900">Send samlet grundlag til bygherre</h2>
-                <p className="text-xs text-gray-400">Bekræft dine oplysninger, inden du sender</p>
+                <h2 className="font-bold text-gray-900">Godkend og send aftalegrundlag</h2>
+                <p className="text-xs text-gray-400">Bekræft dine oplysninger, inden du godkender</p>
               </div>
             </div>
 
@@ -1406,7 +1582,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
 
             <div className="bg-[#1e3a2a]/5 border border-[#1e3a2a]/10 rounded-xl px-4 py-3 mb-5">
               <p className="text-xs text-gray-600 leading-relaxed">
-                Bygherre modtager en e-mail om, at aftalegrundlaget er klar til gennemgang. Handlingen logges med navn og tidsstempel.
+                Når du godkender, låses aftalegrundlaget og sendes til bygherres gennemgang og endelige godkendelse. Handlingen logges med navn og tidsstempel.
               </p>
             </div>
 
@@ -1422,9 +1598,9 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               <button onClick={godkend} disabled={godkender}
                 className="flex-1 py-3 rounded-xl bg-[#1e3a2a] text-white text-sm font-bold hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-2">
                 {godkender ? (
-                  <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Sender...</>
+                  <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Godkender...</>
                 ) : (
-                  <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Send til godkendelse</>
+                  <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Godkend og send</>
                 )}
               </button>
             </div>

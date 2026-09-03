@@ -9,6 +9,8 @@ export type NotifikationsType =
   | "bygherre_afvist_forslag"
   | "haandvaerker_indsendt_tidsplan"
   | "bygherre_godkendt_tidsplan"
+  | "bygherre_anmodet_om_aendringer"
+  | "bygherre_oensker_sektionsaendring"
   | "ny_chatbesked"
   | "ekstraarbejde_oprettet"
   | "haandvaerker_ekstraarbejde_svar"
@@ -105,6 +107,18 @@ const beskeder: Record<NotifikationsType, (data: NotifikationsData) => { emne: s
     overskrift: `Tidsplanen er godkendt`,
     brødtekst: `Bygherren har godkendt den indsendte tidsplan for <strong>${d.projekttitel || "projektet"}</strong>. Tidsplanen er nu en del af aftalen.`,
     knapTekst: "Se projektet",
+  }),
+  bygherre_anmodet_om_aendringer: (d) => ({
+    emne: `Bygherren har anmodet om ændringer til aftalegrundlaget`,
+    overskrift: `Bygherren ønsker ændringer`,
+    brødtekst: `Bygherren har gennemgået dit aftalegrundlag for <strong>${d.projekttitel || "projektet"}</strong> og ønsker ændringer, før aftalen kan godkendes. Ret aftalegrundlaget, og send det til godkendelse igen.`,
+    knapTekst: "Ret aftalegrundlag",
+  }),
+  bygherre_oensker_sektionsaendring: (d) => ({
+    emne: `Bygherren ønsker ændringer til aftalegrundlaget`,
+    overskrift: `Bygherren ønsker ændringer`,
+    brødtekst: `Bygherren har gennemgået dit aftalegrundlag for <strong>${d.projekttitel || "projektet"}</strong> og har konkrete ændringsønsker til én eller flere sektioner. Gennemgå ønskerne, ret de relevante dele, og send aftalegrundlaget til godkendelse igen.`,
+    knapTekst: "Se ændringsønsker",
   }),
   ny_chatbesked: (d) => ({
     emne: `Ny besked fra ${d.afsenderNavn || "din samarbejdspartner"}`,

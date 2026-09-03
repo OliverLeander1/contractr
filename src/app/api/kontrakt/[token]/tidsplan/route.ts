@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
-import { sendNotifikation, hentBygherreEmail } from "@/lib/notifikationer";
 
 export const runtime = "nodejs";
 
@@ -78,18 +77,11 @@ export async function PATCH(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Notificer bygherre om indsendt tidsplan
-  if (kontrakt.bygherre_id) {
-    const baseUrl = process.env.NEXT_PUBLIC_URL || "https://nembyggestyring.dk";
-    const { email, notifikationer } = await hentBygherreEmail(kontrakt.bygherre_id, db);
-    if (email) {
-      sendNotifikation("haandvaerker_indsendt_tidsplan", email, {
-        projekttitel: kontrakt.titel || "dit projekt",
-        afsenderNavn: kontrakt.haandvaerker_navn || "Entreprenøren",
-        link: `${baseUrl}/projekt/${kontrakt.projekt_id}/aftale`,
-      }, notifikationer);
-    }
-  }
+  // Pre-contract lifecycle v2: en indsendt tidsplan er indhold i
+  // entreprenørens udkast, ikke en individuel godkendelsesanmodning til
+  // bygherre — derfor sendes der bevidst ingen "gennemgå og godkend"-mail
+  // her længere. Bygherre orienteres i stedet, når entreprenøren sender
+  // det SAMLEDE aftalegrundlag (POST /api/kontrakt/[token]/godkend).
 
   return NextResponse.json(data);
 }

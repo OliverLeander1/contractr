@@ -64,8 +64,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
   }
 
   // Slutgodkendelse omfatter hele det aktuelle aftalegrundlag samlet — men kan
-  // først ske, når alle uafklarede materielle forslag er accepteret/afvist.
+  // først ske, når alle uafklarede BILATERALE modforslag er accepteret/afvist.
   // Serveren er autoritativ her, ikke kun UI-knappens disabled-tilstand.
+  // Pre-contract lifecycle v2: tidsplan og forudsætninger er IKKE længere en
+  // del af dette tjek (se findUafklaredeForslag) — de er entreprenørens
+  // udkastindhold, som bygherre gennemgår og accepterer SAMLET nedenfor, ikke
+  // separate godkendelser, der skal foreligge, før entreprenøren kan sende.
   const uafklaret = findUafklaredeForslag(kontrakt);
   if (uafklaret.length > 0) {
     return NextResponse.json(
@@ -82,6 +86,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
 
   if (rolle === "bygherre") {
     opdatering.bygherre_godkendt_at = nu;
+    // Pre-contract lifecycle v2 — bygherres samlede godkendelse ER accepten
+    // af hele entreprenørens tilbud, herunder tidsplan og forudsætninger.
+    // Normalisér dem atomisk i SAMME update, så vi aldrig kan ende med
+    // status "begge_godkendt", mens et underfelt fortsat signalerer
+    // "afventer" (samme disciplin som "Contract approval state coherence
+    // v1"). Kun sat hvis data rent faktisk findes — ingen data opfindes.
+    if (kontrakt.tidsplan) {
+      opdatering.tidsplan = { ...kontrakt.tidsplan, godkendt_af_bygherre: true, godkendt_at: nu };
+    }
+    if (kontrakt.forudsaetninger_sendt_at) {
+      opdatering.forudsaetninger_godkendt = true;
+    }
   } else {
     opdatering.haandvaerker_godkendt_at = nu;
     if (haandvaerker_navn) opdatering.haandvaerker_navn = haandvaerker_navn;
