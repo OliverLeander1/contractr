@@ -4,6 +4,135 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export const runtime = "nodejs";
 
+// ─── Betalingsplan-udtræk v1 (eksperimentel, best-effort) ───
+// Fuldt isoleret fra prisudtrækket nedenfor: bruger DEN allerede udtrukne
+// dokumenttekst (intet nyt parse-kald), laver ét separat Anthropic-kald,
+// og kan aldrig få denne route til at fejle eller ændre udtrukketPris —
+// enhver fejl her fanges af kaldsstedet og resulterer blot i null.
+interface AiBetalingsRate {
+  milestone: unknown;
+  amount: unknown;
+  percentage: unknown;
+}
+
+// Largest-remainder-metoden: fordeler `values` proportionalt til andele,
+// der summerer til PRÆCIS 100,00 (2 decimaler), uanset afrunding i kilden.
+// AI'en leverer kun rå tal fra dokumentet — koden beregner andelen, aldrig AI'en.
+function fordelAndeleProportionalt(values: number[]): string[] {
+  const total = values.reduce((a, b) => a + b, 0);
+  const CENTI = 10000; // 100,00 % udtrykt i hundrededele af en procent
+  const raw = values.map((v) => (v / total) * CENTI);
+  const gulvet = raw.map((r) => Math.floor(r));
+  const rest = CENTI - gulvet.reduce((a, b) => a + b, 0);
+  const rækkefølge = raw
+    .map((r, i) => ({ i, frac: r - gulvet[i] }))
+    .sort((a, b) => b.frac - a.frac);
+  const resultat = [...gulvet];
+  for (let k = 0; k < rest; k++) {
+    resultat[rækkefølge[k % rækkefølge.length].i] += 1;
+  }
+  return resultat.map((c) => (c / 100).toString());
+}
+
+async function udtraekBetalingsplan(
+  tekst: string,
+  udtrukketPris: number | null,
+  anthropicKey: string,
+): Promise<{ rater: { milepæl: string; andel: string }[]; samletBeloeb: number | null } | null> {
+  if (!tekst.trim()) return null;
+
+  const client = new Anthropic({ apiKey: anthropicKey });
+  const response = await client.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 600,
+    messages: [
+      {
+        role: "user",
+        content: `Find en eventuel BETALINGSPLAN i dette tilbudsdokument - dvs. den sektion, der beskriver, hvornår og hvor meget bygherren skal betale (typisk rater knyttet til byggeriets faser, fx "ved opstart", "efter råinstallationer", "ved aflevering").
+
+VIGTIGT:
+- Almindelige delpriser eller fagopdelte priser i selve tilbuddet er IKKE en betalingsplan. Brug KUN den sektion, der eksplicit beskriver betaling/rater/tidspunkt for betaling.
+- Opfind ALDRIG rater, beløb eller procenter. Hvis der ikke findes en tydelig betalingsplan, svar found: false.
+- Angiv PR. RATE enten "amount" (beløb i hele kroner, uden punktum, komma eller "kr.") ELLER "percentage" (tal uden %-tegn) - alt efter hvad dokumentet faktisk angiver for den pågældende rate. Sæt det felt, der ikke fremgår af dokumentet, til null. Beregn ALDRIG selv en procent eller et beløb - brug kun det, der står direkte i dokumentet.
+- "milestone" skal være den korte betingelse/beskrivelse fra dokumentet (fx "Ved accept og opstart"), ikke et gæt.
+
+Svar KUN med gyldig JSON i præcis dette format, uden forklaring eller markdown:
+{"found": boolean, "installments": [{"milestone": string, "amount": number|null, "percentage": number|null}], "statedTotal": number|null}
+
+Dokument:
+${tekst.slice(0, 8000)}`,
+      },
+    ],
+  });
+
+  const raaSvar = response.content[0]?.type === "text" ? response.content[0].text.trim() : "";
+  const jsonMatch = raaSvar.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) return null;
+
+  let parsed: { found?: unknown; installments?: unknown };
+  try {
+    parsed = JSON.parse(jsonMatch[0]);
+  } catch {
+    return null;
+  }
+
+  if (parsed.found !== true || !Array.isArray(parsed.installments) || parsed.installments.length < 2) {
+    return null;
+  }
+
+  const rows = parsed.installments as AiBetalingsRate[];
+  const milestones: string[] = [];
+  const amounts: number[] = [];
+  const percentages: number[] = [];
+  let modus: "amount" | "percentage" | null = null;
+
+  for (const r of rows) {
+    const milestone = typeof r.milestone === "string" ? r.milestone.trim() : "";
+    if (!milestone) return null;
+
+    const harBeloeb = typeof r.amount === "number" && Number.isFinite(r.amount) && r.amount > 0;
+    const harPct = typeof r.percentage === "number" && Number.isFinite(r.percentage) && r.percentage > 0;
+
+    // Præcis ét af felterne skal være gyldigt sat — ingen af dem, begge,
+    // eller et skift af type undervejs i dokumentet gør resultatet for
+    // usikkert til at tilbyde automatisk (fail conservative).
+    if (harBeloeb === harPct) return null;
+    if (modus === null) modus = harBeloeb ? "amount" : "percentage";
+    if (modus === "amount" && !harBeloeb) return null;
+    if (modus === "percentage" && !harPct) return null;
+
+    milestones.push(milestone);
+    if (harBeloeb) amounts.push(r.amount as number);
+    else percentages.push(r.percentage as number);
+  }
+
+  if (modus === "amount") {
+    const sum = amounts.reduce((a, b) => a + b, 0);
+    // Uden en kendt, allerede fundet tilbudssum kan raternes sum ikke
+    // valideres deterministisk — fail conservative frem for at gætte.
+    if (udtrukketPris === null) return null;
+    // Lille, dokumenteret tolerance for afrunding til hele kroner i
+    // kildedokumentet: op til 1 kr. pr. rate, eller 0,1 % af summen.
+    const tolerance = Math.max(milestones.length, Math.round(udtrukketPris * 0.001));
+    if (Math.abs(sum - udtrukketPris) > tolerance) return null;
+    const andele = fordelAndeleProportionalt(amounts);
+    return {
+      rater: milestones.map((m, i) => ({ milepæl: m, andel: andele[i] })),
+      samletBeloeb: sum,
+    };
+  }
+
+  // modus === "percentage" — dokumentet angiver selv andele. Lille
+  // dokumenteret tolerance for kildens egen afrunding (fx 33,3/33,3/33,4).
+  const pctSum = percentages.reduce((a, b) => a + b, 0);
+  if (Math.abs(pctSum - 100) > 0.5) return null;
+  const andele = fordelAndeleProportionalt(percentages);
+  return {
+    rater: milestones.map((m, i) => ({ milepæl: m, andel: andele[i] })),
+    samletBeloeb: udtrukketPris,
+  };
+}
+
 // POST /api/kontrakt/[token]/tilbud-upload
 // Modtager PDF eller Word-fil, udtrækker tekst, finder pris via AI, uploader til Storage
 export async function POST(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
@@ -155,6 +284,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
     return NextResponse.json({ error: "Kunne ikke læse Word-filen. Prøv at gemme som PDF og upload igen." }, { status: 422 });
   }
 
+  // Betalingsplan-udtræk v1 (eksperimentel, best-effort) — kører EFTER og
+  // uafhængigt af prisudtrækket. Bruger kun tekstbaserede dokumenter (ingen
+  // vision-fallback i v1). Enhver fejl her (netværk, parsing, uklart
+  // resultat) giver blot null — påvirker aldrig upload eller udtrukketPris.
+  let udtrukketBetalingsplan: { rater: { milepæl: string; andel: string }[]; samletBeloeb: number | null } | null = null;
+  if (anthropicKey && !tekstFejlede && tekst.trim()) {
+    try {
+      udtrukketBetalingsplan = await udtraekBetalingsplan(tekst, udtrukketPris, anthropicKey);
+    } catch {
+      udtrukketBetalingsplan = null;
+    }
+  }
+
   // Upload fil til Supabase Storage. Content-Type sættes ud fra vores egen
   // verificerede filtype (magic bytes ovenfor), ikke det klient-leverede
   // fil.type — som ikke er autoritativt og i sjældne tilfælde kan mangle
@@ -198,6 +340,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
     dokumentUrl,
     filNavn,
     udtrukketPris,
+    udtrukketBetalingsplan,
     kontrakt: data,
   });
 }

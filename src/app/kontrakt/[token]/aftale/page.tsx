@@ -379,6 +379,15 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   const [prisGodkendt, setPrisGodkendt] = useState(false);
   const [sletter, setSletter] = useState(false);
 
+  // Betalingsplan-udtræk v1 (eksperimentel) — AI-forslag fra det uploadede
+  // dokument. Rent lokal UI-tilstand: forslaget gemmes ALDRIG automatisk,
+  // det åbner/forudfylder kun den eksisterende betalingsplan-editor.
+  const [foreslaaetBetalingsplan, setForeslaaetBetalingsplan] = useState<{
+    rater: { milepæl: string; andel: string }[];
+    samletBeloeb: number | null;
+  } | null>(null);
+  const [betalingsplanForslagIgnoreret, setBetalingsplanForslagIgnoreret] = useState(false);
+
   // Sektionsbaseret forhandling v1 — resolve af bygherres review_*-
   // ændringsønsker. Ren audit-handling (se /api/kontrakt/[token]/
   // review-forslag) — rører aldrig et kontraktfelt.
@@ -567,6 +576,8 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
     setUploadFejl(null);
     setForeslaaetPris(null);
     setPrisGodkendt(false);
+    setForeslaaetBetalingsplan(null);
+    setBetalingsplanForslagIgnoreret(false);
     const fd = new FormData();
     fd.append("fil", fil);
     const res = await fetch(`/api/kontrakt/${token}/tilbud-upload`, { method: "POST", body: fd });
@@ -580,6 +591,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
         tilbud_dokument_navn: data.filNavn,
       } : prev);
       if (data.udtrukketPris) setForeslaaetPris(data.udtrukketPris);
+      if (data.udtrukketBetalingsplan) setForeslaaetBetalingsplan(data.udtrukketBetalingsplan);
     }
     setUploader(false);
   }
@@ -620,6 +632,8 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
     setKontrakt(prev => prev ? { ...prev, tilbud_dokument_url: null, tilbud_dokument_navn: null } : prev);
     setForeslaaetPris(null);
     setPrisGodkendt(false);
+    setForeslaaetBetalingsplan(null);
+    setBetalingsplanForslagIgnoreret(false);
     setSletter(false);
   }
 
@@ -1210,23 +1224,75 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               {/* Standard — ingen plan, ikke redigering */}
               {!harPlan && !redigererBetalingsplan && (
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 py-1">
-                    <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  {foreslaaetBetalingsplan && !betalingsplanForslagIgnoreret && !låst ? (
+                    <div className="bg-[#f5f3ee] border border-[#e0ddd6] rounded-xl px-4 py-4">
+                      <p className="text-[10px] font-bold text-[#1e3a2a] uppercase tracking-widest mb-2">Betalingsplan fundet i dokumentet</p>
+                      <p className="text-xs text-gray-600 mb-3">
+                        Vi fandt {foreslaaetBetalingsplan.rater.length} betalingsrater i dokumentet. Gennemgå dem, før de bruges i aftalegrundlaget.
+                      </p>
+                      <div className="space-y-1.5 mb-3">
+                        {foreslaaetBetalingsplan.rater.map((r, i) => {
+                          const pct = parseFloat(r.andel);
+                          const beloeb =
+                            foreslaaetBetalingsplan.samletBeloeb && !isNaN(pct)
+                              ? foreslaaetBetalingsplan.samletBeloeb * (pct / 100)
+                              : null;
+                          return (
+                            <div key={i} className="flex items-center justify-between">
+                              <p className="text-sm text-gray-700 pr-4">{i + 1}. {r.milepæl}</p>
+                              <p className="text-sm font-semibold text-gray-900 flex-shrink-0">
+                                {beloeb !== null ? fmtKr(beloeb) : `${r.andel} %`}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {foreslaaetBetalingsplan.samletBeloeb && (
+                        <div className="flex items-center justify-between pt-2 border-t border-[#e0ddd6] mb-3">
+                          <p className="text-xs font-semibold text-gray-500">Samlet</p>
+                          <p className="text-xs font-semibold text-gray-900">{fmtKr(foreslaaetBetalingsplan.samletBeloeb)}</p>
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setBetalingsplanRækker(foreslaaetBetalingsplan.rater);
+                            setBetalingsplanFejl(null);
+                            setRedigererBetalingsplan(true);
+                          }}
+                          className="flex-1 py-2 bg-[#1e3a2a] text-white text-xs font-bold rounded-lg hover:opacity-90 transition-opacity"
+                        >
+                          Gennemgå og brug betalingsplan
+                        </button>
+                        <button
+                          onClick={() => setBetalingsplanForslagIgnoreret(true)}
+                          className="flex-1 py-2 border border-[#e0ddd6] text-gray-600 text-xs font-semibold rounded-lg hover:bg-white transition-colors"
+                        >
+                          Ignorer
+                        </button>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-700">Betaling efter arbejdets aflevering</p>
-                  </div>
-                  {!låst && (
-                    <button
-                      onClick={() => {
-                        setBetalingsplanRækker([{ milepæl: "", andel: "" }, { milepæl: "", andel: "" }]);
-                        setBetalingsplanFejl(null);
-                        setRedigererBetalingsplan(true);
-                      }}
-                      className="text-xs font-semibold text-[#1e3a2a] hover:underline"
-                    >
-                      Foreslå opdelt betalingsplan
-                    </button>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3 py-1">
+                        <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <p className="text-sm text-gray-700">Betaling efter arbejdets aflevering</p>
+                      </div>
+                      {!låst && (
+                        <button
+                          onClick={() => {
+                            setBetalingsplanRækker([{ milepæl: "", andel: "" }, { milepæl: "", andel: "" }]);
+                            setBetalingsplanFejl(null);
+                            setRedigererBetalingsplan(true);
+                          }}
+                          className="text-xs font-semibold text-[#1e3a2a] hover:underline"
+                        >
+                          Foreslå opdelt betalingsplan
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               )}
