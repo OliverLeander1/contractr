@@ -41,6 +41,13 @@ async function udtraekBetalingsplan(
 ): Promise<{ rater: { milepæl: string; andel: string }[]; samletBeloeb: number | null } | null> {
   if (!tekst.trim()) return null;
 
+  // Bugfix (root cause, verificeret mod et reelt production-testdokument) —
+  // betalingsplansektionen ligger typisk sidst i dokumentet, EFTER den fulde
+  // ydelses-/prisbeskrivelse. Det tidligere tekst.slice(0, 8000) klippede
+  // derfor systematisk sektionen væk for ethvert dokument over ~8000 tegn,
+  // så AI'en aldrig så den og korrekt (men forkert grundet manglende input)
+  // svarede found: false. Prisudtrækket ovenfor bruger fortsat sit eget,
+  // uændrede slice(0, 6000) — prisen står typisk tidligt i dokumentet.
   const client = new Anthropic({ apiKey: anthropicKey });
   const response = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
@@ -60,7 +67,7 @@ Svar KUN med gyldig JSON i præcis dette format, uden forklaring eller markdown:
 {"found": boolean, "installments": [{"milestone": string, "amount": number|null, "percentage": number|null}], "statedTotal": number|null}
 
 Dokument:
-${tekst.slice(0, 8000)}`,
+${tekst.slice(0, 20000)}`,
       },
     ],
   });
