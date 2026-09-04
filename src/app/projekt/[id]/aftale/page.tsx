@@ -13,7 +13,13 @@ import { hentOprindeligAftaltSlutdato, hentOprindeligAftaltStartdato } from "@/l
 import { beregnKontraktDeadline } from "@/lib/kontraktDeadline";
 import { Plus, UserPlus } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { type ReviewAendringType, reviewAendringVisningstekst } from "@/lib/reviewAendringVisning";
+import {
+  type ReviewAendringType,
+  reviewAendringVisningstekst,
+  pristRaekker,
+  tidsplanRaekker,
+  REVIEW_STATUS_LABEL,
+} from "@/lib/reviewAendringVisning";
 
 interface BesigtigelseTidspunktRad {
   id: string;
@@ -90,6 +96,7 @@ function ReviewAendringFooter({
   onGem,
   onAnnuller,
   onFjern,
+  foreslaaLabel = "Foreslå ændring",
 }: {
   reviewKey: string;
   draft: ReviewDraft | undefined;
@@ -100,6 +107,11 @@ function ReviewAendringFooter({
   onGem: () => void;
   onAnnuller: () => void;
   onFjern: () => void;
+  // Bugfix v1 (Problem 2) — kontekstuel label. Når tidsplanen allerede er
+  // bekræftet, skal affordancen hedde "Foreslå andre datoer" i stedet for
+  // den generiske "Foreslå ændring", så den ikke fejlagtigt antyder, at
+  // datoerne stadig mangler afklaring.
+  foreslaaLabel?: string;
 }) {
   const type = REVIEW_TYPE_FOR_KEY[reviewKey];
 
@@ -162,22 +174,43 @@ function ReviewAendringFooter({
   }
 
   if (draft) {
+    // Bugfix v1 (Problem 3) — vis den konkrete, kontrollerbare værdi
+    // fremfor en bare "klargjort"-tekst, så bygherre kan se præcis hvad
+    // der sendes, før "Send X ændringsønsker" trykkes.
+    const draftRaekker =
+      type === "review_total_pris"
+        ? pristRaekker({ foreslaaetPris: parsePrisDraft(draft) })
+        : type === "review_tidsplan"
+        ? tidsplanRaekker({ startdato: draft.startdato || null, slutdato: draft.slutdato || null })
+        : [];
     return (
-      <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between gap-3">
-        <span className="text-xs font-medium text-gray-600">Ændringsønske klargjort</span>
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <button onClick={onAabn} className="text-xs font-semibold text-[#1e3a2a] hover:underline">Rediger</button>
-          <button onClick={onFjern} className="text-xs text-gray-400 hover:text-red-500">Fjern</button>
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <span className="text-xs font-medium text-gray-600">Ændringsønske klargjort</span>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <button onClick={onAabn} className="text-xs font-semibold text-[#1e3a2a] hover:underline">Rediger</button>
+            <button onClick={onFjern} className="text-xs text-gray-400 hover:text-red-500">Fjern</button>
+          </div>
         </div>
+        {draftRaekker.length > 0 && (
+          <div className="space-y-1.5 mb-1.5">
+            {draftRaekker.map((r) => (
+              <div key={r.label}>
+                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{r.label}</p>
+                <p className="text-sm font-bold text-gray-900">{r.vaerdi}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        {draft.kommentar.trim() && (
+          <p className="text-sm text-gray-700 italic leading-relaxed">&ldquo;{draft.kommentar.trim()}&rdquo;</p>
+        )}
       </div>
     );
   }
 
   if (senesteAendring) {
-    const statusTekst =
-      senesteAendring.status === "accepteret" ? "Indarbejdet"
-      : senesteAendring.status === "afvist" ? "Afvist"
-      : "Afventer entreprenør";
+    const statusTekst = REVIEW_STATUS_LABEL[senesteAendring.status];
     const statusKlasse =
       senesteAendring.status === "accepteret" ? "bg-green-50 text-green-700 border-green-100"
       : senesteAendring.status === "afvist" ? "bg-gray-50 text-gray-500 border-gray-200"
@@ -191,7 +224,7 @@ function ReviewAendringFooter({
         <p className="text-sm text-gray-700 leading-relaxed">{reviewAendringVisningstekst(senesteAendring.felt, senesteAendring.ny_vaerdi)}</p>
         {senesteAendring.status !== "afventer" && (
           <button onClick={onAabn} className="mt-2 text-xs font-medium text-gray-400 hover:text-[#1e3a2a] transition-colors">
-            Foreslå ny ændring
+            {foreslaaLabel === "Foreslå andre datoer" ? "Foreslå andre datoer igen" : "Foreslå ny ændring"}
           </button>
         )}
       </div>
@@ -200,9 +233,16 @@ function ReviewAendringFooter({
 
   return (
     <button onClick={onAabn} className="mt-4 pt-4 border-t border-gray-100 w-full text-left text-xs font-medium text-gray-400 hover:text-[#1e3a2a] transition-colors">
-      Foreslå ændring
+      {foreslaaLabel}
     </button>
   );
+}
+
+function parsePrisDraft(draft: ReviewDraft): number | null {
+  const raw = draft.foreslaaetPris.trim();
+  if (!raw) return null;
+  const parsed = parseFloat(raw.replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 interface TidsplanFase {
@@ -1789,9 +1829,18 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                   onToggle={(checked) => setReviewBekraeftet((prev) => ({ ...prev, tidsplan: checked }))}
                 />
               ) : null;
-              const tidsplanAendringFooter = klarTilBygherreGodkendelse && harReviewbarTidsplan ? (
-                <ReviewAendringFooter {...reviewAendringFooterProps("tidsplan")} />
-              ) : null;
+              // Bugfix v1 (Problem 2) — kontekstuel affordance-label: når
+              // datoerne allerede er bekræftet af entreprenøren (uden
+              // ændringer), skal handlingen hedde "Foreslå andre datoer"
+              // fremfor den generiske "Foreslå ændring", så den ikke ser ud
+              // som om datoerne stadig mangler afklaring.
+              const renderTidsplanAendringFooter = (datoerBekraeftet: boolean) =>
+                klarTilBygherreGodkendelse && harReviewbarTidsplan ? (
+                  <ReviewAendringFooter
+                    {...reviewAendringFooterProps("tidsplan")}
+                    foreslaaLabel={datoerBekraeftet ? "Foreslå andre datoer" : "Foreslå ændring"}
+                  />
+                ) : null;
 
               if (!tp) {
                 return (
@@ -1812,7 +1861,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       </div>
                     </div>
                     {tidsplanReviewToggle}
-                    {tidsplanAendringFooter}
+                    {renderTidsplanAendringFooter(false)}
                   </div>
                 );
               }
@@ -1867,7 +1916,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         </div>
                       )}
                       {tidsplanReviewToggle}
-                      {tidsplanAendringFooter}
+                      {renderTidsplanAendringFooter(!harAendringer)}
                     </div>
                   </div>
                 );
@@ -1940,7 +1989,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                         </p>
                       )}
                       {tidsplanReviewToggle}
-                      {tidsplanAendringFooter}
+                      {renderTidsplanAendringFooter(true)}
                     </div>
                   </div>
                 );
@@ -2078,7 +2127,7 @@ export default function Forhandling({ params }: { params: Promise<{ id: string }
                       </div>
                     )}
                     {tidsplanReviewToggle}
-                    {tidsplanAendringFooter}
+                    {renderTidsplanAendringFooter(!harAendringer)}
                   </div>
                 </div>
               );

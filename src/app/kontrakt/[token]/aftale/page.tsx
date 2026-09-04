@@ -4,18 +4,43 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import DokumentRenderer from "@/components/DokumentRenderer";
 import BesigtigelseKort from "@/components/BesigtigelseKort";
-import { reviewAendringVisningstekst, type ReviewAendringType } from "@/lib/reviewAendringVisning";
+import {
+  fmtTidsplanFragment,
+  effektivTidsplanDatoer,
+  prisErUaendret,
+  tidsplanErUaendret,
+  betalingsplanErUaendret,
+  forudsaetningerErUaendret,
+  pristRaekker,
+  tidsplanRaekker,
+  type ReviewAendringType,
+} from "@/lib/reviewAendringVisning";
 
 // Sektionsbaseret forhandling v1 — bygherres review_*-ændringsønsker, som
 // de kommer retur fra GET /api/kontrakt/[token]s wildcard-select af
-// kontraktaendringer. Kun status/felt/ny_vaerdi er nødvendige på denne
-// side (ingen accept/afvis-knapper baseret på gammel_vaerdi/kommentar her).
+// kontraktaendringer. gammel_vaerdi indgår nu også her (bugfix v1) — den
+// bruges client-side UDELUKKENDE til at vise, om sektionen reelt er
+// ændret siden anmodningen blev oprettet (samme sammenligning som
+// server-guarden i /review-forslag bruger autoritativt).
 interface ReviewAendring {
   id: string;
   felt: string;
   ny_vaerdi: string;
+  gammel_vaerdi: string;
   status: "afventer" | "accepteret" | "afvist";
   oprettet_at: string;
+}
+
+// Narrow, kun de felter BygherreOenskerAendring reelt skal sammenligne
+// imod — undgår at trække hele den store Kontrakt-interfacen (defineret
+// længere nede) op foran dens brug.
+interface KontraktTilSammenligning {
+  total_pris: number | null;
+  tidsplan: Tidsplan | null;
+  startdato: string | null;
+  slutdato: string | null;
+  betalingsplan: { milepæl: string; andel: string }[] | null;
+  forudsaetninger: string | null;
 }
 
 function senesteAfventendeReview(rows: ReviewAendring[] | undefined, felt: ReviewAendringType): ReviewAendring | null {
@@ -24,38 +49,108 @@ function senesteAfventendeReview(rows: ReviewAendring[] | undefined, felt: Revie
   return match.reduce((nyeste, r) => (new Date(r.oprettet_at) > new Date(nyeste.oprettet_at) ? r : nyeste));
 }
 
-// Sektionsbaseret forhandling v1 — vises direkte ved den relevante
-// sektion, når bygherre har et konkret, afventende ændringsønske til den.
+function safeParse(json: string): Record<string, unknown> {
+  try {
+    return JSON.parse(json) ?? {};
+  } catch {
+    return {};
+  }
+}
+
+// Sektionsbaseret forhandling v1 (bugfix v1) — vises direkte ved den
+// relevante sektion, når bygherre har et konkret, afventende
+// ændringsønske til den. Viser bygherres ønske OG den aktuelle/reviderede
+// kontraktværdi side om side, så det aldrig kan se ud som om bygherres
+// præcise tal er "indarbejdet", hvis entreprenøren i virkeligheden har
+// revideret til noget andet (eller slet intet har ændret endnu).
 // "Indarbejd ændring" åbner/aktiverer udelukkende den eksisterende editor
 // for sektionen — resolve sker først ved et separat, eksplicit klik på
-// "Markér som indarbejdet" (to-trins, se produktbeslutning). Ingen af
-// knapperne rører noget kontraktfelt.
+// "Markér som behandlet", som kun vises, når sektionen reelt er ændret
+// (server-siden håndhæver dette autoritativt, se /review-forslag).
 function BygherreOenskerAendring({
   aendring,
+  kontrakt,
   onIndarbejd,
-  onMarkerIndarbejdet,
+  onMarkerBehandlet,
   onAfvis,
   arbejder,
   fejl,
 }: {
   aendring: ReviewAendring;
+  kontrakt: KontraktTilSammenligning;
   onIndarbejd: () => void;
-  onMarkerIndarbejdet: () => void;
+  onMarkerBehandlet: () => void;
   onAfvis: () => void;
   arbejder: boolean;
   fejl: string | null;
 }) {
+  const ny = safeParse(aendring.ny_vaerdi);
+  const gammel = safeParse(aendring.gammel_vaerdi);
+  const kommentar = typeof ny.kommentar === "string" ? ny.kommentar : null;
+
+  let onskedeRaekker: ReturnType<typeof pristRaekker> = [];
+  let aktuelleRaekker: ReturnType<typeof pristRaekker> = [];
+  let aendret = false;
+
+  if (aendring.felt === "review_total_pris") {
+    onskedeRaekker = pristRaekker({ foreslaaetPris: ny.foreslaaetPris as number | null | undefined }, "Foreslået");
+    aendret = !prisErUaendret(gammel.pris as number | null | undefined, kontrakt.total_pris);
+    if (kontrakt.total_pris) {
+      aktuelleRaekker = pristRaekker({ foreslaaetPris: kontrakt.total_pris }, aendret ? "Revideret" : "Aktuel");
+    }
+  } else if (aendring.felt === "review_tidsplan") {
+    const oenske = { startdato: ny.startdato as string | null | undefined, slutdato: ny.slutdato as string | null | undefined };
+    onskedeRaekker = tidsplanRaekker(oenske, "Foreslået");
+    const aktuel = effektivTidsplanDatoer(kontrakt.tidsplan, kontrakt.startdato, kontrakt.slutdato);
+    aendret = !tidsplanErUaendret(
+      { startdato: gammel.startdato as string | null | undefined, slutdato: gammel.slutdato as string | null | undefined },
+      aktuel.startdato,
+      aktuel.slutdato,
+    );
+    aktuelleRaekker = tidsplanRaekker(
+      { startdato: oenske.startdato ? aktuel.startdato : null, slutdato: oenske.slutdato ? aktuel.slutdato : null },
+      aendret ? "Revideret" : "Aktuel",
+    );
+  } else if (aendring.felt === "review_betalingsplan") {
+    aendret = !betalingsplanErUaendret(
+      gammel.betalingsplan as { milepæl: string; andel: string }[] | null | undefined,
+      kontrakt.betalingsplan,
+    );
+  } else {
+    aendret = !forudsaetningerErUaendret(gammel.tekst as string | null | undefined, kontrakt.forudsaetninger);
+  }
+
   return (
     <div className="bg-[#f5f3ee] border border-[#e0ddd6] rounded-xl px-4 py-3.5 mb-4">
-      <p className="text-[10px] font-bold text-[#1e3a2a] uppercase tracking-widest mb-1.5">Bygherre ønsker ændring</p>
-      <p className="text-sm text-gray-800 leading-relaxed mb-3">{reviewAendringVisningstekst(aendring.felt, aendring.ny_vaerdi)}</p>
+      <p className="text-[10px] font-bold text-[#1e3a2a] uppercase tracking-widest mb-2">Bygherre ønsker ændring</p>
+      <div className="space-y-2 mb-3">
+        {onskedeRaekker.map((r) => (
+          <div key={r.label}>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{r.label}</p>
+            <p className="text-sm font-bold text-gray-900">{r.vaerdi}</p>
+          </div>
+        ))}
+        {kommentar && <p className="text-sm text-gray-700 italic leading-relaxed">&ldquo;{kommentar}&rdquo;</p>}
+        {aktuelleRaekker.length > 0 && (
+          <div className="pt-2 border-t border-[#e0ddd6] space-y-2">
+            {aktuelleRaekker.map((r) => (
+              <div key={r.label}>
+                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{r.label}</p>
+                <p className="text-sm font-bold text-gray-900">{r.vaerdi}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <button onClick={onIndarbejd} className="text-xs font-bold text-[#1e3a2a] hover:underline">
           Indarbejd ændring
         </button>
-        <button onClick={onMarkerIndarbejdet} disabled={arbejder} className="text-xs font-semibold text-gray-600 hover:text-[#1e3a2a] disabled:opacity-50">
-          {arbejder ? "Gemmer..." : "Markér som indarbejdet"}
-        </button>
+        {aendret && (
+          <button onClick={onMarkerBehandlet} disabled={arbejder} className="text-xs font-semibold text-gray-600 hover:text-[#1e3a2a] disabled:opacity-50">
+            {arbejder ? "Gemmer..." : "Markér som behandlet"}
+          </button>
+        )}
         <button onClick={onAfvis} disabled={arbejder} className="text-xs text-gray-400 hover:text-red-500 disabled:opacity-50">
           Afvis ændringsønske
         </button>
@@ -65,7 +160,7 @@ function BygherreOenskerAendring({
   );
 }
 
-function ManuelPris({ token, onGemt }: { token: string; onGemt: (pris: number) => void }) {
+function ManuelPris({ token, onGemt, triggerLabel = "Intet dokument — indtast pris manuelt" }: { token: string; onGemt: (pris: number) => void; triggerLabel?: string }) {
   const [prisInput, setPrisInput] = useState("");
   const [gemmer, setGemmer] = useState(false);
   const [vis, setVis] = useState(false);
@@ -117,7 +212,7 @@ function ManuelPris({ token, onGemt }: { token: string; onGemt: (pris: number) =
       <div className="mt-4 pt-4 border-t border-gray-100">
         <button onClick={() => setVis(true)} className="flex items-center gap-2 text-sm font-semibold text-[#1a5c38] hover:underline">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Intet dokument — indtast pris manuelt
+          {triggerLabel}
         </button>
       </div>
     );
@@ -289,7 +384,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
   // review-forslag) — rører aldrig et kontraktfelt.
   const [resolverAendringId, setResolverAendringId] = useState<string | null>(null);
   const [resolveFejl, setResolveFejl] = useState<string | null>(null);
-  const [nyligtResolveret, setNyligtResolveret] = useState<Record<string, "indarbejdet" | "afvist">>({});
+  const [nyligtResolveret, setNyligtResolveret] = useState<Record<string, "behandlet" | "afvist">>({});
 
   // Betalingsplan
   const [betalingsplanRækker, setBetalingsplanRækker] = useState<{ milepæl: string; andel: string }[]>([
@@ -528,12 +623,14 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
     setSletter(false);
   }
 
-  // Sektionsbaseret forhandling v1 — "Markér som indarbejdet"/"Afvis
-  // ændringsønske". Rører aldrig kontraktens felter (se den dedikerede
-  // /review-forslag-route). Fail-safe: fejler kaldet, forbliver requesten
-  // "afventer", og knappen kan forsøges igen uden at skulle redigere
-  // sektionen på ny.
-  async function resolveReviewAendring(aendring_id: string, handling: "indarbejdet" | "afvist") {
+  // Sektionsbaseret forhandling v1 (bugfix v1) — "Markér som
+  // behandlet"/"Afvis ændringsønske". Rører aldrig kontraktens felter (se
+  // den dedikerede /review-forslag-route). Serveren er autoritativ for,
+  // om "behandlet" reelt må lykkes (kræver en faktisk ændring af
+  // sektionen siden anmodningen blev oprettet) — fejler kaldet (fx 409,
+  // hvis intet er ændret endnu), forbliver requesten "afventer", og
+  // knappen kan forsøges igen uden at skulle redigere sektionen på ny.
+  async function resolveReviewAendring(aendring_id: string, handling: "behandlet" | "afvist") {
     if (resolverAendringId) return;
     setResolveFejl(null);
     setResolverAendringId(aendring_id);
@@ -822,8 +919,9 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               {forudsaetningerAendring && (
                 <BygherreOenskerAendring
                   aendring={forudsaetningerAendring}
+                  kontrakt={kontrakt}
                   onIndarbejd={() => setRedigererForudsaetninger(true)}
-                  onMarkerIndarbejdet={() => resolveReviewAendring(forudsaetningerAendring.id, "indarbejdet")}
+                  onMarkerBehandlet={() => resolveReviewAendring(forudsaetningerAendring.id, "behandlet")}
                   onAfvis={() => resolveReviewAendring(forudsaetningerAendring.id, "afvist")}
                   arbejder={resolverAendringId === forudsaetningerAendring.id}
                   fejl={resolverAendringId === forudsaetningerAendring.id ? resolveFejl : null}
@@ -831,7 +929,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               )}
               {!forudsaetningerAendring && nyligtResolveret.review_forudsaetninger && (
                 <p className="text-xs text-gray-400 mb-3">
-                  {nyligtResolveret.review_forudsaetninger === "indarbejdet" ? "Ændringsønske indarbejdet" : "Ændringsønske afvist"}
+                  {nyligtResolveret.review_forudsaetninger === "behandlet" ? "Ændringsønske behandlet" : "Ændringsønske afvist"}
                 </p>
               )}
 
@@ -915,12 +1013,13 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
             {prisAendring && (
               <BygherreOenskerAendring
                 aendring={prisAendring}
+                kontrakt={kontrakt}
                 onIndarbejd={() => {
                   if (kontrakt.total_pris && !kontrakt.tilbud_dokument_url) {
                     setKontrakt(prev => prev ? { ...prev, total_pris: null } : prev);
                   }
                 }}
-                onMarkerIndarbejdet={() => resolveReviewAendring(prisAendring.id, "indarbejdet")}
+                onMarkerBehandlet={() => resolveReviewAendring(prisAendring.id, "behandlet")}
                 onAfvis={() => resolveReviewAendring(prisAendring.id, "afvist")}
                 arbejder={resolverAendringId === prisAendring.id}
                 fejl={resolverAendringId === prisAendring.id ? resolveFejl : null}
@@ -928,7 +1027,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
             )}
             {!prisAendring && nyligtResolveret.review_total_pris && (
               <p className="text-xs text-gray-400 mb-3">
-                {nyligtResolveret.review_total_pris === "indarbejdet" ? "Ændringsønske indarbejdet" : "Ændringsønske afvist"}
+                {nyligtResolveret.review_total_pris === "behandlet" ? "Ændringsønske behandlet" : "Ændringsønske afvist"}
               </p>
             )}
 
@@ -1025,6 +1124,21 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               />
             )}
 
+            {/* Bugfix — pris IKKE fundet automatisk, men dokumentet blev
+                stadig succesfuldt uploadet. Manuel indtastning skal fortsat
+                være mulig her, uden at skulle slette og genuploade
+                dokumentet for at få adgang til feltet igen. */}
+            {kontrakt.tilbud_dokument_url && !kontrakt.total_pris && !foreslaaetPris && (
+              <>
+                <p className="mt-3 text-xs text-gray-500">Tilbudssummen kunne ikke findes automatisk.</p>
+                <ManuelPris
+                  token={token}
+                  onGemt={(pris) => setKontrakt(prev => prev ? { ...prev, total_pris: pris } : prev)}
+                  triggerLabel="Indtast entreprisesum"
+                />
+              </>
+            )}
+
             {kontrakt.total_pris && !kontrakt.tilbud_dokument_url && (
               <div className="mt-3 flex items-center gap-2 text-sm text-green-700 font-semibold">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -1075,12 +1189,13 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               {betalingsplanAendring && !låst && (
                 <BygherreOenskerAendring
                   aendring={betalingsplanAendring}
+                  kontrakt={kontrakt}
                   onIndarbejd={() => {
                     setBetalingsplanRækker(harPlan && kontrakt.betalingsplan ? kontrakt.betalingsplan : [{ milepæl: "", andel: "" }, { milepæl: "", andel: "" }]);
                     setBetalingsplanFejl(null);
                     setRedigererBetalingsplan(true);
                   }}
-                  onMarkerIndarbejdet={() => resolveReviewAendring(betalingsplanAendring.id, "indarbejdet")}
+                  onMarkerBehandlet={() => resolveReviewAendring(betalingsplanAendring.id, "behandlet")}
                   onAfvis={() => resolveReviewAendring(betalingsplanAendring.id, "afvist")}
                   arbejder={resolverAendringId === betalingsplanAendring.id}
                   fejl={resolverAendringId === betalingsplanAendring.id ? resolveFejl : null}
@@ -1088,7 +1203,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
               )}
               {!betalingsplanAendring && nyligtResolveret.review_betalingsplan && (
                 <p className="text-xs text-gray-400 mb-3">
-                  {nyligtResolveret.review_betalingsplan === "indarbejdet" ? "Ændringsønske indarbejdet" : "Ændringsønske afvist"}
+                  {nyligtResolveret.review_betalingsplan === "behandlet" ? "Ændringsønske behandlet" : "Ændringsønske afvist"}
                 </p>
               )}
 
@@ -1252,8 +1367,9 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                 {tidsplanAendring && (
                   <BygherreOenskerAendring
                     aendring={tidsplanAendring}
+                    kontrakt={kontrakt}
                     onIndarbejd={() => setVisTidsplanEditor(true)}
-                    onMarkerIndarbejdet={() => resolveReviewAendring(tidsplanAendring.id, "indarbejdet")}
+                    onMarkerBehandlet={() => resolveReviewAendring(tidsplanAendring.id, "behandlet")}
                     onAfvis={() => resolveReviewAendring(tidsplanAendring.id, "afvist")}
                     arbejder={resolverAendringId === tidsplanAendring.id}
                     fejl={resolverAendringId === tidsplanAendring.id ? resolveFejl : null}
@@ -1261,7 +1377,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                 )}
                 {!tidsplanAendring && nyligtResolveret.review_tidsplan && (
                   <p className="text-xs text-gray-400 mb-3">
-                    {nyligtResolveret.review_tidsplan === "indarbejdet" ? "Ændringsønske indarbejdet" : "Ændringsønske afvist"}
+                    {nyligtResolveret.review_tidsplan === "behandlet" ? "Ændringsønske behandlet" : "Ændringsønske afvist"}
                   </p>
                 )}
               </>
@@ -1354,7 +1470,7 @@ export default function HaandvaerkerAftaleSide({ params }: { params: Promise<{ t
                   </div>
                 </div>
                 <p className="text-xs text-white/50 leading-relaxed mt-2">
-                  Bygherre ønsker opstart{kontrakt.startdato && <span className="text-white/80 font-semibold"> {fmtDatoKort(kontrakt.startdato)}</span>} og aflevering{kontrakt.slutdato && <span className="text-white/80 font-semibold"> {fmtDatoKort(kontrakt.slutdato)}</span>}. Bekræft eller foreslå andre datoer.
+                  Bygherre ønsker {fmtTidsplanFragment(kontrakt.startdato, kontrakt.slutdato, fmtDatoKort)}. Bekræft eller foreslå andre datoer.
                 </p>
               </div>
 

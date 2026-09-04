@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase-server";
+import {
+  effektivTidsplanDatoer,
+  prisErUaendret,
+  tidsplanErUaendret,
+  betalingsplanErUaendret,
+  forudsaetningerErUaendret,
+} from "@/lib/reviewAendringVisning";
 
 export const runtime = "nodejs";
 
@@ -21,8 +28,20 @@ const REVIEW_FELTER = [
   "review_forudsaetninger",
 ] as const;
 
+// Bugfix-runde v1 — "behandlet" (klientvendt handling) betyder: "sektionen
+// er faktisk revideret siden ønsket blev oprettet". Internt bruges fortsat
+// status "accepteret" (ingen migration), men handling-værdien hedder nu
+// "behandlet" (ikke "indarbejdet"), fordi entreprenørens nye værdi ikke
+// nødvendigvis er identisk med bygherres foreslåede værdi — kun at
+// sektionen ER redigeret siden.
+type Handling = "behandlet" | "afvist";
+
+function erGyldigHandling(v: unknown): v is Handling {
+  return v === "behandlet" || v === "afvist";
+}
+
 // PATCH /api/kontrakt/[token]/review-forslag — entreprenøren markerer et
-// bygherre-ændringsønske som indarbejdet eller afvist.
+// bygherre-ændringsønske som behandlet eller afvist.
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
 
@@ -40,10 +59,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ to
     return NextResponse.json({ error: "Ugyldig session" }, { status: 401 });
   }
 
-  // 2. Hent kontrakt via token
+  // 2. Hent kontrakt via token — inkl. de materielle felter, der kan
+  // være relevante for sammenligningen nedenfor. Én select er billigere
+  // end at slå kontrakten op igen senere, og alle felter er allerede
+  // dokumenteret nødvendige for én eller flere review_*-typer.
   const { data: kontrakt } = await db
     .from("kontrakter")
-    .select("id, bygherre_id, haandvaerker_email")
+    .select("id, bygherre_id, haandvaerker_email, total_pris, tidsplan, startdato, slutdato, betalingsplan, forudsaetninger")
     .eq("haandvaerker_token", token)
     .single();
 
@@ -72,8 +94,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ to
   if (!aendring_id || typeof aendring_id !== "string") {
     return NextResponse.json({ error: "aendring_id mangler" }, { status: 400 });
   }
-  if (handling !== "indarbejdet" && handling !== "afvist") {
-    return NextResponse.json({ error: "handling skal være 'indarbejdet' eller 'afvist'" }, { status: 400 });
+  if (!erGyldigHandling(handling)) {
+    return NextResponse.json({ error: "handling skal være 'behandlet' eller 'afvist'" }, { status: 400 });
   }
 
   // 4. Hent selve ændringsrækken og verificér i samme kald, at den
@@ -83,7 +105,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ to
   // resolves via denne route.
   const { data: aendring } = await db
     .from("kontraktaendringer")
-    .select("id, kontrakt_id, felt, forfatter, status")
+    .select("id, kontrakt_id, felt, forfatter, status, gammel_vaerdi")
     .eq("id", aendring_id)
     .eq("kontrakt_id", kontrakt.id)
     .eq("forfatter", "bygherre")
@@ -98,14 +120,59 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ to
   // den aktuelle tilstand som en tydelig konflikt.
   if (aendring.status !== "afventer") {
     return NextResponse.json(
-      { error: `Dette ændringsønske er allerede ${aendring.status === "accepteret" ? "markeret som indarbejdet" : "afvist"}.`, aendring },
+      { error: `Dette ændringsønske er allerede ${aendring.status === "accepteret" ? "markeret som behandlet" : "afvist"}.`, aendring },
       { status: 409 }
     );
   }
 
-  const nyStatus = handling === "indarbejdet" ? "accepteret" : "afvist";
+  // 6. Server-side guard (bugfix v1) — "behandlet" må kun lykkes, hvis den
+  // relevante sektion FAKTISK er ændret siden requestens gemte
+  // gammel_vaerdi-snapshot. Ellers ville UI'et kunne vise "Ændringsønske
+  // behandlet", mens kontraktværdien reelt stod uændret. Dette er en
+  // fail-closed server-kontrol, ikke kun client-UX. "Afvist" kræver ingen
+  // sammenligning — entreprenøren kan altid afvise uden at redigere noget.
+  if (handling === "behandlet") {
+    let gammelVaerdi: Record<string, unknown> = {};
+    try {
+      gammelVaerdi = JSON.parse(aendring.gammel_vaerdi ?? "{}");
+    } catch {
+      gammelVaerdi = {};
+    }
 
-  // 6. Ren audit-opdatering. Ingen skrivning til kontrakter-tabellen sker
+    let uaendret = false;
+    let sektionsFejl = "Der er endnu ikke foretaget en ændring i denne sektion.";
+
+    if (aendring.felt === "review_total_pris") {
+      uaendret = prisErUaendret(gammelVaerdi.pris as number | null | undefined, kontrakt.total_pris);
+      sektionsFejl = "Der er endnu ikke foretaget en ændring i entreprisesummen.";
+    } else if (aendring.felt === "review_tidsplan") {
+      const aktuel = effektivTidsplanDatoer(kontrakt.tidsplan, kontrakt.startdato, kontrakt.slutdato);
+      uaendret = tidsplanErUaendret(
+        { startdato: gammelVaerdi.startdato as string | null | undefined, slutdato: gammelVaerdi.slutdato as string | null | undefined },
+        aktuel.startdato,
+        aktuel.slutdato,
+      );
+      sektionsFejl = "Der er endnu ikke foretaget en ændring i tidsplanen.";
+    } else if (aendring.felt === "review_betalingsplan") {
+      uaendret = betalingsplanErUaendret(
+        gammelVaerdi.betalingsplan as { milepæl: string; andel: string }[] | null | undefined,
+        kontrakt.betalingsplan as { milepæl: string; andel: string }[] | null | undefined,
+      );
+      sektionsFejl = "Der er endnu ikke foretaget en ændring i betalingsplanen.";
+    } else {
+      // review_forudsaetninger
+      uaendret = forudsaetningerErUaendret(gammelVaerdi.tekst as string | null | undefined, kontrakt.forudsaetninger);
+      sektionsFejl = "Der er endnu ikke foretaget en ændring i forudsætningerne.";
+    }
+
+    if (uaendret) {
+      return NextResponse.json({ error: sektionsFejl }, { status: 409 });
+    }
+  }
+
+  const nyStatus = handling === "behandlet" ? "accepteret" : "afvist";
+
+  // 7. Ren audit-opdatering. Ingen skrivning til kontrakter-tabellen sker
   // nogensinde i denne route — det er hele pointen med at holde den
   // adskilt fra den gamle /forslag-routes accept-og-anvend-semantik.
   const { data, error } = await db
